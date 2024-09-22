@@ -1,0 +1,102 @@
+<languages/>
+
+{{Docnav/it
+|[[Manual:Using_spreadsheets/it|Usare i fogli di calcolo]]
+|[[Manual:Creating_renderings/it|Creare rendering]]
+|[[Manual:Introduction/it|Pagina iniziale del manuale]]
+|IconC=Crystal_Clear_ manual.png
+}}
+
+{{Manual:TOC}}
+
+FEM sta per [https://en.wikipedia.org/wiki/Finite_element_method Finite Element Method] (metodo degli elementi finiti). Si tratta di un vasto argomento di matematica, ma in FreeCAD possiamo riassumerlo come un modo per calcolare le propagazioni all'interno di un oggetto 3D, tagliandolo in piccoli pezzi, e analizzando l'impatto di ogni piccolo pezzo rispetto a quelli vicini. Questo ha diversi utilizzi nei campi dell'ingegneria e dell'elettromagnetismo, ma qui vedremo in modo più approfondito il suo utilizzo già ben sviluppato in FreeCAD, per simulare le deformazioni negli oggetti che sono sottoposti a forze e pesi.
+
+In FreeCAD tale simulazione è fatta con l'ambiente [[FEM_Workbench/it|FEM]]. Si tratta di diverse fasi: preparare la geometria, impostare il suo materiale, eseguire la meshing, dividere in parti più piccole, come abbiamo fatto nel capitolo [[Manual:Preparing_models_for_3D_printing/it|Preparare gli oggetti per la stampa 3D]], ed infine calcolare la simulazione.
+
+[[Image:Exercise_fem_01.jpg|600px]]
+
+<span id="Preparing_FreeCAD"></span>
+=== Preparare FreeCAD ===
+
+La simulazione vera e propria viene effettuata con un altro pezzo di software, che viene utilizzato da FreeCAD per ottenere i risultati. Dato che ci sono diverse interessanti applicazioni FEM open-source di simulazione disponibili, l'ambiente [[FEM_Workbench/it|FEM]] è stato costruito in modo da poterne utilizzare più di una. Tuttavia, per ora è pienamente implementato solo [http://www.calculix.de/ CalculiX]. È anche necessario un altro pezzo di software, chiamato [https://sourceforge.net/projects/netgen-mesher/ NetGen], che è responsabile della generazione della suddivisione in maglie. Le istruzioni dettagliate per l'installazione di questi due componenti sono fornite nella [[FEM_Install/it|documentazione di FreeCAD]].
+
+<span id="Preparing_the_geometry"></span>
+=== Preparare la geometria ===
+
+Utilizzeremo la casa modellata nel capitolo [[Manual:BIM modeling/it|Modellazione BIM]]. Tuttavia, devono essere fatte alcune modifiche per rendere il modello adatto ai calcoli FEM. Si tratta, in sostanza, di scartare gli oggetti che non vogliamo includere nel calcolo, come ad esempio la porta e la finestra, e di unire tutti gli oggetti rimanenti in uno solo.
+
+* Caricare il [https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/house.FCStd modello di casa] creato in precedenza
+* Eliminare o nascondere l'oggetto pagina, i piani di sezione e le dimensioni, in modo che rimanga solo con il modello
+* Nascondere la finestra, la porta e la soletta del piano terra
+* Nascondere anche le travi di metallo del tetto. Dato che sono oggetti molto diversi dal resto della casa, non includendoli si semplifica il calcolo. Invece, considereremo il solaio di copertura come se fosse posto direttamente sulla parte superiore delle pareti.
+* Ora spostare la soletta del tetto verso il basso in modo che appoggi sulla parte superiore delle pareti: modificare l'oggetto '''Rettangolo''' usato come base del solaio di copertura, e cambiare il suo valore '''Placement->Position->X''' da 3.18&nbsp;m a 3.00&nbsp;m
+* Ora il modello è ripulito:
+
+:[[Image:Exercise_fem_02.jpg|600px]]
+
+* Attualmente l'ambiente FEM può calcolare solo le deformazioni su un singolo oggetto. Pertanto, bisogna unire i due oggetti (il muro e la soletta). Passare nell'ambiente [[Part_Workbench/it|Part]], selezionare i due oggetti, e premere il pulsante {{Button|[[Image:Part_Fuse.svg|16px]] [[Part_Union/it|Unione]]}}. Ora abbiamo ottenuto un oggetto fuso:
+
+:[[Image:Exercise_fem_03.jpg|600px]]
+
+<span id="Creating_the_analysis"></span>
+=== Creare l'analisi ===
+
+* Ora siamo pronti per iniziare una analisi FEM. Passare all'ambiente [[FEM_Workbench/it|FEM]]
+* Selezionare l'oggetto fuso
+* Premere il pulsante {{Button|[[Image:FEM_Analysis.svg|16px]] [[FEM_Analysis/it|Nuova analisi]]}}
+* Viene creata una nuova analisi e si apre un pannello per le impostazioni. Qui è possibile definire i parametri di meshing da utilizzare per produrre la mesh FEM. L'impostazione principale da modificare è il '''Max Size''' che definisce la dimensione massima (in millimetri) di ciascuna parte della mesh. Per ora, possiamo lasciare il valore predefinito di 1000:
+
+:[[Image:Exercise_fem_04.jpg|600px]]
+
+* Dopo aver premuto {{Button|OK}} e pochi secondi di calcolo, la mesh FEM è pronta:
+
+:[[Image:Exercise_fem_05.jpg|600px]]
+
+* Ora possiamo definire il materiale da applicare alla mesh. Questo è importante perché secondo la resistenza del materiale,l'oggetto reagisce in modo diverso alle forze ad esso applicate. Selezionare l'oggetto Analisi e premere il pulsante {{Button|[[Image:FEM_MaterialSolid.svg|16px]] [[FEM_MaterialSolid/it|Nuovo materiale]]}}.
+* Si apre un pannello delle attività che consente di scegliere un materiale. Nell'elenco a discesa dei Materiali, scegliere '''Concrete-generic''', e premere {{Button|OK}}.
+
+:[[Image:Exercise_fem_06.jpg|600px]]
+
+* Ora siamo pronti ad applicare le forze. Iniziamo specificando quali facce sono fissate nel terreno e, pertanto, non possono muoversi. Premere il pulsante {{Button|[[Image:FEM_ConstraintFixed.svg|16px]] [[FEM_ConstraintFixed/it|Vincolo fissaggio]]}}.
+* Cliccare sulla faccia inferiore dell'edificio e premere {{Button|OK}}. La faccia inferiore è indicata come inamovibile:
+
+:[[Image:Exercise_fem_07.jpg|600px]]
+
+* Ora aggiungeremo un carico sulla faccia superiore, che potrebbe rappresentare, per esempio, un peso massiccio distribuito sul tetto. Per questo useremo un vincolo pressione. Premere il pulsante {{Button|[[Image:FEM_ConstraintPressure.svg|16px]] [[FEM_ConstraintPressure/it|Vincolo pressione]]}}.
+* Fare clic sulla faccia superiore del tetto, impostare la pressione di '''10MPa''' (la pressione viene applicata per millimetro quadrato) e fare clic sul pulsante {{Button|OK}}. Ora la forza è applicata:
+
+:[[Image:Exercise_fem_08.jpg|600px]]
+
+* Ora siamo pronti per iniziare il calcolo. Selezionare l'oggetto '''CalculiX''' nella vista ad albero, e premere il pulsante {{Button|[[Image:FEM_SolverControl.svg|16px]] [[FEM_SolverControl/it|Calcola]]}}.
+* Nel pannello delle attività che si apre, cliccare prima il pulsante {{Button|Write .inp file}}  per creare il file di input per CalculiX, poi il pulsante {{Button|Run CalculiX}}. Pochi istanti dopo il calcolo viene eseguito:
+
+:[[Image:Exercise_fem_09.jpg|600px]]
+
+* Ora possiamo guardare ai risultati. Chiudere il pannello delle attività, e vedere che all'analisi è stato aggiunto un nuovo oggetto '''Risultati''' .
+* Fare doppio clic sull'oggetto Risultati
+* Impostare il tipo di risultato che si desidera visualizzare sulla mesh, per esempio "absolute displacement", spuntare la casella di controllo '''show''' sotto '''Displacement''', e spostare il cursore accanto ad essa. È possibile vedere che la deformazione aumenta man mano che si applica una forza maggiore:
+
+:[[Image:Exercise_fem_10.jpg|600px]]
+
+Naturalmente, i risultati visualizzati attualmente dall'ambiente FEM non sono sufficienti per prendere delle decisioni reali sul dimensionamento delle strutture e sui materiali. Tuttavia, essi possono già dare preziose informazioni su come le forze fluiscono attraverso una struttura, e quali sono le aree deboli maggiormente sottoposte allo stress.
+
+'''Download'''
+
+* Il file creato durante questo esercizio: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/fem.FCStd
+
+'''Approfondimenti'''
+
+* [[FEM_Workbench/it|L'ambiente FEM]]
+* [[FEM_Install/it|Installazione dei componenti richiesti da FEM]]
+* [http://www.calculix.de CalculiX]
+* [https://sourceforge.net/projects/netgen-mesher NetGen] 
+
+
+{{Docnav/it
+|[[Manual:Using_spreadsheets/it|Usare i fogli di calcolo]]
+|[[Manual:Creating_renderings/it|Creare rendering]]
+|[[Manual:Introduction/it|Pagina iniziale del manuale]]
+|IconC=Crystal_Clear_ manual.png
+}}
+
+[[Category:Tutorials{{#translation:}}]]

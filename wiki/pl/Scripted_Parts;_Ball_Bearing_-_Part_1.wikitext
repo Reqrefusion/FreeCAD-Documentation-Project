@@ -1,0 +1,142 @@
+<languages/>
+{{TutorialInfo/pl
+|Topic= Skrypty części: Łożysko kulkowe - część 1
+|Level= Początkujący
+|Time= 30 min
+|Author=r-frank
+|FCVersion=0.16.6706
+|Files= nie dołączono
+}}
+
+
+===Wprowadzenie===
+Ten poradnik ma na celu wprowadzenie początkujących użytkowników w tworzenie części za pomocą skryptów Python w programie FreeCAD.<br />
+Ten samouczek będzie omawiał, jak zbudować łożysko kulkowe przy użyciu metody CSG.<br />
+Kod wygeneruje nowy dokument FreeCAD zawierający 12 kształtów ''(wewnętrzną obręcz, zewnętrzną obręcz i 10 kul/sfer)''.<br />
+Będzie to wyglądać tak:<br />
+<br />
+[[Image:Tutorial_BallBearing01.jpg|400px]]
+
+
+===Przebieg pracy===
+Przebieg pracy jest mniej więcej identyczny z tym, jak tworzyłbyś część w środowisku pracy Część.<br>
+Tylko kilka małych różnic.<br>
+* Utwórz nowy pusty dokument i ustaw go jako aktywny dokument.
+* Wstaw Walec.
+* Wstaw Walec.
+* Wykonaj operację logiczną - wycięcia, aby uzyskać podstawowy kształt wewnętrznej obręczy.
+* Wybierz wszystkie krawędzie i zastosuj filet.
+* Wstaw torus.
+* Przesuń torus w odpowiednie miejsce i wykonaj operację logiczną wycięcia, aby utworzyć rowek na kule.
+* Powtórz wszystkie kroki, aby uzyskać kształt zewnętrznej obręczy.
+* Wstaw pierwszą kulę.
+* Wstaw inne kule, używając matematyki do obliczenia pozycji kul.
+* Ustaw widok na izometryczny.
+* Przybliż, aby zmieścić wszystko.
+
+
+===Zaokrąglanie krawędzi===
+W warsztacie częściowym, korzystając z interfejsu graficznego, wybierasz skosy w widoku 3D lub w menu dla zaokrągleń, a następnie stosujesz zaokrąglenia.<br>
+Tutaj wybieramy wszystkie krawędzie kształtu i stosujemy zaokrąglenia.<br>
+Dlatego musimy wybrać krawędzie PRZED utworzeniem rowka.
+
+
+===Uwagi===
+Ten poradnik wykorzystuje elementy pierwotne części i operacje logiczne, co może być wymagające dla wydajności.<br>
+Aby wykonać zeszkolony fragment z przekręconymi szkicami, przejrzyj samouczek [[Scripted_Parts:_Ball_Bearing_-_Part_2/pl|Skrypty części: Łożysko kulkowe - część 2]].
+
+
+===Odnośniki internetowe===
+[[Scripted_objects/pl|Obiekty tworzone skryptami]]: Strona Wiki wyjaśniająca podstawy tworzenia skryptów<br>
+[[Topological_data_scripting/pl|Skrypty danych topologicznych]]: Samouczek odsłaniający podstawy tworzenia skryptów<br>
+[[Scripted_Parts:_Ball_Bearing_-_Part_2/pl|Skrypty części: Łożysko kulkowe - część 2]]: Wykonanie za pomocą szkiców<br>
+[http://linuxforanengineer.blogspot.de/2013/08/free-cad-bearing-script.html Bearing Script 1]: Baza dla tego poradnika, podziękowania dla JMG ...<br>
+
+
+===Kod===
+{{Code|code=
+## Ball-bearing script
+## 11.08.2016 by r-frank (BPLRFE/LearnFreeCAD on Youtube)
+## based on ball bearing script by JMG
+## (http://linuxforanengineer.blogspot.de/2013/08/free-cad-bearing-script.html)
+#
+#needed for inserting primitives
+import Part
+#needed for calculating the positions of the balls
+import math
+#needed for translation of torus
+from FreeCAD import Base
+#
+#VALUES#
+#(radius of shaft/inner radius of inner ring)
+R1=15.0
+#(outer radius of inner ring)
+R2=25.0
+#(inner radius of outer ring)
+R3=30.0
+#(outer radius of outer ring)
+R4=40.0
+#(thickness of bearing)
+TH=15.0
+#(number of balls)
+NBall=10
+#(radius of ball)
+RBall=5.0
+#(rounding radius for fillets)
+RR=1
+#first coordinate of center of ball
+CBall=((R3-R2)/2)+R2
+#second coordinate of center of ball
+PBall=TH/2
+#
+#Create new document
+App.newDocument("Unnamed")
+App.setActiveDocument("Unnamed")
+App.ActiveDocument=App.getDocument("Unnamed")
+Gui.ActiveDocument=Gui.getDocument("Unnamed")
+#
+#Inner Ring#
+B1=Part.makeCylinder(R1,TH)
+B2=Part.makeCylinder(R2,TH)
+IR=B2.cut(B1)
+#get edges and apply fillets
+Bedges=IR.Edges
+IRF=IR.makeFillet(RR,Bedges)
+#create groove and show shape
+T1=Part.makeTorus(CBall,RBall)
+T1.translate(Base.Vector(0,0,TH/2))
+InnerRing=IRF.cut(T1)
+Part.show(InnerRing)
+#
+#Outer Ring#
+B3=Part.makeCylinder(R3,TH)
+B4=Part.makeCylinder(R4,TH)
+OR=B4.cut(B3)
+#get edges and apply fillets
+Bedges=OR.Edges
+ORF=OR.makeFillet(RR,Bedges)
+#create groove and show shape
+T2=Part.makeTorus(CBall,RBall)
+T2.translate(Base.Vector(0,0,TH/2))
+OuterRing=ORF.cut(T2)
+Part.show(OuterRing)
+#
+#Balls#
+for i in range(NBall):
+  Ball=Part.makeSphere(RBall)
+  Alpha=(i*2*math.pi)/NBall
+  BV=(CBall*math.cos(Alpha),CBall*math.sin(Alpha),TH/2)
+  Ball.translate(BV)
+  Part.show(Ball)
+#
+#Make it pretty#
+App.activeDocument().recompute()
+Gui.activeDocument().activeView().viewAxometric()
+Gui.SendMsgToActiveView("ViewFit")
+}}
+
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}

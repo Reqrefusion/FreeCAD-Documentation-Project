@@ -1,0 +1,154 @@
+<languages/>
+
+{{Docnav/de
+|[[Manual:Modeling_for_product_design/de|Modellierung zur Produktgestaltung]]
+|[[Manual:Generating_2D_drawings/de|Erzeugung von 2D-Zeichnungen]]
+|[[Manual:Introduction/de|Handbuch Start]]
+|IconC=Crystal_Clear_manual.png
+}}
+
+{{Manual:TOC}}
+
+Einer der Haupteinsatzbereiche von FreeCAD ist die Herstellung von Objekten aus der realen Welt. Diese können in FreeCAD entworfen und dann auf verschiedene Weise realisiert werden, z.B. indem sie anderen Personen mitgeteilt werden, die sie dann bauen, oder, immer häufiger, direkt an einen [https://en.wikipedia.org/wiki/3D_printing 3D Drucker] oder eine [https://en.wikipedia.org/wiki/Milling_%28machining%29 CNC Fräse] geschickt werden. Dieses Kapitel zeigt dir, wie du deine Modelle für den Versand an diese Maschinen vorbereiten kannst.
+
+Wenn du beim Modellieren vorsichtig warst, sind die meisten Schwierigkeiten, auf die du beim Drucken deines Modells in 3D stoßen könntest, bereits vermieden worden. Dies betrifft im Wesentlichen:
+
+* Stelle sicher, dass deine 3D Objekte '''fest''' sind. Objekte der realen Welt sind fest, das 3D Modell muss ebenfalls fest sein. Wir haben in früheren Kapiteln gesehen, dass FreeCAD dir in dieser Hinsicht sehr hilft und dass die [[PartDesign_Workbench/de|PartDesign Arbeitsbereich]] dich benachrichtigt, wenn du eine Operation durchführst, die verhindert, dass dein Modell fest bleibt. Der [[Part_Workbench/de|Part Arbeitsbereich]] enthält auch ein [[Image:Part_CheckGeometry.svg|16px]] [[Part_CheckGeometry/de|Überprüfe Geometrie]] Werkzeug das praktisch ist zur weiteren Prüfung auf mögliche Fehler.
+* vergewissere dich über die '''Abmessungen''' deiner Objekte. Ein Millimeter ist in der Praxis ein Millimeter. Jede Abmessung ist wichtig. 
+* Kontrolle der '''Verringerung'''. Kein 3D Druck- oder CNC Frässystem kann FreeCAD Dateien direkt übernehmen. Die meisten von ihnen verstehen nur eine Maschinensprache namens [https://en.wikipedia.org/wiki/G-code G-Code]. G-Code hat Dutzende von verschiedenen Dialekten, jede Maschine oder jeder Anbieter hat normalerweise seinen eigenen. Die Konvertierung deiner Modelle in G-Code kann einfach und automatisch erfolgen, aber du kannst sie auch manuell durchführen, wobei du die volle Kontrolle über die Ausgabe hast. In jedem Fall wird während des Prozesses unvermeidlich ein gewisser Qualitätsverlust Ihres Modells auftreten. Wenn du in 3D druckst, musst du immer sicherstellen, dass dieser Qualitätsverlust unter deinen Mindestanforderungen bleibt.
+
+Im Folgenden gehen wir davon aus, dass die ersten beiden Kriterien erfüllt sind und dass du von nun an in der Lage bist, feste Objekte mit korrekten Abmessungen herzustellen. Wir werden nun sehen, wie wir den dritten Punkt angehen können.
+
+<span id="Exporting_to_slicers"></span>
+=== Exportieren zu Zerschneidern ===
+
+Dies ist die Technik, die am häufigsten für den 3D-Druck verwendet wird. Das 3D Objekt wird in ein anderes Programm (den Zerschneider) (engl.: Slicer) exportiert, das den G-Code aus dem Objekt generiert, indem es es in dünne Schichten zerlegt (daher der Name), die die Bewegungen reproduzieren, die der 3D Drucker ausführen wird. Da viele dieser Drucker selbstgebaut sind, gibt es oft kleine Unterschiede von einem zum anderen. Diese Programme bieten in der Regel erweiterte Konfigurationsmöglichkeiten, die dir erlauben die Ausgabe genau auf die Funktionen deines 3D Druckers zuzuschneiden.
+
+Tatsächlich ist der 3D Druck jedoch ein zu umfangreiches Thema für dieses Handbuch. Aber wir werden sehen, wie  diese Zerschneider exportiert und verwendet werden können, um zu überprüfen, ob die Ausgabe korrekt ist.
+
+<span id="Converting_objects_to_meshes"></span>
+=== Umwandeln von Objekten in Polygonnetze ===
+
+Keiner der Zerschneider wird zu diesem Zeitpunkt direkt die Volumenkörpergeometrie übernehmen, wie wir sie in FreeCAD erzeugen. Daher müssen wir jedes Objekt, das wir in 3D drucken wollen, zuerst in ein [https://de.wikipedia.org/wiki/Polygonnetz Polygonnetz] konvertieren, das der Zerschneider öffnen kann. Glücklicherweise ist die Konvertierung eines Netzes in einen Volumenkörper ein komplizierter Vorgang, während im Gegenteil die Konvertierung eines Volumenkörpers in ein Netz   sehr einfach ist. Alles, worauf wir achten müssen, ist, dass genau hier die oben erwähnte Verschlechterung eintritt. Wir müssen überprüfen, ob die Verschlechterung innerhalb akzeptabler Grenzen bleibt.
+
+Die gesamte Netz Handhabung wird in FreeCAD von einem anderen spezifischen Arbeitsbereich durchgeführt, dem [[Mesh_Workbench/de|Arbeitsbereich Polygonnetz]]. Dieser Arbeitsbereich enthält zusätzlich zu den wichtigsten Werkzeugen zur Konvertierung zwischen Teil- und Netzobjekten verschiedene Hilfsprogramme zur Analyse und Reparatur von Netzen. Obwohl die Arbeit mit Netzen nicht im Mittelpunkt von FreeCAD steht, musst du dich bei der 3D Modellierung oft mit Netzobjekten befassen, da deren Verwendung unter anderen Anwendungen sehr weit verbreitet ist. Dieser Arbeitsbereich erlaubt dir sie vollständig in FreeCAD zu bearbeiten.
+
+* Lass uns eines der Objekte konvertieren, die wir in den vorherigen Kapiteln modelliert haben, wie z.B. das Lego Stück (das am Ende des vorherigen Kapitels heruntergeladen werden kann).
+* Öffne die FreeCAD Datei, die das Lego Stück enthält.
+* Wechsle zum [[Mesh_Workbench/de|Netz Arbeitsbereich]]
+* Wähle den Legostein
+* Wähle das Menü '''Netze → Netz aus Form erzeugen'''
+* Es öffnet sich ein Aufgabenpaneel mit mehreren Optionen. Einige zusätzliche Vernetzungsalgorithmen (Mefisto oder Netgen) sind möglicherweise nicht verfügbar, je nachdem, wie deine Version von FreeCAD kompiliert wurde. Der Standard Vernetzungsalgorithmus wird immer vorhanden sein. Er bietet weniger Möglichkeiten als die beiden anderen, ist aber für kleine Objekte, die in die maximale Druckgröße eines 3D Druckers passen, völlig ausreichend.
+
+[[Image:Exercise_meshing_01.jpg]]
+
+* Wähle den '''Standard''' Netzbearbeiter und belasse den Abweichungswert auf dem Standardwert von '''0,10'''. Drücke '''Ok''''.
+* Es wird ein Netzobjekt erstellt, das sich genau über unserem Festkörperobjekt befindet. Entweder verbirg den Festkörper oder du verschiebst eines der Objekte zur Seite, so dass du beide vergleichen kannst.
+* Ändere die Eigenschaft '''Ansicht → Anzeigemodus''' des neuen Netzobjekts in '''Flache Linien''', um zu sehen, wie die Triangulation stattgefunden hat.
+* Wenn du mit dem Ergebnis nicht zufrieden bist und denkst, dass es zu grob ist, kannst du den Vorgang wiederholen und den Abweichungswert verringern. Im Beispiel unten verwendet das linke Netz den Standardwert '''0,10'''', während das rechte Netz '''0,01'''' verwendet:
+
+[[Image:Exercise_meshing_02.jpg]]
+
+In den meisten Fällen werden die Standardwerte jedoch ein zufriedenstellendes Ergebnis liefern.
+
+* Wir können jetzt unser Netz in ein Netzformat exportieren, wie z.B. [https://en.wikipedia.org/wiki/STL_%28file_format%29 STL], das derzeit das am weitesten verbreitete Format beim 3D-Druck ist, indem wir das Menü '''Datei → Export''' benutzen und das STL-Dateiformat wählen.
+
+Wenn du keinen 3D Drucker besitzt, ist es normalerweise sehr einfach, kommerzielle Dienste zu finden, die die gedruckten Objekte drucken und dir per Post zusenden. Zu den berühmten gehören [http://www.shapeways.com/ Shapeways] und [http://www.sculpteo.com/ Sculpteo], aber du wirst in deiner eigenen Stadt normalerweise viele andere finden. In allen größeren Städten findest du heutzutage [https://de.wikipedia.org/wiki/FabLab FabLabor]e, das sind Werkstätten, die mit einer Reihe von 3D Fertigungsmaschinen ausgestattet sind, fast immer mit mindestens einem 3D Drucker. Fab Labore sind in der Regel Gemeinschaftsräume, in denen du deren Maschinen je nach Fab Labor kostenpflichtig oder kostenlos nutzen kannst, in denen du aber auch lernst, sie zu benutzen, und in denen du andere Aktivitäten rund um die 3D Fertigung fördern kannst.
+
+<span id="Using_Slic3r"></span>
+=== Verwendung von Slic3r ===
+
+[http://slic3r.org/ Slic3r] ist eine Anwendung, die STL Objekte in G-Code umwandelt, der direkt an 3D Drucker gesendet werden kann. Wie FreeCAD ist es kostenlos, quelloffen und läuft unter Windows, Mac OS und Linux. Die korrekte Konfiguration für den 3D Druck ist ein komplizierter Prozess, bei dem du gute Kenntnisse über deinen 3D Drucker haben musst. Daher ist es nicht sehr nützlich, G-Code zu erzeugen, bevor du tatsächlich druckst (Deine G-Code Datei funktioniert möglicherweise nicht gut auf einem anderen Drucker), aber es ist trotzdem nützlich für uns, zu überprüfen, ob unsere STL Datei problemlos gedruckt werden kann.
+
+Dies ist unsere exportierte STL Datei, die in Slic3r geöffnet wurde. Durch verwenden des  '''Vorschau''' Reiters und bewegen des rechten Schiebereglers, können wir den Pfad visualisieren, dem der 3D Druckkopf folgen wird, um unser Objekt zu konstruieren.
+
+[[Image:Exercise_meshing_03.jpg]]
+
+<span id="Using_the_Cura_addon"></span>
+=== Verwendung der Cura Erweiterung ===
+
+[https://ultimaker.com/en/products/cura-software Cura] ist eine weitere freie und quelloffene Zerschneider Anwendung für Windows, Mac und Linux, die vom Hersteller des 3D Druckers [https://ultimaker.com Ultimaker] gepflegt wird. Einige FreeCAD Benutzer haben einen [https://github.com/cblt2l/FreeCAD-CuraEngine-Plugin Cura Arbeitsbereich] erstellt, der intern Cura verwendet. Der Cura Arbeitsbereich ist über das [https://github.com/FreeCAD/FreeCAD-addons FreeCAD Erweiterung]s Repositorium verfügbar. Um den Cura Arbeitsbereich zu verwenden, musst du auch Cura selbst installieren, das nicht im Arbeitsbereich enthalten ist.
+
+Sobald du sowohl Cura als auch den Cura Arbeitsbereich installiert hast, kannst du damit die G-Code Datei direkt aus den Part Objekten erzeugen, ohne diese in Polygonnetze umwandeln zu müssen und ohne eine externe Anwendung öffnen zu müssen. Die Erzeugung einer weiteren G-Code Datei aus unserem Lego Baustein, diesmal mit dem Cura Arbeitsbereich erfolgt wie folgt
+
+* Lade die Datei mit unserem Lego Stein (sie kann am Ende des vorherigen Kapitels heruntergeladen werden)
+* Wechsle zum [https://github.com/cblt2l/FreeCAD-CuraEngine-Plugin Cura Arbeitsbereich]
+* Richte den Druckerbereich ein, indem du das Menü '''3D Drucken → 3D Druckerdefinition erstellen''' wählst. Da wir nicht wirklich drucken werden, können wir die Einstellungen so belassen, wie sie sind. Die Geometrie des Druckbettes und der verfügbare Platz werden in der 3D Ansicht angezeigt.
+* Bewege den Legostein an eine geeignete Stelle, z.B. in die Mitte des Druckbettes. Denke daran, dass PartDesign Objekte nicht direkt verschoben werden können, daher musst du entweder seine allererste Skizze (das erste Rechteck) verschieben oder eine Kopie verschieben (und drucken), die mit dem  [[Part_SimpleCopy/de|Part → Erzeuge einfache Kopie]] Werkzeug erstellt werden kann. Die Kopie kann z.B. mit [[Image:Draft_Move.svg|16px]] [[Draft_Move/de|Entwurf → Bewegen]] verschoben werden. 
+* Wähle das zu druckende Objekt und wähle das Menü '''3D Drucken → Zerschneiden mit Cura Maschine'''.
+* Vergewissere dich, dass der Pfad zur ausführbaren Cura Datei in dem sich öffnenden Aufgabenreiter korrekt eingestellt ist. Da wir nicht wirklich drucken werden, können wir alle anderen Optionen so lassen, wie sie sind. Drücke '''Ok'''. Es werden zwei Dateien im gleichen Verzeichnis wie deine FreeCAD-Datei erzeugt, eine STL-Datei und eine G-Code Datei.
+
+[[Image:Exercise_meshing_05.jpg]]
+
+* Der generierte G-Code kann zur Überprüfung auch wieder in FreeCAD importiert werden (unter Verwendung des slic3r Präprozessors).
+
+<span id="Generating_G-code"></span>
+===G-code generieren===
+
+{{VeryImportantMessage|'''Warnung:''' Dieser Abschnitt wurde für FreeCAD 0.16 erstellt. Es wurden erhebliche Änderungen bei der Pfaderstellung vorgenommen. Bitte beachte die Dokumentation des Arbeitsbereichs [[CAM_Workbench/de|CAM]] im Allgemeinen oder das Tutorium [[CAM Walkthrough for the Impatient/de|CAM Pfadbegehung]]!}}
+
+FreeCAD bietet auch fortgeschrittenere Möglichkeiten, G-Code direkt zu erzeugen. Dies ist oft viel komplizierter als die Verwendung automatischer Werkzeuge, wie wir oben gesehen haben, hat aber den Vorteil, dass du die Ausgabe vollständig kontrollieren kannst. Bei der Verwendung von 3D Druckern ist dies normalerweise nicht erforderlich, wird aber beim CNC Fräsen sehr wichtig, da die Maschinen viel komplexer sind.
+
+Die G-Code-Pfadgenerierung in FreeCAD erfolgt mit dem Arbeitsbereich [[CAM_Workbench/de|CAM]]. Sie enthält Werkzeuge, die vollständige Maschinenpfade erzeugen, und andere, die nur Teile eines G-Code-Projekts erzeugen, die dann zu einer ganzen Fräsbearbeitung zusammengesetzt werden können.
+
+Die Generierung von CNC-Fräsbahnen ist ein weiteres Thema, das viel zu umfangreich ist, um in dieses Handbuch zu passen. Wir werden daher zeigen, wie man ein einfaches CAM-Projekt erstellt, ohne sich um die meisten Details einer echten CNC-Bearbeitung zu kümmern.
+
+* Lade die Datei, die unseren Lego-Baustein enthält, und wechsle zum Arbeitsbereich [[CAM_Workbench/de|CAM]].
+* Da das letzte Stück keine rechteckige Oberseite mehr enthält, verbirg den letzten Lego-Baustein und zeige den ersten würfelförmigen Block an, den wir gemacht haben und der eine rechteckige Oberseite hat.
+* Wähle die obere Fläche und drücke die Schaltfläche [[Image:CAM_Profile.svg|16px]] [[CAM_Profile/de|Profil]].
+* Setze seine Eigenschaft '''Versatz''' auf 1 mm.
+
+[[Image:Exercise_path_01.jpg]]
+
+* Dann duplizieren wir diese erste Schleife ein paar Mal, damit das Werkzeug den ganzen Block herausschneidet. Wähle den Profil Pfad, und drücke die Schaltfläche [[Image:CAM_Array.svg|16px]]  [[CAM_Array/de|Anordnung]].
+* Setze die  '''Kopien''' Eigenschaft der Anordnung auf 8 und seinen '''Versatz''' auf -2 mm in Z-Richtung, und verschiebe die Platzierung der Anordnung um 2 mm in Z-Richtung, so dass der Schnitt etwas oberhalb des Polsters beginnt und auch die Höhe der Punkte einschließt.
+
+[[Image:Exercise_path_02.jpg]]
+
+* Jetzt haben wir einen Pfad definiert, der, wenn die Fräsmaschine ihm folgt, ein rechteckiges Volumen aus einem Materialblock herausfräst. Nun müssen wir den Raum zwischen den Punkten herausschneiden, um sie freizulegen. Blende den Block aus und zeige das letzte Stück wieder an, damit wir die Fläche zwischen den Punkten auswählen können.
+* Wähle die obere Fläche und drücke die Schaltfläche [[Image:CAM_Pocket_Shape.svg|16px]] [[CAM_Pocket_Shape/de|Taschenform]]. Setze die Eigenschaft '''Versatz''' auf 1 mm und die Eigenschaft '''Rückzugshöhe''' auf 20 mm. Das ist die Höhe, bis zu der der Fräser beim Wechsel von einer Schleife zur anderen fährt. Andernfalls könnte der Fräser direkt durch einen unserer Punkte schneiden:
+
+[[Image:Exercise_path_03.jpg]]
+
+* Noch einmal: Erstelle eine Anordnung. Wähle das Taschen-Objekt aus, und drücke die Schaltfläche [[Image:CAM_Array.svg|16px]]  [[CAM_Array/de|Anordnung]]. Setze die Anzahl der '''Kopien''' auf 1 und den '''Versatz''' auf -2 mm in Z-Richtung. Verschiebe die Platzierung der Anordnung um 2 mm in Z-Richtung. Unsere beiden Operationen sind nun abgeschlossen:
+
+[[Image:Exercise_path_04.jpg]]
+
+* Nun müssen diese beiden Vorgänge nur noch zu einem einzigen zusammengefügt werden. Dies kann mit einem [[CAM_Job/de|CAM-Auftrag]] geschehen. Drücke die Schaltfläche [[Image:CAM_Job.svg|16px]] [[CAM_Job/de|CAM-Auftrag]]. 
+* Setze die Eigenschaft '''Platzierungen verwenden''' des Projekts auf True, da wir die Platzierung der Anordnungen geändert haben, und wir möchten  daß dies im Projekt berücksichtigt wird.
+* Ziehe in der Baumansicht die beiden Anordnungen per Ziehen & Ablegen in das Projekt. Du kannst die Anordnungen innerhalb des Projekts bei Bedarf neu anordnen, indem du darauf doppelklickst.
+* Das Projekt kann nun in G-Code exportiert werden, indem du es auswählst, das Menü '''Datei -> Exportieren''' wählst, das G-Code-Format auswählst und im sich öffnenden Aufklappdialog ein Nachbearbeitungsskript entsprechend deiner Maschine auswählst.
+
+Es gibt viele Anwendungen, um das reale Schneiden zu simulieren, eine davon, die ebenfalls plattformübergreifend und quelloffen, wie FreeCAD ist, ist [http://camotics.org/ Camotics].
+
+'''Herunterladen'''
+
+* Die in dieser Übung erzeugte STL Datei: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/lego.stl
+* Die während dieser Übung erstellte Datei: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/path.FCStd
+* Die in dieser Übung erzeugte G-Code Datei: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/lego.gcode
+
+'''Mehr lesen'''
+
+* [[Mesh_Workbench/de|Der Arbeitsbereich Mesh]]
+* [https://en.wikipedia.org/wiki/STL_%28file_format%29 Das STL-Dateiformat]
+* [http://slic3r.org/ Slic3r]
+* [https://ultimaker.com/en/products/cura-software Cura]
+* [https://github.com/cblt2l/FreeCAD-CuraEngine-Plugin Der Arbeitsbereich Cura]
+* [[CAM_Workbench/de|Der Arbeitsbereich CAM]]
+* [http://camotics.org/ Camotics]
+
+=== Videos ===
+
+* [https://www.youtube.com/playlist?list=PL6Fiih6ItYsWCE20KtUJYpiDPrCA2rVpN Wie man FreeCAD für den 3D Druck verwendet | Verwendung des Realthunder Zweigs] Eine Video Wiedergabeliste von Maker Tales über die Verwendung von FreeCAD für den 3D Druck.
+
+
+{{Docnav/de
+|[[Manual:Modeling_for_product_design/de|Modellierung zur Produktgestaltung]]
+|[[Manual:Generating_2D_drawings/de|Erzeugung von 2D-Zeichnungen]]
+|[[Manual:Introduction/de|Handbuch Start]]
+|IconC=Crystal_Clear_manual.png
+}}
+
+[[Category:CAM{{#translation:}}]]
+[[Category:Mesh{{#translation:}}]]
+[[Category:Tutorials{{#translation:}}]]

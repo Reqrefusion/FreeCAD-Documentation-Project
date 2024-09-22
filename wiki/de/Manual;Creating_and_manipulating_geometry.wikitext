@@ -1,0 +1,219 @@
+<languages/>
+
+{{Docnav/de
+|[[Manual:A gentle introduction/de|Eine behutsame Einführung]]
+|[[Manual:Creating parametric objects/de|Parametrische Objekte erstellen]]
+|[[Manual:Introduction/de|Handbuch Start]]
+|IconC=Crystal Clear manual.png
+}}
+
+{{Manual:TOC}}
+
+In den vorangegangenen Kapiteln haben wir die verschiedenen Arbeitsbereiche von FreeCAD kennengelernt, und wie jeder von ihnen seine eigenen Werkzeuge und Geometrietypen implementiert. Das gleiche Konzept gilt für die Arbeit mit Python-Code.
+
+Wir haben auch gesehen, dass die große Mehrheit der FreeCAD-Arbeitsbereiche von einem sehr grundlegenden Arbeitsbereich abhängt: dem Arbeitsbereich [[Part_Workbench/de|Part]]. Tatsächlich tun viele andere Arbeitsbereiche, wie z.B. [[Draft_Workbench/de|Draft]] und [[Arch_Workbench/de|Arch]], genau das, was wir in diesem Kapitel tun werden: Python-Code verwenden, um Part-Geometrie zu erstellen und zu verarbeiten.
+
+Das erste, was wir tun müssen, um mit der Part-Geometrie zu arbeiten, ist das Python-Äquivalent des Wechsels zum Arbeitsbereich Part ausführen: Das Part-Modul importieren:
+
+{{Code|code=
+import Part 
+}}
+
+Nimm dir eine Minute Zeit, um den Inhalt des Part-Moduls zu erkunden, indem du Part. eingibst und die verschiedenen verfügbaren Methoden durchgehst. Das  Part-Modul bietet mehrere praktische Funktionen wie makeBox, makeCircle usw., die dir sofort ein Objekt erstellen. Probiere zum Beispiel dies aus:
+
+{{Code|code=
+Part.makeBox(3,5,7) 
+}}
+
+Wird nach der Eingabe der obigen Zeile die Eingabetaste gedrückt, wird in der 3D-Ansicht nichts angezeigt, aber auf der Python-Konsole wird etwas wie das Folgende ausgegeben:
+
+{{Code|code=
+<Solid object at 0x5f43600> 
+}}
+
+An dieser Stelle kommt ein wichtiges Konzept zum Tragen. Was wir hier erstellt haben, ist eine Part-Form. Es handelt sich (noch) nicht um ein FreeCAD-Dokumentobjekt. In FreeCAD sind Objekte und ihre Geometrie unabhängig. Stelle dir ein FreeCAD-Dokumentenobjekt als einen Behälter vor, der eine Form beherbergt. Parametrische Objekte haben auch Eigenschaften wie Länge und Breite und berechnen ihre Form "spontan" neu, wenn sich eine der Eigenschaften ändert. Wir haben hier eine Form manuell berechnet.
+
+Wir können nun ganz einfach ein "allgemeines" Dokumentobjekt im aktuellen Dokument erstellen (es sollte mindestens ein neues Dokument geöffnet sein) und ihm eine Quaderform geben, wie die eben erstellte:
+
+{{Code|code=
+boxShape = Part.makeBox(3,5,7)
+myObj = FreeCAD.ActiveDocument.addObject("Part::Feature","MyNewBox")
+myObj.Shape = boxShape
+FreeCAD.ActiveDocument.recompute()
+}}
+
+Beachte, wie wir myObj.Shape verwendet haben, und beachte, dass wir es genauso gemacht haben wie im vorherigen Kapitel, als wir andere Eigenschaften eines Objekts geändert haben, z. B. box.Height = 5 . In der Tat ist '''Form''' ebenfalls eine Eigenschaft, genau wie '''Höhe'''. Nur dass sie eine Part-Form und nicht eine Zahl annimmt. Im nächsten Kapitel werden wir uns genauer ansehen, wie diese parametrischen Objekte aufgebaut sind.
+
+Lasse uns nun unsere Part-Formen genauer untersuchen. Am Ende des Kapitels über [[Manual:Traditional modeling, the CSG way/de|Traditionelle Modellierung mit dem Arbeitsbereich Part]] haben wir eine Tabelle gezeigt, die erklärt, wie Part-Formen konstruiert werden und aus welchen Komponenten sie bestehen (Knoten, Kanten, Flächen, usw.). Die gleichen Komponenten sind auch hier vorhanden und können über Python abgerufen werden. Part-Formen haben immer die folgenden Attribute: Knoten, Kanten, Linienzüge, Flächen, Hüllen und Festkörper. Alle sind Listen, die eine beliebige Anzahl von Elementen enthalten oder leer sein können:
+
+{{Code|code=
+print(boxShape.Vertexes)
+print(boxShape.Edges)
+print(boxShape.Wires)
+print(boxShape.Faces)
+print(boxShape.Shells)
+print(boxShape.Solids)
+}}
+
+Lasse uns zum Beispiel den Flächeninhalt jeder Fläche unseres obigen boxShape(-Objekts) bestimmen:(Nicht vergessen die zweite Zeile einzurücken, wie unten dargestellt. Nach der letzten Zeile zweimal die Eingabetaste (Enter) drücken, um den Python-Befehl zu starten.)
+
+{{Code|code=
+for f in boxShape.Faces:
+   print(f.Area)
+}}
+
+Oder für jede Kante ihren Anfangs- und Endpunkt:
+
+{{Code|code=
+for e in boxShape.Edges:
+   print("New edge")
+   print("Start point:")
+   print(e.Vertexes[0].Point)
+   print("End point:")
+   print(e.Vertexes[1].Point)
+}}
+
+Wie du siehst, wenn unser boxShape ein Attribut "Vertexes" (Knoten) hat, hat jede Kante des boxShape auch ein Attribut "Vertexes". Wie zu erwarten, wird das boxShape 8 Knoten haben, während die Kante nur 2 hat, die beide zur Liste der 8 gehören.
+
+Wir können jederzeit überprüfen, von welchem Typ eine Form ist:
+
+{{Code|code=
+print(boxShape.ShapeType)
+print(boxShape.Faces[0].ShapeType)
+print(boxShape.Vertexes[2].ShapeType)
+}}
+
+Um das Thema der Part-Formen wieder aufzunehmen: Alles beginnt mit Knoten. Mit einem oder zwei Knoten bildet man eine Kante (Vollkreise haben nur einen Knoten). Mit einer oder mehreren Kanten bildet man einen Linienzug. Mit einem oder mehreren geschlossenen Linienzügen bildet man eine Fläche (die zusätzlichen Linienzüge werden zu "Löchern" in der Fläche). Mit einer oder mehreren Flächen bildet man eine Hülle. Wenn eine Hülle vollständig geschlossen (wasserdicht) ist, kann man daraus einen Festkörper bilden. Und schließlich kann eine beliebige Anzahl von Formen beliebigen Typs miteinander verbunden werden, was dann als Verbund bezeichnet wird.
+
+Wir können nun versuchen, komplexe Formen von Grund auf neu zu erstellen, indem wir alle ihre Komponenten nacheinander konstruieren. Versuchen wir zum Beispiel, ein Volumen wie dieses zu erstellen:
+
+[[Image:Exercise_python_03.jpg]]
+
+Wir beginnen mit der Erstellung einer ebenen Form wie dieser:
+
+[[Image:Wire.png]]
+
+Erstellen wir zunächst die vier Basispunkte:
+
+{{Code|code=
+V1 = FreeCAD.Vector(0,10,0)
+V2 = FreeCAD.Vector(30,10,0)
+V3 = FreeCAD.Vector(30,-10,0)
+V4 = FreeCAD.Vector(0,-10,0)
+}}
+
+Dann können wir die beiden linearen Segmente erstellen:
+
+[[Image:Line.png]]
+
+{{Code|code=
+L1 = Part.LineSegment(V1,V2)
+L2 = Part.LineSegment(V4,V3)
+}}
+
+Beachte, dass wir keine Knoten erstellen müssen. Wir konnten sofort Part.LineSegments aus FreeCAD-Vektoren erstellen. Das liegt daran, dass wir hier noch keine Kanten erstellt haben. Ein Part.LineSegment (ebenso wie Part.Circle, Part.Arc, Part.Ellipse oder Part.BSpline) erzeugt keine Kante, sondern eine Basisgeometrie, aus der eine Kante erzeugt wird. Kanten werden immer aus einer solchen Basisgeometrie erstellt, die in ihrem Attribut Kurve gespeichert ist. Wenn du also eine Kante hast, tippe ein:
+
+{{Code|code=
+print(Edge.Curve) 
+}}
+
+Es zeigt dir, um welche Art von Kante es sich handelt, d. h. ob sie auf einer Linie, einem Bogen usw. basiert. Aber kommen wir zurück zu unserer Übung und bauen wir die Bogensegmente. Dazu benötigen wir einen dritten Punkt, damit wir den praktischen Part.Arc verwenden können, der 3 Punkte benötigt:
+
+[[Image:Circel.png]]
+
+{{Code|code=
+VC1 = FreeCAD.Vector(-10,0,0)
+C1 = Part.Arc(V1,VC1,V4)
+VC2 = FreeCAD.Vector(40,0,0)
+C2 = Part.Arc(V2,VC2,V3)
+}}
+
+Jetzt haben wir 2 Linien (L1 und L2) und 2 Bögen (C1 und C2). Wir müssen sie in Kanten umwandeln:
+
+{{Code|code=
+E1 = Part.Edge(L1)
+E2 = Part.Edge(L2)
+E3 = Part.Edge(C1)
+E4 = Part.Edge(C2)
+}}
+
+Alternativ dazu verfügen Basisgeometrien auch über eine Funktion toShape(), die genau das Gleiche bewirkt:
+
+{{Code|code=
+E1 = L1.toShape()
+E2 = L2.toShape()
+ ...
+}}
+
+Sobald wir eine Reihe von Kanten haben, können wir nun einen Linienzug bilden, indem wir ihm eine Liste von Kanten geben. Dabei müssen wir die Reihenfolge beachten und auch die Klammern. 
+
+{{Code|code=
+W = Part.Wire([E1,E4,E2,E3]) 
+}}
+
+Und wir können überprüfen, ob unser Draht richtig verstanden wurde und ob er richtig geschlossen ist:
+
+{{Code|code=
+print( W.isClosed() ) 
+}}
+
+Es wird "True" oder "False" ausgegeben. Um eine Fläche zu erstellen, brauchen wir geschlossene Linienzüge, also ist es immer eine gute Idee, dies zu überprüfen, bevor wir die Fläche erstellen. Jetzt können wir eine Fläche erstellen, indem wir ihr einen einzelnen Linienzug geben (oder eine Liste von Linienzügen, wenn wir Löcher wollen):
+
+{{Code|code=
+F = Part.Face(W) 
+}}
+
+Dann wird es extrudiert:
+
+{{Code|code=
+P = F.extrude(FreeCAD.Vector(0,0,10)) 
+}}
+
+Beachte, dass P bereits ein Festkörper ist:
+
+{{Code|code=
+print(P.ShapeType) 
+}}
+
+Das liegt daran, dass wir beim Extrudieren einer einzelnen Fläche immer einen Festkörper erhalten. Dies wäre zum Beispiel nicht der Fall, wenn wir stattdessen den Liienzug extrudieren würden:
+
+{{Code|code=
+S = W.extrude(FreeCAD.Vector(0,0,10))
+print(S.ShapeType)
+}}
+
+Dadurch erhalten wir natürlich eine hohle Hülle, bei der Ober- und Unterseite fehlen.
+
+Jetzt, wo wir unser endgültige Form haben, sind wir gespannt darauf, sie auf dem Bildschirm zu sehen! Erstellen wir also ein allgemeines Objekt und weisen ihm unseren neuen Festkörper zu:
+
+{{Code|code=
+myObj2 = FreeCAD.ActiveDocument.addObject("Part::Feature","My_Strange_Solid")
+myObj2.Shape = P
+FreeCAD.ActiveDocument.recompute()
+}}
+
+Alternativ bietet das Teil Modul auch einen Kurzbefehl, mit dem der oben beschriebene Vorgang schneller ausgeführt werden kann (allerdings kannst du den Namen des Objekts nicht auswählen):
+
+{{Code|code=
+Part.show(P) 
+}}
+
+All dies und noch viel mehr wird auf der Seite [[Topological_data_scripting/de|Topologische Daten skripten]] im Detail erklärt und mit Beispielen versehen.
+
+'''Mehr lesen''':
+
+* [[Part_Workbench/de|Der Arbeitsbereich Part]]
+* [[Topological_data_scripting/de|Part skripten]]
+
+
+{{Docnav/de
+|[[Manual:A gentle introduction/de|Eine behutsame Einführung]]
+|[[Manual:Creating parametric objects/de|Parametrische Objekte erstellen]]
+|[[Manual:Introduction/de|Handbuch Start]]
+|IconC=Crystal Clear manual.png
+}}
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}

@@ -1,0 +1,102 @@
+<languages/>
+
+{{Docnav/pl
+|[[Manual:Using_spreadsheets/pl|Podręcznik:Zastosowanie arkuszy kalkulacyjnych]]
+|[[Manual:Creating_renderings/pl|Podręcznik:Tworzenie renderingów]]
+|[[Manual:Introduction/pl|Podręcznik:Słowo wstępne]]
+|IconC=Crystal_Clear_manual.png
+}}
+
+{{Manual:TOC}}
+
+MES to skrót od [https://en.wikipedia.org/wiki/Finite_element_method Metoda Elementów Skończonych]. Jest to rozległy temat matematyczny, ale w FreeCAD możemy myśleć o nim jako o sposobie obliczania rozchodzenia się energii wewnątrz obiektu 3D, poprzez pocięcie go na małe kawałki i przeanalizowanie wpływu każdego małego kawałka na jego sąsiadów. Ma to wiele zastosowań w inżynierii i elektromagnetyzmie, ale my skupimy się na jednym z zastosowań, które jest już dobrze rozwinięte w programie FreeCAD, a mianowicie na symulacji deformacji obiektów poddawanych działaniu sił i ciężarów.
+
+Uzyskanie takiej symulacji odbywa się w programie FreeCAD za pomocą środowiska [[FEM_Workbench/pl|MES]]. Składa się na to kilka kroków: Przygotowanie geometrii, ustawienie jej materiału, wykonanie siatki, podział na mniejsze części, tak jak to robiliśmy w rozdziale [[Manual:Preparing_models_for_3D_printing/pl|Przygotowanie obiektów do druku 3D]], a na koniec obliczenie symulacji.
+
+[[Image:Exercise_fem_01.jpg|600px]]
+
+<span id="Preparing_FreeCAD"></span>
+===Przygotowanie programu FreeCAD===
+
+Sama symulacja jest wykonywana przez inny program, który jest wykorzystywany przez FreeCAD do uzyskania wyników. Ponieważ jest dostępnych kilka interesujących aplikacji do symulacji MES o otwartym kodzie źródłowym, środowisko pracy [[FEM_Workbench/pl|MES]] pozwala na wybór pomiędzy nimi. Jednak obecnie tylko [http://www.calculix.de/ CalculiX] jest w pełni zaimplementowany. Wymagany jest również inny program, o nazwie [https://sourceforge.net/projects/netgen-mesher/ NetGen], który odpowiada za generowanie siatki podziału. Szczegółowe instrukcje dotyczące instalacji tych dwóch komponentów znajdują się [[FEM_Install/pl|w dokumentacji FreeCAD]].
+
+<span id="Preparing_the_geometry"></span>
+===Przygotowanie geometrii===
+
+Zaczniemy od domu, który wymodelowaliśmy w rozdziale [[Manual:BIM modeling/pl|Modelowanie BIM]]. Należy jednak dokonać pewnych zmian, aby model nadawał się do obliczeń metodą MES. Polega to w zasadzie na odrzuceniu obiektów, których nie chcemy uwzględniać w obliczeniach, takich jak drzwi i okna, oraz połączeniu wszystkich pozostałych obiektów w jeden.
+
+* Wczytaj [https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/house.FCStd model domu], który wcześniej wymodelowaliśmy
+* Usuń lub ukryj obiekt strony, płaszczyzny przekroju i wymiary, pozostawiając tylko nasz model.
+* Ukryj okno, drzwi i płytę fundamentową
+* Ukryj również metalowe belki na dachu. Są to zupełnie inne obiekty niż reszta domu, więc uprościmy nasze obliczenia nie uwzględniając ich. Zamiast tego przyjmiemy, że płyta dachowa jest umieszczona bezpośrednio na ścianie.
+* Przesuń teraz płytę dachową w dół, tak aby spoczywała na ścianie: Edytuj obiekt '''Prostokąt''', którego użyliśmy jako podstawy płyty dachowej, i zmień jego wartość '''Umiejscowienie → Pozycja → X''' z 3.18m na 3.00m
+* Nasz model jest teraz przejrzysty:
+
+[[Image:Exercise_fem_02.jpg|600px]]
+
+* Środowisko pracy MES może obecnie obliczać deformacje tylko jednego obiektu. Dlatego musimy połączyć nasze dwa obiekty ''(ścianę i płytę)''. Przejdź do środowiska pracy [[Part_Workbench/pl|Część]], wybierz dwa obiekty i naciśnij przycisk {{Button|[[Image:Part_Fuse.svg|16px]] [[Part_Fuse/pl|Połącz]]}}. Otrzymaliśmy teraz połączony obiekt:
+
+[[Image:Exercise_fem_03.jpg|600px]]
+
+<span id="Creating_the_analysis"></span>
+===Tworzenie analizy===
+
+* Jesteśmy teraz gotowi do rozpoczęcia analizy MES. Przejdźmy do środowiska pracy [[FEM_Workbench/pl|MES]].
+* Wybierzmy obiekt o nazwie ''scalony''.
+* Naciśnij przycisk {{Button|[[Image:FEM_Analysis.svg|16px]] [[FEM_Analysis/pl|Nowa analiza]]}}.
+* Zostanie utworzona nowa analiza i otwarty panel ustawień. Tutaj można zdefiniować parametry siatki, które będą używane do produkcji siatki MES. Główną nastawą do edycji jest wartość '''Maksymalny Rozmiar''', która definiuje maksymalny rozmiar ''(w milimetrach)'' każdego fragmentu siatki. Na razie możemy pozostawić domyślną wartość 1000:
+
+[[Image:Exercise_fem_04.jpg|600px]]
+
+* Po naciśnięciu przycisku {{Button|OK}} i kilku sekundach obliczeń, nasza siatka MES jest gotowa:
+
+[[Image:Exercise_fem_05.jpg|600px]]
+
+* Możemy teraz zdefiniować materiał, który ma być zastosowany do naszej siatki. Jest to ważne, ponieważ w zależności od wytrzymałości materiału, nasz obiekt będzie różnie reagował na przyłożone do niego siły. Zaznacz obiekt analizy i naciśnij przycisk {{Button|[[Image:FEM_MaterialSolid.svg|16px]] [[FEM_MaterialSolid/pl|Nowy Materiał]]}}.
+* Otworzy się panel zadań umożliwiający nam wybór materiału. Z listy rozwijanej Materiał wybieramy materiał '''Beton-ogólnie''' i wciskamy {{Button|OK}}.
+
+[[Image:Exercise_fem_06.jpg|600px]]
+
+* Teraz jesteśmy gotowi do zastosowania sił. Zacznijmy od określenia, które ściany są przymocowane do podłoża i dlatego nie mogą się poruszać. Naciśnij przycisk {{Button|[[Image:FEM_ConstraintFixed.svg|16px]] [[FEM_ConstraintFixed/pl|Wiązanie stałej geometrii]]}}.
+* Kliknij na dolną powierzchnię naszego budynku i naciśnij przycisk {{Button|OK}}. Spód budynku jest oznaczony jako nieruchomy:
+
+[[Image:Exercise_fem_07.jpg|600px]]
+
+* Dodamy teraz obciążenie na górnej powierzchni, które może reprezentować, na przykład, ogromny ciężar umieszczony na dachu. W tym celu użyjemy wiązania nacisku. Naciśnij przycisk {{Button|[[Image:FEM_ConstraintPressure.svg|16px]] [[FEM_ConstraintPressure/pl|Wiązanie nacisku]]}}.
+* Kliknij górną powierzchnię dachu, ustaw wartość nacisku na '''10MPa''' ''(nacisk jest wywierany na milimetr kwadratowy)'' i kliknij przycisk {{Button|OK}}. Nasza siła jest teraz przyłożona:
+
+[[Image:Exercise_fem_08.jpg|600px]]
+
+* Teraz jesteśmy gotowi do rozpoczęcia obliczeń. Zaznaczamy obiekt '''CalculiX''' w widoku drzewa i naciskamy przycisk {{Button|[[Image:FEM_SolverControl.svg|16px]] [[FEM_SolverControl/pl|Uruchom obliczenia]]}}.
+* W panelu zadań, który się otworzy, kliknij najpierw przycisk {{Button|Zapisz plik .inp}}, aby utworzyć plik wejściowy dla CalculiX, a następnie przycisk {{Button|Uruchom CalculiX}}. Kilka chwil później obliczenia zostaną wykonane:
+
+[[Image:Exercise_fem_09.jpg|600px]]
+
+* Teraz możemy przyjrzeć się wynikom. Zamknij panel zadań i zobacz, że do naszej analizy został dodany nowy obiekt o nazwie '''Wyniki'''.
+* Kliknij dwukrotnie na obiekt ''Wyniki''
+* Ustaw typ wyniku, który chcesz zobaczyć na siatce, na przykład "przemieszczenie bezwzględne", zaznacz pole wyboru '''pokaż''' w '''Przemieszczenie''' i przesuń suwak obok niego. Będziesz mógł zobaczyć jak deformacja rośnie wraz z przyłożeniem większej siły:
+
+[[Image:Exercise_fem_10.jpg|600px]]
+
+Wyniki wyświetlane za pomocą programu MES nie są oczywiście obecnie wystarczające do podejmowania rzeczywistych decyzji dotyczących wymiarowania konstrukcji i materiałów. Mogą one jednak dostarczyć cennych informacji o tym, jak siły przepływają przez konstrukcję i które słabe obszary będą odczuwać największe naprężenia.
+
+'''Do pobrania'''
+
+* Plik utworzony podczas tego ćwiczenia: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/fem.FCStd
+
+'''Więcej informacji:'''
+
+* [[FEM_Workbench/pl|Środowisko pracy MES]]
+* [[FEM_Install/pl|Instalacja środowiska MES]]
+* [http://www.calculix.de CalculiX]
+* [https://sourceforge.net/projects/netgen-mesher NetGen] 
+
+
+{{Docnav/pl
+|[[Manual:Using_spreadsheets/pl|Podręcznik:Zastosowanie arkuszy kalkulacyjnych]]
+|[[Manual:Creating_renderings/pl|Podręcznik:Tworzenie renderingów]]
+|[[Manual:Introduction/pl|Podręcznik:Słowo wstępne]]
+|IconC=Crystal_Clear_manual.png
+}}
+
+[[Category:Tutorials{{#translation:}}]]

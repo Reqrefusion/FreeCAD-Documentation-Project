@@ -1,0 +1,81 @@
+<languages/>
+
+Zobacz artykuł [[Property/pl|Właściwości]] przed tą sekcją.
+
+<span id="PropertyLink"></span>
+=PropertyLink=
+
+Oprócz skalarnych [[Property/pl|Properties]] cech, same cechy zawierają wskaźniki do siebie nawzajem.
+Wskaźniki te definiują [https://en.wikipedia.org/wiki/Directed_acyclic_graph skierowany graf acykliczny], który określa zbiór i kolejność obiektów, które są ponownie obliczane w odpowiedzi na zmianę w jednym obiekcie. Ponownie obliczane są tylko te funkcje, które zależą od zmienionej funkcji.
+
+Zależności są wyrażane za pomocą specjalnej klasy typów właściwości, a mianowicie PropertyLink:
+* PropertyLink: umożliwia powiązanie elementu z innym pojedynczym elementem w tym samym dokumencie.
+* PropertyLinkList: pozwala elementowi na powiązanie kilku elementów
+* PropertyLinkSub: pozwala elementowi łączyć pojedynczy element i dodatkowo odwoływać się do elementów podrzędnych. Przykład: Jeśli chcesz zamodelować kieszeń na potrzeby szkicu, ważne jest, aby wiedzieć, do którego elementu podrzędnego (np. Face6) powiązanego elementu należy ją zmapować.
+* PropertyLinkSubList: umożliwia powiązanie elementu z kilkoma elementami podrzędnymi kilku elementów.
+
+Poniżej znajdują się podobne właściwości do łączenia cech różnych dokumentów. Jest to podstawowa część dla złożeń.
+* PropertyXLink
+* PropertyXLinkSub
+* PropertyXLinkSubList
+* PropertyXLinkList
+* PropertyXLinkContainer
+
+<span id="Example"></span>
+==Przykład==
+
+Rozważmy klasę {{incode|BoxDimension}}, która zapewnia podstawowe wymiary dla innej klasy {{incode|Box}}. Chcielibyśmy, aby obiekt {{incode|Box}} był ponownie obliczany za każdym razem, gdy zmieni się powiązany z nim {{incode|BoxDimension}}:
+
+{{Code|code=
+import FreeCAD
+import Part
+
+class BoxDimension:
+  def __init__(self, obj):
+    obj.addProperty("App::PropertyLength", "Length").Length = 1
+    obj.addProperty("App::PropertyLength", "Width").Width = 1
+    obj.addProperty("App::PropertyLength", "Height").Height = 1
+    obj.Proxy = self
+
+class Box:
+  def __init__(self, obj):
+    obj.addProperty("App::PropertyLink", "Dimensions").Dimensions = None
+    obj.Proxy = self
+  def execute(self, obj):
+    if obj.Dimensions is None:
+      return
+    l = obj.Dimensions.Length
+    w = obj.Dimensions.Width
+    h = obj.Dimensions.Height
+    obj.Shape = Part.makeBox(l, w, h)
+}}
+
+Należy pamiętać, że jest to obiekt {{incode|Box}}, który zawiera PropertyLink do obiektu {{incode|BoxDimension}}.
+Użycie jest następujące:
+
+{{Code|code=
+doc = App.newDocument()
+dim = doc.addObject("App::FeaturePython", "BoxDimension")
+box = doc.addObject("Part::FeaturePython", "Box")
+dim_proxy = BoxDimension(dim)
+box_proxy = Box(box)
+box.ViewObject.Proxy = None
+box.Dimensions = dim
+
+dim.Length = 5
+dim.Width = 3
+dim.Height = 7
+doc.recompute()
+}}
+
+Ponieważ nasz {{incode|box}} zależy od obiektu {{incode|dim}}, zostanie on ponownie obliczony.
+
+<span id="InList_and_OutList"></span>
+=Lista wejściowa i lista wyjściowa=
+
+Dostęp do obiektów {{incode|PropertyLink}} można uzyskać za pomocą właściwości Python przy użyciu nazwy, pod którą są zarejestrowane za pomocą {{incode|.addObject()}}. Istnieje jednak inny sposób. Każda funkcja ma parę leniwie generowanych list o nazwach {{incode|InList}} i {{incode|OutList}}, które opisują odpowiednio wychodzące i przychodzące krawędzie DAG:
+
+* {{incode|InList}} jest listą wszystkich funkcji, które "zależą" od bieżącego obiektu. Tak więc {{incode|dim.InList}} będzie listą zawierającą nasz obiekt {{incode|box}}.
+* Podobnie, {{incode|OutList}} jest listą wszystkich funkcji, które "zależą" od bieżącego obiektu. Oznacza to, że {{incode|box.OutList}} będzie listą zawierającą nasz obiekt {{incode|dim}}.
+
+Zauważ, że {{incode|InList}} i {{incode|OutList}} nie mają nic wspólnego z widokiem drzewa modelu dokumentu, który jest prezentowany w GUI. W dowolnym momencie rodzic w tym widoku drzewa może zawierać dzieci, które są częścią {{incode|InList}}, {{incode|OutList}} lub żadnego z nich.

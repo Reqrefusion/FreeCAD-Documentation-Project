@@ -26,7 +26,7 @@ output_dir = "wiki"
 
 # Function to sanitize file names
 def sanitize_name(name):
-    return name.replace(' ', '_').strip()
+    return name.replace(' ', '_').replace(':', ';').strip()
 
 # Function to create the file path based on the page title
 def create_file_path(title):
