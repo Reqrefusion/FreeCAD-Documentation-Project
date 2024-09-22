@@ -1,0 +1,151 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Arch_SectionPlane/ru|Плоскость Сечения]]
+|[[Arch_Stairs/ru|Лестница]]
+|[[Arch_Workbench/ru|Архитектурный верстак "Arch"]]
+|IconL=Arch_SectionPlane.svg
+|IconR=Arch_Stairs.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/ru
+|Name=Arch Space
+|Name/ru=Arch Space
+|MenuLocation=Архитектура → Пространство
+|Workbenches=[[Arch_Workbench/ru|Arch]]
+|Shortcut={{KEY|S}} {{KEY|P}}
+|Version=0.14
+|SeeAlso=[[Arch Wall/ru]], [[Arch Structure/ru]]
+}}
+</div>
+
+==Description==
+
+<div class="mw-translate-fuzzy">
+==Определение==
+Инструмент Пространство позволяет определить пустое пространство, базируясь на твердой оболочке, или определив границы, или и тем, и другим. Если он базируется только на границах, объем вычисляется, исходя из ограничительного блока всех заданных границ, и вычитая пространство за каждой границей. Пространственный объект всегда определяет твердотельный объём. Площадь пола пустого пространства вычисляемая пересечением горизонтальной плоскости через центр масс пустого пространства, так же может показываться установкой режима показа пространственного объекта в "detailed".
+</div>
+
+[[Image:Arch Space example.jpg|640px]]
+
+<div class="mw-translate-fuzzy">
+''На рисунке выше пространственный объект создан из существующего твердотельного объекта, затем две стены добавлены как границы, и режим показа установлен в "detailed" для показа занимаемой площади.''
+</div>
+
+<span id="Usage"></span>
+==Применение==
+
+<div class="mw-translate-fuzzy">
+# Выберите существующий твердый объект или грани на граничных объектах
+# Нажмите кнопку {{KEY | [[Image: Arch_Space.png | 16px]] [[Arch Space]]}} или нажмите клавиши {{KEY | S}}, {{KEY | P}}
+</div>
+
+<span id="Limitations"></span>
+===Ограничения===
+
+* The boundaries properties is currently not editable via GUI.
+* See the [http://forum.freecadweb.org/viewtopic.php?f=9&t=4275 forum announcement].
+
+<span id="Properties"></span>
+==Свойства==
+
+<div class="mw-translate-fuzzy">
+* {{PropertyData|Base}}: Базовый объект, если он есть (должен быть твердым) 
+* {{PropertyData | Boundaries}}: список необязательных граничных элементов
+</div>
+
+* {{PropertyView|Text}}: The text to show. Use $area, $label, $tag, $floor, $walls, $ceiling to insert the respective data
+* {{PropertyView|FontName}}: The name of the font
+* {{PropertyView|TextColor}}: The color of the text
+* {{PropertyView|FontSize}}: The size of the text
+* {{PropertyView|FirstLine}}: The size of the first line of text (multiplies the font size. 1 = same size, 2 = double size, etc..)
+* {{PropertyView|LineSpacing}}: The space between the lines of text
+* {{PropertyView|TextPosition}}: The position of the text. Leave (0,0,0) for automatic position
+* {{PropertyView|TextAlign}}: The justification of the text
+* {{PropertyView|Decimals}}: The number of decimals to use for calculated texts
+* {{PropertyView|ShowUnit}}: Show the unit suffix or not
+
+<span id="Options"></span>
+==Опции==
+
+* To create zones that group several spaces, use an [[Arch_BuildingPart|Arch BuildingPart]] and set its IFC type to "Spatial Zone".
+* The Space object has the same display modes as other Arch and Part objects, with one more, called '''Footprint''', that displays only the bottom face of the space.
+
+==Scripting==
+
+<div class="mw-translate-fuzzy">
+==Программирование==
+{{Emphasis|Смотрите так же:}} [[FreeCAD_Scripting_Basics/ru|Основы составления скриптов в FreeCAD]].
+</div>
+
+<div class="mw-translate-fuzzy">
+Инструмент Пространства можно использовать в сценариях python и [[макросы]], используя следующую функцию:
+</div>
+
+{{Code|code=
+Space = makeSpace(objects=None, baseobj=None, name="Space")
+}}
+
+* Creates a {{incode|Space}} object from the given {{incode|objects}} or {{incode|baseobj}}, which can be
+** one document object, in which case it becomes the base shape of the Space object, or
+** a list of selection objects as returned by {{incode|FreeCADGui.Selection.getSelectionEx()}}, or
+** a list of tuples {{incode|(object, subobjectname)}}
+
+Пример:
+
+{{Code|code=
+import FreeCAD, Arch
+
+Box = FreeCAD.ActiveDocument.addObject("Part::Box", "Box")
+Box.Length = 1000
+Box.Width = 1000
+Box.Height = 1000
+
+Space = Arch.makeSpace(Box)
+Space.ViewObject.LineWidth = 2
+FreeCAD.ActiveDocument.recompute()
+}}
+
+After a space object is created, selected faces can be added to it with the following code:
+
+{{Code|code=
+import FreeCAD, FreeCADGui, Draft, Arch
+
+points = [FreeCAD.Vector(-500, 0, 0), FreeCAD.Vector(1000, 1000, 0)]
+Line = Draft.makeWire(points)
+Wall = Arch.makeWall(Line, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+# Select a face of the wall
+selection = FreeCADGui.Selection.getSelectionEx()
+Arch.addSpaceBoundaries(Space, selection)
+}}
+
+Boundaries can also be removed, again by selecting the indicated faces:
+
+{{Code|code=
+selection = FreeCADGui.Selection.getSelectionEx()
+Arch.removeSpaceBoundaries(Space, selection)
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Arch_SectionPlane/ru|Плоскость Сечения]]
+|[[Arch_Stairs/ru|Лестница]]
+|[[Arch_Workbench/ru|Архитектурный верстак "Arch"]]
+|IconL=Arch_SectionPlane.svg
+|IconR=Arch_Stairs.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

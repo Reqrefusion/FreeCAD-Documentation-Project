@@ -1,0 +1,164 @@
+<languages/>
+
+== Einleitung ==
+Dieses Beispiel basiert auf dem  [https://github.com/FreeCAD/FreeCAD_sf_master/blob/master/src/Mod/Robot/RobotExample.py RobotExample.py] Beispiel.
+
+Du kannst diese Datei direkt verwenden, wenn Du möchtest.
+
+Beispiel für die Verwendung der Basis Roboterklasse Robot6Axis, die einen 6-achsigen Industrieroboter darstellt. Das Modul Robot ist abhängig von Part, aber nicht von anderen Modulen.
+Es arbeitet hauptsächlich mit den Grundtypen Placement, Vector und Matrix. Wir brauchen also nur:
+{{Code|code=
+from Robot import *
+from Part import *
+from FreeCAD import *
+}}
+
+=== Grundlegendes zum Roboter ===
+Erstelle den Roboter. Wenn du keine andere Kinematik angibst, wird daraus ein Puma 560
+{{Code|code=
+rob = Robot6Axis()
+print rob
+}}
+
+Zugriff auf die Achse und den TCP. Die Achsen gehen von 1-6 und sind in Grad angegeben:
+{{Code|code=
+Start = rob.Tcp
+print Start
+print rob.Axis1
+}}
+
+bewege die erste Achse des Roboters:
+{{Code|code=
+rob.Axis1 = 5.0
+}}
+
+der TCP hat sich geändert (Vorwärtskinematik)
+{{Code|code=
+print rob.Tcp
+}}
+
+bewege den Roboter zurück in die Startposition (umgekehrte Kinematik):
+{{Code|code=
+rob.Tcp = Start
+print rob.Axis1
+}}
+
+das gleiche mit Achse 2:
+{{Code|code=
+rob.Axis2 = 5.0
+print rob.Tcp
+rob.Tcp = Start
+print rob.Axis2
+}}
+
+Wegpunkte:
+{{Code|code=
+w = Waypoint(Placement(),name="Pt",type="LIN")
+print w.Name,w.Type,w.Pos,w.Cont,w.Velocity,w.Base,w.Tool
+}}
+
+erzeuge mehr. Die Trajektorie findet immer automatisch einen eindeutigen Namen für die Wegpunkte
+{{Code|code=
+l = [w]
+for i in range(5):
+  l.append(Waypoint(Placement(Vector(0,0,i*100),Vector(1,0,0),0),"LIN","Pt"))
+}}
+
+erstelle eine Trajektorie  
+{{Code|code=
+t = Trajectory(l)
+print t
+for i in range(7):
+  t.insertWaypoints(Waypoint(Placement(Vector(0,0,i*100+500),Vector(1,0,0),0),"LIN","Pt"))
+}}
+
+siehe eine Liste aller Wegpunkte:
+{{Code|code=
+print t.Waypoints
+ 
+del rob,Start,t,l,w
+}}
+
+=== Arbeiten mit den Dokument Objekten ===
+
+Arbeiten mit den Roboter Dokumentenobjekten:
+Erstelle zunächst einen Roboter im aktiven Dokument
+{{Code|code=
+if(App.activeDocument() == None):App.newDocument()
+ 
+App.activeDocument().addObject("Robot::RobotObject","Robot")
+}}
+
+Definiere die visuelle Darstellung und die Kinematikdefinition (siehe [[Robot_6-Axis/de|Roboter 6-Achse]] und [[VRML Preparation for Robot Simulation/de|VRML Vorbereitung für Robotersimulation]] für Details dazu)
+{{Code|code=
+App.activeDocument().Robot.RobotVrmlFile = App.getResourceDir()+"Mod/Robot/Lib/Kuka/kr500_1.wrl"
+App.activeDocument().Robot.RobotKinematicFile = App.getResourceDir()+"Mod/Robot/Lib/Kuka/kr500_1.csv"
+}}
+
+Startposition der Achse (nur die, die von 0 abweichen)
+{{Code|code=
+App.activeDocument().Robot.Axis2 = -90
+App.activeDocument().Robot.Axis3 = 90
+}}
+
+Abrufen der TCP Position 
+{{Code|code=
+pos = FreeCAD.getDocument("Unnamed").getObject("Robot").Tcp
+}}
+
+bewege den Roboter
+{{Code|code=
+pos.move(App.Vector(-10,0,0))
+FreeCAD.getDocument("Unnamed").getObject("Robot").Tcp = pos
+}}
+
+ein leeres Trajektorienobjekt im aktiven Dokument erzeugen
+{{Code|code=
+App.activeDocument().addObject("Robot::TrajectoryObject","Trajectory")
+}}
+
+die Trajektorie erhalten
+{{Code|code=
+t = App.activeDocument().Trajectory.Trajectory
+}}
+
+die aktuelle TCP Position des Roboters zur Trajektorie hinzufügen
+{{Code|code=
+StartTcp = App.activeDocument().Robot.Tcp
+t.insertWaypoints(StartTcp)
+App.activeDocument().Trajectory.Trajectory = t
+print App.activeDocument().Trajectory.Trajectory
+}}
+
+Füge weitere Wegpunkte und den Startpunkt am Ende wieder ein:
+{{Code|code=
+for i in range(7):
+  t.insertWaypoints(Waypoint(Placement(Vector(0,1000,i*100+500),Vector(1,0,0),i),"LIN","Pt"))
+
+t.insertWaypoints(StartTcp) # end point of the trajectory
+App.activeDocument().Trajectory.Trajectory = t
+print App.activeDocument().Trajectory.Trajectory
+}}
+
+=== Simulation ===
+Zu erledigen..... 
+ 
+=== Exportieren der Trajektorie ===
+Die Trajektorie wird mit Python exportiert. Das heißt, für jeden Schaltschranktyp gibt es ein Postprozessor Python Modul. Hier ist der Kuka Postprozessor im Detail beschrieben
+{{Code|code=
+from KukaExporter import ExportCompactSub
+
+ExportCompactSub(App.activeDocument().Robot,App.activeDocument().Trajectory,'D:/Temp/TestOut.src')
+}}
+
+und so wird es auch gemacht:
+{{Code|code=
+for w in App.activeDocument().Trajectory.Trajectory.Waypoints:
+	(A,B,C) = (w.Pos.Rotation.toEuler())
+	print ("LIN {X %.3f,Y %.3f,Z %.3f,A %.3f,B %.3f,C %.3f} ; %s"%(w.Pos.Base.x,w.Pos.Base.y,w.Pos.Base.z,A,B,C,w.Name))
+
+}}
+
+{{Robot Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:API{{#translation:}}]]

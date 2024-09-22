@@ -1,0 +1,158 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{docnav/ro
+|[[Arch_Rebar_UShape/ro|UShape Rebar]]
+|[[Arch_Rebar_BentShape/ro|Bent Shape Rebar]]
+|[[Arch_Workbench/ro|Arch]]
+|IconL=Arch_Rebar_UShape.svg
+|IconC=Workbench_Arch.svg
+|IconR=Arch_Rebar_BentShape.svg
+}}
+</div>
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/ro
+|Name=Arch Rebar LShape
+|Name/ro=Arch Rebar LShape
+|MenuLocation=Arch → Rebar tools
+|Workbenches=[[Arch Workbench/ro|Arch]], [[BIM Workbench/ro|BIM]]
+|SeeAlso=[[Arch_Rebar_BentShape/ro|Bent Rebar]], [[Arch Rebar/ro|Rebar]]
+|Version=0.17
+}}
+</div>
+
+<span id="Description"></span>
+==Descriere==
+
+<div class="mw-translate-fuzzy">
+Instrumentul {{KEY|[[Image:Arch_Rebar_LShape.png|16px]] LShape Rebar}} permite utilizatorului să creeze o armătură LShape reinforcing bar în elementele structurale.
+</div>
+
+This tool is part of the [[Reinforcement_Workbench|Reinforcement Workbench]], an [[External_workbenches|external workbench]] that can be installed with the [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr|Addon Manager]].
+
+[[Image:Arch_Rebar_LShape_example.png|400px]]
+<div class="mw-translate-fuzzy">
+[[Image:LShapeRebarNew.png|800px]]
+</div>
+
+<span id="Usage"></span>
+== Cum se folosește ==
+
+<div class="mw-translate-fuzzy">
+# Create a [[Arch Structure|structure]] element
+# Select any face of the structure
+# Then select  {{KEY|[[Image:Arch_Rebar_LShape.png|16px]] LShape Rebar}} from the rebar tools
+# A task panel will pop-out on the left side of the screen as shown below [[Image:LShapeDialog.png|250px]]
+# Select the desired orientation
+# Give the inputs like front cover, left side cover, right side cover, bottom cover, top cover, rounding and diameter of the rebar
+# Select the mode of distribution either amount or spacing
+# If spacing is selected, a user can also opt for [[Custom_Spacing|custom spacing]]
+# Pick selected face is used to verify or change the face for rebar distribution
+# Click {{KEY|OK}} or {{KEY|Apply}} to generate the rebars
+# Click {{KEY|Cancel}} to exit the task panel
+</div>
+
+[[Image:LShapeDialog.png|250px]]
+{{Caption|Task panel for the tool}}
+
+<span id="Properties"></span>
+==Proprietăți== 
+
+* {{PropertyData|Orientation}}: Stabilește orientarea armăturii (ca de ex jos, sus, dreapta și stânga).
+* {{PropertyData|Front Cover}}: Distanța dintre armături și fațetele selectate.
+* {{PropertyData|Right Cover}}: Distanța între capătul dintre capătul dreapta al armăturii și fațeta dreapta a structurii.
+* {{PropertyData|Left Cover}}: Distanța dintre capătul din stânga al armăturii și fațeta stângă a structurii
+* {{PropertyData|Bottom Cover}}: Distanța dintre armătură și fațeta de jos a structurii.
+* {{PropertyData|Top Cover}}: Distanța dintre armătură și fața superioară a structurii.
+* {{PropertyData|Rounding}}: o valoarea a racordării de aplicat la colțutile barelor , exprimată în raport cu diametrul acestora.
+* {{PropertyData|Amount}}: Cantitatea de armătură 
+* {{PropertyData|Spacing}}: Distanța dintre acele fiecărei bare.
+
+<span id="Scripting"></span>
+<div class="mw-translate-fuzzy">
+== Scrip-Programare ==
+</div>
+
+{{Emphasis|See also:}} [[Arch_API|Arch API]], [[Reinforcement_API|Reinforcement API]] and [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+<div class="mw-translate-fuzzy">
+The {{KEY|[[Image:Arch_Rebar_LShape.png|16px]] LShape Rebar}} tool can by used in [[macros]] and from the python console by using the following function:
+</div>
+
+{{Code|code=
+Rebar = makeLShapeRebar(f_cover, b_cover, l_cover, r_cover,
+                        diameter, t_cover, rounding, amount_spacing_check, amount_spacing_value, orientation="Bottom Left",
+                        structure=None, facename=None):
+}}
+
+<div class="mw-translate-fuzzy">
+* O armătură tip LShape Rebar are patru orientări diferite:
+** Bottom Right
+** Bottom Left
+** Top Right
+** Top Left
+* Adaugă obiectul LShape reinforcing bar la obiectul structural selectat.
+* Dacă nu este dată nici o Structură și nici o Facename, ea va avea ca intrare fațeta selectat de utilizator.
+* Aici argumentul CoverAlong este de tip tuplă.
+* Returnează noul obiect Rebar.
+</div>
+
+=== Example ===
+
+{{Code|code=
+import FreeCAD, Arch, LShapeRebar
+
+Structure = Arch.makeStructure(length=1000, width=1000, height=400)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = LShapeRebar.makeLShapeRebar(50, 20, 20, 20,
+                                    8, 50, 4, True, 6, "Bottom Left", Structure, "Face4")
+Rebar.ViewObject.ShapeColor = (0.9, 0.0, 0.0)
+
+Rebar2 = LShapeRebar.makeLShapeRebar(50, 50, 20, 20,
+                                     8, 50, 4, True, 6, "Bottom Left", Structure, "Face6")
+Rebar2.ViewObject.ShapeColor = (0.0, 0.0, 0.9) 
+}}
+
+=== Edition of the rebar ===
+
+You can change the properties of the rebar with the following function:
+
+{{Code|code=
+editLShapeRebar(Rebar, f_cover, b_cover, l_cover, r_cover,
+                diameter, t_cover, rounding, amount_spacing_check, amount_spacing_value, orientation,
+                structure=None, facename=None)
+}}
+
+* {{incode|Rebar}} is a previously created {{incode|LShapeRebar}} object.
+* The other parameters are the same as required by the {{incode|makeLShapeRebar()}} function.
+* {{incode|structure}} and {{incode|facename}} may be omitted so that the rebar stays in the original structure.
+
+{{Code|code=
+import LShapeRebar
+
+LShapeRebar.editLShapeRebar(Rebar, 50, 50, 20, 20,
+                            12, 50, 6, True, 5, "Top Right")
+
+LShapeRebar.editLShapeRebar(Rebar2, 50, 50, 20, 20,
+                            12, 70, 6, True, 5, "Top Right")
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{docnav/ro
+|[[Arch_Rebar_UShape/ro|UShape Rebar]]
+|[[Arch_Rebar_BentShape/ro|Bent Shape Rebar]]
+|[[Arch_Workbench/ro|Arch]]
+|IconL=Arch_Rebar_UShape.svg
+|IconC=Workbench_Arch.svg
+|IconR=Arch_Rebar_BentShape.svg
+}}
+</div>
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

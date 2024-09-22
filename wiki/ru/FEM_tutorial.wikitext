@@ -1,0 +1,155 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{TutorialInfo/ru
+|Topic= Анализ методом конечных элементов
+|Level= Новичок
+|Time= 10 минут + время работы Решателя
+|Author=[http://freecadweb.org/wiki/index.php?title=User:Drei Drei]
+|FCVersion=0.16.6700 и выше
+|Files=
+}}
+</div>
+
+<span id="Introduction"></span>
+== Введение ==
+
+Данное руководство знакомит пользователя с основными принципами работы верстака FEM, а также с большинством доступных инструментов, предназначенных для выполнения статического анализа.
+
+[[Image:FEM_tutorial_result.png|600px]]
+
+<span id="Requirements"></span>
+== Требования ==
+
+<div class="mw-translate-fuzzy">
+* Версия FreeCAD должна быть 0.17 и старше.
+* Наличие [http://sourceforge.net/projects/netgen-mesher/ Netgen] и/или [http://geuz.org/gmsh/ GMSH] в системе (устанавливаются вместе с FreeCAD).
+* Наличие [http://www.calculix.de/ Calculix] в системе (устанавливается вместе с FreeCAD).
+* Пользователь изучающий данный пример должен обладать базовыми понятиями о том, как использовать верстаки [[Part_Workbench/ru|Part]] и [[PartDesign_Workbench/ru|PartDesign]].
+</div>
+
+<span id="Procedure"></span>
+== Последовательность действий ==
+
+<span id="Modeling"></span>
+=== Моделирование ===
+
+<div class="mw-translate-fuzzy">
+В этом примере в качестве объекта исследования используется Куб, но также вместо него могут быть использованы любые другие модели созданные в Верстаках Part или PartDesign.
+</div>
+
+<div class="mw-translate-fuzzy">
+# Создайте [[Std_New/ru|новый документ]] (нажатием на кнопку [[Image:Std_New.svg|24px|link=Std_New/ru]]).
+# Активировать [[Image:Workbench_Part.svg|24px|link=Part_Workbench/ru]] [[Part_Workbench/ru|верстак Part]]. 
+# Создайте Куб.
+# Измените его '''Размеры''' на следующие:
+## Length: 8.000 м.
+## Width: 1.000 м.
+## Height: 1.000 м.
+</div>
+
+<div class="mw-translate-fuzzy">
+Теперь у нас есть модель с которой можно работать.
+</div>
+
+<span id="Creating_the_Analysis"></span>
+=== Проведение анализа ===
+
+# Activate the [[Image:Workbench_FEM.svg|24px|link=FEM_Workbench]] [[FEM_Workbench|FEM Workbench]].
+# Select the {{MenuCommand|Model → [[Image:FEM_Analysis.svg|16px]] Analysis container‏‎}} option from the menu.
+
+<span id="Constraints_and_Forces"></span>
+=== Установка ограничений и приложение силы ===
+
+<div class="mw-translate-fuzzy">
+# Скройте сетку внутри древа проекта.
+# Откройте оригинальную модель
+# Выберите [[Image:FEM_FixedConstraint.png|16px]] [[FEM_ConstraintFixed/ru|Создать МКЭ с фиксированными ограничениями]]
+# Выберите заднюю поверхность Куба (поверхность осей '''YZ''') и кликните OK
+# Выберите [[Image:FEM_ForceConstraint.png|16px]] [[FEM_ConstraintForce/ru|Создать МКЭ с ограничениями силы]]
+# Выберите фронтальную поверхность Куба (грань, параллельная задней поверхности) и установите значение '''Area load'''  в 9000000,00
+# Установите '''Direction''' в '''-Z''' выбором одной из граней параллельно этому направлеию.
+# Кликните OK
+</div>
+
+Теперь мы установили ограничения и силы для нашего статического анализа.
+
+<span id="Material"></span>
+=== Выбор материала ===
+
+<div class="mw-translate-fuzzy">
+=== Последние приготовления ===
+# Нажмите [[Image:FEM_Material.png|16px]] [[FEM_MaterialSolid/ru|Mechanical material...]] и выберете Calculix-Steel  в качестве материала.
+# Нажмите '''OK'''
+</div>
+
+<span id="Meshing"></span>
+=== Создание Mesh ===
+
+Рекомендуется создавать mesh в качестве последнего шага при подготовке к анализу из-за привязки к геометрии в FreeCAD.
+В зависимости от установки FreeCAD, mesh может быть с Netgen или GMSH, вы можете использовать любую из них.
+
+==== Netgen ====
+
+# Выбрать модель
+# Кликнуть в меню [[Image:FEM_Analysis.png|16px]] [[FEM Analysis/ru|New mechanical analysis]], чтобы создать анализ из выбранного объекта
+# В диалоге создания сетки кликнуть '''OK'''
+
+<div class="mw-translate-fuzzy">
+Вы также можете перетащить сетку в Mechanical Analysis, у которого нет сетки, внутри древа проекта.
+</div>
+
+==== GMSH ====
+
+# Select the model
+# [[Image:FEM_MeshGmshFromShape.svg|24px]] [[FEM_MeshGmshFromShape|FEM mesh from shape by Gmsh]]: Generates a finite element mesh for a model using Gmsh.
+# In the meshing dialog, click {{Button|Apply}} and {{Button|OK}}.
+
+Мы создали сетку для нашего объекта и готовы добавить к нему ограничения и действующие силы.
+
+<span id="Running_the_Solver"></span>
+=== Запуск решателя ===
+
+<span id="Standard_Procedure"></span>
+==== Стандартный способ ====
+
+# Выберите объект решателя [[Image:FEM_SolverCalculixCxxtools.svg|24px]], находящийся в контейнере '''Analysis'''.
+# Выберите в меню [[Image:FEM_SolverControl.svg|24px]] [[FEM_SolverControl|Solver job control]]
+# Выберите '''Write .inp File'''.
+# Выберите '''Run Calculix'''.
+# Click {{Button|OK}}.
+
+<span id="Quick_Procedure"></span>
+==== Быстрый способ ====
+
+<div class="mw-translate-fuzzy">
+==== Быстрая процедура ====
+# Выберите объект решателя [[Image:FEM_Solver.png|16px]], находящийся в '''Mechanical Analysis'''
+# Кликните на [[Image:FEM_RunCalculiXccx.png|16px]] [[FEM_SolverRun/ru|Run CalculiX ccx]].
+</div>
+
+<span id="Analyzing_Results"></span>
+=== Анализ Результатов ===
+
+<div class="mw-translate-fuzzy">
+=== Анализ результатов ===
+# Выберите объект  '''Results''' из '''Object Tree'''
+# Выберите [[Image:FEM_ShowResult.png|16px]] [[FEM_ResultShow/ru|Show result]]
+# Выберите для просмотра из различных типов результата нужные
+# Движок внизу может использоваться для изменения визуализации сетки. Это позволяет визуализировать деформацию, испытываемую объектом, учитывая, что это приближение.
+# Для удаления результатов выберите [[Image:FEM_PurgeResults.png|16px]] [[FEM_ResultsPurge/ru|Purge results]]
+</div>
+
+{{Note|Сравнение с предшествующим файлом примера|Если Вы тип результата выбрали '''Z displacement''', Вы увидите, что полученное значение почти идентично тестовому примеру, предоставляемому FreeCAD. Различия могут быть из-за качества сетки и числа обрабатываемых узлов.}}
+
+<div class="mw-translate-fuzzy">
+Теперь мы закончили с основными принципами работы [[FEM_Workbench/ru|FEM Module]].
+</div>
+
+== Notes ==
+
+* For a video tutorial based on this written tutorial watch: [https://www.youtube.com/watch?v=SZTIqhfCSVc FEM MaterialReinforced tutorial].
+
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,298 @@
+<languages/>
+{{TOCright}}
+
+Ta strona opisuje jak używać krzywych złożonych ''(typu B-spline)'' w programie FreeCAD. Podaje również podstawowe informacje czym są krzywe złożone i do jakich zastosowań są przydatne.
+
+<span id="Motivation"></span>
+==Motywacja==
+
+Jeśli posiadasz już wiedzę na temat krzywych złożonych typu B-splines i ich zastosowania, możesz przejść bezpośrednio do rozdziału [[B-Splines/pl#Krzywe_z.C5.82o.C5.BCone_w_programie_FreeCAD|Krzywe złożone w programie FreeCAD]].
+
+Załóżmy, że chcesz zaprojektować część, która powinna być wytworzona za pomocą drukarki 3D. Część musi mieć krawędź zaprojektowaną w ten sposób:
+
+[[File:B-splines Motivation-start.png|450px]]
+
+Musisz wydrukować część w kierunku od dołu szkicu do góry. Zewnętrzne konstrukcje wsporcze mogą nie być rozwiązaniem. Dlatego musisz dodać podporę bezpośrednio do swojej części. Jakie masz opcje?
+
+* Opcja 1: możesz dodać linię od punktu ''(20, 0)'' do punktu ''(80, 40)'':
+
+[[File:B-splines Motivation-line.png|450px]]
+
+Jednak takie rozwiązanie wymaga dużej objętości, a co za tym idzie wagi i ilości materiału.
+
+* Opcja 2: możesz połączyć te dwa punkty łukiem okręgu. Aby zaoszczędzić na objętości, łuk powinien kończyć się stycznie w punkcie ''(80,40)''. Wtedy twoje rozwiązanie będzie wyglądać następująco:
+
+[[File:B-splines Motivation-circle.png|450px]]
+
+W PORZĄDKU. Ale na dole nie potrzebujesz bezpośredniego wsparcia.
+
+* Opcja 3: możesz zaoszczędzić trochę więcej objętości, jeśli połączenie między dwoma punktami jest krzywą, która zaczyna się stycznie w punkcie o współrzędnych ''(0, 20)'' i kończy stycznie w ''(80, 40)'':
+
+[[File:B-splines Motivation-bezier.png|450px]]
+
+Tak więc krzywa, za pomocą której można połączyć dwa punkty stycznie do punktu odniesienia, może być bardzo przydatna w konstrukcjach. Krzywe Béziera zapewniają tę cechę.
+
+<span id="Bézier_curves"></span>
+==Krzywe Béziera==
+
+<span id="Derivation"></span>
+===Pochodne===
+
+Krzywe Béziera są wielomianami opisującymi połączenie między dwoma punktami. Najprostszym wielomianem łączącym dwa punkty jest prosta ''(<math>A*x^1+B</math>)'', zatem liniowe krzywe Béziera są również odcinkami linii:
+
+[[File:Bezier_linear_anim.gif]]
+{{Caption|Animacja 1: Liniowa krzywa Béziera.}}
+
+Jednak wielomian staje się użyteczny, gdy możemy go kontrolować. Powinien więc istnieć punkt pomiędzy dwoma punktami końcowymi, który pozwala nam określić jak punkty końcowe są połączone. Tak jak w powyższym przykładzie w opcji trzeciej krzywa jest przydatna, gdy zaczyna się i kończy stycznie do linii przecinających punkty końcowe. I to jest główna cecha krzywych Béziera. Dodajmy więc punkt kontrolny pomiędzy punktami końcowymi. Krzywa zacznie się stycznie do tego punktu kontrolnego, co oznacza, że jest styczna do linii, którą możemy narysować pomiędzy punktem początkowym a punktem kontrolnym. Idąc wstecz od punktu końcowego krzywa będzie również styczna do linii, którą możemy narysować pomiędzy punktem kontrolnym a punktem końcowym. Animacja numer 2 pokazuje jak wygląda taka krzywa.
+
+[[File:Bezier_quadratic_anim.gif]]
+{{Caption|Animacja 2: Kwadratowa krzywa Béziera. Punktem kontrolnym jest tutaj punkt P1.}}
+
+Animacja jasno pokazuje, czym w zasadzie jest krzywa - przejściem od punktu P0 do punktu P2 poprzez obrócenie linii P0-P1 tak, aby stała się linią P1-P2. W ten sposób otrzymujemy ładną cechę stycznego początku / końca.
+
+Taka krzywa może być opisana tylko wielomianem kwadratowym. ''(Liczba lewych / prawych obrotów + 1 to konieczny rząd wielomianu. Wielomian kwadratowy to jeden zwrot, wielomian sześcienny ma dwa zwroty, itd.)'' Dlatego krzywa Béziera z jednym punktem kontrolnym jest kwadratową ''(drugiego rzędu)'' krzywą Béziera.
+
+Posiadanie tylko jednego punktu kontrolnego często nie jest wystarczające. Weźmy powyższy motywujący przykład. Tam w opcji 3 kończymy krzywą stycznie w kierunku x. Ale jak można połączyć punkty ''(20, 0)'' i ''(80, 40)'' tak, aby krzywa kończyła się stycznie w kierunku y? Aby to osiągnąć potrzebny jest najpierw zwrot w prawo, a potem w lewo, a więc wielomian sześcienny ''(trzeciego rzędu)''. A to oznacza, że dla krzywej Béziera potrzebujemy ''(lub można powiedzieć, że zyskujemy)'' drugi punkt kontrolny. Animacja 3 pokazuje sześcienną krzywą Béziera.
+
+[[File:Bezier_cubic_anim.gif]]
+{{Caption|Animacja 3: Sześcienna krzywa Béziera.}}
+
+Aby odpowiedzieć na pytanie, rozwiązaniem z zakończeniem stycznym w kierunku y dla przykładu jest:
+
+[[File:B-splines Motivation-cubic-bezier.png|450px]]
+
+<span id="Rules"></span>
+===Zasady===
+
+W pochodnej mogłeś już zauważyć pewne "reguły" dla krzywych Béziera:
+* Stopień wielomianu jest jednocześnie stopniem krzywych.
+* Jeśli potrzebujesz <math>n</math> skrętów, potrzebujesz co najmniej <math>n+1</math> stopnia krzywej Béziera.
+* Krzywa Béziera zawsze zaczyna się stycznie do linii między punktem początkowym a pierwszym punktem kontrolnym ''(i kończy się stycznie do linii między ostatnim punktem kontrolnym a punktem końcowym)''.
+
+<span id="Math"></span>
+===Matematyka===
+
+Jeśli jesteś zainteresowany, aby zrozumieć matematykę w tle, oto podstawy.
+
+Krzywą Béziera oblicza się według poniższego wzoru:
+
+<math>\quad
+\textrm{Bezier}(n,t)=\sum_{i=0}^{n}\underbrace{\binom{n}{i}}_{\text{polynomial term}}\underbrace{\left(1-t\right)^{n-i}t^{i}}_{\text{polynomial term}}\; \underbrace{P_{i}}_{\text{point coordinate}}
+</math>
+
+"n" jest niniejszym stopniem krzywej. Zatem krzywa Béziera stopnia ''n'' jest wielokątem rzędu ''n''. Współczynniki <math>P_{i}</math> są więc współrzędnymi punktów kontrolnych krzywych Béziera. Wizualizację można znaleźć na stronie [https://pomax.github.io/bezierinfo/#control kontrolowanie krzywizn Béziera].
+
+Jeśli jesteś dalej zainteresowany, spójrz na stronę [https://pomax.github.io/bezierinfo/#explanation Matematyka krzywych Béziera] z ładnie animowanym wyprowadzeniem matematyki dla krzywych Béziera.
+
+<span id="B-Splines"></span>
+==Krzywe złożone==
+
+<span id="Basics"></span>
+===Podstawy===
+
+[https://www.youtube.com/watch?v=bE1MrrqBAl8 Ten film] wymienia na początku praktyczne problemy z krzywymi Béziera. Na przykład, że dodanie lub zmiana punktu kontrolnego zmienia całą krzywą. Te problemy mogą być rozwiązane przez połączenie kilku krzywych Béziera. Wynikiem jest tak zwany ''splajn'', w szczególności B-splajn ''(basis spline)''. Film wyjaśnia również, że złożenie kwadratowych krzywych Béziera tworzy jednolity kwadratowy B-splajn, oraz że złożenie sześciennych krzywych Béziera tworzy jednolity sześcienny B-splajn.
+
+Z filmów możemy zebrać przydatne "zasady" dla krzywych złożonych ''(B-spline)'':
+* Pierwszy i ostatni punkt kontrolny jest punktem końcowym / początkowym krzywej.
+* Podobnie jak dla krzywych Béziera, krzywe złożone zawsze zaczynają się stycznie do linii pomiędzy punktem początkowym a pierwszym punktem kontrolnym ''(i kończą się stycznie do linii pomiędzy ostatnim punktem kontrolnym a punktem końcowym)''.
+* Połączenie <math>S</math> krzywych Béziera o stopniu <math>D</math> posiada <math>S+D</math> punktów kontrolnych.
+** Ponieważ w większości przypadków pracujemy z sześciennymi krzywymi złożonymi, możemy stwierdzić, że <math>N</math> punktów kontrolnych prowadzi do <math>N-3</math> segmentów Béziera, i z kolei <math>N-4</math> punktów węzłowych segmentów.
+* Krzywa złożona o stopniu <math>D</math> oferuje w każdym punkcie ciągłą pochodną rzędu <math>D-1</math>.
+** Dla sześciennej krzywej złożonej oznacza to, że krzywizna ''(pochodna drugiego rzędu)'' nie zmienia się podczas przechodzenia z jednego odcinka do następnego. Jest to bardzo użyteczna cecha, jak zobaczymy później.
+
+Jeśli interesuje Cię więcej szczegółów na temat właściwości krzywych złożonych, zajrzyj na film [https://www.youtube.com/watch?v=xXJylM2S72s Krzywe MOOC 8.2: Właściwości krzywych B-spline].
+
+<span id="Basis"></span>
+====Zasady====
+
+Ponieważ przedstawimy tylko podstawy teorii krzywej złożonej ''B-spline'', nie wchodzimy tutaj w szczegóły.
+
+Podstawą jest konstrukcja krzywej typu splajn. Patrząc na definicję krzywych Béziera w dziale [[#Matematyka|Matematyka]] pamiętamy, że krzywa Béziera jest liniową kombinacją wielomianów, których współczynnikiem jest współrzędna x/y każdego z punktów kontrolnych. Wielomiany te nazywane są wielomianami Bernsteina.
+
+Ponieważ kilka krzywych Béziera jest łączonych w celu utworzenia splajnu, otrzymujemy zbiór wielomianów Bernsteina tworzących splajn (są one podstawą). Ponieważ chcemy pokonać wspomniane ograniczenia krzywych Béziera, nie łączymy geometrycznie różnych wielomianów Bernsteina z krzywych Béziera, ale definiujemy wielomian Bernsteina w całym zakresie geometrycznym splajnu. Zatem '''nie łączymy''' krzywych Béziera z ich wielomianami Bernsteina, który byłby:
+:<math>\textrm{Bezier-combination}=\begin{cases}
+  \sum_{i=0}^{n}P_{i}\cdot B_{i,n}(t),  & 0\le t\le1\\
+  \sum_{i=0}^{n}P_{i+n}\cdot B_{i,n}(t-1), & 1\le t\le2\\
+\cdots
+\end{cases}</math>
+
+natomiast <math>B_{i,n}(t)</math> jest i-tym wielomianem Bernsteina o rzędzie <math>n</math>, a współczynniki <math>P_{i}</math> są współrzędnymi punktów kontrolnych krzywej Béziera. My jednak używamy '''innego zestawu funkcji''', które są zdefiniowane na całym zakresie splajnu:
+:<math>\textrm{B-spline}= \sum_{i=0}^{n}p_{i}\cdot N_{i,n}(t)</math>.
+
+Zauważ, że ogólnie <math>N_{i,n}(t) \ne B_{i,n}(t)</math>, a punkty kontrolne Beziera <math>\{P_1, P_2,\dots\}</math> różnią się od punktów kontrolnych B-spline <math>\{p_1, p_2,\dots\}</math>.
+
+Różne <math>N_{i,n}(t)</math> są zdefiniowane fragmentarycznie, gdzie przedział każdego fragmentu jest przedziałem fragmentu Béziera.
+
+Gdy długości wszystkich odcinków <math>N_{i,n}</math> są równe, mówimy o jednolitym splajnie. ''(W literaturze często oznacza się to jako równy czas podróży <math>t</math> na kawałek)''.
+
+Aby zrozumieć, w jaki sposób <math>p_{i}</math> są współrzędnymi punktów kontrolnych krzywej B-spline, zobacz pierwszą minutę filmu [https://www.youtube.com/watch?v=dPPTCy4L4rY&list=PL8bSwVy8_IcMvtI70tZoYesCS0hGVO5qd tego wideo].
+
+<span id="Knot_vector"></span>
+====Wektor węzła====
+
+Jak wywnioskowano powyżej, B-splajny są utworzone z <math>N_{i,n}</math> wielomianów kawałkowych o ciągłości do pewnej pochodnej między kawałkami. Punkty końcowe przedziału definicyjnego kawałka nazywane są węzłami. Dla splajnu zdefiniowanego na <math>k</math> kawałkach istnieje <math>k+1</math> węzłów podanych przez tzw. ''wektor węzłów'': </br><math>\{t_0, t_1, t_2,\dots, t_k\}</math> natomiast <math> t_0 < t_1 < t_2 < \dots < t_k</math>
+
+Wektor węzłów zawiera węzły <math>N_{i,n}</math> funkcji bazowych, które definiują B-spline, zobacz film [https://www.youtube.com/watch?v=ni5NNPCVvDY Węzły krzywej B-spline]. Funkcje bazowe B-spline mogą być obliczone przy użyciu wektora węzłów i algorytmu tworzenia, zobacz film [https://www.youtube.com/watch?v=hrsO45AHtbs Generowanie funkcji bazowych. Wzór Coxa-de Boora].
+
+Pochodna, do której istnieje ciągłość, jest określona przez krotność <math>m</math>. Dlatego możemy określić wektor z krotnością dla każdego węzła: <math>\{m_0, m_1,\dots, m_k\}</math>. Węzeł na splajnie o stopniu „d” i krotności „m” mówi, że krzywa po lewej i prawej stronie węzła ma co najmniej równą pochodną rzędu „n” ''(zwaną „C”< sup>''n''</sup> ciągłość)'', podczas gdy <math>n=d-m</math>.
+
+<span id="Non-uniform_B-splines"></span>
+===Niejednorodne krzywe B-spline===
+
+Wywodzenie krzywych złożonych z krzywych Béziera ma tę matematyczną konsekwencję, że w krzywych złożonych każdy wielomian ma taką samą długość. Takie krzywe złożone nazywane są ''jednorodnymi''. Bardziej ogólny przypadek jest taki, że mogą, ale nie muszą mieć tej samej długości. Takie ''niejednolite'' splajny mają tę zaletę, że można kontrolować, jak blisko splajny przecinają swój punkt kontrolny.
+
+Matematycznie osiąga się to przez zdefiniowanie różnych <math>N_{i,n}</math> elementów w różnych przedziałach. Jeśli na przykład B-splajn jest zdefiniowany dla przedziału [0, 1], to jest jednolity, jeśli wszystkie jego np. 5 fragmentów są również zdefiniowane w tym przedziale. Jeśli teraz <math>N_{1,4}</math> jest zdefiniowany tylko w przedziale [0, 0.6] ''(poza tym przedziałem jest ustawiony na zero)'', to jest krótszy, a więc splajn staje się niejednolity.
+
+Jak opisano powyżej parametry węzłów są opisane przez wektor węzłów. Tak więc wektor węzłów przechowuje przedziały definicyjne. Kiedy teraz jeden kawałek dostaje inny interwał, również wektor węzłów zmienia się, zobacz film [https://www.youtube.com/watch?v=w-l5R70y6u0 Niejednolite krzywe B-spline i ich funkcje bazowe] dla wizualizacji.
+
+<span id="Rational_B-splines"></span>
+===Relacyjne krzywe B-splajn===
+
+Dalsze uogólnienie dla krzywych złożonych może być dokonane poprzez wprowadzenie wag dla punktów kontrolnych. W ten sposób można kontrolować "jak ważny" jest dany punkt kontrolny.
+
+Równanie dla takiego splajnu to:
+
+:<math>
+c(n, t)=\cfrac{\sum_{i=0}^{n}d_{i}N_{i, n}(t)\cdot w_i}{\sum_{i=0}^{n}N_{i, n}(t)\cdot w_i}
+</math>
+
+Zauważ, że funkcja nie jest już wielomianem, ale funkcją racjonalną, a takie splajny nazywamy racjonalnymi krzywymi złożonymi. Zauważ, że gdy wszystkie <math>w_i</math> są równe, to równanie sprowadza się do regularnej nieracjonalnej krzywej złożonej. Zatem nieracjonalne krzywe złożone są podzbiorem racjonalnych krzywych złożonych.
+
+Te niejednorodne i racjonalne ''(z powodu podziału)'' krzywe B-spline są często nazywane '''[https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline NURBS]''' i są szeroko stosowane w modelowaniu geometrycznym.
+
+<span id="B-splines_in_FreeCAD"></span>
+==Krzywe złożone w programie FreeCAD==
+
+FreeCAD oferuje możliwość tworzenia jednolitych lub niejednolitych krzywych złożonych dowolnego stopnia w przestrzeni 2D, za pomocą środowiska pracy [[Sketcher_Workbench/pl|Szkicownik]].
+
+<span id="Creation"></span>
+===Tworzenie===
+
+Aby utworzyć krzywe złożone, przejdź do szkicu i użyj przycisku na pasku narzędzi {{Button|[[File:Sketcher_CreateBSpline.svg|16px]] [[Sketcher_CreateBSpline/pl|Utwórz krzywą złożoną]]}}. Następnie kliknij lewym przyciskiem myszy, aby ustawić punkt kontrolny, przesuń kursor w lewo, aby ustawić następny punkt kontrolny i tak dalej. Na koniec kliknij prawym przyciskiem myszy, aby zakończyć definicję i utworzyć krzywą.
+
+Domyślnie tworzone są jednolite krzywe sześcienne, ale nie ma wystarczającej ilości punktów kontrolnych, aby to zrobić. Tak więc, gdy tworzysz krzywą złożona z tylko 2 punktami kontrolnymi, otrzymujesz oczywiście krzywą, która jest pojedynczą liniową krzywą Béziera, dla 3 punktów kontrolnych otrzymujesz kwadratową krzywą Béziera, a dla 5 punktów kontrolnych otrzymujesz sześcienną krzywą złożoną z 2 segmentów Béziera. {{Version/pl|0.20}} Możesz również użyć klawisza D podczas tworzenia krzywej B-spline, aby ustawić jej stopień ''(nadal będzie ona opadać do niższego stopnia, jeśli podano mniej punktów)''.
+
+Aby utworzyć periodyczne krzywe złożone ''(B-splajny, które tworzą zamkniętą krzywą)'', użyj przycisku na pasku narzędzi {{Button|[[File:Sketcher_CreatePeriodicBSpline.svg|16px]] [[Sketcher_CreatePeriodicBSpline/pl|Okresowa krzywa złożona ...]]}}. Nie jest konieczne ustawianie ostatniego punktu kontrolnego na pierwszym, ponieważ linia krzywej zostanie automatycznie zamknięta:
+
+[[File:Sketcher_Periodic-B-spline-creation.gif]]
+
+Krzywe złożone mogą być również generowane z istniejących segmentów szkicu. Aby to zrobić, zaznacz elementy i naciśnij przycisk paska narzędzi {{Button|[[File:Sketcher_BSplineConvertToNURBS.svg|24px]] [[Sketcher_BSplineConvertToNURBS/pl|Konwertuj geometrię na krzywą złożoną]]}}.
+
+Podczas tworzenia krzywej złożonej można określić jej stopień, naciskając klawisz {{KEY|D}}. Dzięki temu można zastąpić domyślne ustawienie tworzenia sześciennej krzywej złożonej, jeśli jest to możliwe. {{Version/pl|0.20}}
+
+<span id="Changing_the_Degree"></span>
+===Zmiana stopni===
+
+Aby zmienić stopień, wybierz krzywą złożoną i użyj przycisku z paska narzędzi {{Button|[[File:Sketcher_BSplineIncreaseDegree.svg|24px]] [[Sketcher_BSplineIncreaseDegree/pl|Zwiększ stopień krzywej złożonej]]}} lub {{Button|[[File:Sketcher_BSplineDecreaseDegree.svg|24px]] [[Sketcher_BSplineDecreaseDegree/pl|Zmniejsz stopień krzywej złożonej]]}}.
+
+'''Uwaga:''' Zmniejszanie stopnia nie może odwrócić wcześniejszego zwiększenia stopnia, zobacz stronę Wiki [[Sketcher_BSplineDecreaseDegree/pl|Zmniejsz stopień krzywej złożonej]], aby uzyskać wyjaśnienie.
+
+<span id="Changing_the_Knot_Multiplicity"></span>
+===Zmiana wielokrotności węzłów===
+
+Punkty, w których dwie krzywe Béziera łączą się tworząc krzywą złożoną nazywane są węzłami. Mnogość węzłów określa sposób łączenia części Béziera, zobacz stronę Wiki [[Sketcher_BSplineIncreaseKnotMultiplicity/pl|Zwiększ liczebność węzłów]], aby poznać szczegóły.
+
+Aby zmienić krotność węzłów, użyj przycisków paska narzędzi {{Button|[[File:Sketcher_BSplineIncreaseKnotMultiplicity.svg|24px]] [[Sketcher_BSplineIncreaseKnotMultiplicity/pl|Zwiększ krotności węzłów]]}} lub {{Button|[[File:Sketcher_BSplineDecreaseKnotMultiplicity.svg|24px]] [[Sketcher_BSplineDecreaseKnotMultiplicity/pl|Zmniejsz krotności węzłów]]}}.
+
+'''Uwaga:''' Tworzenie dwóch krzywych złożonych, które są ze sobą połączone, nie połączy się w jedną nową krzywą złożoną. Zatem ich punkt połączenia nie jest węzłem. Jedynym sposobem na uzyskanie nowego węzła w istniejącej krzywej jest zmniejszenie jej stopnia. Jednakże, możesz uzyskać wiele nowych węzłów. Dlatego lepszym wyborem jest przerysowanie krzywej z większą liczbą punktów kontrolnych.
+
+<span id="Changing_the_Weight"></span>
+===Zmiana wagi===
+
+Wokół każdego punktu kontrolnego znajduje się ciemnożółte koło. Jego promień określa wagę dla danego punktu kontrolnego. Domyślnie wszystkie okręgi mają promień równy ''1''. Jest to oznaczone za pomocą wiązania promienia dla pierwszego okręgu punktu kontrolnego.
+
+Aby utworzyć racjonalną krzywą złożoną, wagi muszą być niezależne. Aby to osiągnąć, można usunąć wiązanie, że wszystkie okręgi są równe, a następnie ustawić różne wiązania promienia dla okręgów.
+
+Jeśli nie ustawiono żadnego wiązania promienia, można również zmienić promień, przeciągając go:
+
+[[File:Sketcher_Changing-control-point-weigth-dragging.gif]]
+
+W przykładzie przeciągania widać, że duża waga przyciąga krzywą do punktu kontrolnego, podczas gdy bardzo mała waga zmienia krzywą tak, jakby punkt kontrolny prawie nie istniał.
+
+Kiedy spojrzysz na [[B-Splines/pl#Niejednorodne_krzywe_B-spline|funkcję tworzenia]] dla niejednorodnych racjonalnych krzywych złożonych zobaczysz, że waga równa zero doprowadziłaby do dzielenia przez zero. Ujemne wagi są teoretycznie możliwe, ale nie są wspierane. Dlatego możesz określić tylko wagi większe od zera.
+
+'''Uwaga:''' Podczas przeciągania punktów, węzłów lub szerokości, średnice okręgów oznaczających wagę będą się zmieniać. Dzieje się tak dlatego, że ze względów wizualizacyjnych średnica zależy od całkowitej długości krzywej złożonej. Rzeczywista waga nie ulega zmianie.
+
+<span id="Editing_Knots"></span>
+===Edycja węzłów===
+
+Nowe węzły można dodawać za pomocą przycisku {{Button|[[File:Sketcher_BSplineInsertKnot.svg|24px]] [[Sketcher_BSplineInsertKnot/pl|Dodaj węzeł krzywej złozonej]]}}. {{Version/pl|0.20}}
+
+Węzeł jest usuwany przez zmniejszenie jego stopnia do 0 ''(tj. zastosowanie {{Button|[[File:Sketcher_BSplineDecreaseKnotMultiplicity.svg|24px]] [[Sketcher_BSplineDecreaseKnotMultiplicity/pl|Zmniejsz krotność węzła krzywej złożonej]]}}, gdy jego stopień wynosi 1)''.
+
+Zmiana wartości parametru węzła nie jest jeszcze obsługiwana.
+
+<span id="Display_Information"></span>
+===Wyświetlanie informacji===
+
+Ponieważ postać krzywej B-splajnu nie mówi wiele o jej właściwościach, FreeCAD oferuje [[Sketcher_Workbench/pl#Narz.C4.99dzia_szkicownika_dla_krzywych_z.C5.82o.C5.BConych|różne narzędzia]] do wyświetlania tych właściwości:
+
+{| class="wikitable float-right"
+|Właściwość
+|Przycisk narzędzia
+|-
+| '''Stopień'''
+| {{Button|[[File:Sketcher_BSplineDegree.svg|16px]] [[Sketcher_BSplineDegree/pl|Pokaż / ukryj stopnie krzywej złożonej]]}}
+|-
+| '''Ramka kontrolna'''
+| {{Button|[[File:Sketcher_BSplinePolygon.svg|16px]] [[Sketcher_BSplinePolygon/pl|Pokaż / ukryj ramkę kontrolną krzywej złożonej]]}}
+|-
+| '''Grzebień krzywizny'''
+| {{Button|[[File:Sketcher_BSplineComb.svg|16px]] [[Sketcher_BSplineComb/pl|Pokaż / ukryj grzebień krzywizny krzywej złożonej]]}}
+|-
+| '''Wielokrotność węzłów'''
+| {{Button|[[File:Sketcher_BSplineKnotMultiplicity.svg|16px]] [[Sketcher_BSplineKnotMultiplicity/pl|Pokaż / ukryj krotność węzłów krzywej złożonej]]}}
+|-
+| '''Waga'''
+| {{Button|[[File:Sketcher_BSplinePoleWeight.svg|16px]] [[Sketcher_BSplinePoleWeight/pl|Pokaż / ukryj wagi krzywej złożonej]]}}
+|}
+
+<span id="Limitations"></span>
+===Ograniczenia===
+
+W chwili obecnej ''(FreeCAD v0.20)'' istnieją pewne ograniczenia podczas używania krzywych złożonych, które powinieneś znać:
+# Nie można ustawić wiązań stycznych.</br>W tym przykładzie</br> [[File:Sketcher_spline-limit-tangential.png|450px]]</br> chcesz zapewnić, że krzywa dotknie niebieskiej krzywej 2 razy stycznie. Byłoby to użyteczne, ponieważ niebieska linia może być na przykład przestrzenną granicą dla twojego projektu.
+# Nie można utworzyć krzywej odsunięcia dla linii krzywej złożonej używając narzędzia środowiska Rysunek Roboczy [[Draft_Offset/pl|Odsunięcie]].
+
+<span id="Typical_Use_Cases"></span>
+==Przypadki typowego zastosowania==
+
+Zgodnie z właściwościami linii krzywych złożonych, istnieją trzy główne przypadki zastosowań:
+# Krzywe, które zaczynają się / kończą stycznie do pewnego kierunku. Przykładem tego jest przykład motywacyjny [[#Motywacja|powyżej]].
+# Krzywe opisujące większe projekty i zapewniające swobodę lokalnych zmian. Zobacz [[#Projektowanie|przykład projektowania]] poniżej.
+# Krzywe zapewniające pewną ciągłość ''(pochodną)''. Zobacz [[#Ci.C4.85g.C5.82o.C5.9B.C4.87_w_przej.C5.9Bciach_geometrycznych|przykład ciągłości]] poniżej.
+
+<span id="Designing"></span>
+===Projektowanie===
+
+Rozważmy przypadek, w którym projektujemy obudowę baterii kuchennej. Jej pożądany kształt powinien wyglądać tak jak ten:
+
+[[File:Sketcher_spline-exmple-mixer-shell.png]]
+
+Do zdefiniowania formy zewnętrznej korzystne jest użycie krzywej złożonej, ponieważ po zmianie punktu kontrolnego w celu zmiany krzywizny u dołu, krzywizna z boku i u góry nie ulegnie zmianie:
+
+[[File:Sketcher_spline-exmple-mixer-sketch.gif]]
+
+<span id="Continuity_at_Geometric_Transitions"></span>
+===Ciągłość w przejściach geometrycznych===
+
+Istnieje kilka przypadków, w których fizycznie konieczne jest zachowanie pewnej ciągłości powierzchni na przejściach geometrycznych. Weźmy na przykład wewnętrzne ścianki kanału z płynem. Kiedy mamy zmianę średnicy kanału, nie chcemy mieć krawędzi, ponieważ krawędzie wprowadziłyby turbulencje. Dlatego, tak jak w przykładzie motywacyjnym [[#Motywacja|powyżej]], używamy do tego celu krzywych złożonych.
+
+Rozwój krzywych Béziera został zapoczątkowany przez francuski przemysł samochodowy. Oprócz oszczędności materiału i zmniejszenia oporów przepływu powietrza, należało również poprawić wygląd samochodów. Patrząc na fantazyjny design francuskich samochodów z lat 60-tych i 70-tych można zauważyć, że krzywe Béziera dały impuls do rozwoju designu samochodów.
+
+Weźmy na przykład to zadanie w projektowaniu samochodów: Błotnik samochodu powinien "ładnie wyglądać". Oto podstawowy szkic do tego zadania:
+
+[[File:Spline-Fender-sketch1.svg|250px]]
+
+"Ładny wygląd" oznacza, że ''(potencjalny)'' klient patrzy na błotnik i nie widzi niespodziewanych refleksów świetlnych, a także w ogóle żadnych nagłych zmian w odbiciu od lakieru samochodowego. Czego więc potrzebujesz, aby uniknąć zmian w odbiciach? Dokładne przyjrzenie się błotnikowi:
+
+[[File:Spline-Fender-sketch2.svg|300px]]
+{{Caption|W obszarze przestrzennym nad krawędzią intensywność światła odbitego jest niska ''(oznaczona czerwoną elipsą)'', ponieważ w kierunku od krawędzi do oka nie odbija się bezpośrednio żadne światło.}}
+
+Widzisz, kiedy jest krawędź, istnieje obszar przestrzenny, w którym odbite światło ma mniejszą intensywność i to jest to, co zauważysz patrząc na błotnik. Aby tego uniknąć potrzebna jest ciągła zmiana nachylenia elementów powierzchni. Nachylenie jest pochodną pierwszego rzędu i jak wyjaśniono w sekcji [[#Podstawy|Podstawy]], krzywa złożona drugiego stopnia ''(kwadratowa)'' oferuje w każdym punkcie ciągłą pochodną pierwszego rzędu.
+
+Ale czy to naprawdę wystarczy? W punkcie przejścia geometrycznego mamy teraz po obu stronach to samo nachylenie, ale nachylenie to może się zmieniać w różny sposób po obu stronach. Wtedy mamy taką sytuację:
+
+[[File:Spline-Fender-sketch3.svg|300px]]
+
+Mamy więc również obszary przestrzenne, w których natężenie światła odbitego jest różne. Aby tego uniknąć, potrzebujemy w geometrycznym punkcie przejścia również ciągłości pochodnej drugiego rzędu, a więc sześciennej krzywej złożonej.

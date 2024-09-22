@@ -1,0 +1,133 @@
+<languages/>
+
+{{Docnav/de
+|[[Arch_Panel_Cut/de|Plattenzuschnitt]]
+|[[Arch_Nest/de|Verschachteln]]
+|[[BIM_Workbench|BIM]]
+|IconL=Arch_Panel_Cut.svg
+|IconR=Arch_Nest.svg
+|IconC=Workbench_BIM.svg 
+}}
+
+{{VeryImportantMessage|DIESER BEFEHL IST BESTANDTEIL DES INTEGRIERTEN ARBEITSBEREICHS [[BIM_Workbench/de|BIM]] IN V1.0<br>
+Diese Seite wurde für diese Version aktualisiert.}}
+
+{{GuiCommand/de
+|Name=Arch Panel Sheet
+|Name/de=Arch Panel Plattenzeichnung
+|MenuLocation=Utils → Plattenwerkzeuge → Plattenzeichnung
+|Workbenches=[[BIM_Workbench/de|BIM]]
+|Version=0.17
+|SeeAlso=[[Arch_Panel/de|Arch Platte]], [[Arch_Panel_Cut/de|Arch Plattenzuschnitt]], [[Arch_Nest/de|Arch Verschachteln]]
+}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+Dieses Werkzeug ermöglicht eine 2D-Zeichnung zu erstellen, einschließlich einer beliebigen Anzahl von [[Arch_Panel_Cut/de|Arch Plattenzuschnitt]] Objekten oder anderen 2D-Objekten, wie z.B. diejenigen, die mit den Arbeitsbereichen [[Draft_Workbench/de|Draft]] und [[Sketcher_Workbench/de|Sketcher]] erstellt wurden. Die Plattenzeichnung wird in der Regel für die Anordnung von Plattenzuschnitten (Beschnittkonturen) erstellt, die von einer CNC-Maschine ausgeschnitten werden sollen. Diese Zeichnungsblatter können dann in eine [[Draft_DXF/de|DXF]]-Datei exportiert werden.
+
+[[Image:Arch Wikihouse 03.jpg|600px]] 
+
+[[Image:Arch Wikihouse 04.jpg|600px]] 
+
+''Das obige Bild zeigt, wie Plattenzeichnungen beim Export nach DXF erscheinen.''
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Wahlweise ein oder mehrere [[Arch_Panel_Cut/de|Arch Plattenzuschnitt]]-Objekte auswählen oder jedes andere 2D-Objekt, das auf der XY-Ebene liegt.
+# Den Menüeintrag  {{MenuCommand|Utils → Plattenwerkzeuge → [[Image:Arch_Panel_Sheet.svg|16px]] Plattenzeichnung}} auswählen.
+# Die gewünschten Eigenschaften anpassen.
+
+<span id="Options"></span>
+==Optionen==
+
+* Nachdem die Plattenzeichnung erstellt wurde, mit oder ohne eingefügte Objekte, kann ein beliebiges Objekt eingefügt oder entfernt werden, indem es in der Baumansicht doppelt angeklickt wird und Objekte seinen Gruppenordnern hinzugefügt werden bzw. daraus entfernt werden.
+* Ein Doppelklick auf die Platte in der Baumansicht ermöglicht auch die enthaltenen Objekte zu verschieben oder seine Beschriftung zu verschieben.
+* Es ist möglich automatisch Platten aus mehr als einer Materiallage zu erstellen, indem... (by raising its Sheets property)
+* Plattenzeichnungen können Ränder darstellen. Das hilft sicherzustellen, dass stets ein festgelegter Bereich zwischen den inneren Objekten und dem Zeichnungsrand vorhanden ist.
+* Werden Plattenzeichnungen in eine DXF-Datei exportiert, werden Konturen, enthaltene Löcher und Beschriftungen ihrer enthaltenen Objekte auf verschiedene Layer abgelegt, wie in der obigen Abbildung dargestellt.
+
+<span id="Properties"></span>
+==Eigenschaften==
+
+<span id="Data"></span>
+===Daten===
+
+* {{PropertyData/de|Height}}: Die Höhe des Zeichnungsblattes
+* {{PropertyData/de|Width}}: Die Breite des Zeichnungsblattes
+* {{PropertyData/de|Fill Ratio}}: Der Prozentsatz der Zeichnung, der von Zuschnitten belegt wird (automatisch)
+* {{PropertyData/de|Tag Text}} (Beschriftungstext): Der anzuzeigende Text
+* {{PropertyData/de|Tag Size}}: Die Höhe des Beschriftungstextes
+* {{PropertyData/de|Tag Position}}: Die Position des Beschriftungstextes. Automatische Mittenposition bei (0,0,0)
+* {{PropertyData/de|Tag Rotation}}: Die Drehung des Beschriftungstextes
+* {{PropertyData/de|Font File}}: Die Schriftart des Beschriftungstextes
+* {{PropertyData/de|Make Face}}: Falls True, ist die Platte eine Part-Fläche, anderenfalls ein Part-Linienzug
+* {{PropertyData/de|Grain Direction}}: Gibt einen Winkel für die Faserausrichtung an (im Uhrzeigersinn, 0° bedeutet oben)
+
+<span id="View"></span>
+===Ansicht===
+
+* {{PropertyView/de|Margin}}: Ein Rand, der innerhalb der Plattenkontur angezeigt werden kann
+* {{PropertyView/de|Show Margin}}: Schaltet die Anzeige des Randes ein bzw. aus
+* {{PropertyView/de|Show Grain}}: Schaltet die Anzeige der Faserausrichtung ein bzw. aus (Make Face muss auf 'true' gesetzt sein)
+
+<span id="Scripting"></span>
+==Skripten==
+
+{{Emphasis|Siehe auch:}} [[Arch_API/de|Arch API]] und [[FreeCAD_Scripting_Basics/de|FreeCAD Grundlagen Skripten]].
+
+Das Werkzeug Plattenzeichnung kann in [[Macros/de|Makros]] und von der [[Python/de|Python]]-Konsole aus mit folgender Funktion verwendet werden:
+
+{{Code|code=
+Sheet = makePanelSheet(panels=[], name="PanelSheet")
+}}
+
+* Erstellt ein {{incode|Sheet}}-Objekt aus {{incode|panels}}, welches eine Liste von [[Arch Panel|Arch Platte]]n-Objekten ist.
+
+Beispiel:
+
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+Rect = Draft.makeRectangle(500, 200)
+Polygon = Draft.makePolygon(5, 750)
+
+p1 = FreeCAD.Vector(1000, 0, 0)
+p2 = FreeCAD.Vector(2000, 400, 0)
+p3 = FreeCAD.Vector(1250, 800, 0)
+Wire = Draft.makeWire([p1, p2, p3], closed=True)
+
+Panel1 = Arch.makePanel(Rect, thickness=36)
+Panel2 = Arch.makePanel(Polygon, thickness=36)
+Panel3 = Arch.makePanel(Wire, thickness=36)
+FreeCAD.ActiveDocument.recompute()
+
+Cut1 = Arch.makePanelCut(Panel1)
+Cut2 = Arch.makePanelCut(Panel2)
+Cut3 = Arch.makePanelCut(Panel3)
+Cut1.ViewObject.LineWidth = 3
+Cut2.ViewObject.LineWidth = 3
+Cut3.ViewObject.LineWidth = 3
+FreeCAD.ActiveDocument.recompute()
+
+Sheet = Arch.makePanelSheet([Cut1, Cut2, Cut3])
+}}
+
+<span id="Tutorials"></span>
+== Tutorien ==
+
+* [[Wikihouse_porting_tutorial/de|Wikihouse Portierungs Tutorium]]
+
+
+{{Docnav/de
+|[[Arch_Panel_Cut/de|Plattenzuschnitt]]
+|[[Arch_Nest/de|Verschachteln]]
+|[[BIM_Workbench|BIM]]
+|IconL=Arch_Panel_Cut.svg
+|IconR=Arch_Nest.svg
+|IconC=Workbench_BIM.svg 
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

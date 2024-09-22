@@ -1,0 +1,109 @@
+<languages/>
+
+{{Docnav/es
+|[[Draft_Split/es|Dividir]]
+|[[Draft_Downgrade/es|Rebajar]]
+|[[Draft_Workbench/es|Borrador]]
+|IconL=Draft_Split.svg
+|IconR=Draft_Downgrade.svg
+|IconC=Workbench_Draft.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/es
+|Name=Draft Upgrade
+|Name/es=Borrador Elevar
+|MenuLocation=Modificación → Elevar
+|Workbenches=[[Draft_Workbench/es|Borrador]], [[Arch_Workbench/es|Arquitectura]]
+|Shortcut={{KEY|U}} {{KEY|P}}
+|SeeAlso=[[Draft_Downgrade/es|Borrador Rebajar]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descripción==
+
+<div class="mw-translate-fuzzy">
+El [[Image:Draft_Upgrade.svg|24px]] comando '''Borrador Elevar''' eleva objetos 2D seleccionados. El resultado depende del número de objetos seleccionados y de su tipo. El comando puede, por ejemplo, fusionar elementos y crear caras. Vale la pena intentar elevar una selección varias veces para ver si se puede obtener un mejor resultado. Vea el ejemplo de la imagen. Tenga en cuenta que no todos los objetos pueden ser elevados. Este comando es la contraparte del comando [[Draft_Downgrade/es|Borrador Rebajar]].
+</div>
+
+[[Image:Draft_Upgrade_example.jpg|400px]]
+{{Caption|Un hilo abierto no editable se elevar en un hilo cerrado y luego en una cara. Un hilo cuadrado cerrado no editable también se elevar en una cara. Las dos caras se actualizan para crear un compuesto, que finalmente se elevado a un único borrador de hilo editable.}}
+
+<span id="Usage"></span>
+==Utilización==
+
+<div class="mw-translate-fuzzy">
+# Opcionalmente selecciona uno o más objetos.
+# Hay varias vías para invocar el comando:
+#* Pulsar el {{Button|[[Image:Draft_Upgrade.svg|16px]] [[Draft_Upgrade/es|Borrador Elevar]]}}.
+#* Seleccione la opción {{MenuCommand|Modification → [[Image:Draft_Upgrade.svg|16px]] Elevar}} en el menú.
+#* Utilice el atajo de teclado: {{KEY|U}} y luego {{KEY|P}}.
+#Si aún no ha seleccionado un objeto: seleccione un objeto en la [[3D_view/es|Vista 3D]].
+</div>
+
+<span id="Notes"></span>
+==Notas==
+
+* [[Draft_Line/es|Líneas de Borrador]] y [[Draft_Wire/es|Hilos de Borrador]] se pueden unir con este comando, pero también con el comando [[Draft_Join/es|Unir Borrador]] o el comando [[Draft_Wire/es|Hilo de Borrador]].
+
+<span id="Scripting"></span>
+==Guión==
+
+Ver también: [https://freecad.github.io/SourceDoc/ Documentación de la API autogenerada] y [[FreeCAD_Scripting_Basics/es|Fundamentos de FreeCAD Guión]].
+
+Para elevar objetos utilice el método {{incode|upgrade}} del módulo Borrador.
+
+{{Code|code=
+upgrade_list = upgrade(objects, delete=False, force=None)
+}}
+
+* {{incode|objects}} contiene los objetos que se van a elevar. Puede ser un solo objeto o una lista de objetos.
+* Si {{incode|delete}} es {{incode|True}} se borran los objetos de origen.
+* {{incode|force}} fuerza una determinada forma de elevación llamando a una función interna específica. Puede ser: {{incode|"makeCompound"}}, {{incode|"closeGroupWires"}}, {{incode|"makeSolid"}}, {{incode|"closeWire"}}, {{incode|"turnToParts"}}, {{incode|"makeFusion"}}, {{incode|"makeShell"}}, {{incode|"makeFaces"}}, {{incode|"draftify"}}, {{incode|"joinFaces"}}, {{incode|"makeSketchFace"}}, {{incode|"makeWires"}} o {{incode|"turnToLine"}}.
+* Se devuelve {{incode|upgrade_list}}. Es una lista que contiene dos listas: una lista de objetos nuevos y una lista de objetos a eliminar. Si {{incode|delete}} es {{incode|True}} la segunda lista está vacía.
+
+Ejemplo:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+circle = Draft.make_circle(1000)
+rectangle = Draft.make_rectangle(2000, 800)
+doc.recompute()
+
+add_list1, delete_list1 = Draft.upgrade([circle, rectangle], delete=False)
+
+line1 = Draft.make_line(App.Vector(2000, 0, 0), App.Vector(2500, 1500, 0))
+line2 = Draft.make_line(App.Vector(2500, 1500, 0), App.Vector(3000, -1000, 0))
+doc.recompute()
+
+add_list2, delete_list2 = Draft.upgrade([line1, line2], delete=False)
+
+simple_wire = add_list2[0]
+add_list3, delete_list3 = Draft.upgrade(simple_wire, delete=False)
+
+closed_wire = add_list3[0]
+add_list4, delete_list4 = Draft.upgrade(closed_wire, delete=False)
+
+face = add_list4[0]
+add_list5, delete_list5 = Draft.upgrade(face, delete=False)
+
+doc.recompute()
+}}
+
+
+{{Docnav/es
+|[[Draft_Split/es|Dividir]]
+|[[Draft_Downgrade/es|Rebajar]]
+|[[Draft_Workbench/es|Borrador]]
+|IconL=Draft_Split.svg
+|IconR=Draft_Downgrade.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

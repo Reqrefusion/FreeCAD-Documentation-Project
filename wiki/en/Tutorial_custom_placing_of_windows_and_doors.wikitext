@@ -1,0 +1,276 @@
+<languages/>
+{{TutorialInfo
+|Topic=Architecture
+|Level=Intermediate
+|Time=60 minutes
+|Author=[https://forum.freecadweb.org/memberlist.php?mode=viewprofile&u=21943 vocx]
+|FCVersion=0.18 or greater
+|Files=none
+}}
+
+==Introduction==
+
+This tutorial shows how to place custom designed [[Arch Window]]s and [[Arch Door]]s in a building model. It uses the [[Draft Workbench]], the [[Arch Workbench]], and the [[Sketcher Workbench]].
+
+Common tools used are: [[Draft_Snap_Grid|Draft Grid]], [[Draft Snap]], [[Draft Wire]], [[Arch Wall]], [[Arch Window]], and [[Sketcher NewSketch]]. The user should be familiar with constraining sketches.
+
+This tutorial was inspired by the tutorials by jpg87 posted in the [https://forum.freecadweb.org/viewforum.php?f=36 FreeCAD forums].
+* [https://forum.freecadweb.org/viewtopic.php?f=36&t=32883 Arch Create a custom window]
+* [https://forum.freecadweb.org/viewtopic.php?f=36&t=32982 Arch : How to use your custom Window]
+
+See also the following thread for more information on the position of windows and doors.
+* [https://forum.freecadweb.org/viewtopic.php?t=35368 Discussion: Orientation of Windows and Doors]
+
+See also the following page for some videos on how to align windows.
+* [http://help-freecad-jpg87.fr/04_arch_ind.php The workbench used to create architectural projects is called Arch]
+
+== Setup ==
+
+1. Open FreeCAD, create a new empty document, and switch to the [[Arch Workbench]].
+
+2. Make sure your units are set correctly in the menu {{MenuCommand|Edit → Preferences → General → Units}}. For example, {{incode|MKS (m/kg/s/degree)}} is good for dealing with distances in a typical building; moreover, set the number of decimals to {{incode|4}}, to consider even the smallest fractions of a meter.
+
+3. Use the [[Draft ToggleGrid]] button to show a grid with enough resolution. You can change the grid appearance in the menu {{MenuCommand|Edit → Preferences → Draft → Grid and snapping → Grid}}. Set lines at every {{incode|50 mm}}, with major lines every {{incode|20}} lines (every meter), and {{incode|1000 lines}} in total (the grid covers an area of 50 m x 50 m).
+
+4. [[Zoom out]] of the 3D view if you are too close to the grid.
+
+Now we are ready to create a simple wall on which we can position windows and doors.
+
+== Placing a wall ==
+
+
+5. Use the [[Draft Wire]] tool to create a wire. Go counterclockwise.
+:5.1. First point in (0, 4, 0); in the dialog enter {{KEY|0}} {{KEY|m}} {{KEY|Enter}}, {{KEY|4}} {{KEY|m}} {{KEY|Enter}}, {{KEY|0}} {{KEY|m}} {{KEY|Enter}}.
+:5.2. Second point in (2, 0, 0); in the dialog enter {{KEY|2}} {{KEY|m}} {{KEY|Enter}}, {{KEY|0}} {{KEY|m}} {{KEY|Enter}}, {{KEY|0}} {{KEY|m}} {{KEY|Enter}}.
+:5.3. Third point in (4, 0, 0); in the dialog enter {{KEY|4}} {{KEY|m}} {{KEY|Enter}}, {{KEY|0}} {{KEY|m}} {{KEY|Enter}}, {{KEY|0}} {{KEY|m}} {{KEY|Enter}}.
+:5.4. Fourth point in (6, 2, 0); in the dialog enter {{KEY|6}} {{KEY|m}} {{KEY|Enter}}, {{KEY|2}} {{KEY|m}} {{KEY|Enter}}, {{KEY|0}} {{KEY|m}} {{KEY|Enter}}.
+:5.4. Fifth point in (6, 5, 0); in the dialog enter {{KEY|6}} {{KEY|m}} {{KEY|Enter}}, {{KEY|5}} {{KEY|m}} {{KEY|Enter}}, {{KEY|0}} {{KEY|m}} {{KEY|Enter}}.
+:5.5. In the number pad press {{KEY|A}} to finish the wire.
+:5.6. In the number pad press {{KEY|0}} to get an [[axonometric view]] of the model.
+:{{Emphasis|Note:}} make sure the {{Emphasis|Relative}} checkbox is disabled if you are giving absolute coordinates.
+:{{Emphasis|Note 2:}} the points can also be defined with the mouse pointer by choosing intersections on the grid, with the help of the [[Draft Snap]] toolbar and the [[Draft_Snap_Grid|Draft Grid]] method.
+:{{Emphasis|Note 3:}} you can also create shapes programmatically by scripting in [[Python]]. Beware that most functions expect their input in millimeters.
+
+{{Code|code=
+import FreeCAD
+import Draft
+
+p = [FreeCAD.Vector(0.0, 4000.0, 0),
+FreeCAD.Vector(2000.0, 0.0, 0.0),
+FreeCAD.Vector(4000.0, 0.0, 0.0),
+FreeCAD.Vector(6000.0, 2000.0, 0.0),
+FreeCAD.Vector(6000.0, 5000.0, 0.0)]
+
+w = Draft.makeWire(p, closed=False)
+}}
+
+6. Select the {{incode|DWire}} and click the [[Arch Wall]] tool; the wall is immediately created with a default width (thickness) of 0.2 m, and height of 3 m.
+
+[[Image:01_T02_wire_wall.png|600px|center]]
+
+{{Caption|align=center|Base wire for the wall}}
+[[Image:02_T02_just_wall.png|600px|center]]
+
+{{Caption|align=center|Wall constructed from the wire}}
+
+== Placing preset doors and windows ==
+
+7. Click the [[Arch Window]] tool; as preset select {{incode|Simple door}}, and change the height to 2 m.
+:7.1. Change the snapping to [[Draft_Snap_Midpoint|Draft Midpoint]], and try selecting the bottom edge of the frontal wall; rotate the [[standard view]] as necessary to help you pick the edge and not the wall face; when the midpoint is active, click to place the door.
+:7.2. Click the [[Arch Window]] tool again, and place another door, but this time in the midpoint of the rightmost wall; rotate the [[standard view]] as necessary.
+
+[[Image:03_T02_wall_place_doors.png|600px|center]]
+
+{{Caption|align=center|Snapping to the midpoint of the bottom edge of the wall to place the door}}
+
+:{{Emphasis|Note:}} the {{incode|Sill height}} is the distance from the floor to the lower edge of the element. For doors the {{incode|Sill height}} is usually 0 m as doors are normally touching the floor; on the other hand, windows have a usual separation of 0.5 m to 1.5 m from the floor. The {{incode|Sill height}} can only be set when initially creating the window or door from a preset. Once the window or door is inserted, modify its placement by editing the {{PropertyData|Position}} vector {{incode|[x, y, z]}} of the  underlying [[Sketcher_Workbench|Sketcher Sketch]].
+
+== Creating custom doors and windows ==
+
+8. Switch to the [[Sketcher Workbench]]; select the part of the wall to the right that has no door; click on the [[Sketcher NewSketch]]; select {{Button|FlatFace}} as attachment method. If the existing geometry obstructs your view, click on [[Sketcher ViewSection]] to remove it.
+
+9. Draw a fancy sketch containing three closed wires. Make sure to provide constraints to all wires.
+:9.1. The outside wire is the biggest one, and will define the main dimensions of the window object, and the size of the hole created when it's embedded in an [[Arch Wall]]. Make sure the dimensions are named appropriately, for example, {{incode|Width}} and {{incode|Height}}. A constraint also defines the curvature of the outer wire; give it an appropriate name, like {{incode|HeightCurve}}.
+:9.2. The second wire is offset from the outer wire, and together with it, they define the width of the fixed frame of the window. Name the offset appropriately, for example, {{incode|FrameFixedOffset}}. It will be used for both the top vertical and horizontal offsets. The bottom offset, if set to zero, will result in the fixed frame touching the bottom of the window; this can be used to model a door instead of a window. Give it an appropriate name, like {{incode|FrameFixedBottom}}.
+:9.3. The third, innermost wire is offset from the second wire, and together with it, they define the frame of the window that can open. The innermost wire also defines the size of the glass panel. Again, give meaningful names to these offsets, for example, {{incode|FrameInnerOffset}} and {{incode|FrameInnerBottom}}.
+:9.4. In order to build succesfully the sketch, use horizontal ([[Sketcher ConstrainHorizontal]]) and vertical ([[Sketcher ConstrainVertical]]) constraints for the straight sides; use auxiliary construction geometry ([[Sketcher ToggleConstruction]]), and tangential constraints ([[Sketcher ConstrainTangent]]) to correctly place the circular arcs at the top. As in this case the window is symmetrical, consider equality ([[Sketcher ConstrainEqual]]), symmetrical ([[Sketcher ConstrainSymmetric]]), and point on object ([[Sketcher ConstrainPointOnObject]]) constraints where it makes sense.
+
+[[Image:04_T02_window_constraints_outer_frame.png|center]]
+
+{{Caption|align=center|Constraints for the outer wires of the sketch that form the window}}
+[[Image:05_T02_window_constraints_inner_frame.png|center]]
+
+{{Caption|align=center|Constraints for the inner wires of the sketch that form the window}}
+
+10. Once the sketch is fully constrained, press {{Button|Close}} to exit the sketch ([[Sketcher LeaveSketch]]).
+:10.1. Since a face of the wall was selected during the initial step of creating the sketch, the sketch is co-planar with that face; however, it may be in the wrong position, away from the wall. If this is the case, adjust {{PropertyData|Position}} within {{PropertyData|Attachment Offset}}. Set {{PropertyData|Position}} to {{incode|[4 m, 1 m, 0 m]}} so the sketch is centered in the wall, and it is one meter above the floor level.
+:10.2. You can see the named constraints under {{PropertyData|Constraints}}. The values can be modified to see the sketch change dimensions immediately.
+
+[[Image:07_T02_window_sketch_in_wall.png|600px|center]]
+
+{{Caption|align=center|Window sketch moved to the desired position on the wall}}
+
+[[Image:06_T02_window_sketch_properties_constraints.png|600px|center]]
+
+{{Caption|align=center|Named constraints of the sketch, which can be modified without going inside the sketch}}
+
+11. Change back to the [[Arch Workbench]] and, with the new {{incode|Sketch002}} selected, use [[Arch Window]]. A window will be created, and will make a hole in the wall. The window is made from a custom sketch, and not from a preset, so it needs to be edited in order to correctly display its components, that is, the fixed frame, the inner frame, and the glass panel.
+
+[[Image:08_T02_window_basic_in_wall.png|600px|center]]
+
+{{Caption|align=center|Custom window created from the sketch; it still doesn't have a proper frame, nor glass}}
+
+== Setting up the custom window ==
+
+12. In the tree view select {{incode|Sketch002}} underlying {{incode|Window}}, and press {{KEY|Space}}, or change the property {{PropertyView|Visibility}} to {{TRUE}}.
+
+13. Double click {{incode|Window}} in the tree view to start editing it.
+:13.1. Inside the {{incode|Window elements}} dialog there are two panes, {{incode|Wires}} and {{incode|Components}}. There are three wires, {{incode|Wire0}}, {{incode|Wire1}}, and {{incode|Wire2}}, and one component, {{incode|Default}}. The wires refer to the closed loops that were drawn in the sketch; the components define the areas in the sketch that will be extruded to create frame or glass panels with real thicknesses; these areas are delimited by the wires. A window created from a preset already has two components, {{incode|OuterFrame}} and {{incode|Glass}}. The custom window needs to be edited to have a similar structure.
+
+[[Image:09_T02_window_edit_default.png|center]]
+
+{{Caption|align=center|Dialog to edit a window or a door}}
+
+:13.2. Click on {{incode|Default}}, and click the {{Button|Remove}} button to eliminate it.
+
+:13.3. Click {{Button|Add}}; this shows the properties of a new component like {{incode|Name}}, {{incode|Type}}, {{incode|Wires}}, {{incode|Thickness}}, {{incode|Offset}}, {{incode|Hinge}}, and {{incode|Opening mode}}. Give a name, such as {{incode|OuterFrame}}, choose {{incode|Frame}} for {{incode|Type}}, and click on {{incode|Wire0}} and then {{incode|Wire1}}; they should highlight in the 3D viewport. Add a small value for {{incode|Thickness}}, {{incode|15 mm}}, and check the checkbox to add the default value. This default value is the length assigned to the {{PropertyData|Frame}} property; a similar default can be assigned to the {{PropertyData|Offset}} property. Click the {{Button|+Create/update component}} button to finish editing the component.
+
+:13.4. Click {{Button|Add}}; give another name, such as {{incode|InnerFrame}}, choose {{incode|Frame}} for {{incode|Type}}, and click on {{incode|Wire1}} and then {{incode|Wire2}}. Add a sensible {{incode|Thickness}}, {{incode|60 mm}}, and {{incode|Offset}}, {{incode|15 mm}}. Then click the {{Button|+Create/update component}} button.
+
+:13.5. Click {{Button|Add}}; give another name, such as {{incode|Glass}}, choose {{incode|Glass panel}} for {{incode|Type}}, and click on {{incode|Wire2}}. Add a sensible {{incode|Thickness}}, {{incode|10 mm}}, and {{incode|Offset}}, {{incode|40 mm}}. Then click the {{Button|+Create/update component}} button. If any of the three components needs to be modified, select it and press {{Button|Edit}}; modifications are only saved after pressing the {{Button|+Create/update component}} button.
+
+[[Image:10_T02_window_edit_components.png|center]]
+
+{{Caption|align=center|Editing a previously defined component of a window or a door}}
+
+:13.6. If everything is set, click {{Button|Close}} to finish editing the window. The sketch may become hidden again, but the window will show distinct solid elements for the {{incode|OuterFrame}}, the {{incode|InnerFrame}}, and the {{incode|Glass}}. Give a value of {{incode|100 mm}} to {{PropertyData|Frame}} to assign a default thickness, which will be added to the value specified in the {{incode|OuterFrame}} component.
+
+[[Image:11_T02_window_property_view.png|center]]
+
+{{Caption|align=center|Property view of the window to add default Frame length, Offset length, and other options}}
+
+[[Image:12_T02_window_finished.png|600px|center]]
+
+{{Caption|align=center|Finished window with appropriate components embedded in the wall}}
+
+== Duplicating the custom window ==
+
+14. In the tree view, select {{incode|Window}} and its underlying {{incode|Sketch002}}. Then go to {{MenuCommand|Edit → Duplicate selection}}, and answer {{Button|No}} if asked to duplicate unselected dependencies. A new {{incode|Window001}} and {{incode|Sketch003}} will appear in the same position as the original elements.
+
+15. Select the new {{incode|Sketch003}}. Go to the {{PropertyData|Map Mode}} property, and click on the ellipsis next to the {{incode|FlatFace}} value. In the 3D viewport select the left side of the wall which doesn't have any element; rotate the [[standard view]] as necessary. Change the {{incode|Attachment offset}} to [-1 m, 0 m, 0 m] to center the window, and click {{Button|OK}}. The sketch and the window should appear in a new position.
+:{{Emphasis|Note:}} the [[Part_EditAttachment|attachment operation]] can also be performed by changing to the [[Part Workbench]], and then using the menu {{MenuCommand|Part → Attachment}}.
+
+[[Image:13_T02_sketch_attachment_edit.png|center]]
+
+{{Caption|align=center|Dialog to edit the attachment plane of the sketch}}
+
+16. You may adjust the dimensions of the new window by changing the named parameters in {{incode|Sketch003}} under {{PropertyData|Constraints}}, for example, set {{incode|Height}} to {{incode|2 m}}, and {{incode|Frame Fixed Bottom}} to {{incode|0 m}}. Then press {{KEY|Ctrl}}+{{KEY|R}} to [[recompute]] the model. If the wall doesn't show a bigger hole for the new window, select the wall in the tree view, right click and choose {{incode|Mark to recompute}}, then press {{KEY|Ctrl}}+{{KEY|R}} again.
+
+17. These operations have changed the position of the new window, but the opening in the wall doesn't look correct. It is slanted, that is, the hole is not perpendicular to the face of the wall, and it may even cut other parts of the wall. The problem is that {{incode|Window001}} has retained the {{PropertyData|Normal}} information of the original {{incode|Window}}.
+
+[[Image:14_T02_sketch_2_attached_slanted.png|600px|center]]
+
+{{Caption|align=center|Incorrect opening in the wall due to bad Normal of the window}}
+
+== Normals of doors and windows ==
+
+18. Each [[Arch Window]] object controls the extrusion of its body and the opening that is created in its host wall by means of the {{PropertyData|Normal}}.
+
+The normal is a vector {{incode|[x, y, z]}} that indicates a direction perpedicular to a wall. When a window or door preset is created with the [[Arch Window]] tool directly over an [[Arch Wall]], the normal is automatically calculated, and the resulting window or door is correctly aligned; the first two objects, {{incode|Door}} and {{incode|Door001}}, were created in this way.
+
+In similar way, when a sketch is created by selecting a planar surface, it is oriented on this plane. Then when the [[Arch Window]] tool is used, the window will use as normal the perpendicular direction to the sketch. This was the case with the third object, the custom {{incode|Window}}.
+
+If the window already exists and needs to be moved, as was the case with the duplicated {{incode|Window001}} object, the sketch needs to be remapped to another plane; doing this moves both the sketch and the window, but the latter doesn't automatically update its normal, so it has incorrect extrusion information. The normal needs to be calculated manually and written to {{PropertyData|Normal}}.
+
+The three values of the normal vector are calculated as following.
+{{Code|code=
+x = -sin(angle)
+y = cos(angle)
+z = 0
+}}
+Where {{incode|angle}} is the angle of the local Z axis of the sketch with respect to the global Y axis.
+
+When a sketch is created, it always has two axes, a local X (red) and a local Y (green). If the sketch is mapped to the global XY working plane, then these axes are aligned; but if the sketch is mapped on the global XZ or global YZ planes, as is common with windows and doors (the sketches are "standing up"), then the local Z (blue) forms an angle with the global Y axis; this angle varies from -180 to 180 degrees. The angle is considered positive if it opens counterclockwise, and it is negative if it opens clockwise, starting from the global Y axis.
+
+[[Image:15_T02_sketch_local_coordinates.png|600px|center]]
+
+{{Caption|align=center|Local coordinates of a sketch that is "standing up", that is, mapped to the global XZ plane}}
+
+[[Image:16_T02_sketch_correct_normal_direction.png|600px|center]]
+
+{{Caption|align=center|Intended directions of the normals for each door and window}}
+
+If we look at the geometry created so far, we see the following normals.
+
+;{{incode|Door}}
+: The local Z is aligned with the global Y, therefore, the {{incode|angle}} is zero. The normal vector is
+{{Code|code=
+x = -sin(0) = 0
+y = cos(0) = 1
+z = 0
+}}
+or {{PropertyData|Normal}} is {{incode|[0, 1, 0]}}.
+
+;{{incode|Door001}}
+: The local Z is rotated 90 degrees from the global Y, therefore, the {{incode|angle}} is 90 (positive, because it opens counterclockwise). The normal vector is
+{{Code|code=
+x = -sin(90) = -1
+y = cos(90) = 0
+z = 0
+}}
+or {{PropertyData|Normal}} is {{incode|[-1, 0, 0]}}.
+
+;{{incode|Window}}
+: The local Z is rotated 45 degrees from the global Y, therefore, the {{incode|angle}} is 45 (positive, because it opens counterclockwise). The normal vector is
+{{Code|code=
+x = -sin(45) = -0.7071
+y = cos(45) = 0.7071
+z = 0
+}}
+or {{PropertyData|Normal}} is {{incode|[-0.7071, 0.7071, 0]}}.
+
+;{{incode|Window001}}
+: The local Z direction is found by using the [[Draft Dimension]] tool and measuring the angle that the wall trace ({{incode|Wire}}) makes with the global Y axis, or any line aligned to it. This angle is {{incode|26.57}}; the desired angle is the complement to this, so <code>90 - 26.57 = 63.43</code>.
+
+This means the local Z axis is rotated 63.43 degrees from the global Y, therefore, the {{incode|angle}} is -63.46 (negative, because it opens clockwise). The normal vector is
+{{Code|code=
+x = -sin(-63.43) = 0.8943
+y = cos(-63.43) = 0.4472
+z = 0
+}}
+Therefore {{PropertyData|Normal}} should be changed to {{incode|[0.8943, 0.4472, 0]}}.
+
+After doing these changes, recompute the model with {{KEY|Ctrl}}+{{KEY|R}}. If the wall doesn't update the hole, select it in the tree view, right click and choose {{incode|Mark to recompute}}, then press {{KEY|Ctrl}}+{{KEY|R}} again.
+
+19. The orientation of the extrusion of the window is resolved, together with the opening in the wall.
+
+[[Image:17_T02_sketch_2_attached_correctly.png|600px|center]]
+
+{{Caption|align=center|Correct opening in the wall due to proper Normal of the window}}
+
+== Final remarks ==
+
+20. As demonstrated, the initial placement of the [[Arch Window]] is very important. The user should either
+* use the [[Arch Window]] tool to insert and automatically align a preset to a wall, or
+* map a sketch to the desired wall, and build the window after that.
+
+If a window already exists, and it needs to be moved, the supporting sketch should be remapped to a new plane, and the {{PropertyData|Normal}} of the window needs to be recalculated.
+
+The new normal direction can be obtained by measuring the {{incode|angle}} of the new wall with respect to the global Y axis, considering whether this angle is positive (counterclockwise) or negative (clockwise), and using a simple formula.
+{{Code|code=
+x = -sin(angle)
+y = cos(angle)
+z = 0
+}}
+
+To confirm that the operations are correct, the absolute magnitude of the normal vector should be one. That is,
+{{Code|code=
+abs(N) = 1 = sqrt(x^2 + y^2 + z^2)
+abs(N) = 1 = sqrt(sin^2(angle) + cos^2(angle) + z^2)
+}}
+
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Draft_Tools_navi{{#translation:}}}}
+{{Sketcher_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

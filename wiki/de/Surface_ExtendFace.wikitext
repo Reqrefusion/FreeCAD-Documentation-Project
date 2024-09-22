@@ -1,0 +1,135 @@
+<languages/>
+
+{{Docnav/de
+|[[Surface_Sections/de|Querschnitte]]
+|[[Surface_CurveOnMesh/de|KurveAufNetz]]
+|[[Surface_Workbench/de|Surface]]
+|IconL=Surface_Sections.svg
+|IconC=Workbench_Surface.svg
+|IconR=Surface_CurveOnMesh.svg
+}}
+
+{{GuiCommand/de
+|Name=Surface ExtendFace
+|Name/de=Surface FlächeErweitern
+|MenuLocation=Surface → Extend face
+|Workbenches=[[Surface_Workbench/de|Surface]]
+|Version=0.17
+}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+{{Button|[[File:Surface_ExtendFace.svg|16px]] [[Surface_ExtendFace/de|Surface FlächeErweitern]]}} extrapoliert eine vorhandene Fläche oder Oberfläche an ihren Rändern mit ihren lokalen U- und V-Parametern.
+
+[[File:Surface_ExtendFace_base_example.png|300px]] [[File:Surface_ExtendFace_example.png|300px]]
+
+{{Caption|Links: Original Fläche. Rechts: Erweiterte Fläche.}}
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Make sure you have an object that has faces. The object could be created with the [[File:Workbench_Surface.svg|24px]] [[Surface_Workbench|Surface Workbench]] but it could also be any other object, for example, created with [[File:Workbench_Part.svg|24px]] [[Part_Workbench|Part]] or [[File:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench|PartDesign]].
+# Select the face to extend by clicking on it on the [[3D_view|3D view]].
+# Press {{Button|[[File:Surface_ExtendFace.svg|16px]] [[Surface_ExtendFace|Extend face]]}}.
+
+<span id="Options"></span>
+==Optionen==
+
+Dieser Befehl besitzt keine Optionen. Entweder funktioniert er mit der Auswahl oder nicht.
+
+<span id="Properties"></span>
+==Eigenschaften==
+
+A [[Surface_ExtendFace|Surface Extend]] object ({{incode|Surface::Extend}} class) is derived from the basic [[Part_Feature|Part Feature]] ({{incode|Part::Feature}} class, through the {{incode|Part::Spline}} subclass), therefore it shares all the latter's properties.
+
+In addition to the properties described in [[Part_Feature|Part Feature]], the Surface Filling has the following properties in the [[Property_editor|property editor]].
+
+<span id="Data"></span>
+=== Daten ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyData|Face|LinkSub}}: the subelement from an object that will be extended; it must be a face.
+* {{PropertyData|Tolerance|FloatConstraint}}: it defaults to {{Value|0.1}}.
+
+* {{PropertyData|Extend UNeg|FloatConstraint}}: it defaults to {{Value|0.05}}. The ratio of the local U parameter that will be extended in the negative direction.
+* {{PropertyData|Extend UPos|FloatConstraint}}: it defaults to {{Value|0.05}}. The ratio of the local U parameter that will be extended in the positive direction.
+* {{PropertyData|Extend USymetric|Bool}}: it defaults to {{TRUE}}, in which case {{PropertyData|Extend UNeg}} and {{PropertyData|Extend UPos}} will have the same value.
+
+* {{PropertyData|Extend VNeg|FloatConstraint}}: it defaults to {{Value|0.05}}. The ratio of the local V that will be extended in the negative direction.
+* {{PropertyData|Extend VPos|FloatConstraint}}: it defaults to {{Value|0.05}}. The ratio of the local V direction that will be extended in the positive direction.
+* {{PropertyData|Extend VSymetric|Bool}}: it defaults to {{TRUE}}, in which case {{PropertyData|Extend VNeg}} and {{PropertyData|Extend VPos}} will have the same value.
+
+* {{PropertyData|SampleU|IntegerConstraint}}: it defaults to {{Value|32}}.
+* {{PropertyData|SampleV|IntegerConstraint}}: it defaults to {{Value|32}}.
+
+<span id="View"></span>
+=== Ansicht === 
+
+{{TitleProperty|Base}}
+
+* {{PropertyView|Control Points|Bool}}: it defaults to {{FALSE}}; if set to {{TRUE}}, it will show an overlay with the control points of the surface.
+
+<span id="Scripting"></span>
+== Skripten ==
+
+{{Emphasis|See also:}} [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+The Surface Extend tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by adding the {{incode|Surface::Extend}} object.
+* The face to extend must be assigned as a [[FeaturePython_Custom_Properties#App::PropertyLinkSub|LinkSub]] to the {{incode|Face}} property of the object. It must contain only a single face.
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+a = App.Vector(-20, -20, 0)
+b = App.Vector(-18, 25, 0)
+c = App.Vector(60, 26, 0)
+d = App.Vector(33, -20, 0)
+
+points = [a, App.Vector(-20, -8, 0), b, c,
+          App.Vector(37, 4, 0), d,
+          App.Vector(-2, -18, 0), a]
+obj = Draft.make_bspline(points)
+doc.recompute()
+
+if App.GuiUp:
+    obj.ViewObject.Visibility = False
+
+surf = doc.addObject("Surface::Filling", "Surface")
+surf.BoundaryEdges = [(obj, "Edge1")]
+doc.recompute()
+
+# ---------------------------------------------------------
+points_spl = [App.Vector(-10, 0, 2),
+              App.Vector(4, 0, 7),
+              App.Vector(18, 0, -5),
+              App.Vector(25, 0, 0),
+              App.Vector(30, 0, 0)]
+aux_edge = Draft.make_bspline(points_spl)
+doc.recompute()
+
+surf.UnboundEdges = [(aux_edge, "Edge1")]
+doc.recompute()
+
+# ---------------------------------------------------------
+surf_extended = doc.addObject("Surface::Extend", "Surface")
+surf_extended.Face = [surf, "Face1"]
+doc.recompute()
+}}
+
+
+{{Docnav/de
+|[[Surface_Sections/de|Querschnitte]]
+|[[Surface_CurveOnMesh/de|KurveAufNetz]]
+|[[Surface_Workbench/de|Surface]]
+|IconL=Surface_Sections.svg
+|IconC=Workbench_Surface.svg
+|IconR=Surface_CurveOnMesh.svg
+}}
+
+{{Surface Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

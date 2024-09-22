@@ -1,0 +1,85 @@
+<languages/>
+{{Macro/fr
+|Name=Balayage solide
+|Icon=Macro_Solid_Sweep.png
+|Description=Créé un solide en balayant un profil le long d'une trajectoire.
+|Author=Normandc
+|Version=1.0
+|Date=2011-12-03
+|FCVersion=Toutes versions
+|Download=[https://www.freecadweb.org/wiki/images/6/6d/Macro_Solid_Sweep.png 
+Icône pour votre barre d'outils]
+}}
+
+==Description==
+Cette macro créé un solide en balayant un profil le long d'une trajectoire, les deux éléments ayant précédemment été sélectionnés dans la vue 3D. Les éléments 2D peuvent être créés à l'aide des outils existants de l'interface graphique de FreeCAD.
+
+Il est à noter que le solide généré ne sera '''pas''' paramétrique. Si vous décidez de modifier le profil ou la trajectoire, vous devrez exécuter la macro à nouveau.
+
+[[File:Solid_sweep.png‎|500px|Quelques exemples de balayages utilisant une même section oblongue et trois types de trajectoires.]]
+
+== Utilisation ==
+
+# Créez deux éléments 2D, un pour la section et un pour la trajectoire, des types répertoriés ci-dessous.
+# Sélectionnez, soit dans la [[Tree view/fr|vue en arborescence]] soit dans [[3D view/fr|Vue 3D]] ('''L'ordre est important!'''):
+## La trajectoire
+## Puis le profil
+# Ouvrez le [[Macros/fr|Gestionnaire de macros]]
+# Sélectionnez la macro '''Solid Sweep'''
+# Cliquez sur {{Button|Execute}}
+'''Résultat:''' un '''Balayage''' sera créé dans l'arborescence du Projet.
+
+== Éléments 2D supportés ==
+* Filaires
+* [[Image:Sketcher_NewSketch.svg|24px]] [[Sketcher_Workbench/fr|Esquisses]]
+* [[Image:Draft_BSpline.svg|24px]] [[Draft_BSpline/fr|BSplines]]
+* Primitives 2D depuis le menu ''Pièce → [[Image:Part_Primitives.svg|24px]] [[Part_Primitives/fr|Créer des primitives]]...'' (cercle, hélice)
+
+== Conseils ==
+
+* La section doit être un profil fermé sinon la forme résultante ne sera pas solide.
+* La section n'a pas besoin d'être située sur la trajectoire, mais il est préférable qu'elle lui soit normale (perpendiculaire).
+* La trajectoire peut indifféremment être un profil ouvert ou fermé (cercle, ou une suite de segments de lignes et d'arcs) mais tous les éléments doivent être tangents, sinon le résultat pourrait être inattendu. Par exemple, une trajectoire avec des coins carrés comme un rectangle ne produira pas un solide.
+* S'il y a un nœud dans la forme résultante, modifiez la macro et changez la valeur ''isFrenet'' à 0 (zéro), puis essayez à nouveau.
+* Réglez la variable ''makeSolid'' à 0 (zéro) pour obtenir une forme non solide faite de surfaces avec des extrémités ouvertes.
+
+== Le script ==
+
+ToolBar Icon [[Image:Macro_Solid_Sweep.png]]
+
+'''Macro_Solid_Sweep.FCMacro'''
+
+{{MacroCode|code=
+import Part, FreeCAD, math, PartGui, FreeCADGui
+from FreeCAD import Base
+
+# get the selected objects, with first selection for the trajectory and second for the section
+s = FreeCADGui.Selection.getSelection()
+try:
+     shape1=s[0].Shape
+     shape2=s[1].Shape
+except:
+     print "Wrong selection"
+
+traj = Part.Wire([shape1])
+section = Part.Wire([shape2])
+
+# create Part objec in the current document
+myObject=App.ActiveDocument.addObject("Part::Feature","Sweep")
+
+# variable makeSolid = 1 to create solid, 0 to create surfaces
+makeSolid = True #1
+isFrenet = True #1
+
+# create a 3D shape and assigh it to the current document
+Sweep = Part.Wire(traj).makePipeShell([section],makeSolid,isFrenet)
+myObject.Shape = Sweep
+
+}}
+
+
+== Remerciements ==
+
+Merci à [[User:Wmayer|Wmayer]] sans l'aide de qui je n'aurais pu rédiger ce script.
+
+Deux exemples d'utilisation peuvent être consultés dans [http://forum.freecadweb.org/viewtopic.php?f=8&t=1222&start=50#p11120 cette discussion du forum (en anglais)], ainsi que des liens de téléchargement des fichiers FCStd. En utilisant une hélice comme trajectoire, un balayage solide peut être utilisé pour créer un filet de vis.

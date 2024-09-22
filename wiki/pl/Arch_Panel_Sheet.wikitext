@@ -1,0 +1,134 @@
+<languages/>
+
+{{Docnav/pl
+|[[Arch_Panel_Cut/pl|Cięcie panelu]]
+|[[Arch_Nest/pl|Zagnieżdżanie]]
+|[[BIM_Workbench/pl|środowisko pracy BIM]]
+|IconL=Arch_Panel_Cut.svg
+|IconR=Arch_Nest.svg
+|IconC=Workbench_BIM.svg 
+}}
+
+{{VeryImportantMessage|POLECENIE TO JEST CZĘŚCIĄ ZINTEGROWANEGO środowiska pracy [[BIM_Workbench/pl|BIM]] w V1.0<br>
+Ta strona została zaktualizowana dla tej wersji.}}
+
+{{GuiCommand/pl
+|Name=Arch Panel Sheet
+|Name/pl=BIM: Arkusz panelu
+|MenuLocation=Narzędzia → Narzędzia panelu → Arkusz panelu
+|Workbenches=[[BIM_Workbench/pl|BIM]]
+|Shortcut={{KEY|P}} {{KEY|S}}
+|Version=0.17
+|SeeAlso=[[Arch_Panel/pl|Panel]], [[Arch_Panel_Cut/pl|Cięcie panelu]], [[Arch_Nest/pl|Zagnieżdżanie]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie to pozwala zbudować arkusz 2D, zawierający dowolną liczbę obiektów [[Arch_Panel_Cut/pl|Cięcia panelu]] lub dowolny inny obiekt 2D, taki jak te wykonane za pomocą środowisk [[Draft_Workbench/pl|Rysunek Roboczy]] i [[Sketcher_Workbench/pl|Szkicownik]]. Arkusz panelu jest zwykle tworzony w celu rozplanowania cięć, które mają być wykonane przez maszynę CNC. Arkusze te można następnie wyeksportować do pliku [[Draft_DXF/pl|DXF]].
+
+[[Image:Arch Wikihouse 03.jpg|600px]] 
+
+[[Image:Arch Wikihouse 04.jpg|600px]] 
+
+''Powyższy obraz przedstawia wygląd arkuszy paneli po wyeksportowaniu do formatu DXF''.
+
+<span id="Usage"></span>
+==Użycie==
+
+# Opcjonalnie wybierz jeden lub więcej obiektów [[Arch_Panel_Cut/pl|Cięcia panelu]] lub dowolny inny obiekt 2D leżący na płaszczyźnie XY.
+# Z menu wybierz narzędzie {{MenuCommand|Narzędzia → Narzędzia panelu → [[Image:Arch_Panel_Sheet.svg|16px]] '''Arkusz panelu'''}}.
+# Dostosuj żądane właściwości.
+
+<span id="Options"></span>
+==Opcje==
+
+* Po utworzeniu arkusza panelu, z obiektami podrzędnymi lub bez, każdy inny obiekt podrzędny można dodać lub usunąć z arkusza panelu, klikając go dwukrotnie w widoku drzewa i dodając lub usuwając obiekty z jego folderu Group.
+* Dwukrotne kliknięcie panelu w widoku drzewa umożliwia również przenoszenie obiektów zawartych w tym arkuszu lub przenoszenie jego znacznika.
+* Możliwe jest automatyczne tworzenie paneli składających się z więcej niż jednego arkusza materiału, poprzez zwiększenie jego właściwości Arkusze.
+* Arkusze paneli mogą wyświetlać margines, który jest przydatny, aby upewnić się, że między obiektami wewnętrznymi a granicą arkusza zawsze znajduje się pewna przestrzeń.
+* Gdy arkusze panelu są eksportowane do DXF, kontury, wewnętrzne otwory, znaczniki ich wewnętrznych elementów podrzędnych są umieszczane na różnych warstwach, jak pokazano na powyższym obrazku.
+
+<span id="Properties"></span>
+==Właściwości==
+
+<span id="Data"></span>
+===Dane===
+
+* {{PropertyData|Wysokość}}: Wysokość arkusza.
+* {{PropertyData|Szerokość}}: Szerokość arkusza.
+* {{PropertyData|Współczynnik wypełnienia}}: Procent obszaru arkusza, który jest wypełniony wycięciami ''(automatycznie)''.
+* {{PropertyData|Tekst Tagu}}: Tekst do wyświetlenia.
+* {{PropertyData|Rozmiar Tagu}}: Rozmiar tekstu znacznika.
+* {{PropertyData|Pozycja Tagu}}: Pozycja tekstu znacznika. Zachowaj (0,0,0) dla automatycznej pozycji środkowej.
+* {{PropertyData|Obrót Tagu}}: Obrót tekstu znacznika.
+* {{PropertyData|Plik czcionki}}: Czcionka tekstu znacznika.
+* {{PropertyData|Utwórz ścianę}}: Jeśli przyjmie wartość {{True/pl}}, panel jest obiektem ściana środowiska Część , w przeciwnym razie polilinią środowiska Część.
+* {{PropertyData|Kierunek ziarna}}: Pozwala poinformować o głównym kierunku włókien panelu ''(kierunek zgodny z ruchem wskazówek zegara, 0° oznacza w górę)''.
+
+<span id="View"></span>
+===Widok===
+
+* {{PropertyView|Margines}}: Margines, który może być wyświetlany poza kształtem wycięcia panelu.
+* {{PropertyView|Pokaż Margines}}: Włącza / wyłącza wyświetlanie marginesu.
+* {{PropertyView|Show Grain}}: Pokazuje teksturę włókna ''(właściwość Utwórz ścianę musi być ustawione na {{True/pl}})''.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[Arch_API/pl|API: Architektura]] i [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]].
+
+Narzędzie '''Arkusz panelu''' może być używane w [[Macros/pl|makrodefinicjach]] i z konsoli [[Python/pl|Python]] za pomocą następujących funkcji:
+
+{{Code|code=
+Sheet = makePanelSheet(panels=[], name="PanelSheet")
+}}
+
+* Tworzy obiekt {{incode|Sheet}} z {{incode|panels}}, który jest listą obiektów [[Arch_Panel/pl|Panelu]].
+
+Przykład:
+
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+Rect = Draft.makeRectangle(500, 200)
+Polygon = Draft.makePolygon(5, 750)
+
+p1 = FreeCAD.Vector(1000, 0, 0)
+p2 = FreeCAD.Vector(2000, 400, 0)
+p3 = FreeCAD.Vector(1250, 800, 0)
+Wire = Draft.makeWire([p1, p2, p3], closed=True)
+
+Panel1 = Arch.makePanel(Rect, thickness=36)
+Panel2 = Arch.makePanel(Polygon, thickness=36)
+Panel3 = Arch.makePanel(Wire, thickness=36)
+FreeCAD.ActiveDocument.recompute()
+
+Cut1 = Arch.makePanelCut(Panel1)
+Cut2 = Arch.makePanelCut(Panel2)
+Cut3 = Arch.makePanelCut(Panel3)
+Cut1.ViewObject.LineWidth = 3
+Cut2.ViewObject.LineWidth = 3
+Cut3.ViewObject.LineWidth = 3
+FreeCAD.ActiveDocument.recompute()
+
+Sheet = Arch.makePanelSheet([Cut1, Cut2, Cut3])
+}}
+
+<span id="Tutorials"></span>
+==Poradniki==
+
+* [[Wikihouse_porting_tutorial/pl|Poradnik przenoszenia Wikihouse]]
+
+
+{{Docnav/pl
+|[[Arch_Panel_Cut/pl|Cięcie panelu]]
+|[[Arch_Nest/pl|Zagnieżdżanie]]
+|[[BIM_Workbench/pl|środowisko pracy BIM]]
+|IconL=Arch_Panel_Cut.svg
+|IconR=Arch_Nest.svg
+|IconC=Workbench_BIM.svg 
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

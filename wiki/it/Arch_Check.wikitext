@@ -1,0 +1,90 @@
+<languages/>
+
+{{Docnav/it
+|[[Arch_MergeWalls/it|Unisci muri]]
+|[[Arch_ToggleIfcBrepFlag/it|Attiva/Disattiva flag IFC Brep]]
+|[[BIM_Workbench/it|BIM]]
+|IconL=Arch_MergeWalls.svg
+|IconR=Arch_ToggleIfcBrepFlag.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|QUESTO COMANDO FA PARTE DELL'[[BIM_Workbench/it|AMBIENTE BIM]] INTEGRATO NELLA V1.0<br>
+Questa pagina è stata aggiornata per quella versione.}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/it
+|Name=Arch Check
+|Name/it=Controlla
+|MenuLocation=Arch → Utilità → Controlla
+|Workbenches=[[Arch_Workbench/it|Arch]]
+|SeeAlso=[[Arch_CloseHoles/it|Chiudi fori]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descrizione==
+
+<div class="mw-translate-fuzzy">
+Questo strumento controlla il documento corrente o gli oggetti selezionati alla ricerca di oggetti {{KEY|[[Image: Workbench_Part.svg|16px]] [[Part_Workbench/it|Part]]}} o {{KEY|[[Image: Workbench_Arch.svg|16px]] [[Arch_Workbench/it|Arch]]}}, che potrebbero dare problemi, poiché la maggior parte delle operazioni del modulo Architettura richiedono oggetti solidi.
+</div>
+
+<span id="Usage"></span>
+==Utilizzo==
+
+<div class="mw-translate-fuzzy">
+# Premere il pulsante {{Button|[[Image:Arch Check.svg|16px]] [[Arch Check/it|Controlla]]}}, o  {{KEY|Arch}} → {{KEY|Utilità}} → {{KEY|[[Image:Arch Check.svg|16px]] [[Arch Check/it|Controlla]]}} nel menu principale.
+</div>
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Vedere anche:}} [[Arch_API/it|API di Arch]] e [[FreeCAD_Scripting_Basics/it|Nozioni di base sugli script di FreeCAD]].
+
+Lo strumento può essere utilizzato nelle [[Macros/it|macro]] e dalla console [[Python/it|Python]] tramite la seguente funzione:
+{{Code|code=
+list_bad = check(objectslist, includehidden=False)
+}}
+
+<div class="mw-translate-fuzzy">
+* Controlla se gli oggetti dati in {{incode|objectslist}} contengono solo solidi.
+* Se {{incode|includehidden}} è {{incode|True}} include tutti gli oggetti nascosti, altrimenti li esclude dalla ricerca.
+* Restituisce una {{incode|list_bad}}, una lista con gli oggetti che non sono derivati da una {{incode|Part::Feature}}, o componenti che non sono chiusi, non validi, non contengono solidi o che contengono facce che non fanno parte di alcun solido. Questo è usato per rilevare contorni e profili di [[Arch Workbench/it|Arch]] o [[Draft Workbench/it|Draft]] che non sono solidi.
+** Ogni elemento in {{incode|list_bad}} è un'altra lista {{incode|[object, message]}}, dove {{incode|object}} è l'oggetto rilevato non solido, e {{incode|message}} indica il motivo per cui è stato incluso in questo elenco.
+</div>
+
+Esempio:
+
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 0, 0)
+baseline = Draft.makeLine(p1, p2)
+Wall1 = Arch.makeWall(baseline, length=None, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+Wall2 = Arch.makeWall(None, length=2000, width=200, height=1000)
+FreeCAD.ActiveDocument.recompute()
+
+Circle = Draft.makeCircle(450)
+Wire = Draft.makeWire([FreeCAD.Vector(1000, 0, 0), FreeCAD.Vector(1500, 1000, 0), FreeCAD.Vector(2500, -1000, 0)])
+
+list_bad = Arch.check([Wall1, Wall2, Circle, Wire], includehidden=True)
+print(list_bad)
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_MergeWalls/it|Unisci muri]]
+|[[Arch_ToggleIfcBrepFlag/it|Attiva/Disattiva flag IFC Brep]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_MergeWalls.svg
+|IconR=Arch_ToggleIfcBrepFlag.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

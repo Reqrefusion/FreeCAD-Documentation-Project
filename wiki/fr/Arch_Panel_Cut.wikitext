@@ -1,0 +1,120 @@
+<languages/>
+
+{{Docnav/fr
+|[[Arch_Panel/fr|Panneau]]
+|[[Arch_Panel_Sheet/fr|Feuille de panneaux]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_Panel.svg
+|IconR=Arch_Panel_Sheet.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|Cette commande fait partie de l'ensemble intégré de l'[[BIM_Workbench/fr|atelier BIM]] avec la V1.0<br>
+Cette page a été mise à jour pour cette version.}}
+
+{{GuiCommand/fr
+|Name=Arch Panel Cut
+|Name/fr=Arch Découpe de panneau
+|MenuLocation=Utilitaires → Outils pour les panneaux → Découpe de panneau
+|Workbenches=[[BIM_Workbench/fr|BIM]]
+|Shortcut={{KEY|P}} {{KEY|C}}
+|Version=0.17
+|SeeAlso=[[Arch_Panel/fr|Arch Panneau]], [[Arch_Panel_Sheet/fr|Arch Feuille de panneaux]], [[Arch_Nest/fr|Arch Calepinage]]
+}}
+
+==Description==
+
+L'outil '''Arch Découpe de panneau''' crée, dans le document 3D, une vue 2D plane d'un objet [[Arch_Panel/fr|Panneau]], à inclure dans une [[Arch_Panel_Sheet/fr|Arch Feuille de panneaux]] ou directement exportée vers un [[Draft_DXF/fr|DXF]]. Les objets Découpe de panneau sont également pris en charge par l'[[CAM_Workbench/fr|atelier CAM]].
+
+[[Image:Arch Wikihouse 02.jpg|1024px]]
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Sélectionner un ou plusieurs objets [[Arch_Panel/fr|Arch Panneau]]
+# Sélectionner l'option {{MenuCommand|Utilitaires → Outils pour les panneaux → [[Image:Arch_Panel_Cut.svg|16px]] Découpe de panneau}} du menu.
+# Ajuster les propriétés désirées
+
+==Options==
+
+* Si le panneau n'est pas plat (par exemple un panneau ondulé), le relief n'apparaîtra pas dans la découpe du panneau. Cet outil est surtout utile pour les panneaux plats.
+* La découpe du panneau peut afficher une balise. Cette balise peut être une ligne de texte personnalisée ou peut automatiquement afficher la balise, l'étiquette ou la description du panneau auquel elle est liée.
+* Pour être utile à l'usinage CNC, la balise doit être écrite en utilisant une police de caractères bâton, où les lettres sont des polylignes simples qui sont faciles à suivre par la machine. Lors de sa création, l'objet Panel Cut utilise automatiquement la police spécifiée dans Édition → Préférences → Draft → Textes et cotes → Fichier de la police par défaut de Formes à partir de texte.
+* Un double-clic sur la découpe de panneau dans la vue en arborescence après sa création vous permet d'entrer en mode édition et de modifier la position de la balise.
+* Lorsque vous avez besoin de mettre en page différentes découpes de panneaux ensemble, les découpes de panneaux peuvent afficher une marge, ce qui est utile pour s'assurer qu'un certain espace est toujours présent entre une coupe et une autre.
+
+<span id="Properties"></span>
+==Propriétés==
+
+<span id="Data"></span>
+=== Données ===
+
+* {{PropertyData|Source}} : l'objet [[Arch_Panel/fr|Arch Panneau]] montré par cette découpe.
+* {{PropertyData|Tag Text}} : le texte à afficher. Peut être %tag%, %label% ou %description% pour afficher la balise ou l'étiquette du panneau.
+* {{PropertyData|Tag Size}} : taille du texte de l'étiquette
+* {{PropertyData|Tag Position}} : position du texte de l'étiquette. Laisser à (0,0,0) pour une position centrale automatique.
+* {{PropertyData|Tag Rotation}} : rotation du texte de l'étiquette
+* {{PropertyData|Font File}} : police du texte de l'étiquette
+* {{PropertyData|Make Face}} : si mis à vrai, le panneau est une Part Face, sinon une Part Polyligne.
+
+<span id="View"></span>
+=== Vue ===
+
+* {{PropertyView|Margin}} : marge à afficher hors du panneau coupé.
+* {{PropertyView|Show Margin}} : active/désactive l'affichage de la marge
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Voir aussi :}} [[Arch_API/fr|Arch API]] et [[FreeCAD_Scripting_Basics/fr|Débuter avec les scripts FreeCAD]].
+
+L'outil Découpe de panneau peut être utilisé dans une [[Macros/fr|macro]] et dans la console [[Python/fr|Python]] en utilisant le code suivant :
+{{Code|code=
+View = makePanelCut(panel, name="PanelView")}}
+
+* Crée un objet {{incode|View}} (projection 2D) à partir du {{incode|panel}} existant.
+
+Exemple :
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(500, 0, 0)
+p3 = FreeCAD.Vector(500, 50, 0)
+p4 = FreeCAD.Vector(550, 50, 0)
+p5 = FreeCAD.Vector(600, 0, 0)
+p6 = FreeCAD.Vector(1000, 0, 0)
+p7 = FreeCAD.Vector(1000, 400, 0)
+p8 = FreeCAD.Vector(600, 400, 0)
+p9 = FreeCAD.Vector(600, 350, 0)
+p10 = FreeCAD.Vector(550, 350, 0)
+p11 = FreeCAD.Vector(500, 400, 0)
+p12 = FreeCAD.Vector(0, 400, 0)
+
+Wire = Draft.makeWire([p1, p2, p3, p4, p5, p6,
+                       p7, p8, p8, p9, p10, p11, p12], closed=True)
+Panel = Arch.makePanel(Wire, thickness=36)
+FreeCAD.ActiveDocument.recompute()
+
+View = Arch.makePanelCut(Panel)
+View.ViewObject.LineWidth = 3
+FreeCAD.ActiveDocument.recompute()
+}}
+
+<span id="Tutorials"></span>
+== Tutoriels ==
+
+* [[Wikihouse_porting_tutorial/fr|Tutoriel de portage Wikihouse]]
+
+
+{{Docnav/fr
+|[[Arch_Panel/fr|Panneau]]
+|[[Arch_Panel_Sheet/fr|Feuille de panneaux]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_Panel.svg
+|IconR=Arch_Panel_Sheet.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

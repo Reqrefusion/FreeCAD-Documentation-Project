@@ -1,0 +1,126 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_PipeConnector/it|Raccordo]]
+|[[Arch_Add/it|Aggiungi componente]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_PipeConnector.svg
+|IconR=Arch_Add.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/it
+|Name=Arch CutPlane
+|Name/it=Taglio con piano
+|MenuLocation=Arch → Taglio con piano
+|Workbenches=[[Arch_Workbench/it|Arch]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descrizione== 
+
+Lo strumento '''Arch CutPlane''' taglia un oggetto solido di Arch come un [[Arch_Wall/it|Muro]] o una [[Arch_Structure/it|Struttura]] con una faccia planare.
+
+[[Image:Arch_CutPlane_example.jpg|400px]]
+{{Caption|A sinistra: prima di applicare lo strumento Taglia con piano. Al centro: parete risultante dopo il taglio. A destra: un altro risultato opzionale}}
+
+<span id="Usage"></span>
+==Utilizzo==
+
+<div class="mw-translate-fuzzy">
+# Se il piano di taglio deve essere derivato da un bordo dritto ({{Version/it|1.0}}), facoltativamente allineare il [[Draft_SelectPlane/it|piano di lavoro]]:
+#* Il bordo selezionato non può essere parallelo alla normale del piano di lavoro.
+#* La faccia di taglio generata sarà perpendicolare al piano di lavoro.
+# Selezionare l'oggetto da tagliare.
+# Effettuare una delle seguenti operazioni:
+#* Selezionare un oggetto con una singola faccia planare. {{Version/it|1.0}}
+#* Selezionare una faccia planare nella [[3D_view/it|vista 3D]].
+#* Selezionare un oggetto con un unico bordo dritto. {{Version/it|1.0}}
+#* Selezionare un bordo dritto nella [[3D_view/it|Vista 3D]]. {{Version/it|1.0}}
+# Esistono diversi modi per richiamare il comando:
+#* Premere il pulsante {{Button|[[Image:Arch_CutPlane.svg|16px]] [[Arch_CutPlane/it|Taglio con piano]]}}.
+#* Selezionare l'opzione {{MenuCommand|Arch → [[Image:Arch_CutPlane.svg|16px]] Taglio con piano}} dal menu.
+# Scegliere {{MenuCommand|Dietro}} o {{MenuCommand|Di fronte}} per indicare su quale lato della superficie di taglio il materiale deve essere rimosso.
+# Premere il pulsante {{Button|OK}}.
+</div>
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Vedere anche:}} [[Arch_API/it|API di Arch]] e [[FreeCAD_Scripting_Basics/it|Nozioni di base sugli script di FreeCAD]].
+
+Lo strumento Taglia con Piano può essere utilizzato nelle [[Macros/it|macro]] e dalla console [[Python/it|Python]] tramite la seguente funzione:
+
+{{Code|code=
+cutObj = cutComponentwithPlane(archObject, cutPlane, sideFace)
+}}
+
+* Crea un oggetto {{incode|cutObj}} dal {{incode|archObject}} dato, che è tagliato dal {{incode|cutPlane}}, che è la faccia di un altro oggetto.
+** {{incode|archObject}} dovrebbe essere un {{incode|SelectionObject}} ottenuto da {{incode|FreeCADGui.Selection.SelectionEx()[0]}}.
+** {{incode|cutPlane}} dovrebbe essere un {{incode|FaceObject}} ottenuto da {{incode|FreeCADGui.Selection.SelectionEx()[0].SubObjects[0]}}.
+* {{incode|sideFace}} specifica su quale lato del {{incode|FaceObject}} verrà creato un volume; questo volume verrà quindi utilizzato per sottrarlo dal {{incode|archObject}}. Se {{incode|sideFace}} è {{incode|0}} crea un volume nella parte posteriore della faccia, altrimenti lo crea davanti alla faccia.
+
+Esempio:
+
+{{Code|code=
+import FreeCAD, FreeCADGui, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 2000, 0)
+
+Line = Draft.makeWire([p1, p2])
+Wall = Arch.makeWall(Line, width=150, height=2000)
+
+p3 = FreeCAD.Vector(0, 2000, 0)
+p4 = FreeCAD.Vector(3000, 0, 0)
+
+Line2 = Draft.makeWire([p3, p4])
+Wall2 = Arch.makeWall(Line2, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+# Select the Wall
+main_object = FreeCADGui.Selection.getSelectionEx()[0]
+
+# Select the face of Wall2
+selection = FreeCADGui.Selection.getSelectionEx()[0]
+cut_face = selection.SubObjects[0]
+
+cutObj = Arch.cutComponentwithPlane(main_object, cut_face, 0)
+FreeCAD.ActiveDocument.recompute()
+
+Wall3 = Draft.move(Wall, FreeCAD.Vector(-4000, 0, 0), copy=True)
+Wall4 = Draft.move(Wall2, FreeCAD.Vector(-4000, 0, 0), copy=True)
+FreeCAD.ActiveDocument.recompute()
+
+# Select the Wall3
+main_object2 = FreeCADGui.Selection.getSelectionEx()[0]
+
+# Select the face of Wall4
+selection2 = FreeCADGui.Selection.getSelectionEx()[0]
+cut_face2 = selection2.SubObjects[0]
+
+cutObj2 = Arch.cutComponentwithPlane(main_object2, cut_face2, 1)
+FreeCAD.ActiveDocument.recompute()
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_PipeConnector/it|Raccordo]]
+|[[Arch_Add/it|Aggiungi componente]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_PipeConnector.svg
+|IconR=Arch_Add.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

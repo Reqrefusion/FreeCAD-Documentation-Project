@@ -1,0 +1,719 @@
+<languages/>
+
+<span id="Introduction"></span>
+== Введение ==
+
+Цель данной статьи перечислить некоторые отсутствующие в настоящее время возможности в FreeCAD и предоставить обходные пути для их решения. Это может быть полезно для начинающих пользователей, которые не могут найти требующиеся инструменты, среди тех что существуют в FreeCAD.
+
+<span id="Workarounds_for_the_Sketcher_Workbench"></span>
+== Обходные решения для верстака Sketcher ==
+
+{| class="wikitable"
+|-
+! width="2%"|№ !! width="28%"|Недостающая возможность !! width="70%"|Предлагаемое решение
+
+|-
+| 1
+| Auto snap to objects (midpoints, geometric centers, quadrants, extensions, intersections)
+|
+* Manually apply [[Sketcher_Workbench#Sketcher_constraints|constraints]] and use [[Sketcher_ToggleConstruction|construction lines]]
+* Draw geometry in the [[Draft_Workbench|Draft Workbench]], where snapping to objects is available, then convert to sketch with the [[Draft_Draft2Sketch|Draft Draft2Sketch]] tool
+* Midpoint snap is available within the [[Sketcher_Snap|Sketcher Snap]] option but doesn't apply any constraints
+
+|-
+| 2
+| Chamfer tool
+|
+* Make chamfers on the part level (after the sketch has been turned into a solid) with [[PartDesign_Chamfer|PartDesign Chamfer]] or [[Part_Chamfer|Part Chamfer]]
+* Create a [[Sketcher_CreateFillet|fillet]], change the arc to [[Sketcher_ToggleConstruction|construction geometry]] and then connect the points with a [[Sketcher_CreateLine|line]] to create a chamfer
+* Draw chamfers manually with [[Sketcher_CreateLine|lines]] or [[Sketcher_CreatePolyline|polylines]]
+
+<div class="mw-translate-fuzzy">
+|-
+| 3
+| Круговой массив
+|
+* Создавайте круговые массивы на уровне детали (после превращения эскиза в форму):
+** Для верстака [[PartDesign_Workbench/ru|PartDesign]] используйте [[PartDesign_PolarPattern/ru|PartDesign PolarPattern]]
+** Для форм верстака [[Part_Workbench/ru|Part]] или завершенных [[PartDesign_Body/ru|тел]], используйте [[Draft_PolarArray/ru|Draft PolarArray]] или [[Draft_CircularArray/ru|Draft CircularArray]]
+</div>
+
+|-
+| 4
+| Offset tool
+|
+* [https://github.com/FreeCAD/FreeCAD-macros/blob/master/Sketcher/SketcherOffset.FCMacro SketcherOffset macro]
+* [[Part_Offset2D|Part Offset2D]] tool ([[PartDesign_SubShapeBinder|SubShapeBinder]] necessary for use in a [[PartDesign_Body|PartDesign Body]])
+* [[Draft_Offset|Draft Offset]] tool ([[PartDesign_SubShapeBinder|SubShapeBinder]] necessary for use in a [[PartDesign_Body|PartDesign Body]])
+* Draw offset geometry manually, [[Sketcher_ToggleConstruction|construction lines]] connecting the original and offset geometry and [[Sketcher_ConstrainPerpendicular|perpendicular]] to them at different locations, dimensioned with [[Sketcher_ConstrainDistance|distance dimension]] will ensure proper relation between the geometries
+
+|-
+| 5
+| Rotate tool
+|
+* To rotate the whole sketch: change its Placement property
+* To rotate a selection inside the active sketch:
+*# Remove constraints that prevent the rotation, e.g. with [[Sketcher_RemoveAxesAlignment|Sketcher RemoveAxesAlignment]]
+*# Optionally add constraints between the objects to be rotated
+*# Apply an appropriate [[Sketcher_ConstrainAngle|Sketcher ConstrainAngle]] constraint or drag a vertex of one of the objects
+
+|-
+| 6
+| Scale tool
+|
+* [[Draft_Scale|Draft Scale]], then [[Draft_Draft2Sketch|Draft Draft2Sketch]]
+
+|-
+| 7
+| Adaptive dimension constraint
+|
+* Use a range of [[Sketcher_Workbench#Dimensional_constraints|dimensional constraints]]: 3 for lines, 1 for angles and 3 for arcs/circles
+
+<div class="mw-translate-fuzzy">
+|-
+| 8
+| Ввод координат и размеров объектов при их создании
+|
+* Указывайте размеры с помощью ограничений
+</div>
+
+|-
+| 9
+| [[Sketcher_ConstrainTangent|Tangency]] to [[B-Splines|B-spline]] edge
+|
+* Apply [[Sketcher_ConstrainTangent|tangency]] to endpoints instead of edges
+
+|-
+| 10
+| Check geometric and mass properties of the sketch (area, center of mass, second moments of area and so on)
+|
+* Create a face from the sketch with [[Part_MakeFace|Part MakeFace]], then analyze that face with [[Part_CheckGeometry|Part CheckGeometry]]
+
+|-
+| 11
+| Possibility to use the results of the [[Sketcher_External|External Geometry]] tool directly for operations on the sketch
+|
+* Manually trace over the geometry created by this tool
+* [https://github.com/realthunder/FreeCAD/releases Link Branch] - Defining Geometry tool
+
+|-
+| 12
+| Project multiple edges at once with the [[Sketcher_External|External Geometry]] tool when a face is selected
+|
+* Project edges individually
+
+|-
+| 13
+| 3D sketches
+|
+* Use the [[Draft_Workbench|Draft Workbench]], but 3D drafts can't be converted to sketches (however, they can be used for spatial frame analyses done [[FEM_Workbench|internally]] or externally, and for [[PartDesign_AdditivePipe|PartDesign AdditivePipe]] or [[Part_Sweep|Part Sweep]] paths)
+
+|-
+| 14
+| Projection of cut edges when making a sketch on a plane cutting through an object
+|
+* Create a [[Std_LinkMake|Link]] from the object, and [[Part_SliceApart|slice]] that object to get actual cut edges
+
+|-
+| 15
+| [[Sketcher_ViewSection|View section]] tool showing filled cuts
+|
+* If the sketch is plane-parallel to one of the main planes of the global coordinate system: use [[Part_SectionCut|Part SectionCut]]
+
+|-
+| 16
+| Rectangle from 3 corners and rectangle from 3 points by center tools
+|
+* Use the currently available [[Sketcher_CreateRectangle|rectangle from 2 opposite corners]] and [[Sketcher_CreateRectangle_Center|rectangle from center]] tools and apply proper constraints afterwards
+
+|-
+| 17
+| Diameter dimension with respect to a symmetry axis for revolved parts
+|
+* Create a radius dimension instead (you can enter the diameter divided by 2 - the calculation will be handled by FreeCAD)
+
+|-
+| 18
+| Curved slot tool
+|
+* Draw curved slots manually
+* Use one of the macros and scripts listed [https://forum.freecadweb.org/viewtopic.php?f=8&t=72235 here]
+
+|-
+| 19
+| Dimension labels adapting to the rotation of the view to be always readable
+|
+* Rotate the view when needed
+
+|-
+| 20
+| First [[Sketcher_Workbench#Dimensional_constraints|dimension]] in the sketch scaling the geometry so that its initially drawn shape is not broken
+|
+* Apply some [[Sketcher_Workbench#Dimensional_constraints|dimensional constraints]] before drawing the entire shape
+
+|-
+| 21
+| An option to hide the whole [[Sketcher_ToggleConstruction|construction geometry]] in an active sketch
+|
+* In the Elements window, use the ''Construction'' filter, select the [[Sketcher_ToggleConstruction|construction geometry]] entities there and uncheck their checkboxes
+
+|}
+
+<span id="Workarounds_for_the_Part_Workbench_and_Part_Design_Workbench"></span>
+== Обходные решения для верстаков Part и Part Design ==
+
+{| class="wikitable"
+|-
+! width="2%"|№ !! width="28%"|Недостающая возможность !! width="70%"|Предлагаемое решение
+
+|-
+| 1
+| Check the geometric and mass properties of the model
+|
+* [[Macro_FCInfo|FCInfo macro]]
+* [[Part_CheckGeometry|Part CheckGeometry]] tool – area, volume, mass, length, center of mass, moments of inertia, radius of gyration
+
+|-
+| 2
+| Отображение центра масс модели (детали или сборочных единиц)
+|
+* [[Macro_CenterOfMass/ru|Макрос CenterOfMass]]
+
+|-
+| 3
+| [[Std_ToggleClipPlane|Clipping plane]] that doesn't make the model look like it's hollow
+|
+* Change the Lighting property in the part's view settings to "One side" (very rough equivalent, problem with multicolored parts)
+* [[Part_SectionCut|Persistent section cut]] tool - deselect all planes before pressing Close
+* [https://github.com/realthunder/FreeCAD/releases Link Branch] - experimental renderer
+
+|-
+| 4
+| Creation of an axis on the intersection of 2 planes and a plane midway between two faces/points, possibly more variants for [[Datum|datum]] creation
+|
+* [[Macro_Intersection|Macro Intersection]]
+* Manual adjustment of [[Datum|datum]] attachment
+
+|-
+| 5
+| Automated midsurface extraction (for thin-walled parts)
+|
+* Use [[Draft_Facebinder|Draft Facebinder]] and then [[Draft_Scale|Draft Scale]] or [[Part_Offset|Part Offset]] (easier) to make it actual midsurface, apply the workaround for extending faces if the generated midsurfaces are separated and join them with boolean tools
+
+|-
+| 6
+| Project (map/wrap) sketches on non-planar (e.g. cylindrical) faces
+|
+* [[Curves_SketchOnSurface|Curves SketchOnSurface]] tool in add-on [[Curves_Workbench|Curves Workbench]]
+* [[Part_ProjectionOnSurface|Part ProjectionOnSurface]] tool
+
+<div class="mw-translate-fuzzy">
+|-
+| 7
+| Поддержка [[PartDesign_Body/ru|тел]] состоящих из нескольких раздельных (не соприкасающихся) фрагментов
+|
+* Создавайте каждый фрагмент, как отдельное [[PartDesign_Body/ru|тело]]
+* [https://github.com/realthunder/FreeCAD_assembly3/releases Ссылка по теме]
+</div>
+
+|-
+| 8
+| Select which part of the sketch to [[PartDesign_Pad|pad]]
+|
+* Select edges from the sketch and create a [[Std_LinkMakeRelative|SubLink]] or a [[PartDesign_SubShapeBinder|SubShapeBinder]] and pad that new object
+* [[PartDesign_Pad|Pad]] a complete sketch located on the existing face of the model in the opposite direction (towards the existing shape) so that only new faces are created. Then it is possible to select these faces individually and pad them. This method should be used with caution since unnecessary 3D operations may lead to unexpected errors. Thus, it is recommended to use the previous workaround instead.
+* [https://github.com/realthunder/FreeCAD/releases Link Branch] - Export Single Geometry and Export Multiple Geometries tools or automatic [[PartDesign_SubShapeBinder|SubShapeBinder]] created when edges forming a closed loop are selected from the sketch before [[PartDesign_Pad|padding]]
+
+|-
+| 9
+| [[PartDesign_Fillet|Fillets]] and [[PartDesign_Chamfer|chamfers]] that can consume adjacent faces/edges
+|
+* Make [[PartDesign_Fillet|fillets]] with a slightly smaller radius (e.g. 6.4999 instead of 6.5 mm)
+* Model these features directly using other operations, such as [[PartDesign_Pocket|PartDesign Pocket]] or already include them in the sketches
+
+|-
+| 10
+| Variable radius for the [[PartDesign_Fillet|PartDesign Fillet]] tool
+|
+* Use the [[Part_Fillet|Part Fillet]] tool which supports a variable radius
+
+|-
+| 11
+| Parametric curves
+|
+* [[Macro_3D_Parametric_Curve|Macro 3D Parametric Curve]]
+
+|-
+| 12
+| Cosmetic threads
+|
+* Add cosmetic threads on the [[TechDraw_Workbench#Centerlines_and_threading|TechDraw]] page
+* Model true threads, for holes those can be generated automatically using the [[PartDesign_Hole|Hole]] tool
+
+|-
+| 13
+| Partitions (splitting surfaces and volumes with sketches and datum planes while keeping the number of parts unchanged)
+|
+* [[Part_BooleanFragments|Boolean Fragments]] tool – only splitting surfaces with sketches
+
+|-
+| 14
+| Guide rails for [[PartDesign AdditivePipe|Additive Pipe]] and [[PartDesign_AdditiveLoft|Additive Loft]] or their equivalents in the [[Part_Workbench|Part Workbench]]
+|
+* Add-on [[CurvedShapes_Workbench|CurvedShapes Workbench]] - [[CurvedShapes_CurvedArray|CurvedArray]] or [[CurvedShapes_CurvedPathArray|CurvedPathArray]]
+* Add-on [[Curves_Workbench|Curves Workbench]] - [[Curves_GordonSurface|GordonSurface]] or [[Curves_Pipeshell|Pipeshell]]
+* [[Surface_Workbench|Surface Workbench]] - [[Surface_Filling|Filling]]
+
+|-
+| 15
+| Twist for [[PartDesign_AdditivePipe|PartDesign AdditivePipe]] or [[Part_Sweep|Part Sweep]]
+|
+* [[PartDesign_AdditiveHelix|PartDesign AdditiveHelix]] ({{Incode|pitch <nowiki>=</nowiki> height * 360 / twist angle}})
+* Add-on [[CurvedShapes_Workbench|CurvedShapes Workbench]] - [[CurvedShapes_CurvedArray|CurvedArray]]
+* Multisection mode in [[PartDesign_AdditivePipe|Additive Pipe]]
+
+|-
+| 16
+| Bending existing parts
+|
+* For sheet metal objects: add-on [[SheetMetal_Workbench|SheetMetal Workbench]] - [[SheetMetal_AddFoldWall|SheetMetal AddFoldWall]]
+
+|-
+| 17
+| Pattern along a curve
+|
+* [[Draft_PathArray|Draft PathArray]] tool
+
+|-
+| 18
+| Cut scope - cut tools affecting only selected part of the model
+|
+* Different order of operations and use [[Part_Cut|boolean cut]] on [[PartDesign_Pad|padded]] bodies
+
+|-
+| 19
+| Merging adjacent faces
+|
+* For faces of a [[PartDesign_Body|PartDesign Body]]: change the Refine property of the last Feature to {{True}}, may not remove all the redundant faces
+* For co-planar faces: use [[Draft_Upgrade|Draft Upgrade]] twice to get a [[Draft_Wire|Draft Wire]], [[Draft_Downgrade|Draft Downgrade]] the wire to get a face
+
+|-
+| 20
+| [[PartDesign_Hole|Hole]] tool using points from sketches
+|
+* Draw circles for the [[PartDesign_Hole|Hole]] tool
+
+|-
+| 21
+| [[PartDesign_Point|Datum points]] from coordinates
+|
+* Base [[PartDesign_Point|datum points]] on existing geometry
+* Create [[PartDesign_Point|datum points]] at the origin and change their [[Placement|Position]] afterwards
+
+|-
+| 22
+| A tool for automatic creation of ribs (structural reinforcements)
+|
+* Create ribs manually, wedges ([[Part_Wedge|Part Wedge]] or [[PartDesign_AdditiveWedge|PartDesign AdditiveWedge]]) can be used for simple triangular ribs
+
+|-
+| 23
+| A tool for automatic creation of domes
+|
+* Create domes manually, spheres ([[Part_Sphere|Part Sphere]] or [[PartDesign_AdditiveSphere|PartDesign AdditiveSphere]]) with properly adjusted parameters can be used for simple spherical domes
+
+|-
+| 24
+| Extending faces up to other faces (useful e.g. when extracting midsurfaces, as mentioned above)
+|
+* Use the [[Draft_Upgrade|Draft Upgrade]] tool on the faces to be extended, extend proper edges with [[Draft_Stretch|Draft Stretch]] and recreate the faces using [[Part_MakeFace|Part MakeFace]]
+
+|-
+| 25
+| [[Part_Workbench#Measure|Part Measure]] tool for radius or diameter measurement
+|
+* Add-on [[Manipulator_Workbench|Manipulator Workbench]]
+* Add [[Draft_Point|Draft Points]] to use for reference when dimensioning with [[Part_Measure_Linear|Part Measure Linear]] or perform dimensioning in the [[Draft_Workbench|Draft Workbench]]
+
+|-
+| 26
+| Fuzzy versions of [[Part_Workbench#Boolean_toolbar|Part Boolean operations]] (possibility to specify a tolerance for boolean union and other operations)
+|
+* Add-on [[Defeaturing_Workbench|Defeaturing Workbench]]
+
+|-
+| 27
+| [[PartDesign_AdditiveLoft|PartDesign AdditiveLoft]] and [[PartDesign_AdditivePipe|PartDesign AdditivePipe]] with a possibility to use an open profile as the first or last section
+|
+* Different modeling approaches, e.g. involving [[PartDesign_Pad|PartDesign Pad]]
+
+|-
+| 28
+| A tool to [[Part_Sweep|sweep]] a circular profile of a given diameter along a selected path
+|
+* Draw the circular profile manually
+
+|-
+| 29
+| Optional local coordinate system display for [[PartDesign_Plane|datum planes]]
+|
+* Attach a [[PartDesign_CoordinateSystem|datum coordinate system]] to datum plane to see its local orientation
+
+|}
+
+== Workarounds for the Draft Workbench ==
+
+{| class="wikitable"
+|-
+! width="2%"|No. !! width="28%"|Missing feature !! width="70%"|Workarounds
+
+|-
+| 1
+| Snap to apparent intersections of curved edges, perpendicular extensions, arc extensions, geometric centers and tangent points
+|
+* Use the other available [[Draft_Workbench#Draft_Snap_toolbar|Draft Snap tools]] and a more manual approach with construction geometry
+* When working on the XY plane: create a (temporary) projection of the geometry with [[Draft_Shape2DView|Draft Shape2DView]]
+
+|-
+| 2
+| Keyboard shortcuts for [[Draft_Workbench#Draft_Snap_toolbar|Draft Snap tools]]
+|
+* Snaps can be activated and deactivated using keyboard shortcuts but only when none of the input boxes in the task panel has the focus (so the user should click in an empty space of the task panel to be able to use shortcuts for snaps)
+
+|-
+| 3
+| Automatically change the colors of objects back to 'normal' when removing them from the [[Draft_ToggleConstructionMode|construction geometry group]]
+|
+* Move the objects to a [[Draft_Layer|layer]] with the correct color settings
+* Change the colors manually
+
+|-
+| 4
+| An option to quickly switch between the three main working planes and their projections at the selected point (for 3D drafting)
+|
+* Set the [[Draft_SelectPlane|Draft working plane]] to Automatic, and then select any of the standard views: [[Std_ViewFront|front view]], [[Std_ViewTop|top view]], etc.
+* Use the [[Draft_Constrain|Draft Constrain]] feature - snaps to axes, not to planes
+* Use [[Draft_WorkingPlaneProxy|working plane proxies]]
+
+|-
+| 5
+| Remove one arrow from a [[Draft_Dimension#Usage_radial_dimension|radial dimension]]
+|
+* Add a line with an arrow:
+*# Create a [[Draft_Line|Draft Line]] from the center of the arc or circle to a point on its edge
+*# Set the Arrow Type property of the line to "Arrow" and set End Arrow to "true"
+*# Create the radial dimension and snap to the endpoint of the line when defining its position
+*# Reduce the size of the arrows of the dimension to almost zero
+
+|-
+| 6
+| AutoCAD-like command line input
+|
+* Use FreeCAD's widgets or [[Scripting_and_macros|Python scripting]] for input
+
+|-
+| 7
+| [[Draft_Hatch|Hatch]] a region enclosed by wires
+|
+* Create a face (a hatch can only be applied to objects with planar faces):
+** In case of a single closed wire: set its Make Face property to "true", and its Display Mode to "Wireframe"
+** [[Draft_Upgrade|Upgrade]] multiple wires two or three times until you have a face, or a single closed wire (see above)
+** If the wires must stay separate, but are connected end-to-end, create a [[PartDesign_SubShapeBinder|SubShapeBinder]] from them 
+** Trace over the region with a closed wire (not parametric)
+
+|}
+
+<span id="Workarounds_for_the_TechDraw_Workbench"></span>
+== Обходные решения для верстака TechDraw ==
+
+{| class="wikitable"
+|-
+! width="2%"|№ !! width="28%"|Недостающая возможность !! width="70%"|Предлагаемое решение
+
+|-
+| 1
+| Broken out and rotated/removed section views
+|
+* Use the [[Part_SliceApart|Slice apart]] tool to physically cut the model and then create its view
+
+|-
+| 2
+| Auto diameter dimension on side views
+|
+* Manually add the diameter symbol
+
+|-
+| 3
+| Manually add geometry to generated views
+|
+* Cosmetic line tools in [[TechDraw_Workbench#Annotations|Annotations]] and [[TechDraw_Workbench#Extensions|Extensions]], limited
+* Create [[TechDraw_View|regular views]] and [[TechDraw_DraftView|Draft views]] of sketches and [[Draft_Workbench|Draft]] objects
+
+|-
+| 4
+| Shaded views in drawings
+|
+* Place screenshots of the model on a white background on the TechDraw page
+
+|-
+| 5
+| Ordinate dimensions
+|
+* No known workaround
+
+|-
+| 6
+| Broken (interrupted) views
+|
+* Create broken views manually:
+*# Sketch two wavy or zig-zag lines close to the ends of a long part and [[Part_Extrude|extrude]] them towards the model creating surfaces for the cut
+*# Use the [[Part_Slice|Part Slice]] tool to cut the model with these surfaces
+*# Hide the middle piece and [[Std_TransformManip|move]] one of the remaining pieces towards the other
+*# Create a [[TechDraw_View|view]] of these objects
+*# If needed, make the lines of the cut dashed (using the [[TechDraw_DecorateLine|TechDraw DecorateLine]] tool)
+*# If lines of the cut have to be extended, create a [[TechDraw_View|view]] of the sketch used in the first step and align it with the cut
+*# To obtain a proper value of the length of the cut part, you can either change the dimension value manually (after enabling the ''Arbitrary Text'' option) or [[TechDraw_LinkDimension|link]] it to the distance between the end vertices of the original part
+
+|-
+| 7
+| Exclude ribs from hatching
+|
+* In some cases it might be sufficient to use the first workaround mentioned here and manually create a section with a custom cutting line
+
+|-
+| 8
+| Export of TechDraw pages as PDF without making the text from the template (path text) unmarkable/unsearchable.
+|
+* Export the page as SVG. Then convert the SVG to PDF by using e.g. [http://www.inkscape.org Inkscape] or open the SVG in a web browser and then save or print as PDF.
+
+<div class="mw-translate-fuzzy">
+|}
+</div>
+
+|-
+| 10
+| Modify regular and section views using sketching tools
+|
+* Manually create and modify the views:
+*# If a section view has to be modified, use the [[Part_SectionCut|Part SectionCut]] tool or boolean operations to cut the part in the same way as it would be done by the [[TechDraw_SectionView|section view]] tool
+*# Use the [[Draft_Shape2DView|Draft Shape2DView]] tool to create a 2D line representation of the view or section view
+*# Use the [[Draft_Workbench#Drafting|Drafting]] tools with proper [[Draft_Workbench#Draft_Snap_toolbar|snaps]] to modify the view
+*# Use the [[Draft_Draft2Sketch|Draft Draft2Sketch]] tool to create a sketch out of the Draft objects
+*# Use the [[Sketcher_ValidateSketch|Sketcher ValidateSketch]] tool to make sure that the sketch has no missing coincidences, doubled lines and so on (those issues may impact the face selection in TechDraw)
+*# Use the [[TechDraw_View|TechDraw View]] tool to create a view of the sketch in TechDraw.
+
+|-
+| 11
+| Auxiliary views
+|
+* Create a [[TechDraw_View|standard view]] from the correct direction. Workarounds for "View normal to a face" may help. Rotate and position the view as needed.
+|}
+
+<span id="Workarounds_for_the_FEM_Workbench"></span>
+== Обходные решения для верстака FEM (МКЭ) ==
+
+{| class="wikitable"
+|-
+! width="2%"|№ !! width="28%"|Недостающая возможность !! width="70%"|Предлагаемое решение
+
+|-
+| 1
+| Beams with arbitrary [[FEM_ElementGeometry1D|cross-section]]
+|
+* Manually edit the input file and modify the beam section definition
+
+|-
+| 2
+| [[FEM_ConstraintPressure|Pressure load]] on shells, distributed load on beams
+|
+* [[FEM_ConstraintForce|Force load]]
+
+|-
+| 3
+| Support for multiple meshes and thus possibility to define [[FEM_ConstraintContact|contact]] between touching (not separated) faces
+|
+* Apply [[Part_Fuse|Part Fuse]] or [[Part_BooleanFragments|Part BooleanFragments]] to assemblies and include small gaps if you want to use [[FEM_ConstraintContact|contact]] or [[FEM_ConstraintTie|tie constraints]]
+
+|-
+| 4
+| Apply torque to any surface
+|
+* [[FEM_ConstraintTransform|Transform constraint]] (only for cylindrical faces)
+* Manually edit the input file - define a rigid body constraint and apply torque to its reference node
+
+|-
+| 5
+| Define rigid bodies and virtual elements
+|
+* Manually edit the input file and add proper keywords, use sets created by other features that can be deleted
+
+|-
+| 6
+| Advanced material models (hyperelasticity, creep and so on)
+|
+* Manually edit the input file and add proper keywords for material definition
+
+|-
+| 7
+| Composite shells
+|
+* Manually edit the input file and modify the shell section definition
+
+|-
+| 8
+| Simple creation of node and element sets as well as surfaces
+|
+* Use node and element sets and surfaces created by other features (material assignments, boundary conditions and so on)
+
+|-
+| 9
+| CalculiX keyword editor that can fold data lines and allow changes not only right before running the analysis
+|
+* Simple editor that can open the .inp file before running the analysis, color the syntax and save changes (accessed using the {{Button|Edit .inp file}} button in [[FEM_SolverControl|FEM SolverControl]] window)
+
+|-
+| 10
+| Meshing with hexahedral elements
+|
+* Create the geometry in FreeCAD, export it for meshing in external software (e.g. [https://gmsh.info/ Gmsh] or [https://www.code-aster.org/V2/spip.php?article303 Salome_Meca]), import the mesh (e.g. in .inp or .unv format), drag it to the Analysis container and apply constraints to the geometry
+
+|-
+| 11
+| Analyses with 2D (plane stress, plane strain, axisymmetric) elements
+|
+* Prepare the geometry and analysis as if it were a shell model. Save the input file and open it with the built-in editor described above. Change the value of the TYPE parameter of the *ELEMENT keyword to the 2D element's name (e.g. CPS6 for plane stress) and replace *SHELL SECTION with *SOLID SECTION. Thickness is relevant for plane stress and plane strain elements. Save the input file and run calculations.
+
+|-
+| 12
+| Multistep analyses (e.g. preload for frequency/buckling analysis)
+|
+* Prepare the analysis with the first step, write the .inp file, edit it to add definitions of subsequent steps and run the analysis
+
+|-
+| 13
+| [[Std_BoxSelection|Box selection]] of geometric entities for constraints
+|
+* Select geometric entities manually, one by one
+
+|}
+
+<span id="General_workarounds"></span>
+== Обходные решения для FreeCAD в целом ==
+
+{| class="wikitable"
+|-
+! width="2%"|№ !! width="28%"|Недостающая возможность !! width="70%"|Предлагаемое решение
+
+|-
+| 1
+| Официальный верстак для [[Assembly/ru|сборки деталей]]
+|
+* Существует три внешних не официальных верстака для [[Assembly/ru|сборки]]
+
+<div class="mw-translate-fuzzy">
+|-
+| 2
+| Улучшенный внешний вид/рендеринг 3D-моделей
+|
+* [https://github.com/realthunder/FreeCAD_assembly3/releases ветка по данной теме]
+</div>
+
+|-
+| 3
+| [[Status_bar|Status bar]] instructions (“Now pick this …”) for many tools that would benefit from them (e.g. [[Sketcher_Workbench#Sketcher_constraints|Sketcher constraints]]), more informative tooltips
+|
+* [[Main_Page|Wiki documentation]]
+
+|-
+| 4
+| Consistent selection order - some tools require the user to pick the geometric entity first while others allow selection after enabling the tool
+|
+* No known workaround
+
+|-
+| 5
+| More GUI customization options - pie menus, different icon styles and themes and so on
+|
+* Various customization packages created by the community
+* [https://github.com/realthunder/FreeCAD/releases Link Branch]
+
+|-
+| 6
+| Selection filter: picking only faces, edges, points and so on
+|
+* Manual selection of proper geometric entities
+* [[Std_DrawStyle#Wireframe|Wireframe mode]] to facilitate edge selection
+
+|-
+| 7
+| Advanced selection tools: selection by angle, inverting selection, selecting inside faces and so on
+|
+* Manual selection
+
+|-
+| 8
+| [[Assembly|Assembly]] workbench with an option to constrain parts to the origin and to [[Datum|datums]]
+|
+* No known workaround
+
+|-
+| 9
+| [[Std_TransformManip|Transform]] tool with an option to move and rotate with respect to edges and global coordinates
+|
+* Add-on [[Manipulator_Workbench|Manipulator Workbench]]
+
+<div class="mw-translate-fuzzy">
+|-
+| 9
+| Больше возможностей для текстурирования
+|
+* Решения не найдено
+</div>
+
+|-
+| 11
+| View normal to a face (useful for creating specifically aligned views in [[TechDraw_Workbench|TechDraw]])
+|
+* Select the face first when creating the [[TechDraw_View|TechDraw View]].
+* [[Macro_Align_View_to_Face|Macro Align View to Face]]
+* In the [[Draft_Workbench|Draft Workbench]], select a face and press the [[Draft_SelectPlane|Draft SelectPlane]] button. Deselect the face and press that button again to open the Working plane setup task panel. Click the {{Button|Center view}} button. View normal to the face will be set. You can hide the grid and switch workbenches.
+
+|-
+| 12
+| Highlight only the individual PartDesign feature in the [[3D_view|3D view]] when the corresponding operation is selected in the [[Tree_view|Tree view]]
+|
+* No known workaround
+
+|-
+| 13
+| Select only the individual PartDesign feature in the [[Tree_view|Tree view]] when a corresponding element is selected in the [[3D_view|3D view]].
+|
+* No known workaround
+
+|-
+| 14
+| Freeform modeling
+|
+* Model complex shapes in a "traditional" way - e.g. using add-on [[Curves_Workbench|Curves]] and [[CurvedShapes_Workbench|CurvedShapes]] workbenches
+* Sculpt meshes, for example in [https://www.blender.org/ Blender], and import them into FreeCAD
+
+|-
+| 15
+| Assembly component generators and calculators for: bolted and riveted connections, shafts, splines, keys, cams, gears (spur, bevel, worm), bearings, springs, belts and chains, pins, o-rings
+|
+* [[Fasteners_Workbench|Fasteners Workbench]] and [[FCGear_Workbench|FCGear Workbench]] but no design calculations available
+* [[PartDesign_WizardShaft|PartDesign WizardShaft]] - basic calculations for shafts
+
+|-
+| 16
+| A tool for kinematic analysis on properly constrained sketches
+|
+* [[Scripting_and_macros|Python scripting]] - [https://forum.freecadweb.org/viewtopic.php?f=8&t=68826&start=10#p596531 example]
+
+|-
+| 17
+| [https://en.wikipedia.org/wiki/Geometric_dimensioning_and_tolerancing GD&T] directly on 3D models - [https://en.wikipedia.org/wiki/Model-based_definition MBD] approach
+|
+* [[Draft_Workbench#Annotation|Draft Annotation]] tools
+
+|}

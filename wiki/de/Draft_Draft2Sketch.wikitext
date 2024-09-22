@@ -1,0 +1,110 @@
+<languages/>
+
+{{Docnav/de
+|[[Draft_WireToBSpline/de| DrahtZuBSpline]]
+|[[Draft_Slope/de|Neigung]]
+|[[Draft_Workbench/de|Draft]]
+|IconL=Draft_WireToBSpline.svg
+|IconR=Draft_Slope.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{GuiCommand/de
+|Name=Draft Draft2Sketch
+|Name/de=Draft ZeichnungZuSkizze
+|MenuLocation=Änderung → Zeichnung zu Skizze<br>Bearbeiten → Zeichnung zu Skizze
+|Workbenches=[[Draft_Workbench/de|Draft]], [[BIM_Workbench/de|BIM]]
+}}
+
+<span id="Description"></span>
+==Beschreibung== 
+
+Der Befehl [[Image:Draft_Draft2Sketch.svg|24px]] '''Draft ZeichnungZuSkizze''' wandelt [[Draft_Workbench/de|Draft]]-Objekte in [[Sketcher_NewSketch/de|Sketcher-Skizzen]] um und umgekehrt.
+
+[[Image:Draft_Draft2Sketch_example.png]]
+{{Caption|Konvertieren von Draft-Objekten in Sketcher-Skizzen}}
+
+<span id="Usage"></span>
+==Anwendung== 
+
+# Wahlweise ein oder mehrere Draft-Objekte oder [[Sketcher_NewSketch/de|Sketcher Skizzen]] auswählen.
+# Es gibt mehrere Möglichkeiten, den Befehl aufzurufen:
+#* Die Schaltfläche {{Button|[[Image:Draft_Draft2Sketch.svg|16px]] [[Draft_Draft2Sketch/de|Zeichnung zu Skizze]]}} drücken.
+#* [[Draft_Workbench/de|Draft]]: Den Menüeintrag {{MenuCommand|Änderung → [[Image:Draft_Draft2Sketch.svg|16px]] Zeichnung zu Skizze}} auswählen.
+#* [[BIM_Workbench/de|BIM]]: Den Menüeintrag {{MenuCommand|Bearbeiten → [[Image:Draft_Draft2Sketch.svg|16px]] Zeichnung zu Skizze}} auswählen.
+# Wenn noch kein Objekt ausgewählt wurde: Ein Objekt in der [[3D_view/de|3D-Ansicht]] auswählen.
+# Ein neues Objekt wird erstellt.
+
+<span id="Notes"></span>
+==Anmerkungen==
+
+* Nicht-Entwurf Objekte, die vollkommen planar sind, können ebenfalls konvertiert werden.
+* Der Befehl kann nur Objekte verarbeiten, die aus '''geraden Linien, Kreisbögen, elliptischen Bögen, B-Splines und Bézier Kurven''' bestehen.
+* [[Draft_BezCurve/de|Entwurf BezKurven]] werden durch [[Sketcher_CreateBSpline/de|Skizzierer BSplines]] angenähert.
+* Der externe [[KicadStepUp_Workbench/de|KicadStepUp Arbeitsbereich]] enthält einen Befehl, um eine [[Draft_BSpline/de|Entwurf BSpline]] in eine Reihe von [[Sketcher_CreateArc/de|Skizzierer Bögen]] zu konvertieren. Weitere Informationen findest du im Forumsbeitrag [https://forum.freecadweb.org/viewtopic.php?f=9&t=25082 BSplines to Shape2DView and Sketcher].
+* [https://forum.freecadweb.org/viewtopic.php?f=3&t=58781#p505207 Dieser andere Forenbeitrag] enthält ein Makro für eine solche Konvertierung.
+
+<span id="Scripting"></span>
+==Skripten==
+
+Siehe auch: [https://freecad.github.io/SourceDoc/ Autogenerierte API Dokumentation] und [[FreeCAD_Scripting_Basics/de|FreeCAD Grundlagen Skripten]].
+
+Um Objekte in eine Skizze zu konvertieren, wird die Methode {{incode|make_sketch}} des Draft-Moduls verwendet ({{Version/de|0.19}}). Diese Methode ersetzt die veraltete Methode {{incode|makeSketch}}.
+
+{{Code|code=
+sketch = make_sketch(objects_list, autoconstraints=False, addTo=None, delete=False, name="Sketch", radiusPrecision=-1, tol=1e-3)
+}}
+
+* {{incode|objects_list}} enthält die zu konvertierenden Objekte. Es ist entweder ein einzelnes Objekt oder eine Liste von Objekten. Unterstützt werden {{incode|Draft}} Objekte, {{incode|Part::Feature}} Objekte und {{incode|Part.Shape}} Objekte.
+* Wenn {{incode|autoconstraints}} {{incode|True}} ist, werden übereinstimmende Zwangsbedingungen zu Knoten hinzugefügt, die zum selben Quellobjekt gehören.
+* {{incode|addTo}} ist das vorhandene Skizzenobjekt, zu dem die Geometrie hinzugefügt wird. Wenn nicht angegeben, wird eine neue Skizze erstellt.
+* Wenn {{incode|delete}} gleich {{incode|True}} ist, werden die Quellobjekte gelöscht.
+* {{incode|name}} ist der Name für die neue Skizze.
+* {{incode|radiusPrecision}} gibt an, wie die Radiusbeschränkungen behandelt werden sollen:
+** Verwenden Sie {{incode|-1}}, um Radiuseinschränkungen zu deaktivieren.
+** Verwenden Sie {{incode|0}}, um einzelne Radiusbeschränkungen hinzuzufügen.
+** Verwenden Sie eine positive Zahl, um Radien entsprechend dieser Genauigkeit zu runden und um gleiche Zwangsbedingungen zwischen Kurven mit gleichen Radien hinzuzufügen.
+* {{incode|tol}} ist die Toleranz, die verwendet wird, um zu prüfen, ob Formen planar und koplanar sind. Verwenden Sie {{incode|-1}} für eine strenge Prüfung.
+* {{incode|sketch}} wird mit dem Skizzenobjekt zurückgegeben.
+
+Um eine Skizze in Draft-Objekte umzuwandeln, wird die Methode {{incode|draftify}} des Draft-Moduls verwendet.
+
+{{Code|code=
+draftify(objectslist, makeblock=False, delete=True)
+}}
+
+* {{incode|objectslist}} enthält die zu konvertierenden Objekte. Es ist entweder ein einzelnes Objekt oder eine Liste von Objekten.
+* Wenn {{incode|makeblock}} gleich {{incode|True}} ist, werden die konvertierten Objekte in einem {{incode|Part::Part2DObject}} gruppiert.
+* Wenn {{incode|delete}} gleich {{incode|True}} ist, werden die Quellobjekte gelöscht.
+
+Beispiel:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+rectangle = Draft.make_rectangle(2000, 1000)
+circle = Draft.make_circle(500)
+doc.recompute()
+
+sketch_from_draft = Draft.make_sketch([rectangle, circle], autoconstraints=True, delete=False, radiusPrecision=0)
+doc.recompute()
+
+draft_from_sketch = Draft.draftify(sketch_from_draft, delete=False)
+doc.recompute()
+}}
+
+
+{{Docnav/de
+|[[Draft_WireToBSpline/de| DrahtZuBSpline]]
+|[[Draft_Slope/de|Neigung]]
+|[[Draft_Workbench/de|Draft]]
+|IconL=Draft_WireToBSpline.svg
+|IconR=Draft_Slope.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

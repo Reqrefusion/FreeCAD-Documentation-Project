@@ -1,0 +1,118 @@
+<languages/>
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+[[File:Mesh_Tree.svg|32px]]
+
+Obiekt [[Mesh_Feature/pl|Cecha siatki]], lub formalnie {{incode|Mesh::Feature}}, jest prostym elementem z powiązanym [[Mesh_MeshObject/pl|obiektem siatki]], który może być wyświetlany w oknie [[3D_view/pl|widoku 3D]].
+
+Cecha siatki jest podobna koncepcyjnie do cechy [[Part_Feature/pl|Część: Cecha]]. Pierwsza jest obiektem bazowym dla elementów z informacją o "siatce", podczas gdy druga jest obiektem bazowym dla elementów z informacją o "kształcie geometrycznym".
+
+Proszę zauważyć, że środowisko pracy [[FEM_Workbench/pl|MES]] również używa siatek, ale używa innego obiektu, zwanego [[FEM_Mesh/pl|MES: Siatka]] ''(klasa {{incode|Fem::FemMeshObject}})''. Obiekt ten nie jest pochodną cechy Siatka i ma inne właściwości.
+
+[[File:FreeCAD_core_objects.svg|800px]]
+
+{{Caption|Uproszczony diagram zależności pomiędzy podstawowymi obiektami w programie FreeCAD.}}
+
+<span id="Usage"></span>
+==Użycie==
+
+Prawie wszystkie obiekty siatkowe tworzone poleceniami dostępnymi w środowisku pracy [[Mesh_Workbench/pl|Siatka]] są [[Mesh_Feature/pl|cechami siatki]]. Wyjątek stanowią parametryczne obiekty siatkowe tworzone poleceniem [[Mesh_BuildRegularSolid/pl|Utwórz bryłę pierwotną]]. Obiekt [[Mesh_Feature/pl|cecha siatki]] można również utworzyć z poziomu [[Python_console/pl|konsoli Python]], jak opisano w sekcji [[#Tworzenie_skrypt.C3.B3w|tworzenie skryptów]].
+
+Klasa {{incode|Mesh::Feature}} jest zdefiniowana w środowisku pracy [[Mesh_Workbench/pl|Siatka]], ale może być użyta jako klasa bazowa dla [[Scripted_objects/pl|obiektów tworzonych skryptami]] we wszystkich [[Workbenches/pl|środowiskach pracy]], które wytwarzają płaskie i przestrzenne siatki.
+
+Obiekt {{incode|Mesh::Feature}} posiada proste właściwości, takie jak [[Placement/pl|umiejscowienie]], oraz właściwości wizualne określające wygląd jego krawędzi i ścian.
+
+<span id="Properties"></span>
+==Właściwości==
+
+Zapoznaj się z treścią na stronie [[Property/pl|Właściwości]] aby poznać wszystkie typy właściwości, które mogą mieć obiekty tworzone skryptami.
+
+Klasa [[Mesh_Feature/pl|Siatka: Cecha]] ({{incode|Mesh::Feature}}) wywodzi się z podstawowej [[App_GeoFeature/pl|Cechy geometrii]] ({{incode|App::GeoFeature}}) i dziedziczy wszystkie jej właściwości. Posiada również kilka dodatkowych właściwości. Przede wszystkim właściwość {{PropertyData|Siatka}}, która przechowuje jej [[Mesh_MeshObject/pl|obiekt siatki]]. Jest to geometria, która jest wyświetlana w oknie [[3D_view/pl|widoku 3D]].
+
+Są to właściwości dostępne w [[Property_editor/pl|edytorze właściwości]]. Ukryte właściwości można wyświetlić za pomocą polecenia {{MenuCommand|Wyświetl wszystko}} w menu kontekstowym [[Property_editor/pl|edytora właściwości]].
+
+<span id="Data"></span>
+===Dane===
+
+{{TitleProperty|Podstawa}}
+
+* {{PropertyData|Pośrednik|PythonObject|Hidden}}: niestandardowa klasa związana z tym obiektem. Istnieje to tylko dla wersji [[Python|Python]]. Zobacz akapit [[#Tworzenie_skryptów/pl|Tworzenie skryptów]].
+* {{PropertyData|Siatka|MeshKernel}}: klasa [[Mesh_MeshObject/pl|Siatka: MeshObject]] związana z tym obiektem. Wymienia ona liczbę {{Value|Punktów}}, {{Value|Krawędzi}} i {{Value|Ścian}} siatki.
+* {{PropertyData|Umiejscowienie|Placement}}: pozycja obiektu w oknie [[3D_view/pl|widoku 3D]]. Umiejscowienie jest określone przez {{incode|Base}} punkt ''(wektor)'', oraz {{incode|Obrót}} ''(oś i kąt)''. Zobacz stronę [[Placement/pl|Umiejscowienie]]
+** {{PropertyData|Kąt}}: kąt obrotu wokół {{PropertyData|Oś}}. Domyślnie jest to wartość {{value|0°}} ''(zero stopni)''.
+** {{PropertyData|Oś}}: wektor jednostkowy określający oś obrotu dla umiejscowienia. Każdy element jest wartością zmiennoprzecinkową pomiędzy {{value|0}} a {{value|1}}. Jeśli jakakolwiek wartość jest większa od {{value|1}}, wektor jest normalizowany tak, aby jego wielkość wynosiła {{value|1}}. Domyślnie jest to dodatnia oś Z, {{value|(0, 0, 1)}}.
+** {{PropertyData|Pozycja}}: wektor zawierający współrzędne 3D punktu bazowego. Domyślnie jest to początek układu odniesienia {{value|(0, 0, 0)}}.
+* {{PropertyData|Etykieta|String}}: edytowalna przez użytkownika nazwa tego obiektu, jest to dowolny ciąg znaków UTF8.
+* {{PropertyData|Etykieta2|String|Hidden}}: dłuższy, edytowalny przez użytkownika opis tego obiektu, jest to dowolny ciąg UTF8, który może zawierać znaki nowej linii. Domyślnie jest to pusty ciąg {{value|""}}.
+* {{PropertyData|Silnik wyrażeń|Hidden}}: lista wyrażeń. Domyślnie jest pusta {{value|[]}}.
+* {{PropertyData|Widoczność|Bool|Hidden}}: decyduje czy wyświetlać obiekt, czy nie.
+
+<span id="View"></span>
+===Widok===
+
+{{TitleProperty|Podstawa}}
+
+* {{PropertyView|Proxy|PythonObject|Ukryte}}: klasa własna [[Viewprovider/pl|dostawca widoku]] związana z tym obiektem. Istnieje wyłącznie dla wersji środowiska [[Python/pl|Python]]. Zobacz sekcję [[#Tworzenie_skrypt.C3.B3w|tworzenie skryptów]].
+
+{{TitleProperty|Opcje wyświetlania}}
+
+* {{PropertyView|Ramka Otaczająca|Bool}}: jeśli ma wartość {{TRUE/pl}}, obiekt będzie pokazywał Ramkę otaczającą w oknie [[3D_view/pl|widoku 3D]].
+* {{PropertyView|Tryb wyświetlania|Enumeration}}: {{value|Cieniowany}} ''(bez krawędzi)'', {{value|Szkielet}} ''(bez ścian)'', {{value|Cieniowany z krawędziami}} ''(zwykła wizualizacja)'', {{value|Punkty}} ''(tylko wierzchołki)''.
+* {{PropertyView|Pokazuj na drzewie|Bool}}: jeśli ma wartość {{TRUE/pl}}, obiekt pojawia się w oknie [[Tree_view/pl|Widoku Drzewa]]. W przeciwnym razie jest niewidoczny.
+* {{PropertyView|Widoczność|Bool}}: jeśli ma wartość {{TRUE/pl}}, obiekt pojawia się w oknie [[3D_view/pl|widoku 3D]]. W przeciwnym razie jest niewidoczny. Domyślnie właściwość ta może być włączana i wyłączana przez naciśnięcie klawisza {{KEY|Spacja}}.
+
+{{TitleProperty|Styl obiektu}}
+
+* {{PropertyView|Kolorowanie|Bool|Hidden}}: wartość domyślna to {{FALSE/pl}}.
+* {{PropertyView|Kąt zagięcia|FloatConstraint}}:
+* {{PropertyView|Oświetlenie|Enumeration}}: {{value|Jednostronnie}} ''(wartość domyślna)'', {{value|Dwustronnie}}. Oświetlenie pochodzi z dwóch stron lub z jednej strony w oknie [[3D_view/pl|widoku 3D]].
+* {{PropertyView|Kolor linii|Color}}: krotka trzech zmiennoprzecinkowych wartości RGB {{value|(r,g,b)}}, aby określić kolor krawędzi w oknie [[3D_view/pl|widoku 3D]]. Domyślnie jest to wartość {{value|(0. 0, 0.0, 0.0)}}, która jest wyświetlana jako {{value|[0,0,0]}} w zakresie 255, <span style="background-color:#000; color:#eee; width:3em; height:12pt; padding: 2px 1em 2px;">completely black </span>.
+* {{PropertyView|Przejrzystość linii|Percent}}: wartość całkowita od {{value|0}} do {{value|100}} ''(wartość procentowa)'' określająca poziom przezroczystości krawędzi w oknie [[3D_view/pl|widoku 3D]]. Wartość {{value|100}} oznacza całkowicie niewidoczne krawędzie. Krawędzie są niewidoczne, ale nadal można je wybrać, o ile parametr {{PropertyView|Do wyboru}} ma wartość {{TRUE/pl}}.
+* {{PropertyView|Szerokość linii|FloatConstraint}}: wartość typu zmiennoprzecinkowego określająca szerokość krawędzi w pikselach wyświetlane w oknie [[3D_view/pl|widoku 3D]]. Wartość domyślna to {{value|1.0}}.
+* {{PropertyView|Otwarte krawędzie|Bool}}: wartość domyślna to {{FALSE/pl}}.
+* {{PropertyView|Rozmiar punktu|FloatConstraint}}: podobnie jak {{PropertyView|Szerokość linii}}, określa rozmiar wierzchołków.
+* {{PropertyView|Kolor kształtu|Color}}: podobnie jak {{PropertyView|Kolor linii}}, definiuje kolor ścian. Wartość domyślna to {{value|(0.8, 0.8, 0.8)}}, która jest wyświetlana jako {{value|[204,204,204]}} w zakresie 255, a <span style="background-color:#ccc; width:3em; height:12pt; padding: 2px 1em 2px;">light gray</span>.
+* {{PropertyView|Materiał kształtu|Material|Hidden}}: obiekt [[App_Material/pl|Materiał]] związany z tym obiektem. Domyślnie jest on pusty.
+* {{PropertyView|Przezroczystość|Percent}}: wartość całkowita od {{value|0}} do {{value|100}} ''(wartość procentowa)'' określająca poziom przezroczystości ścian w oknie [[3D_view/pl|widoku 3D]]. Wartość {{value|100}} oznacza całkowicie niewidoczne ściany. Ściany są niewidoczne, ale nadal można je wybrać, o ile parametr {{PropertyView|Do wyboru}} ma wartość {{TRUE/pl}}.
+
+{{TitleProperty|Wybieranie}}
+
+* {{PropertyView|Na górze po wybraniu|Enumeration}}: {{value|Wyłączony}} ''(domyślnie)'', {{value|Włączony}}, {{value|Objekt}}, {{value|Element}}.
+* {{PropertyView|Do wyboru|Bool}}: jeśli ma wartość {{TRUE/pl}}, obiekt można wybrać kursorem w oknie [[3D_view/pl|widoku 3D]]. W przeciwnym razie obiekt nie może być wybrany, dopóki opcja ta nie zostanie ustawiona na wartość {{TRUE/pl}}.
+* {{PropertyView|Styl wyboru|Enumeration}}: {{value|Kształt}} ''(domyślnie)'', {{value|Ramka Otaczająca}}. Jeśli parametr ma wartość {{value|Kształt}}, cały kształt ''(wierzchołki, krawędzie i ściany)'' zostanie podświetlony w oknie [[3D_view/pl|widoku 3D]]. Jeśli {{value|Ramka Otaczająca}}, podświetlone zostanie tylko pole ograniczające.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]], oraz [[Scripted_objects/pl|Obiekty tworzone skryptami]].
+
+Ogólne informacje na temat dodawania obiektów do dokumentu można znaleźć na stronie [[Part_Feature/pl|Część: właściwość]].
+
+Cecha siatki jest tworzona za pomocą metody dokumentu {{incode|addObject()}}.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("Mesh::Feature", "Name")
+obj.Label = "Custom label"
+}}
+
+Dlatego też, dla klasy podrzędnej [[Python/pl|Python]], powinieneś stworzyć obiekt {{incode|Mesh::FeaturePython}}.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("Mesh::FeaturePython", "Name")
+obj.Label = "Custom label"
+}}
+
+
+{{Mesh_Tools_navi{{#translation:}}}}
+{{Document_objects_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Glossary{{#translation:}}]]

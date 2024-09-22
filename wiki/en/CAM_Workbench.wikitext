@@ -1,0 +1,237 @@
+<languages/>
+
+{{Docnav
+|[[BIM_Workbench|BIM Workbench]]
+|[[Draft_Workbench|Draft Workbench]]
+|IconL=Workbench_BIM.svg
+|IconR=Workbench_Draft.svg
+}}
+
+[[Image:Workbench_CAM.svg|thumb|128px|CAM workbench icon]]
+
+{{TOCright}}
+
+== Introduction ==
+
+The [[Image:Workbench_CAM.svg|24px]] [[CAM_Workbench|CAM Workbench]] is used to produce machine instructions for [https://en.wikipedia.org/wiki/CNC_router CNC machines] from a FreeCAD 3D model. These produce real-world 3D objects on CNC machines such as mills, lathes, lasercutters, or similar. Typically, instructions are a [https://en.wikipedia.org/wiki/G-code G-code] dialect. A [https://www.ange-softs.com/SIMULCNCHTML/index.html general CNC lathe tool path sequence simulation example] is presented here.
+
+[[Image:pathwb.png|600px]]
+
+The FreeCAD CAM Workbench workflow creates these machine instructions as follows:
+* A 3D model is the base object, typically created using one or more of the [[Image:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench|Part Design]], [[Image:Workbench_Part.svg|24px]] [[Part_Workbench|Part]] or [[Image:Workbench_Draft.svg|24px]] [[Draft_Workbench|Draft]] Workbenches.
+* A [[CAM_Job|CAM Job]] is created in the CAM Workbench. This contains all the information required to generate the necessary G-code to process the Job on a CNC mill: there is Stock material, the mill has a certain [[CAM_ToolBitLibraryOpen|set of tools]] and it follows certain commands controlling speed and movements (usually G-code).
+* [[CAM_Tools|CAM Tools]] are selected as required by the Job Operations.
+* Milling paths are created using e.g. [[CAM_Profile|Contour]] and [[CAM_Pocket_3D|Pocket]] Operations. These CAM objects use internal FreeCAD G-code dialect, independent of the CNC machine.
+* Export the job with a G-code, matching to your machine. This step is called ''post processing''; there are different post processors available.
+
+== General concepts ==
+
+The CAM Workbench generates G-code defining the paths required to mill the Project represented by the 3D model on the target mill in [[CAM_scripting#The_FreeCAD_Internal_GCode_Format|the CAM Job Operations FreeCAD G-code dialect]], which is later translated to the appropriate dialect for the target CNC controller by selecting the appropriate postprocessor.
+
+The G-code is generated from directives and Operations contained in a CAM Job. The Job Workflow lists these in the order they will be executed. The list is populated by adding CAM Operations, Path Dressups, Supplemental Commands, and Path Modifications from the CAM Menu, or GUI buttons.
+
+The CAM Workbench provides a Tool Manager (Library, Tool-Table), and G-code Inspection, and Simulation tools. It links the Postprocessor, and allows importing and exporting Job Templates.
+
+The CAM Workbench has external dependencies including:
+# The FreeCAD 3D model units are defined in the {{MenuCommand|Edit → Preference → General → Default unit system}}. The Postprocessor configuration defines the final G-code units.
+# The Macro file path, and Geometric tolerances, are defined in the {{MenuCommand|Edit → Preferences → CAM → Job Preferences}} tab.
+# Colors are defined in the {{MenuCommand|Edit → Preferences → CAM → GUI}} tab.
+# Holding tag parameters are defined in the {{MenuCommand|Edit → Preferences → CAM → Dressups}} tab. 
+# That the Base 3D model quality supports the CAM workbench requirements, passes Check Geometry.
+
+== Limitations ==
+
+Some current limitations of which you should be aware are:
+* Most of the CAM Tools are not true 3D tools but only 2.5D capable. This means that they take a fixed 2D shape and can cut it down to a given depth. However, there are two tools which produce true 3D paths: {{KEY|[[Image:CAM_3DPocket.svg|24px]] [[CAM_Pocket_3D|3D Pocket]]}} and {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}} (which is still an [[CAM_experimental|experimental feature]] as of November 2020).
+* Most of CAM workbench is designed for a simple, standard 3-axis (xyz) CNC mill/router, but lathe tools are under development in 0.19_pre.
+* Most operations in CAM workbench will return paths based on a standard endmill tool/bit only, regardless of the tool/bit type assigned in a given tool controller with the exception of the {{KEY|[[Image:CAM_Engrave.svg|24px]] [[CAM_Engrave|Engrave]]}} and {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}} operations.
+* The operations within the CAM workbench are not aware of clamping mechanisms in use to secure the model to your machine. Consequently, please review and simulate the paths you generate prior to sending the code to your machine. If necessary, model your clamping mechanisms in FreeCAD in order to better inspect the paths generated. Look for possible collisions with clamps or other obstacles along the paths.
+
+== Units ==
+
+Unit handling in CAM can be confusing. There are several points to understand:
+# FreeCAD base units for length and time are 'mm' and 's' respectively. Velocity is thus 'mm/s'. This is what FreeCAD stores internally regardless of anything else
+# The default unit schema uses the default units. If you're using the default schema and you enter a feed rate without a unit string, it will get entered as 'mm/s'
+# Most CNC machines expect feed rate in the form of either 'mm/min' or 'in/min'. Most post-processors will automatically convert the unit when generating gcode.
+
+Schemas:
+# Changing schema in preferences changes default unit string for the input fields. If you're a CAM user and prefer to design in metric, it's highly recommended that you use the "Metric Small Parts & CNC" schema. If you design in US units, either the Imperial Decimal and Building US will work.
+# Changing your preferred unit schema will have no effect on output but will help avoid input errors.
+
+Output:
+# Generating the correct unit in output is the responsibility of the post-processor and is done only at that time.
+# Machine output unit is completely unrelated to your selected unit schema.
+# Post-processors produce either metric (G21) output, Imperial (G20) output or are configurable.
+# Configurable post-processors default to metric (G21).
+# If you want your configurable post-processor to output imperial G-code (G20), set the correct argument in your job output configuration (ie --inches for linuxcnc). This can be stored in a job template and set as your default template to make it automatic for all future jobs.
+
+CAM Inspection:
+# If you use the CAM Inspect tool to look at G-code, you will see it in 'mm/s' because it is not being post-processed.
+
+== Heights and depths ==
+
+Many of the commands have various heights and depths:
+
+[[Image:Path-DepthsAndHeights.gif|500px]]
+{{Caption|Visual reference for Depth properties (settings)}}
+
+== Commands ==
+
+Some commands are experimental and not available by default. To enable them see [[CAM_experimental|CAM experimental]].
+
+=== Project Commands ===
+
+* [[Image:CAM_Job.svg|32px]] [[CAM_Job|Job]]: Creates a new CNC job.
+
+* [[Image:CAM_Post.svg|32px]] [[CAM_Post|Post Process]]: Exports a project to G-code.
+
+* [[Image:CAM_Sanity.svg|32px]] [[CAM_Sanity|Check the CAM job for common errors]]: Checks the selected job for missing values.
+
+* [[Image:CAM_ExportTemplate.svg|32px]] [[CAM_ExportTemplate|Export Template]]: Export the current job as a template.
+
+=== Tool Commands ===
+
+* [[Image:CAM_Inspect.svg|32px]] [[CAM_Inspect|Inspect CAM Commands]]: Shows the G-code for checking.
+
+* [[Image:CAM_Simulator.svg|32px]] [[CAM_Simulator|CAM Simulator]]: Shows the milling operation like it's done on the machine.
+
+* [[Image:CAM_SimulatorGL.svg|32px]] [[CAM_SimulatorGL|CAM SimulatorGL]]: Enables the new, improved CAM simulator. {{Version|1.0}}
+
+* [[Image:CAM_SelectLoop.svg|32px]] [[CAM_SelectLoop|Finish Selecting Loop]]: Completes a loop from two selected edges.
+
+* [[Image:CAM_OpActiveToggle.svg|32px]] [[CAM_OpActiveToggle|Toggle the Active State of the Operation]]: Activates or de-activates a path operation.
+
+* [[Image:CAM_ToolBitLibraryOpen.svg|32px]] [[CAM_ToolBitLibraryOpen|ToolBit Library editor]]: Opens an editor to manage ToolBit libraries.
+
+* [[Image:CAM_ToolBitDock.svg|32px]] [[CAM_ToolBitDock|ToolBit Dock]]: Toggles the ToolBit Dock.
+
+=== Basic Operations ===
+
+* [[Image:CAM_Profile.svg|32px]] [[CAM_Profile|Profile]]: Creates a profile operation of the entire model, or from one or more selected faces or edges.
+
+* [[Image:CAM_Pocket_Shape.svg|32px]] [[CAM_Pocket_Shape|Pocket Shape]]: Creates a pocketing operation from one or more selected pocket(s).
+
+* [[Image:CAM_Drilling.svg|32px]] [[CAM_Drilling|Drilling]]: Performs a drilling cycle.
+
+* [[Image:CAM_MillFace.svg|32px]] [[CAM_MillFace|Face]]: Creates a surfacing path.
+
+* [[Image:CAM_Helix.svg|32px]] [[CAM_Helix|Helix]]: Creates a helical path.
+
+* [[Image:CAM_Adaptive.svg|32px]] [[CAM_Adaptive|Adaptive]]: Creates an adaptive clearing and profiling operation.
+
+* [[Image:CAM_Slot.svg|32px]] [[CAM_Slot|Slot]]: Creates a slotting operation from selected features or custom points. [[CAM_experimental|{{Emphasis|Experimental}}]].
+
+* [[Image:CAM_Engrave.svg|32px]] [[CAM_Engrave|Engrave]]: Creates an engraving path.
+
+* [[Image:CAM_Deburr.svg|32px]] [[CAM_Deburr|Deburr]]: Creates a deburr path.
+
+* [[Image:CAM_Vcarve.svg|32px]] [[CAM_Vcarve|Vcarve]]: Creates an engraving path using a V tool shape.
+
+=== 3D Operations ===
+
+* [[Image:CAM_Pocket_3D.svg|32px]] [[CAM_Pocket_3D|3D Pocket]]: Creates a path for a 3D pocket.
+
+* [[Image:CAM_Surface.svg|32px]] [[CAM_Surface|3D Surface]]: Creates a path for a 3D surface. [[CAM_experimental|{{Emphasis|Experimental}}]].
+
+* [[Image:CAM_Waterline.svg|32px]] [[CAM_Waterline|Waterline]]: Creates a waterline path for a 3D surface. [[CAM_experimental|{{Emphasis|Experimental}}]].
+
+=== Path Dressup ===
+
+* [[Image:CAM_DressupAxisMap.svg|32px]] [[CAM_DressupAxisMap|Axis Map]]: Remaps one axis to another.
+
+* [[Image:CAM_DressupPathBoundary.svg|32px]] [[CAM_DressupPathBoundary|Boundary]]: Adds a boundary dressup modification to a selected path.
+
+* [[Image:CAM_DressupDogbone.svg|32px]] [[CAM_DressupDogbone|Dogbone]]: Adds a dogbone dressup modification to a selected path.
+
+* [[Image:CAM_DressupDragKnife.svg|32px]] [[CAM_DressupDragKnife|DragKnife]]: Adds a dragknife dressup modification to a selected path.
+
+* [[Image:CAM_DressupLeadInOut.svg|32px]] [[CAM_DressupLeadInOut|LeadInOut]]: Adds a lead-in and/or lead-out point to a selected path.
+
+* [[Image:CAM_DressupRampEntry.svg|32px]] [[CAM_DressupRampEntry|RampEntry]]: Adds ramp entry dressup modification to a selected path.
+
+* [[Image:CAM_DressupTag.svg|32px]] [[CAM_DressupTag|Tag]]: Adds a holding tag dressup modification to a selected path.
+
+* [[Image:CAM_DressupZCorrect.svg|32px]] [[CAM_DressupZCorrect|Z Depth Correction]]: Corrects the Z depth using Probe Map.
+
+=== Supplemental Commands ===
+
+* [[Image:CAM_Fixture.svg|32px]] [[CAM_Fixture|Fixture]]: Changes the fixture position.
+
+* [[Image:CAM_Comment.svg|32px]] [[CAM_Comment|Comment]]: Inserts a comment in the G-code of a path.
+
+* [[Image:CAM_Stop.svg|32px]] [[CAM_Stop|Stop]]: Inserts a full stop of the machine.
+
+* [[Image:CAM_Custom.svg|32px]] [[CAM_Custom|Custom]]: Inserts custom G-code.
+
+* [[Image:CAM_Probe.svg|32px]] [[CAM_Probe|Probe]]: Creates a Probing Grid from a job stock.
+
+* [[Image:CAM_Shape.svg|32px]] [[CAM_Shape|From Shape]]: Creates a path object from a selected Part object. [[CAM_experimental|{{Emphasis|Experimental}}]].
+
+=== Path Modification ===
+
+* [[Image:CAM_Copy.svg|32px]] [[CAM_Copy|Copy the operation in the job]]: Creates a parametric Copy of a selected path object.
+
+* [[Image:CAM_Array.svg|32px]] [[CAM_Array|Array]]: Creates an array by duplicating a selected path.
+
+* [[Image:CAM_SimpleCopy.svg|32px]] [[CAM_SimpleCopy|Simple Copy]]: Creates a non-parametric copy of a selected path object.
+
+=== Specialty Operations ===
+
+* [[Image:CAM_ThreadMilling.svg|32px]] [[CAM_ThreadMilling|Thread Milling]]: Creates a CAM Thread Milling operation from features of a base object. [[CAM_experimental|{{Emphasis|Experimental}}]].
+
+=== Miscellaneous ===
+
+* [[Image:CAM_Area.svg|32px]] [[CAM_Area|Area]]: Creates a feature area from selected objects. [[CAM_experimental|{{Emphasis|Experimental}}]].
+
+* [[Image:CAM_Area_Workplane.svg|32px]] [[CAM_Area_Workplane|Area workplane]]: Creates a feature area workplane. [[CAM_experimental|{{Emphasis|Experimental}}]].
+
+== ToolBit architecture ==
+
+Manage tools, bits, and the Tool Library. Based on the ToolBit architecture.
+
+* [[CAM_Tools|CAM Tools]]
+* [[CAM_ToolShape|CAM ToolShape]]
+* [[CAM_ToolBit|CAM ToolBit]]
+* [[CAM_ToolBit_Library|CAM ToolBit Library]]
+* [[CAM_ToolController|CAM ToolController]]
+
+== Other ==
+
+* [[CAM_FAQ|CAM FAQ]]: The CAM Workbench shares many concepts with other CAM software packages but has its own peculiarities. If something seems wrong this is a good place to start.
+* [[CAM_SetupSheet|CAM SetupSheet]]: You can use a SetupSheet to customize how various property values for operations are calculated.
+* [[CAM_Postprocessor_Customization|CAM Postprocessor Customization]]: If you have a special machine which cannot use one of the available post-processors you may need to write your own post-processor.
+* [[CAM_fourth_axis|CAM fourth axis]]: Experimental four axis milling.
+
+== Preferences ==
+
+* [[Image:Preferences-cam.svg|32px]] [[CAM_Preferences|Preferences...]]: Preferences available for the CAM Workbench.
+
+== Scripting ==
+
+See [[CAM_scripting|CAM scripting]].
+
+== Tutorials ==
+
+* [[CAM_Walkthrough_for_the_Impatient|CAM Walkthrough for the Impatient]]: a quick tutorial to get familiar with CAM.
+
+== Videos ==
+
+* [https://www.youtube.com/playlist?list=PLEuOia-QxyFKgzAeTyH62GKqWKVURiWJL FreeCAD Path: Custom paths with Python - Part 1 - 5]: A playlist with a series of 5 videos in English by sliptonic. This series shows how to work with the [[CAM_Workbench|CAM Workbench]]. 
+* [https://www.youtube.com/playlist?list=PLUrr_kHPp4vhGdLlj6IemtF-OPUlRvSTC  FreeCAD CAM Path Workbench]: A playlist with a series of 7 videos in English by CAD CAM Lessons.
+* [https://www.youtube.com/playlist?list=PLUrr_kHPp4vh2n6DcIlegK4dEKIFjmISJ FreeCAD CAM CNC]: A playlist with a series of 8 videos in English by CAD CAM Lessons.
+
+== Roadmap ==
+
+* [[CAM_Development_Roadmap|CAM Development Roadmap]]: Read this if you are a developer and want to contribute to CAM.
+
+
+{{Docnav
+|[[BIM_Workbench|BIM Workbench]]
+|[[Draft_Workbench|Draft Workbench]]
+|IconL=Workbench_BIM.svg
+|IconR=Workbench_Draft.svg
+}}
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Workbenches{{#translation:}}]]

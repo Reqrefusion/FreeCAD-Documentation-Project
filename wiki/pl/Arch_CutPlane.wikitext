@@ -1,0 +1,118 @@
+<languages/>
+
+{{Docnav/pl
+|[[Arch_Remove/pl|Usuń komponent]]
+|[[BIM_Setup/pl|Konfiguracja środowiska]]
+|[[BIM_Workbench/pl|środowisko pracy BIM]]
+|IconL=Arch_Remove.svg
+|IconR=BIM_Setup.svg
+|IconC=Workbench_Arch.svg
+}}
+
+{{VeryImportantMessage|POLECENIE TO JEST CZĘŚCIĄ ZINTEGROWANEGO środowiska pracy [[BIM_Workbench/pl|BIM]] w V1.0<br>
+Ta strona została zaktualizowana dla tej wersji.}}
+
+{{GuiCommand/pl
+|Name=Arch CutPlane
+|Name/pl=Architektura: Przetnij płaszczyzną
+|MenuLocation=Modyfikacja → Przetnij płaszczyzną
+|Workbenches=[[BIM_Workbench/pl|BIM]]
+}}
+
+<span id="Description"></span>
+==Opis== 
+
+Narzędzie '''Przytnij płaszczyzną''' tnie bryłę obiektu Architektury, taką jak [[Arch_Wall/pl|ścianę]] lub [[Arch_Structure/pl|konstrukcję]] za pomocą płaskiej płaszczyzny.
+
+[[Image:Arch_CutPlane_example.jpg|400px]]
+{{Caption|Po lewej: Przed zastosowaniem narzędzia Przetnij płaszczyzną. Środek: wynikowa ściana po zakończeniu cięcia. Po prawej: kolejny opcjonalny wynik.}}
+
+<span id="Usage"></span>
+==Użycie==
+
+# Jeśli płaszczyzna cięcia ma być wyprowadzona z krawędzi prostej ({{Version/pl|1.0}}) opcjonalnie wyrównaj [[Draft_SelectPlane/pl|płaszczyznę roboczą]]:
+#* Wybrana krawędź nie może być równoległa do normalnej płaszczyzny roboczej.
+#* Wygenerowana powierzchnia cięcia będzie prostopadła do płaszczyzny roboczej.
+# Wybierz obiekt do wycięcia.
+# Wykonaj jedną z następujących czynności:
+#* Wybierz obiekt z pojedynczą płaską powierzchnią. {{Version/pl|1.0}}
+#* Wybierz płaską powierzchnię w [[3D_view/pl|widoku 3D]].
+#* Wybierz obiekt z pojedynczą prostą krawędzią. {{Version/pl|1.0}}
+#* Wybierz prostą krawędź w [[3D_view/pl|widoku 3D]]. {{Version/pl|1.0}}
+# Polecenie można wywołać na kilka sposobów:
+#* Naciśnij przycisk {{Button|[[Image:Arch_CutPlane.svg|16px]] '''Przetnij płaszczyzną'''}}.
+#* Wybierz z menu opcję {{MenuCommand|Modyfikacja → [[Image:Arch_CutPlane.svg|16px]] Przetnij płaszczyzną}}.
+# Wybierz {{MenuCommand|Za}} lub {{MenuCommand|Przed}}, aby wskazać, po której stronie powierzchni cięcia materiał ma zostać usunięty.
+# Naciśnij przycisk {{Button|OK}}.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[Arch_API/pl|API: Architektura]] i [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]].
+
+Narzędzie Przetnij płaszczyzną może być używane w [[Macros/pl|makrodefinicjach]] i z konsoli [[Python/pl|Python]] za pomocą następujących funkcji:
+
+{{Code|code=
+cutObj = cutComponentwithPlane(archObject, cutPlane, sideFace)
+}}
+
+* Tworzy obiekt {{incode|cutObj}} z podanego {{incode|archObject}}, który jest przecinany przez {{incode|cutPlane}}, która jest powierzchnią innego obiektu.
+** {{incode|archObject}} powinien być {{incode|SelectionObject}} uzyskanym z {{incode|FreeCADGui.Selection.SelectionEx()[0]}}.
+** {{incode|cutPlane}} powinien być {{incode|FaceObject}} uzyskanym z {{incode|FreeCADGui.Selection.SelectionEx()[0].SubObjects[0]}}.
+* {{incode|sideFace}} określa, po której stronie {{incode|FaceObject}} zostanie utworzona objętość; objętość ta zostanie następnie użyta do odjęcia od {{incode|archObject}}. Jeśli {{incode|sideFace}} to {{incode|0}}, zostanie utworzona objętość z tyłu obiektu, w przeciwnym razie zostanie ona utworzona z przodu obiektu.
+
+Przykład:
+
+{{Code|code=
+import FreeCAD, FreeCADGui, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 2000, 0)
+
+Line = Draft.makeWire([p1, p2])
+Wall = Arch.makeWall(Line, width=150, height=2000)
+
+p3 = FreeCAD.Vector(0, 2000, 0)
+p4 = FreeCAD.Vector(3000, 0, 0)
+
+Line2 = Draft.makeWire([p3, p4])
+Wall2 = Arch.makeWall(Line2, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+# Select the Wall
+main_object = FreeCADGui.Selection.getSelectionEx()[0]
+
+# Select the face of Wall2
+selection = FreeCADGui.Selection.getSelectionEx()[0]
+cut_face = selection.SubObjects[0]
+
+cutObj = Arch.cutComponentwithPlane(main_object, cut_face, 0)
+FreeCAD.ActiveDocument.recompute()
+
+Wall3 = Draft.move(Wall, FreeCAD.Vector(-4000, 0, 0), copy=True)
+Wall4 = Draft.move(Wall2, FreeCAD.Vector(-4000, 0, 0), copy=True)
+FreeCAD.ActiveDocument.recompute()
+
+# Select the Wall3
+main_object2 = FreeCADGui.Selection.getSelectionEx()[0]
+
+# Select the face of Wall4
+selection2 = FreeCADGui.Selection.getSelectionEx()[0]
+cut_face2 = selection2.SubObjects[0]
+
+cutObj2 = Arch.cutComponentwithPlane(main_object2, cut_face2, 1)
+FreeCAD.ActiveDocument.recompute()
+}}
+
+
+{{Docnav/pl
+|[[Arch_Remove/pl|Usuń komponent]]
+|[[BIM_Setup/pl|Konfiguracja środowiska]]
+|[[BIM_Workbench/pl|środowisko pracy BIM]]
+|IconL=Arch_Remove.svg
+|IconR=BIM_Setup.svg
+|IconC=Workbench_Arch.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

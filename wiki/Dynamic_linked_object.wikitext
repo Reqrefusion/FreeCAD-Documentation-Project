@@ -1,0 +1,52 @@
+==Introduction==
+[[Std Link| Link]] (internally [[App Link|App::Link]]) is an important new feature introduced in [[Release_notes_0.19|FreeCAD 0.19]] for creating [[Assembly|assemblies]].
+
+This article aims to layout one pattern for complex assemblies involving ''dynamic linked objects'' which aims to reduce duplication of assembly related logic such as orientation, positioning, or number of instances.
+
+==Example==
+To illustrate the dynamic linked object concept, consider a table with four legs.
+
+Each leg has two different variants:
+
+# Round
+# and Square
+
+The variants can be controlled by a parameter in a [[Spreadsheet|spreadsheet]].
+
+For our table model, we'll create '''five''' separate documents:
+
+# <code>TableTop.FCStd</code> - containing the top of the table.
+# <code>RoundTableLeg.FCStd</code> - containing a ''round'' table leg.
+# <code>SquareTableLeg.FCStd</code> - containing a ''square'' table leg.
+# <code>Table.FCStd</code> - containing the assembly of the table top and legs.
+# <code>Spreadsheet.FCStd</code> - containing a spreadsheet to drive the model.
+
+Our simple table model will define the following parameters in <code>Spreadsheet.FCStd</code>:
+
+# <code>TableTopSize</code> - Dimension of the '''square''' table top.
+# <code>TableTopThickness</code> - Thickness of the table top.
+# <code>TableLegSize</code> - Size of each table leg. For Square leg, this is the dimension. For Round leg, this is the diameter.
+# <code>TableLegHeight</code> - Height of each table leg.
+# <code>TableLegVariant</code> - Controls the style of table leg. Possible values include "<code>Square</code>" and "<code>Round</code>".
+
+<code>Table.FCStd</code> is where the dynamic linked object concept is illustrated.
+
+The goal is to ''not'' duplicate the following assembly logic for each table leg variant:
+# Each table leg must appear '''four''' times underneath each corner of the table top.
+
+How this is accomplished:
+# The <code>TableTop</code> and one of the TableLeg objects (Round or Square) are linked into the <code>Table</code> document.
+# The TableLeg link is renamed to `TableLeg` and the "Linked Object" property is changed to the following conditional expression:
+## <code><<Spreadsheet>>#Spreadsheet.TableLegVariant == <<Square>> ? <<SquareTableLeg>>#<<SquareTableLeg>>._self : <<RoundTableLeg>>#<<RoundTableLeg>>._self</code>
+# Each table leg must appear '''four''' times underneath each corner of the table top so an [[Draft_OrthoArray|orthogonal array]] is created using the parametric `TableLeg` link as a base object.
+
+💡 The full example and all files are available to download as a git repository from GitHub:
+
+https://github.com/gbroques/freecad-dynamic-linked-object
+
+'''GIF Recording'''
+
+[[File:Dynamic-table-leg.gif]]
+
+==FreeCAD Forum Discussion==
+* [https://forum.freecadweb.org/viewtopic.php?f=8&t=57242 How to Make Dynamic Linked Object Based on Expression]

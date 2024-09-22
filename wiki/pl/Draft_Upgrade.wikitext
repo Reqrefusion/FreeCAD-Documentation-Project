@@ -1,0 +1,104 @@
+<languages/>
+
+{{Docnav/pl
+|[[Draft_Split/pl|Rozdziel]]
+|[[Draft_Downgrade/pl|Rozbij kształt]]
+|[[Draft_Workbench/pl|środowisko pracy Rysunek Roboczy]]
+|IconL=Draft_Split.svg
+|IconR=Draft_Downgrade.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{GuiCommand/pl
+|Name=Draft Upgrade
+|Name/pl=Draft: Ulepsz kształt
+|MenuLocation=Modyfikacja → Ulepsz kształt
+|Workbenches=[[Draft_Workbench/pl|Rysunek Roboczy]], [[BIM_Workbench/pl|BIM]]
+|Shortcut={{KEY|U}} {{KEY|P}}
+|SeeAlso=[[Draft_Downgrade/pl|Rozbij kształt]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Polecenie [[Image:Draft_Upgrade.svg|24px]] '''Ulepsz kształt''' ulepsza wybrane obiekty. Wynik zależy od liczby wybranych obiektów i ich typu. Polecenie może na przykład łączyć elementy i tworzyć ściany. Warto spróbować uaktualnić wybrane obiekty kilka razy, aby zobaczyć czy można uzyskać lepszy rezultat. Zobacz przykład na obrazku. Należy pamiętać, że nie wszystkie obiekty można uaktualnić. To polecenie jest odpowiednikiem polecenia środowiska pracy Rysunek Roboczy [[Draft_Downgrade/pl|Rozbij kształt]].
+
+[[Image:Draft_Upgrade_example.jpg|400px]]
+{{Caption|Otwarta nieedytowalna linia łamana jest przekształcana w linię zamkniętą, a następnie w ścianę. Zamknięta, nieedytowalna, kwadratowa linia jest również przekształcana w ścianę. Dwie ściany są następnie ulepszane, aby utworzyć złożenie, które jest ostatecznie ulepszane do pojedynczego edytowalnego szkicu polilinii.}}
+
+<span id="Usage"></span>
+==Użycie==
+
+# Opcjonalnie wybierz jeden lub więcej obiektów.
+# Polecenie można wywołać na kilka sposobów:
+#* Naciśnij przycisk {{Button|[[Image:Draft_Upgrade.svg|16px]] '''Ulepsz kształt'''}},
+#* [[Draft_Workbench/pl|Środowisko pracy Rysunek Roboczy]]: Z menu wybierz opcję {{MenuCommand|Modyfikacja → [[Image:Draft_Upgrade.svg|16px]] Ulepsz kształt}}
+#* [[BIM_Workbench/pl|Środowisko pracy BIM]]: Wybierz opcję {{MenuCommand|Modyfikacja → [[Image:Draft_Upgrade.svg|16px]] Ulepsz kształt}} z menu.
+#* Użyj skrótu klawiszowego {{KEY|U}}, a następnie {{KEY|P}},
+#Jeśli nie wybrałeś jeszcze obiektu: wybierz obiekt w oknie [[3D_view/pl|widoku 3D]].
+
+<span id="Notes"></span>
+==Uwagi==
+
+* elementy środowiska pracy Rysunek Roboczy takie jak [[Draft_Line/pl|linia]] i [[Draft_Wire/pl|polilinia]] można łączyć za pomocą tego polecenia, ale także za pomocą polecenia [[Draft_Join/pl|Połącz]] lub [[Draft_Wire/pl|Polilinia]].
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Zobacz również stronę: [https://freecad.github.io/SourceDoc/ Dokumentacja API generowana automatycznie] oraz [[FreeCAD_Scripting_Basics/pl|Podstawy pisania skryptów dla FreeCAD]].
+
+Do ulepszania obiektów obiektów służy metoda {{incode|upgrade}} środowiska Rysunek Roboczy.
+
+{{Code|code=
+upgrade_list = upgrade(objects, delete=False, force=None)
+}}
+
+* {{incode|objects}} zawiera obiekty, które mają zostać zaktualizowane. Może to być pojedynczy obiekt lub lista obiektów.
+* Jeśli {{incode|delete}} ma wartość {{incode|True}}, to obiekty źródłowe zostaną usunięte.
+* {{incode|force}} wymusza określony sposób aktualizacji poprzez wywołanie określonej funkcji wewnętrznej. Może to być: {{incode|"makeCompound"}}, {{incode|"closeGroupWires"}}, {{incode|"makeSolid"}}, {{incode|"closeWire"}}, {{incode|"turnToParts"}}, {{incode|"makeFusion"}}, {{incode|"makeShell"}}, {{incode|"makeFaces"}}, {{incode|"draftify"}}, {{incode|"joinFaces"}}, {{incode|"makeSketchFace"}}, {{incode|"makeWires"}} lub {{incode|"turnToLine"}}.
+* Zwracana jest lista {{incode|upgrade_list}}. Jest to lista zawierająca dwie listy: listę nowych obiektów i listę obiektów do usunięcia. Jeśli {{incode|delete}} ma wartość {{incode|True}}, to druga lista jest pusta.
+
+Przykład:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+circle = Draft.make_circle(1000)
+rectangle = Draft.make_rectangle(2000, 800)
+doc.recompute()
+
+add_list1, delete_list1 = Draft.upgrade([circle, rectangle], delete=False)
+
+line1 = Draft.make_line(App.Vector(2000, 0, 0), App.Vector(2500, 1500, 0))
+line2 = Draft.make_line(App.Vector(2500, 1500, 0), App.Vector(3000, -1000, 0))
+doc.recompute()
+
+add_list2, delete_list2 = Draft.upgrade([line1, line2], delete=False)
+
+simple_wire = add_list2[0]
+add_list3, delete_list3 = Draft.upgrade(simple_wire, delete=False)
+
+closed_wire = add_list3[0]
+add_list4, delete_list4 = Draft.upgrade(closed_wire, delete=False)
+
+face = add_list4[0]
+add_list5, delete_list5 = Draft.upgrade(face, delete=False)
+
+doc.recompute()
+}}
+
+
+{{Docnav/pl
+|[[Draft_Split/pl|Rozdziel]]
+|[[Draft_Downgrade/pl|Rozbij kształt]]
+|[[Draft_Workbench/pl|środowisko pracy Rysunek Roboczy]]
+|IconL=Draft_Split.svg
+|IconR=Draft_Downgrade.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

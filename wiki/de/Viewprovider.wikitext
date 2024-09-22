@@ -1,0 +1,142 @@
+<languages/>
+
+<span id="Introduction"></span>
+== Einleitung ==
+
+[[Viewprovider/de|Viewprovider]] sind Klassen, die festlegen, wie Objekte in der [[tree_view/de|Baumansicht]] und der [[3D_view/de|3D-Ansicht]] aussehen und wie sie mit bestimmten grafischen Aktionen, wie z.B [[Selection_methods/de|Auswahl]] zusammenarbeiten.
+
+Sie ergänzen die [[scripted_objects/de|skriptgenerierten Objekte]]. Während die Basis-Klasse des skriptgenerierten Objekts seine {{Emphasis|Daten-}} [[property/de|Eigenschaften]] festlegt, definiert der Viewprovider seine {{Emphasis|Ansichts-}} [[property/de|Eigenschaften]]. Diese Ansichts-Eigenschaften stellen keine wesentlichen Informationen des Objekts dar, da sie nur Informationen zur Darstellung enthalten, wie Linienbreite, Linienfarbe, Flächenfarbe usw. Für eine reine Terminal-Sitzung wird der Viewprovider nicht geladen, da keine Schnittstelle zum Bearbeiten dieser sichtbaren Eigenschaften vorhanden ist.
+
+Wie auch Daten-Eigenschaften sind die Ansichts-Eigenschaften durch den  [[property_editor/de|Eigenschafteneditor]] erreichbar.
+
+<span id="Python_view_providers"></span>
+== Python-Viewprovider ==
+
+Die Klassen der Viewprovider haben normalerweise {{incode|ViewProvider}} im Namen. Sie sind dem Attribut {{incode|ViewObject}} des Basisobjekts zugeordnet.
+
+In diesem Beispiel werden zwei Eigenschaften für den Viewprovider festgelegt und ihnen Werte zugewiesen, wenn sie nicht schon existieren. Außerdem wird die Methode {{incode|onChanged}} erstellt, die jedesmal abläuft, wenn sich eine Eigenschaft ändert. Der Name der Eigenschaft muss überprüft werden und danach werden ein oder zwei Methoden aufgerufen, die die eigentliche Arbeit verrichten, das Aktualisieren der Muster oder die Aktualisierung seiner Größe.
+{{Code|code=
+# views/view_custom.py
+class ViewProviderCustom:
+    """Viewprovider of the custom object."""
+
+    def __init__(self, vobj):
+        self.Object = vobj.Object
+
+        self._set_properties(vobj)
+        vobj.Proxy = self
+
+    def _set_properties(self, vobj):
+        if not hasattr(vobj, "Pattern"):
+            vobj.addProperty("App::PropertyEnumeration",
+                             "Pattern",
+                             "Custom",
+                             "Defines a hatch pattern for this object.")
+            vobj.Pattern = ["None", "diagonals", "cross", "brick"]
+
+        if not hasattr(vobj, "PatternSize"):
+            vobj.addProperty("App::PropertyFloat",
+                             "PatternSize",
+                             "Custom",
+                             "Defines the size of the hatch pattern.")
+            vobj.PatternSize = 1
+
+    def onChanged(self, vobj, prop):
+        if prop in "Pattern":
+            self._set_pattern(vobj.Pattern)
+        if prop in "PatternSize":
+            self._set_size(vobj.PatternSize)
+
+    def _set_pattern(self, pattern):
+        ...
+
+    def _set_size(self, size):
+        ...
+}}
+
+Der übliche Arbeitsablauf ist, zuerst eine Proxy-Klasse wie z.B. {{incode|CustomObject}} hinzuzufügen und danach den Viewprovider z.B. {{incode|ViewProviderCustom}}. Der Viewprovider kann nur zugeordnet werden, wenn sichergestellt ist, dass die grafische Benutzerschnittstelle zur Verfügung steht, andernfalls wird es kein Attribut {{incode|ViewObject}} geben und es wäre ein Fehler dieses Element als Eingabe für diese Klasse zu verwenden.
+{{Code|code=
+import FreeCAD as App
+import objects.custom as custom
+import views.view_custom as view_custom
+
+doc = App.newDocument()
+obj = doc.addObject("Part::FeaturePython", "Custom")
+
+custom.CustomObject(obj)
+
+if App.GuiUp:
+    view_custom.ViewProviderCustom(obj.ViewObject)
+}}
+
+<span id="Custom_icons"></span>
+==Eigene Symbole==
+
+Wird die Methode {{incode|getIcon}} angelegt, kann damit das Symbol festgelegt werden, das in der [[tree_view/de|Baumansicht]] im oberen Teil der [[combo_view/de|Combo-Ansicht]] angezeigt wird.
+
+Der Rückgabewert kann der komplette Pfad zu einem Symbol sein.
+{{Code|code=
+import os
+some_path = "/home/user/.FreeCAD/custom_icons"
+
+class ViewProviderCustom:
+    ...
+
+    def getIcon(self):
+        return os.path.join(some_path, "my_icon.svg")
+}}
+
+Der relative Pfad zu einem Symbol innerhalb einer kompilierten Quelldatei.
+{{Code|code=
+import MyModule_rc.py
+
+class ViewProviderCustom:
+    ...
+
+    def getIcon(self):
+        return ":/icons/my_icon.svg"
+}}
+
+Ein [https://de.wikipedia.org/wiki/X_PixMap XPM-Symbol], das im Grunde ASCII-Kunst ist.
+{{Code|code=
+import MyModule_rc.py
+
+class ViewProviderCustom:
+    ...
+
+    def getIcon(self):
+        return """
+               /* XPM */
+               static char *Some_icon_xpm[] = {
+               /* columns rows colors chars-per-pixel */
+               "16 16 3 1 ",
+               "  c None",
+               ". c #D71414",
+               "+ c #AA1919",
+               /* pixels */
+               "                ",
+               "  +          +  ",
+               " +.+        +.+ ",
+               "  +.+      +.+  ",
+               "   +        +   ",
+               "      ++++      ",
+               "     +....+     ",
+               "     +...++     ",
+               "     +..+++     ",
+               "     +.++.+     ",
+               "      ++++      ",
+               "   +        +   ",
+               "  +.+      +.+  ",
+               " +.+        +.+ ",
+               "  +          +  ",
+               "                "
+               };
+               """
+}}
+
+Siehe verschiedene Beispiele unter [[Custom_icon_in_tree_view/de|Individuelles Symbol in der Baumansicht]].
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}

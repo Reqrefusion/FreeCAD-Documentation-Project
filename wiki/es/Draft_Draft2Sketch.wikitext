@@ -1,0 +1,119 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/es
+|[[Draft_WireToBSpline/es|HiloABSpline]]
+|[[Draft_Slope/es|Pendiente]]
+|[[Draft_Workbench/es|Borrador]]
+|IconL=Draft_WireToBSpline.svg
+|IconR=Draft_Slope.svg
+|IconC=Workbench_Draft.svg
+}}
+</div>
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/es
+|Name=Draft_Draft2Sketch
+|Name/es=Boceto a Croquis
+|MenuLocation=Modificación → Borador a Croquis
+|Workbenches=[[Draft_Workbench/es|Boceto]], [[Arch_Workbench/es|Arquitectura]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descripción== 
+
+<div class="mw-translate-fuzzy">
+El [[Image:Draft_Draft2Sketch.svg|24px]] comando '''Borrador BorradorACroquis''' convierte los objetos de Borrador en [[Sketcher_NewSketch/es|Croquizador Croquis]] y viceversa.
+</div>
+
+[[Image:Draft_Draft2Sketch_example.png]]
+{{Caption|Convertir objetos de borrador en Croquizador Croquis}}
+
+<span id="Usage"></span>
+==Utilización== 
+
+<div class="mw-translate-fuzzy">
+# Opcionalmente selecciona uno o más objetos de Borrador o [[Sketcher_NewSketch/es|Croquizador Croquis]].
+# Hay varias formas de invocar el comando:
+#* Pulsar el {{Button|[[Image:Draft_Draft2Sketch.svg|16px]] [[Draft_Draft2Sketch/es|Borrador BorradorACroquis]]}}.
+#* Seleccione la opción {{MenuCommand|Modificación → [[Image:Draft_Draft2Sketch.svg|16px]] Borrador a Croquis}} en el menú.
+# Si aún no ha seleccionado un objeto: seleccione un objeto en la [[3D_view/es|Vista 3D]].
+# Se crea un nuevo objeto.
+</div>
+
+<span id="Notes"></span>
+==Notas==
+
+* Objetos que no son de borrador que son totalmente planas también se pueden convertir.
+* El comando sólo puede manejar objetos formados por '''líneas rectas, arcos circulares, arcos elípticos, B-Splines y curvas de Bézier'''.
+* [[Draft_BezCurve/es|Borrador BezCurvas]] será aproximado por [[Sketcher_CreateBSpline/es|Croquizador BSplines]].
+* El [[KicadStepUp_Workbench/es|Ambiente de trabajo KicadStepUp]] externo contiene un comando para convertir un [[Draft_BSpline/es|Borrador BSpline]] en una serie de [[Sketcher_CreateArc/es|Coquizador Arcos]]. Para más información vea el tema del foro [https://forum.freecadweb.org/viewtopic.php?f=9&t=25082 BSplines to Shape2DView and Sketcher].
+* [https://forum.freecadweb.org/viewtopic.php?f=3&t=58781#p505207 Este otro tema del foro] contiene una macro para dicha conversión.
+
+<span id="Scripting"></span>
+==Guión==
+
+Ver también: [https://freecad.github.io/SourceDoc/ Documentación de la API autogenerada] y [[FreeCAD Scripting Basics/es|Fundamentos de FreeCAD Guión]].
+
+Para convertir objetos en un croquis utilice el método {{incode|make_sketch}} ({{Version/es|0.19}}) del módulo Borrador. Este método sustituye al método obsoleto {{incode|makeSketch}}.
+
+{{Code|code=
+sketch = make_sketch(objects_list, autoconstraints=False, addTo=None, delete=False, name="Sketch", radiusPrecision=-1, tol=1e-3)
+}}
+
+* {{incode|objects_list}} contiene los objetos a convertir. Puede ser un solo objeto o una lista de objetos. Se admiten objetos {{incode|Draft}}, objetos {{incode|Part::Feature}} y objetos {{incode|Part.Shape}}.
+* Si {{incode|autoconstraints}} es {{incode|True}} se añaden restricciones coincidentes a los nodos que pertenecen al mismo objeto fuente.
+* {{incode|addTo}} es el objeto de coquis existente al que se añade la geometría. Si no se proporciona, se crea un nuevo croquis.
+* Si {{incode|delete}} es {{incode|True}} se eliminan los objetos fuente.
+* {{incode|name}} es el nombre del nuevo croquis.
+* {{incode|radiusPrecision}} indica cómo deben manejarse las restricciones de radio:
+** Utilice {{incode|-1}} para desactivar las restricciones de radio.
+** Utilice {{incode|0}} para añadir restricciones de radio individuales.
+** Utilice un número positivo para redondear los radios según esta precisión, y para añadir restricciones iguales entre curvas con radios iguales.
+* {{incode|tol}} es la tolerancia utilizada para comprobar si las formas son planas y coplanares. Utilice {{incode|-1}} para un análisis estricto.
+* {{incode|sketch}} se devuelve con el objeto de croquis.
+
+Para convertir un coquis en objetos Borrador utiliza el método {{incode|draftify}} del módulo Borrador.
+
+{{Code|code=
+draftify(objectslist, makeblock=False, delete=True)
+}}
+
+* {{incode|objectslist}} contiene los objetos a convertir. Puede ser un solo objeto o una lista de objetos.
+* Si {{incode|makeblock}} es {{incode|True}} los objetos convertidos se agrupan en un {{incode|Part::Part2DObject}}.
+* Si {{incode|delete}} es {{incode|True}} se borran los objetos de origen.
+
+Ejemplo:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+rectangle = Draft.make_rectangle(2000, 1000)
+circle = Draft.make_circle(500)
+doc.recompute()
+
+sketch_from_draft = Draft.make_sketch([rectangle, circle], autoconstraints=True, delete=False, radiusPrecision=0)
+doc.recompute()
+
+draft_from_sketch = Draft.draftify(sketch_from_draft, delete=False)
+doc.recompute()
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/es
+|[[Draft_WireToBSpline/es|HiloABSpline]]
+|[[Draft_Slope/es|Pendiente]]
+|[[Draft_Workbench/es|Borrador]]
+|IconL=Draft_WireToBSpline.svg
+|IconR=Draft_Slope.svg
+|IconC=Workbench_Draft.svg
+}}
+</div>
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

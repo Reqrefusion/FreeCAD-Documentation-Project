@@ -1,0 +1,153 @@
+<languages/>
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+[[File:Part_3D_object.svg|32px]]
+
+Obiekt [[Part_Feature/pl|Cecha Części]], lub formalnie {{incode|Part::Feature}}, jest prostym elementem [[Part_TopoShape/pl|kształtu topologicznego]], który może być wyświetlany w oknie [[3D_view/pl|widoku 3D]].
+
+Cecha części jest klasą nadrzędną dla większości obiektów 2D ''(Rysunek roboczy, Szkicownik)'' i 3D ''(Część, Projekt części)'', z wyjątkiem siatek, które są zwykle oparte na [[Mesh_Feature/pl|cechach siatek]], lub [[FEM_Mesh/pl|obiektach FemMesh]] dla obiektów MES.
+
+[[File:FreeCAD_core_objects.svg|800px]]
+
+{{Caption|Uproszczony diagram zależności pomiędzy podstawowymi obiektami w programie FreeCAD.}}
+
+<span id="Usage"></span>
+==Użycie==
+
+Obiekt [[Part_Feature/pl|cecha części]] jest obiektem wewnętrznym, więc nie można go utworzyć z poziomu interfejsu graficznego, tylko z poziomu [[Python_console/pl|konsoli Python]] jak opisano w sekcji [[Part_Feature/pl#Tworzenie_skrypt.C3.B3w|tworzenie skryptów]].
+
+Klasa {{incode|Part::Feature}} jest zdefiniowana w środowisku [[Part_Workbench/pl|Część]] ale może być użyta jako klasa bazowa dla [[Scripted_objects/pl|obiektów tworzonych skryptami]] we wszystkich [[Workbenches/pl|środowiskach pracy]] które produkują kształty geometryczne 2D i 3D. Zasadniczo wszystkie obiekty produkowane w środowisku pracy [[Part_Workbench/pl|Część]] są instancjami {{incode|Part::Feature}}.
+
+{{incode|Part::Feature}} jest również klasą nadrzędną [[PartDesign_Body/pl|zawartości Projektu części]], [[PartDesign_Feature/pl|cechy Projektu części]], oraz [[Part_Part2DObject/pl|Part2DObject]], która jest wyspecjalizowana dla kształtów 2D ''(planarnych)''.
+
+Środowisko pracy może dodać więcej właściwości do tego podstawowego elementu, aby stworzyć obiekt o złożonym wyglądzie.
+
+<span id="Properties"></span>
+==Własności==
+
+Zobacz stronę [[Property/pl|Właściwości]] dla wszystkich typów właściwości, które mogą mieć obiekty tworzone skryptami.
+
+[[Part_Feature/pl|Cecha części]] ''(klasa {{incode|Part::Feature}})'' wywodzi się z podstawowej [[App_GeoFeature/pl|App: GeoFeature]] ''(klasa {{incode|App::GeoFeature}})'', i dziedziczy wszystkie jego właściwości. Posiada również kilka dodatkowych właściwości. W szczególności właściwość {{PropertyData|Kształt}}, która przechowuje [[Part_TopoShape/pl|kształt topologiczny]] obiektu. Jest to geometria, która jest wyświetlana w oknie [[3D_view/pl|widoku 3D]]. Inne właściwości tego obiektu to te związane z wyglądem jego [[Part_TopoShape/pl|kształtu topologicznego]].
+
+Są to właściwości dostępne w [[Property_editor/pl|edytorze właściwości|]]. Ukryte właściwości można pokazać za pomocą polecenia {{MenuCommand|Wyświetl wszystko}} w menu kontekstowym okna [[Property_editor/pl|edycji właściwości]].
+
+<span id="Data"></span>
+===Dane===
+
+{{TitleProperty|Podstawa}}
+
+* {{PropertyData|Pośrednik|PythonObject|Ukryte}}: klasa własna związana z tym obiektem. Występuje to tylko w wersji [[Python/pl|Python]]. Zobacz rozdział [[#Tworzenie_skrypt.C3.B3w|tworzenie skryptów]].
+* {{PropertyData|Kształt|PartShape|Ukryte}}: klasa [[Part_TopoShape/pl|Część: Kształt topologiczny]] związana z tym obiektem.
+* {{PropertyData|Umieszczenie|Placement}}: pozycja obiektu w oknie [[3D_view/pl|widoku 3D]]. Umieszczenie jest określone przez punkt {{incode|Base}} ''(wektor)'' i {{incode|Rotation}} ''(oś i kąt)''. Zobacz stronę [[Placement/pl|Umiejscowienie]].
+** {{PropertyData|Kąt}}: kąt obrotu wokół osi {{PropertyData|Oś}}. Domyślnie jest to {{value|0°}} ''(zero stopni)''.
+** {{PropertyData|Oś}}: wektor jednostkowy określający oś obrotu dla położenia. Każda składowa jest wartością zmiennoprzecinkową pomiędzy {{value|0}} a {{value|1}}. Jeśli jakakolwiek wartość jest powyżej {{value|1}}, wektor jest normalizowany tak, aby jego wielkość wynosiła {{value|1}}. Domyślnie jest to dodatnia oś Z, {{value|(0, 0, 1)}}.
+** {{PropertyData|Pozycja}}: wektor zawierający współrzędne 3D punktu bazowego. Domyślnie jest to początek {{value|(0, 0, 0)}}.
+* {{PropertyData|Etykieta|String}}: nazwa obiektu edytowalna przez użytkownika, jest to dowolny ciąg znaków w kodowaniu UTF8.
+* {{PropertyData|Etykieta2|String|Ukryte}}: dłuższy, edytowalny przez użytkownika opis tego obiektu, jest to dowolny ciąg znaków UTF8, który może zawierać znaki nowej linii. Domyślnie jest to pusty łańcuch {{value|""}}.
+* {{PropertyData|Silnik wyrażeń|ExpressionEngine|Ukryte}}: lista wyrażeń. Domyślnie jest ona pusta {{value|[]}}.
+* {{PropertyData|Widoczność|Bool|Ukryte}}: określa, czy obiekt ma być wyświetlany, czy nie.
+
+<span id="View"></span>
+===Widok===
+
+Większość obiektów we FreeCAD ma coś, co nazywa się „[[Viewprovider/pl|dostawca widoku]]”, jest to klasa definiująca wygląd obiektu w oknie [[3D_view/pl|widoku 3D]] oraz w [[Tree_view/pl|drzewie widoku]]. Domyślny dostawca widoku obiektów elementu części definiuje właściwości prezentowane poniżej. Obiekty skryptowe, które pochodzą z elementu cecha części, również będą miały dostęp do tych właściwości.
+
+{{TitleProperty|Podstawowe}}
+* {{PropertyView|Pośrednik|PythonObject|Ukryte}}: klasa własna [[Viewprovider/pl|dostawca widoku]] związana z tym obiektem. Istnieje wyłącznie dla wersji środowiska [[Python/pl|Python]]. Zobacz sekcję [[Part_Feature/pl#Tworzenie_skrypt.C3.B3w|tworzenie skryptów]].
+
+{{TitleProperty|Opcje wyświetlania}}
+
+* {{PropertyView|Ramka otaczająca|Bool}}: jeśli wartość to {{TRUE/pl}}, obiekt wyświetli ramkę ograniczającą w [[3D_view/pl|widoku 3D]].
+* {{PropertyView|Tryb wyświetlania|Enumeration}}: {{value|Linie główne}} ''(regularna wizualizacja)'', {{value|Zacieniony}} ''(bez krawędzi)'', {{value|Model krawędziowy}} ''(bez ścian)'', {{value|Punkty}} ''(tylko wierzchołki)''.
+* {{PropertyView|Pokaż na drzewie|Bool}}: wartość domyślna to {{TRUE/pl}}, w którym to przypadku obiekt pojawi się w widoku [[Tree_view/pl|widoku drzewa]]. W przeciwnym razie obiekt zostanie ukryty w widoku drzewa. Gdy obiekt w drzewie jest niewidoczny, można go ponownie wyświetlić, otwierając menu kontekstowe nad nazwą dokumentu ''(prawy przycisk myszy)'' i wybrać {{CheckBox|TRUE|Pokaż ukryte elementy}}. Następnie można wybrać ukryty element i wartość {{PropertyView|Pokaż na drzewie}} przełączyć z powrotem na {{TRUE/pl}}.
+* {{PropertyView|Widoczność|Bool}}: jeśli ma wartość {{TRUE}}, obiekt pojawia się w [[3D_view/pl|widoku 3D]]. W przeciwnym razie jest niewidoczny. Standardowo właściwość ta może być przełączana przez naciśnięcie klawisza {{KEY|Spacja}} na klawiaturze.
+
+{{TitleProperty|Wygląd obiektu}}
+
+* {{PropertyView|Odchylenie kątowe|Angle}}: jest to towarzysz {{PropertyView|Odchylenia}}. Jest to kolejny sposób na określenie, jak precyzyjnie wygenerować siatkę do renderowania na ekranie lub podczas eksportu. Domyślną wartością jest {{value|28.5 stopni}}, lub {{value|0.5 radiana}}. Jest to wartość maksymalna, im mniejsza wartość tym gładszy będzie wygląd w [[3D_view/pl|widoku 3D]], i tym drobniejsza będzie siatka, która zostanie wyeksportowana.
+* {{PropertyView|Odchylenie|FloatConstraint}}: jest to towarzysz {{PropertyView|Odchylenia kątowego}}. Jest to kolejny sposób na określenie, jak drobna ma być generowana siatka do renderowania na ekranie lub podczas eksportu. Domyślną wartością jest {{value|0.5%}}. Jest to wartość maksymalna, im mniejsza wartość tym gładszy będzie wygląd w [[3D_view/pl|widoku 3D]] i tym drobniejsza będzie siatka, która zostanie wyeksportowana.
+* {{PropertyView|Kolor rozproszenia|ColorList|Ukryte}}: jest to lista krotek RGB definiujących kolory, podobna do {{PropertyView/pl|Kolor kształtu}}. Domyślnie jest to lista zawierająca jeden ciąg {{value| [(0,8, 0,8, 0,8)]}}.
+* {{PropertyView|Styl kreślenia|Enumeration}}: {{value|Ciągła}} ''(domyślnie)'', {{value|Kreskowana}}, {{value|Kropkowana}}, {{value|Kreska kropka}}; definiuje styl krawędzi w widoku oknie [[3D_view/pl|widoku 3D]].
+* {{PropertyView|Oświetlenie|Enumeration}}: {{value|Dwustronne}} ''(domyślnie)'', {{value|Jednostronne}}, oświetlenie pada z dwóch stron lub z jednej strony w oknie [[3D_view/pl|widoku 3D]].
+* {{PropertyView|Kolor linii|Color}}: krotka trzech zmiennoprzecinkowych wartości RGB {{value|(r,g,b)}} do określenia koloru krawędzi w oknie [[3D_view/pl|widoku 3D]]. Domyślnie jest to {{value|(0.09, 0.09, 0.09)}}, który jest wyświetlany jako {{value|[25,25,25]}} o podstawie 255, <span style="background-color:#222; color:#eee; width:3em; height:12pt; padding: 2px 1em 2px;"> almost black </span>.
+* {{PropertyView|Macierz kolorów linii|ColorList|Ukryte}}: jest to lista krotek RGB określających kolory, podobnie jak w przypadku {{PropertyView|Kolor linii}}. Domyślnie jest to lista składająca się z jednej wartości {{value|[(0.09, 0.09, 0.09)]}}.
+* {{PropertyView|Materiał linii|Material|Ukryte}}: [[Material|Materiał]] powiązany z krawędziami w tym obiekcie. Domyślnie wartość ta jest pusta.
+* {{PropertyView|Szerokość linii|FloatConstraint}}: wartość typu zmiennoprzecinkowego, która określa szerokość krawędzi w pikselach w oknie [[3D_view/pl|widoku 3D]]. Domyślnie przyjmuje wartość {{value|2.0}}.
+
+* {{PropertyView|Kolor wierzchołka|Color}}: podobnie jak {{PropertyView|Kolor linii}}, definiuje kolor wierzchołków.
+* {{PropertyView|Macierz kolorów wierzchołków|ColorList|Ukryte}}: jest to lista krotek RGB określających kolory, podobna do {{PropertyView|Kolor wierzchołka}}. Domyślnie jest to lista {{value|[(0.09, 0.09, 0.09)]}}.
+* {{PropertyView|Materiał wierzchołka|Material|Ukryte}}: [[Material|Materiał]] powiązany z wierzchołkami w tym obiekcie. Domyślnie wartość jest pusta.
+* {{PropertyView|Rozmiar wierzchołka|FloatConstraint}}: podobnie jak {{PropertyView|Szerokość linii}}, definiuje rozmiar wierzchołków.
+
+* {{PropertyView|Kolor kształtu|Color}}: podobnie jak {{PropertyView|Kolor linii}}, określa kolor powierzchni. Domyślnie jest to {{value|(0.8, 0.8, 0.8)}}, co jest wyświetlane jako {{value|[204, 204, 204]}} na podstawie 255, a zatem <span style="background-color:#ccc; width:3em; height:12pt; padding: 2px 1em 2px;">jasny szary</span>.
+* {{PropertyView|Materiał kształtu|Material|Ukryte}}: [[Material|Materiał]] związany z tym obiektem. Domyślnie wartość jest pusta.
+* {{PropertyView|Przejrzystość|Percent}}: liczba całkowita z zakresu {{value|0}} do {{value|100}}. ''(wartość procentowa)'' określająca poziom przezroczystości ścian w [[3D_view/pl|widoku 3D]]. Wartość {{value|100}} oznacza całkowicie niewidoczne ściany Ściany są niewidoczne, ale nadal można je wybierać tak długo, jak wartość {{PropertyView|Do wyboru}} wynosi {{TRUE/pl}}.
+
+{{TitleProperty|Wybieranie}}
+
+* {{PropertyView|Na wierzchu po zaznaczeniu|Enumeration}}: kontroluje sposób, w jaki zaznaczenie pojawia się w oknie [[3D_view/pl|widoku 3D]], jeśli obiekt ma [[Part_TopoShape/pl|kształt]] i jest wiele obiektów częściowo zakrytych przez inne. Domyślna wartość to {{value|Wyłaczone}}, co oznacza, że nie pojawi się żadne specjalne podświetlenie. Wartość {{value|Włączone}} oznacza, że obiekt pojawi się na wierzchu każdego innego obiektu, gdy zostanie wybrany, {{value|Object}} oznacza, że obiekt pojawi się na wierzchu tylko jeśli cały obiekt jest zaznaczony w [[Tree_view/pl|widoku drzewa]]. Wartość {{value|Element}} oznacza, że obiekt pojawi się na wierzchu tylko jeśli element podrzędny ''(wierzchołek, krawędź, ściana)'' jest zaznaczony w [[3D_view/pl|widoku 3D]].
+* {{PropertyView|Do wyboru|Bool}}: jeśli parametr ma wartość {{TRUE/pl}}, obiekt może być wybrany kursorem myszki w [[3D_view/pl|widoku 3D]]. W przeciwnym razie, obiekt nie może być wybrany dopóki ta opcja nie zostanie ustawiona na {{TRUE/pl}}.
+* {{PropertyView|Styl wyboru|Enumeration}}: kontroluje sposób podświetlania obiektu. Jeśli wybrano {{value|Kształt}}, cały kształt ''(wierzchołki, krawędzie i ściany)'' będzie podświetlony w [[3D_view/pl|widoku 3D]]; jeśli jest to {{value|Ramka otaczająca}}, pole ograniczające pojawi się wokół obiektu i zostanie podświetlone.
+
+<span id="Angular_deflection_and_deviation"></span>
+===Ugięcie kątowe i odchylenie===
+
+[[File:View_property_Deviation.svg|500px]]
+{{Caption|Ugięcie kątowe i parametry odchylenia; d < odchylenie liniowe, α < ugięcie kątowe.}}
+
+Odchylenie jest wartością w procentach, która jest związana z wymiarami w milimetrach ramki otaczającej obiekt. Odchylenie w milimetrach można obliczyć w następujący sposób:
+
+{{Code|code=
+deviation_in_mm = (w + h + d)/3 * deviation/100
+}}
+
+gdzie {{value|w}}, {{value|h}}, {{value|d}} są wymiarami ramki otaczającej.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]], oraz [[Scripted_objects/pl|Obiekty skryptowe]].
+
+Cecha części jest tworzona za pomocą metody dokumentu {{incode|addObject()}}.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("Part::Feature", "Name")
+obj.Label = "Custom label"
+}}
+
+Dlatego też, dla klasy podrzędnej [[Python/pl|Python]], powinieneś stworzyć obiekt {{incode|Part::FeaturePython}}.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("Part::FeaturePython", "Name")
+obj.Label = "Custom label"
+}}
+
+<span id="Name"></span>
+===Nazwa===
+
+Zobacz również: [[Object_name/pl|Nazwa obiektu]], aby uzyskać więcej informacji na temat właściwości {{incode|Nazwy}}.
+
+Metoda {{incode|addObject}} posiada dwa podstawowe argumenty typu string.
+
+* Pierwszy argument wskazuje typ obiektu, w tym przypadku {{incode|"Part::FeaturePython"}}.
+* Drugi argument jest łańcuchem określającym atrybut {{incode|Name}}. Jeśli nie zostanie podany, domyślnie przyjmuje taką samą nazwę jak klasa, czyli {{incode|"Part__FeaturePython"}}. Nazwa {{incode|Name}} może zawierać tylko proste znaki alfanumeryczne oraz podkreślnik, {{incode|[_0-9a-zA-Z]}}. Jeśli podane zostaną inne symbole, zostaną one zamienione na znaki podkreślenia, na przykład {{incode|"A+B:C*"}} jest zamieniane na {{incode|"A_B_C_"}}.
+
+<span id="Label"></span>
+===Etykieta===
+
+W razie potrzeby atrybut {{incode|Etykieta}} może zostać zmieniony na bardziej wymowny tekst.
+* {{incode|Etykieta}} może przyjąć dowolny ciąg znaków UTF8, włączając w to akcenty i spacje. Ponieważ [[Tree_view/pl|widok drzewa]] wyświetla {{incode|Etykietę}}, dobrą praktyką jest zmiana atrybutu {{incode|Etykiety}} na bardziej opisowy ciąg znaków.
+* Domyślnie {{incode|Etykieta}} jest unikalna, tak jak {{incode|Nazwa}}. Jednak to zachowanie może być zmienione w [[Preferences_Editor/pl|Edytorze Preferencji]], {{MenuCommand|Edycja → Preferencje → Ogólne → Dokument → Zezwalaj na duplikowanie etykiet obiektów w jednym dokumencie}}. Oznacza to, że ogólnie {{incode|Etykieta}} może być powtarzana w tym samym dokumencie, podczas testowania dla konkretnego elementu użytkownik powinien polegać na {{incode|Nazwie}}, a nie na {{incode|Etykiecie}}.
+
+
+{{Document_objects_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

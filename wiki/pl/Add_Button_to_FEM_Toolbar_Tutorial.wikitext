@@ -1,0 +1,110 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic=MES
+|Level=Zaawansowany
+|Time=60 min
+|Author=[[User:JohnWang|JohnWang]]
+|FCVersion=0.19
+|Files=
+}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Środowisko pracy MES ma paski narzędzi i menu. Ten poradnik pokazuje jak dodać testowy przycisk do paska narzędzi. Przedstawia też dodawanie obiektu do menu.
+
+Zadanie można podzielić na cztery części:
+* '''Utwórz plik nowej ikony'''.
+* '''Zarejestruj plik nowej ikony'''. Wymagana modyfikacja w {{incode|src/Mod/Fem/Gui/Resources/Fem.qrc}}
+* '''Utwórz klasę nowego polecenia'''. Wymagana modyfikacja w {{incode|src/Mod/Fem/femcommands/commands.py}}
+* '''Dodaj nowe polecenie do środowiska pracy MES'''. Wymagana modyfikacja w {{incode|src/Mod/Fem/Gui/Workbench.cpp}}
+
+<span id="Create_a_new_icon_file"></span>
+== Utwórz plik nowej ikony == 
+
+Potrzebujemy pliku ikony dla przycisku. Możesz skorzystać z dowolnego narzędzia aby go utworzyć, ale musi być zapisany w formacie SVG. W tym przykładzie skorzystamy z pliku {{FileName|FEM_testButton.svg}}. 
+
+Musi być umieszczony w: {{incode|src/Mod/Fem/Gui/Resources/icons/}}.
+
+<span id="Register_the_new_icon_file"></span>
+== Zarejestruj plik nowej ikony == 
+
+Plik SVG nowej ikony musi być zarejestrowany dla przycisku GUI poprzez wstawienie go do {{incode|src/Mod/Fem/Gui/Resources/Fem.qrc}}:
+
+{{code|code=
+     <file>icons/FEM_testButton.svg</file>
+}} 
+
+<span id="Create_a_new_command_class"></span>
+== Utwórz klasę nowego polecenia ==
+
+Nowa klasa polecenia musi być dodana do modułu {{incode|src/Mod/Fem/femcommands/commands.py}}. 
+
+Po prostu skopiuj i wklej istniejące polecenie, następnie dostosuj ikonę, tekst menu i wskazówkę narzędzia w {{incode|__init__(self)}}:
+
+{{code|code=
+class _testButton(CommandManager):
+    "The FEM_testButton command definition"
+
+    def __init__(self):
+        super(_testButton, self).__init__()
+        self.menuetext = "test Button"
+        self.tooltip = "This is a test button"
+        self.is_active = "always"
+        #self.do_activated = "add_obj_on_gui_selobj_noset_edit"
+}}
+
+Nie zapomnij zarejestrować polecenia na dole pliku modułu poprzez metodę {{incode|addCommand(...)}}:
+
+{{code|code=
+FreeCADGui.addCommand(
+    "FEM_testButton",
+    _testButton()
+)
+}}
+
+'''Uwaga''': Zobacz [https://forum.freecadweb.org/viewtopic.php?f=18&t=46693&start=10#p402004 ten wątek na forum] w kwestii ikon.
+
+<span id="Add_new_command_to_workbench"></span>
+== Dodaj nowe polecenie do środowiska pracy MES ==
+
+Dodamy nowe polecenie do paska '''solve''' (Rozwiąż) i menu '''solve''' (Rozwiąż). 
+
+Poszukaj następującego fragmentu kodu w {{incode|/Gui/Workbench.cpp}} i dodaj nowe polecenie:
+
+{{code|code= 
+     Gui::ToolBarItem* solve = new Gui::ToolBarItem(root);
+     solve->setCommand("Solve");
+     *solve << "FEM_SolverCalculixCxxtools"
+            << "FEM_SolverCalculiX"
+            << "FEM_SolverElmer"
++           << "FEM_testButton"
+            << "Separator"
+}}
+
+Aby dodać polecenie do menu '''solve''' (Rozwiąż) środowiska pracy MES, poszukaj następującego fragmentu kodu w {{incode|Workbench.cpp}}:
+
+{{code|code= 
+    Gui::MenuItem* solve = new Gui::MenuItem;
+    root->insertItem(item, solve);
+    solve->setCommand("&Solve");
+    *solve << "FEM_SolverCalculixCxxtools"
+           << "FEM_SolverCalculiX"
+           << "FEM_SolverElmer"
+           << "FEM_SolverZ88"
++          << "FEM_testButton"
+           << "Separator"
+}}
+
+'''Efekt''': Powinieneś właśnie prawidłowo dodać testowy przycisk do paska narzędzi i menu środowiska pracy MES. Teraz możesz [[Compiling/pl|skompilować FreeCAD]] i przetestować swój nowy przycisk.
+
+<span id="Related"></span>
+==Powiązane==
+
+* [[Extend_FEM_Module/pl|Rozszerzenie modułu MES]]
+* [[Onboarding_FEM_Devs/pl|Wprowadzenie do MES dla programistów]]
+
+
+[[Category:FEM{{#translation:}}]]
+[[Category:Developer Documentation{{#translation:}}]]

@@ -1,0 +1,309 @@
+<languages/>
+<translate>
+
+== Description == <!--T:1-->
+
+</translate>
+{{TOCright}}
+<translate>
+
+<!--T:2-->
+[[IfcPlusPlus|IFC++]] or [[IfcPlusPlus|IfcPlusPlus]] is a C++ open source (MIT license) library from the [[IfcPlusPlus|IfcQuery]] project for reading, writing, and viewing [[Arch_IFC|IFC]] files.
+
+<!--T:3-->
+The IFC++ library can be used for general purpose, and it also includes a sample IFC visualization application. This viewer is based on Qt 5 and OpenSceneGraph (OSG), and can load big IFC files very fast, and thus can be used to compare the performance of other IFC viewers, like Blender and FreeCAD, which internally use the [[IfcOpenShell|IfcOpenShell]] library.
+
+</translate>
+[[File:IfcQuery_viewer_example.png|600px]]
+<translate>
+
+<!--T:4-->
+{{Caption|The sample IFC viewer included in the source distribution of the IfcQuery/IFC++ libraries.}}
+
+<!--T:5-->
+{{Emphasis|Note:}} in common usage, the names "IfcQuery", "IFC++", and "IfcPlusPlus" may be used interchangeably to refer to the same thing, the C++ library, or more specifically the free IFC viewer.
+
+== Installing == <!--T:6-->
+
+<!--T:7-->
+The IFC++ distribution is provided as source code, so to use the library and the viewer, the code must be compiled.
+
+<!--T:8-->
+IFC++ is developed mostly on a Windows platform, so it includes solution ({{incode|.snl}}) and project ({{incode|.vcxproj}}) files to compile the {{incode|IfcPlusPlus.dll}} dynamic library using Visual Studio. A static library {{incode|libIfcPlusPlus.a}} can also be produced for Linux using CMake.
+
+<!--T:9-->
+{{Emphasis|Note:}} there is a more complete viewer that uses pre-compiled IFC++ libraries intended for Windows. This viewer is free for use but is not open source. It is available by downloading the {{incode|SimpleViewerExampleQt.zip}} package from {{URL|http://www.ifcquery.com/}}, and running {{incode|SimpleViewerExampleQt.exe}}. This viewer is self-contained, everything that it requires to run is included in the {{incode|.zip}} archive.
+
+== Compiling in Windows == <!--T:10-->
+
+<!--T:11-->
+Follow the instructions in the official [https://github.com/ifcquery/ifcplusplus ifcplusplus] repository.
+
+== Compiling in Linux == <!--T:12-->
+
+<!--T:13-->
+The general instructions are as follows:
+# Get the source code of IFC++ from its main repository.
+# Gather all dependencies for compiling, including a C++ compiler, CMake, and Make, and the development files for Boost, Qt 5, as well as the OpenSceneGraph (OSG) library for visualization.
+# Run {{incode|cmake}} to generate a {{incode|Makefile}}, then start the compilation by running {{incode|make}}.
+# Install the {{incode|libIfcPlusPlus.a}} and {{incode|libcarve.so}} libraries to the appropriate library path so that they are found by the IFC++ sample viewer.
+
+=== Prerequisites === <!--T:14-->
+
+<!--T:15-->
+In a Debian/Ubuntu based distribution, getting the required development files is usually simple.
+</translate>
+{{Code|code=
+sudo apt install git cmake gcc g++ libboost-all-dev
+sudo apt install qt5-qmake qtbase5-dev qttools5-dev libqt5widgets5 libqt5opengl5-dev
+}}
+<translate>
+
+<!--T:16-->
+Get the source code of the project and place it in a custom directory to which you have full write access. 
+</translate>
+{{Code|code=
+git clone https://github.com/ifcquery/ifcplusplus ifcplusplus-source
+}}
+<translate>
+
+=== OpenSceneGraph === <!--T:17-->
+
+<!--T:18-->
+[http://www.openscenegraph.org/ OpenSceneGraph] (OSG) is a collection of C++ libraries that uses OpenGL for 3D visualization; it can be used in games, virtual reality, scientific visualization and modelling.
+
+</translate>
+{{Code|code=
+sudo apt install libopenscenegraph-3.4-dev
+}}
+<translate>
+
+<!--T:19-->
+If the files are too old in your distribution, you may also compile the libraries yourself. The procedure is outlined in the main repository, [https://github.com/openscenegraph/OpenSceneGraph openscenegraph/OpenSceneGraph]. Compiling is straight forward, although you may need various dependencies like Qt 5, Freetype, Inventor, OpenEXR, COLLADA, ZLIB, GDAL, FFmpeg, Gstreamer, SDL, Cairo, and Poppler.
+
+</translate>
+{{Code|code=
+git clone https://github.com/openscenegraph/OpenSceneGraph OpenSceneGraph-source
+
+mkdir -p OpenSceneGraph-build
+cd OpenSceneGraph-build
+cmake ../OpenSceneGraph-source
+
+make -j 3
+sudo make install
+}}
+<translate>
+
+=== Carve === <!--T:20-->
+
+<!--T:21-->
+Carve is a [[constructive_solid_geometry|constructive solid geometry]] (CSG) C++ library designed to perform boolean operations between two arbitrary polygonal meshes. Together with the IFC++ library, {{incode|libIfcPlusPlus.a}}, Carve is used by the IFC++ sample viewer to open and display IFC files.
+
+<!--T:22-->
+* Original repository: [https://code.google.com/archive/p/carve/ carve], GPL2, from 2009 to 2011.
+* New repository: [https://github.com/folded/carve folded/carve], from 2011 onwards; the project changed to the MIT License starting on October, 2015.
+
+<!--T:23-->
+As the project is now MIT licensed, copies of the Carve source files are now included in the IFC++ repository. This means that when compiling IFC++, {{incode|libcarve.so}} will be compiled as well. This library must be available in the system for the IFC++ sample viewer to work properly.
+
+=== CMake configuration === <!--T:24-->
+
+<!--T:25-->
+It is recommended to perform the configuration and compilation in a specific build directory separate from the source directory.
+
+</translate>
+{{Code|code=
+mkdir -p ifcplusplus-build
+cd ifcplusplus-build
+
+cmake ../ifcplusplus-source/
+}}
+<translate>
+
+<!--T:26-->
+By default the type of build is {{incode|Release}} but it can also be set to {{incode|Debug}}.
+</translate>
+{{Code|code=
+cmake -DCMAKE_BUILD_TYPE=Debug ../ifcplusplus-source/
+}}
+<translate>
+
+=== Actual compilation === <!--T:27-->
+
+<!--T:28-->
+If there were no error messages during configuration with CMake, a {{incode|Makefile}} should have been created in the build directory, so you can proceed to compile the libraries by running {{incode|make}}.
+
+</translate>
+{{Code|code=
+make -j N
+}}
+<translate>
+
+<!--T:29-->
+{{incode|N}} is the number of processors that you assign to the compilation process; choose at least one fewer than the total number of CPU cores that you have.
+
+=== Testing the compilation in the build directory === <!--T:30-->
+
+<!--T:31-->
+If the build was successful you should have a {{incode|Release/}} subdirectory with the newly compiled libraries.
+</translate>
+{{Code|code=
+Release/libcarve.so
+Release/libIfcPlusPlus.a
+Release/SimpleViewerExample
+}}
+<translate>
+
+<!--T:32-->
+You can launch the {{incode|SimpleViewerExample}} executable with an [[Arch_IFC|IFC]] file as input.
+</translate>
+{{Code|code=
+Release/SimpleViewerExample IfcOpenHouse.ifc
+}}
+<translate>
+
+<!--T:33-->
+If the build type was set to {{incode|Debug}}, then the compiled libraries will appear in the {{incode|Debug/}} subdirectory instead.
+
+=== Installation of the compiled libraries === <!--T:34-->
+
+<!--T:35-->
+If the compilation doesn't report any errors, you may run {{incode|make install}} to copy the headers, compiled libraries, and binaries to their corresponding installation directories.
+</translate>
+{{Code|code=
+sudo make install
+}}
+<translate>
+
+<!--T:36-->
+By default, the {{incode|CMAKE_INSTALL_PREFIX}} is {{incode|/usr/local/}}, so all compiled files will be placed under this directory, which normally requires elevated privileges.
+</translate>
+{{Code|lang=sh|code=
+/usr/local/bin/SimpleViewerExample
+/usr/local/lib/libcarve.so
+/usr/local/lib/libIfcPlusPlus.a
+/usr/local/include/carve/*.{h, hpp}
+/usr/local/include/ifcpp/geometry/*.h
+/usr/local/include/ifcpp/geometry/Carve/*.h
+/usr/local/include/ifcpp/geometry/OCC/*.h
+/usr/local/include/ifcpp/IFC4/*.h
+/usr/local/include/ifcpp/IFC4/include/*.h
+/usr/local/include/ifcpp/model/*.h
+/usr/local/include/ifcpp/reader/*.h
+/usr/local/include/ifcpp/writer/*.h
+/usr/local/share/IFCPP/cmake/*.cmake
+}}
+<translate>
+
+=== Library path === <!--T:37-->
+
+<!--T:38-->
+Once {{incode|SimpleViewerExample}} is placed in {{incode|/usr/local/bin}}, the executable will be available in the entire system. However, in certain platforms {{incode|libcarve.so}} may not be found if it is installed in the default {{incode|/usr/local/lib}} directory.
+</translate>
+{{Code|lang=md|code=
+SimpleViewerExample: error while loading shared libraries: libcarve.so: cannot open shared object file: No such file or directory
+}}
+<translate>
+
+<!--T:39-->
+If this is the case, it may be enough to update the cache of the {{incode|ld.so}} library loader by calling {{incode|ldconfig}}:
+</translate>
+{{Code|code=
+sudo ldconfig
+}}
+<translate>
+
+<!--T:40-->
+Or you may have to move the library to the correct directory first:
+</translate>
+{{Code|code=
+sudo mkdir -p /usr/local/lib/x86_64-linux-gnu/
+sudo mv /usr/local/lib/libcarve.so /usr/local/lib/x86_64-linux-gnu/libcarve.so
+sudo ldconfig
+}}
+<translate>
+
+<!--T:41-->
+Alternatively, you may set the {{incode|LD_LIBRARY_PATH}} variable to the directory containing {{incode|libcarve.so}}, before launching the executable:
+</translate>
+{{Code|code=
+LD_LIBRARY_PATH=/usr/local/lib SimpleViewerExample
+}}
+<translate>
+
+<!--T:42-->
+To make this effect persistent, this environmental variable can be set in the shell resource file, for example, {{incode|.bashrc}}, so that it is propagated to all terminal instances on startup:
+</translate>
+{{Code|code=
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+}}
+<translate>
+
+=== Removing the compiled libraries === <!--T:43-->
+
+<!--T:44-->
+To remove the installed libraries, just remove the corresponding files that were installed.
+</translate>
+{{Code|lang=sh|code=
+sudo rm -rf /usr/local/bin/SimpleViewerExample
+sudo rm -rf /usr/local/lib/libcarve.so
+sudo rm -rf /usr/local/lib/libIfcPlusPlus.a
+sudo rm -rf /usr/local/include/carve
+sudo rm -rf /usr/local/include/ifcpp
+sudo rm -rf /usr/local/share/IFCPP/cmake/
+}}
+<translate>
+
+== Fixes for Linux == <!--T:45-->
+
+<!--T:46-->
+The IFC++ library is developed by its author on a Windows system. This means that even if the code depends on multiplatform libraries like Boost, Qt, and OpenSceneGraph, the code is mostly tested to compile and run on Windows. Nevertheless, over the years other developers have provided fixes to the project so that IFC++ can be compiled and run on Linux distributions.
+
+<!--T:47-->
+In particular, a fork of the main project is maintained with small fixes to compile and run better in Debian.
+* [https://github.com/berndhahnebach/ifcplusplus/ berndhahnebach/ifcplusplus]
+
+<!--T:48-->
+If the code of the official repository does not work or seems to have issues in Linux, try following the same compilation instructions but using the sources from this alternative repository. This repository is often some commits behind the main distribution, but it aims to remain up to date, and at the same time provide some Linux specific fixes. These improvements are normally submitted back to the main repository in order to make the official branch compile on Linux without issues.
+
+<!--T:49-->
+The main developer of IFC++ does not support Linux directly, so Linux developers should be prepared to troubleshoot problems, fix them, and submit patches when using IFC++ in Linux.
+
+=== Invisible icons === <!--T:50-->
+
+<!--T:51-->
+For the {{incode|SimpleViewerExample}}, there are two buttons in the main interface which are invisible if the custom style sheet is not found.
+</translate>
+{{Code|lang=cpp|code=
+QIODevice::read (QFile, ":styles.css"): device not open
+}}
+<translate>
+
+<!--T:52-->
+The style must be included in the CMake configuration in the section devoted to the Qt libraries:
+</translate>
+{{Code|lang=cmake|code=
+# ifcplusplus-source/examples/SimpleViewerExampleQt/CMakeLists.txt
+...
+ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
+
+SET(viewer_dir ${IFCPP_SOURCE_DIR}/examples/SimpleViewerExampleQt)
+SET(RESOURCES ${viewer_dir}/Resources/ifcplusplus.qrc)
+QT5_ADD_RESOURCES(SimpleViewerExample_RESOURCES_RCC ${RESOURCES})
+}}
+<translate>
+
+== More information == <!--T:53-->
+
+<!--T:54-->
+* [https://www.ifcquery.com/ IFC++ project page]
+* [https://github.com/ifcquery/ifcplusplus ifcquery/ifcplusplus] repository
+* Alternative repository, especially for Debian: [https://github.com/berndhahnebach/ifcplusplus/ berndhahnebach/ifcplusplus]
+* Forum thread: [https://forum.freecadweb.org/viewtopic.php?f=39&t=5101 IFC Viewer ifcplusplus] (2013 to 2020)
+* [https://forum.freecadweb.org/viewtopic.php?f=39&t=33254 IfcPlusPlus compiled on Gentoo - questions and alternatives?]
+* German thread: [https://forum.freecadweb.org/viewtopic.php?f=13&t=48648 IfcQuery / IfcPlusPlus selber kompilieren]
+
+</translate>
+{{BIM_Tools_navi{{#translation:}}}}
+{{FEM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

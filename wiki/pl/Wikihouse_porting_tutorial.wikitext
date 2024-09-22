@@ -1,0 +1,141 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic=Poradnik jak przenieść Wikihouse
+|Level=średnio zaawansowany / zaawansowany
+|Time=60 minut
+|Author=-
+|FCVersion=-
+|Files=nie dołączono
+}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Ten samouczek pokaże ci, jak przekonwertować pliki [http://www.sketchup.com/ SketchUp] używane przez projekt [http://wikihouse.cc/ Wikihouse] do FreeCAD, korzystając z narzędzi [[Arch_Panel|Arch Panel]] w FreeCAD. Rezultatem jest pełna kopia oryginalnego pliku SketchUp, z wyjątkiem tego, że stał się on w pełni parametryczny. Poziom parametryczności ostatecznego pliku zależy od włożonej w niego pracy, jak wyjaśniono poniżej. Możliwe jest jednak robienie rzeczy krok po kroku i przebudowanie pliku Wikihouse dość szybko, pozostawiając bardziej długotrwałą konwersję profili bazowych na szkice, na później.
+
+Ten samouczek będzie wymagał średnio zaawansowanej znajomości FreeCAD, to znaczy, że jesteś w stanie znaleźć drogę między różnymi środowiskami pracy i narzędziami, jesteś już w stanie modelować proste obiekty, a przede wszystkim czujesz się komfortowo używając narzędzi [[Draft_Move/pl|Przesuń]] i [[Draft_Rotate/pl|Obróć]]. Będziemy używać głównie narzędzi środowisk pracy [[Draft_Workbench/pl|Rysunek Roboczy]] i [[Arch_Workbench/pl|Architektura]], ale znajomość [[Sketcher_Workbench/pl|Szkicownika]] będzie niezbędna podczas konwertowania profili bazowych na szkice.
+
+Ponieważ projekt Wikihouse jest z natury otwarty, pliki można łatwo znaleźć na stronie internetowej projektu, ale także na [https://3dwarehouse.sketchup.com/search.html?q=wikihouse&backendClass=both SketchUp 3D Warehouse] lub w repozytoriach projektu [https://github.com/wikihouseproject github]. Preferowanym formatem używanym przez projekt jest Sketchup, więc większość plików, które tam znajdziesz, jest w tym formacie.
+
+W poniższym samouczku wykorzystaliśmy plik [https://github.com/wikihouseproject/Microhouse/blob/master/microhouse_0.5_chassis.skp Chassis] z podprojektu Wikihouse Microhouse.
+
+<span id="Preparing_the_Sketchup_file"></span>
+==Przygotowanie pliku Sketchup==
+
+Pierwszą rzeczą, którą musisz zrobić, jest otwarcie pliku w SketchUp i usunięcie wszystkiego, czego nie chcesz eksportować. Wyeksportujemy tylko jedną sekcję mikrodomu, więc wszystko inne musi zostać usunięte.
+
+[[Image:Arch_Wikihouse_05.jpg]]
+
+Elementy Wikihouse w SketchUp są tworzone w specyficzny sposób: Poprzez dodawanie małych "kawałków" w celu stworzenia różnych komponentów:
+
+[[Image:Arch_Wikihouse_06.jpg]]
+
+Nie tak będziemy postępować w FreeCAD. Ponieważ jedną z najpotężniejszych funkcji FreeCAD są [[Sketcher_Workbench/pl|wiązania szkicownika]], lepiej skorzystajmy z tego i oprzyjmy wszystkie nasze elementy Wikihouse na Szkicach. W ten sposób modyfikacja dowolnej części może być wykonana w środowisku pracy [[Sketcher_Workbench/pl|Szkicownik]], co jest znacznie wygodniejsze.
+
+Aby przekształcić nasze obiekty SketchUp w szkice FreeCAD, które można następnie wykorzystać do stworzenia obiektów [[Arch_Panel/pl|Panel]] środowiska pracy Architektura, musimy wyodrębnić jedną, płaską powierzchnię z każdego elementu Wikihouse. Grubość zostanie ponownie dodana później, we FreeCAD, bezpośrednio we właściwościach Arch Panel. W ten sposób zachowamy również parametryczność. Aby przekształcić każdy komponent Wikihouse w pojedynczą, płaską powierzchnię, wejdź do każdego komponentu, klikając go dwukrotnie, a następnie wybierz każdy podkomponent i kliknij prawym przyciskiem myszy → Rozbij, aż wszystkie podkomponenty zostaną rozbite, a komponent będzie składał się tylko z powierzchni i krawędzi:
+
+[[Image:Arch_Wikihouse_08.jpg]]
+
+Gdy to zrobisz, zaznacz wszystko w komponencie i odznacz, naciskając {{KEY|Shift}} + dwukrotnie kliknięcie myszką, każdą przednią ścianę komponentu. Upewnij się, że kliknąłeś dwukrotnie, a nie pojedynczo, ponieważ w przeciwnym razie odznaczysz tylko powierzchnię, a nie jej krawędzie ''(które również będziemy musieli zachować)''. Następnie odznaczyliśmy już wszystko, co chcieliśmy zachować, więc wystarczy nacisnąć klawisz usuwania. Teraz nasz komponent jest tylko jedną dużą płaską powierzchnią.
+
+[[Image:Arch_Wikihouse_07.jpg]]
+
+Powtórz tę czynność dla każdego komponentu. Ponieważ wiele z nich jest zduplikowanych, nie jest to tak duże zadanie, na jakie wygląda. Poza tym, jeśli nie jesteś zaznajomiony z systemem Wikihouse, ten krok pozwoli ci całkiem dobrze zrozumieć, jak to działa.
+
+Gdy nasz dom jest w pełni zbudowany z płaskich elementów, możemy zaznaczyć wszystko i wyeksportować do pliku .dae, a następnie zaimportować ten plik do FreeCAD. Pamiętaj, aby zaznaczyć opcję "trianguluj wszystko"
+
+<span id="Solving_the_double_faces_bug"></span>
+==Rozwiązanie błędu podwójnych ścian==
+
+Jest pewien nieprzyjemny problem, na który nie znalazłem lepszego rozwiązania: Siatki wyeksportowane ze SketchUp do formatu .dae mają zduplikowane ściany. Każda ściana staje się w rzeczywistości dwiema ścianami. Najprostszym sposobem, jaki do tej pory znalazłem, jest otwarcie wyeksportowanego pliku w [http://www.blender.org Blender] w celu naprawy:
+
+# Otwórz plik dae w Blenderze ({{MenuCommand|File → Import → Collada}})
+# Wybierz komponent i naciśnij {{Button|TAB}}, aby przejść do trybu edycji.
+# Naciśnij {{Button|A}}, aby odznaczyć wszystko, a następnie {{Button|A}} ponownie, aby zaznaczyć wszystko.
+# Naciśnij {{Button|W}} → Usuń podwójnie
+# Naciśnij {{Button|TAB}}, aby wyjść z trybu edycji.
+# Powtórz dla wszystkich komponentów
+# Zapisz nowy plik [[Arch DAE|DAE]] ({{MenuCommand|File → Export → Collada}}).
+
+Zwykle powyższa operacja nie powinna zmienić skali, ale zawsze dobrze jest sprawdzić, używając narzędzi pomiarowych, czy zaimportowana geometria ma prawidłową skalę przed przejściem dalej. W razie potrzeby konieczne może być dostosowanie ustawień eksportu Collada w Blenderze.
+
+<span id="Importing_and_converting_to_wires"></span>
+==Import i konwersja do polilinii==
+
+Należy pamiętać, że może być łatwiej przejść przez części i traktować + eksportować obiekty grupa po grupie, tak jak to zrobiliśmy poniżej, wyeksportowaliśmy tylko pierwszą warstwę, wykonaną z żółtych elementów w SketchUp. Elementy te pojawią się w FreeCAD jako obiekty [[Mesh_Workbench/pl|siatkowe]]:
+
+[[Image:Arch_Wikihouse_09.jpg]]
+
+Następnym krokiem jest utworzenie polilinii z każdej z naszych siatek. Istnieje wygodna makrodefinicja o nazwie [[Macro_Extract_Wires_from_Mesh/pl|Extract Wires from Mesh]], które właśnie to robi. Zainstaluj je ''(instrukcje znajdziesz na stronie [[Macros/pl|Makrodefinicje]])'', a następnie po kolei ''(możesz zrobić wszystkie naraz, ale to makro zajmuje trochę czasu)'' przekonwertuj wszystkie nasze siatki na obiekty polilinii:
+
+[[Image:Arch_Wikihouse_10.jpg]]
+
+Moglibyśmy teraz tworzyć obiekty typu [[Arch_Panel/pl|Panel]] z każdego z tych obiektów przypominających polilinię, po prostu wybierając je i naciskając przycisk [[Arch_Panel/pl|Panel]]. Jednak ich podstawowy kształt nie byłby parametryczny. Mamy teraz kilka opcji: Możemy przekształcić każdy komponent w szkic, używając narzędzia [[Draft_Draft2Sketch/pl|Rysunek roboczy do szkicu]], ale będą to raczej dość złożone szkice i mogą nie być zbyt łatwe w zarządzaniu na wolnej maszynie, lub możemy przekształcić każdą pojedynczą polilinię ''(kontur i każdy otwór)'' szkicu w osobny szkic. Pozwoliłoby nam to na przykład na ponowne wykorzystanie typowego otworu, wykonanie go tylko raz, a następnie powielenie go za pomocą narzędzia [[Draft_Clone/pl|Klonuj]] w celu wykonania innych otworów. W ten sposób wystarczy edytować jeden otwór, aby edytować wszystkie.
+
+Makrodefinicja [[Macro_Extract_Wires_from_Mesh/pl|Wyodrębnij linie z siatki]] również czasami zawodzi w znajdowaniu zamkniętych polilinii wewnątrz siatki, co nie daje poprawnych paneli. Prostym sposobem na ponowne skomponowanie polilinii komponentu jest następująca procedura:
+
+# Wybierz komponent, opcjonalnie ukryj wszystko inne, aby był lepiej widoczny
+# Użyj narzędzia [[Draft_Downgrade/pl|Rozbij]]. Zostanie on przekształcony w serię pojedynczych krawędzi
+# Rozpocznij zaznaczanie otworów z {{KEY|Ctrl}} lub używając {{KEY|Shift}} + {{KEY|B}}, aby zaznaczyć obszar.
+# Naciśnij [[Draft_Upgrade/pl|Ulepsz]], aby przekształcić każdy otwór w pojedynczą krawędź.
+# Na koniec zaznacz wszystkie pozostałe pojedyncze krawędzie w drzewie, które tworzą kontur, i wybierz [[Draft_Upgrade/pl|Rozbij]].
+# Wybierz z menu {{MenuCommand|Część → Kształt złożony → Utwórz kształt złożony}}'', aby połączyć wszystkie polilinie w jeden obiekt.
+# Wybierz związek i naciśnij przycisk [[Arch_Panel/pl|Arch Panel]].
+
+[[Image:Arch_Wikihouse_11.jpg]]
+
+Istnieje wiele możliwych strategii, w zależności od tego, jak edytowalny i precyzyjny ma być rezultat. Obiekt [[Arch_Panel/pl|Panel]] potrzebuje obiektu bazowego wykonanego z polilinii. Nie ma znaczenia, w jaki sposób obiekt ten jest tworzony, czy jest to pojedynczy szkic, czy, jak w powyższym przykładzie, połączenie różnych szkiców lub obiektu środowiska Rysunek Roboczy.
+
+<span id="Converting_to_Sketches"></span>
+==Konwersja do szkicu==
+
+Tę część można również wykonać później, można już utworzyć panele z każdego z komponentów, ale zobaczmy już teraz, jak przekonwertować obiekt podobny do polilinii na szkic:
+
+# Stwórz kopię obiektu polilinii za pomocą {{KEY|Ctrl}} + {{KEY|C}}, {{KEY|Ctrl}} + {{KEY|V}}. W ten sposób możemy go modyfikować, ale nadal utrzymywać w prawidłowej lokalizacji
+# Przesuń i obróć go tak, aby leżał w płaszczyźnie XY, używając narzędzi [[Draft_Move/pl|Przesuń]] i [[Draft_Rotate/pl|Obróć]]. Nie jest to konieczne, ale następny punkt czasami zawodzi w przeciwnym razie
+# Użyj [[Draft_Draft2Sketch/pl|Rysunek roboczy do szkicu]], aby przekształcić przewód w szkic. Ostrzegam, że może się to nie udać lub zająć bardzo dużo czasu w przypadku złożonych polilinii. Najlepiej jest rozłożyć obiekt na pojedyncze polilinie, jak pokazano powyżej.
+# Jeśli powyższe polecenie zawiedzie, dwukrotnie użyj narzędzia [[Draft_Upgrade/pl|Ulepsz]] na obiekcie podobnym do polilinii, aby przekonwertować go na ścianę, a następnie na [[Draft_Wire/pl|polilinię]], przed użyciem [[Draft_Draft2Sketch/pl|Rysunek roboczy do szkicu]], zwykle działa lepiej, ponieważ Draft Wire lepiej śledzi kolejność wierzchołków wewnątrz polilinii.
+# Krzywe składają się z kilku małych segmentów. Można je pozostawić bez zmian, ale wprowadzają one wiele ograniczeń dotyczących punktów końcowych. Lepiej zastąpić je łukami. Jest to dość łatwe do zrobienia, wystarczy usunąć małe segmenty i zastąpić je łukiem. Łuk może być następnie styczny do sąsiednich segmentów, ale upewnij się, że pozycja tych segmentów jest zablokowana przed wykonaniem tej operacji, ponieważ spowoduje to ich przesunięcie.
+# Jeśli pracowałeś z kilkoma szkicami, utwórz z nich [[Part_Compound/pl|Utwórz kształt złożony]].
+# Utwórz na jego podstawie [[Arch_Panel/pl|Panel]].
+# Obróć / przesuń go z powrotem na miejsce za pomocą narzędzi [[Draft_Move/pl|Przesuń]] i [[Draft_Rotate/pl|Obróć]].
+
+[[Image:Arch_Wikihouse_12.jpg]]
+
+<span id="Rebuilding_the_Wikihouse_and_exporting_cut_sheets"></span>
+==Przebudowa Wikihouse i eksportowanie wyciętych arkuszy==
+
+Upewnij się również, że nie powielasz żadnej zduplikowanej części. Zamiast tego wybierz narzędzie [[Draft_Clone/pl|Klonuj]], aby zduplikować części oparte na tym samym profilu, dzięki czemu wszystkie będą miały ten sam obiekt profilu. Następnie, ponieważ mamy już kontur w odpowiednim miejscu, można go łatwo obrócić i przesunąć klon do właściwej pozycji za pomocą narzędzi [[Draft_Rotate/pl|Obróć]] i [[Draft_Move/pl|Przesuń]].
+
+Po chwili cała sekcja Microhouse jest gotowa.
+
+[[Image:Arch_Wikihouse_01.jpg]]
+
+Możemy teraz łatwo utworzyć arkusze cięcia, które są plikami DXF, które zostaną wysłane do warsztatu, który wytnie rzeczywiste panele. Najprostszym sposobem na to jest zaznaczenie wszystkiego w dokumencie za pomocą {{KEY|Ctrl}} + {{KEY|A}}, a następnie użycie narzędzia [[Arch_Panel_Cut/pl|Panelizacja do cięcia]] środowiska Architektura. Spowoduje to utworzenie jednego obiektu Panel Cut dla każdego obiektu Panel znajdującego się w zaznaczeniu. Odsuwając je od siebie, uzyskamy przejrzysty widok wszystkich elementów:
+
+[[Image:Arch_Wikihouse_02.jpg]]
+
+Następnie musimy "zagnieździć" nasze elementy, czyli przesunąć i obrócić je tak, aby zajmowały jak najwięcej miejsca w danym panelu, aby wygenerować jak najmniejsze straty materiału. Ta operacja niestety musi być wykonana samodzielnie, ale jeśli korzystasz z projektu Wikihouse, który już wyprodukował pocięte arkusze, kopiowanie ich przebiega dość szybko:
+
+# Aby upewnić się, że wszystko pozostanie w płaszczyźnie XY, zaleca się ustawienie [[Draft_SelectPlane/pl|płaszczyzny roboczej]] na XY ''(góra)''.
+# Utwórz [[Arch_Panel_Sheet/pl|Arkusz panela]].
+# Nadaj mu żądane wartości szerokości i wysokości ''(elementy Wikihouse są zazwyczaj drukowane na arkuszach sklejki 122x244cm)''.
+# Przenieś go w dogodne miejsce za pomocą narzędzia [[Draft_Move/pl|Przesuń]] środowiska Rysunek roboczy.
+# Opcjonalnie ustaw wartości marginesów, aby pomóc w pozycjonowaniu wyciętych elementów.
+# Przesuń i obróć poszczególne obiekty [[Arch_Panel_Cut/pl|Panelizacji do cięcia]] tak, aby zmieściły się wewnątrz arkusza panelu.
+# Gdy będziesz mniej więcej gotowy, wybierz arkusz panelu i kliknij go dwukrotnie w oknie [[Tree_view/pl|widoku drzewa]], aby przejść do trybu edycji.
+# Wybierz wszystkie wycinki panelu, które chcesz w nim umieścić (możesz przełączyć widok drzewa na zakładkę "projekt", aby wybrać w drzewie).
+# Wybierz sekcję "grupa" w widoku zadań arkusza paneli.
+# Naciśnij przycisk {{Button|Dodaj}}.
+# Naciśnij przycisk {{Button|OK}}.
+
+W widoku zadań arkusza panelu znajduje się również przycisk umożliwiający przesuwanie poszczególnych wycinków panelu po ich wstawieniu do arkusza. Po chwili nasze arkusze są gotowe:
+
+[[Image:Arch_Wikihouse_03.jpg]]
+
+Ostatnim krokiem jest po prostu zaznaczenie wszystkich arkuszy, a następnie wyeksportowanie ich do formatu DXF z menu {{MenuCommand|Plik → Eksportuj}}. Zawartość arkuszy zostanie wyeksportowana oddzielnie w różnych warstwach, z tym samym kodowaniem kolorów powszechnie używanym w projekcie Wikihouse:
+
+[[Image:Arch_Wikihouse_04.jpg]]
+
+Pliki te są gotowe do wysłania do warsztatów, które wykonają rzeczywiste cięcie. Możliwe byłoby również wygenerowanie kodu G do wysłania do maszyny CNC bezpośrednio z FreeCAD, ale to już temat na inny poradnik.

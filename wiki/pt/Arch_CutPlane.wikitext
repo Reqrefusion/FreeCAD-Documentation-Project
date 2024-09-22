@@ -1,0 +1,120 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|[[Arch_CutLine/pt-br|Corte com uma linha]]
+|[[Arch_Add/pt-br|Adicionar componente]]
+|[[Arch_Workbench/pt-br|Arch]]
+|IconL=Arch_CutLine.svg
+|IconR=Arch_Add.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+{{GuiCommand
+|Name=Arch CutPlane
+|MenuLocation=Modify → Cut with plane
+|Workbenches=[[BIM_Workbench|BIM]]
+}}
+
+<span id="Description"></span>
+==Descrição== 
+
+The '''Arch CutPlane''' tool cuts a solid Arch object like an [[Arch_Wall|Arch Wall]] or [[Arch_Structure|Arch Structure]] with a planar face.
+
+[[Image:Arch_CutPlane_example.jpg|400px]]
+{{Caption|Left: Before applying the CutPlane tool. Middle: resulting wall after the cut is done. Right: yet another optional result}}
+
+<span id="Usage"></span>
+==Utilização==
+
+# If the cutting plane is to be derived from a straight edge ({{Version|1.0}}) optionally align the [[Draft_SelectPlane|working plane]]:
+#* The selected edge cannot be parallel to the normal of the working plane.
+#* The generated cutting face will be perpendicular to the working plane.
+# Select the object to be cut.
+# Do one of the following:
+#* Select an object with a single planar face. {{Version|1.0}}
+#* Select a planar face in the [[3D_view|3D view]].
+#* Select an object with a single straight edge. {{Version|1.0}}
+#* Select a straight edge in the [[3D_view|3D view]]. {{Version|1.0}}
+# There are several ways to invoke the command:
+#* Press the {{Button|[[Image:Arch_CutPlane.svg|16px]] [[Arch_CutPlane|Cut with plane]]}} button.
+#* Select the {{MenuCommand|Modify → [[Image:Arch_CutPlane.svg|16px]] Cut with plane}} option from the menu.
+# Choose {{MenuCommand|Behind}} or {{MenuCommand|Front}} to indicate on which side of the cutting face material should be removed.
+# Press the {{Button|OK}} button.
+
+==Scripting==
+
+{{Emphasis|See also:}} [[Arch_API|Arch API]] and [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+The CutPlane tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following function:
+
+{{Code|code=
+cutObj = cutComponentwithPlane(archObject, cutPlane, sideFace)
+}}
+
+* Creates a {{incode|cutObj}} object from the given {{incode|archObject}}, which is cut by {{incode|cutPlane}}, which is the face of another object.
+** {{incode|archObject}} should be a {{incode|SelectionObject}} obtained from {{incode|FreeCADGui.Selection.SelectionEx()[0]}}.
+** {{incode|cutPlane}} should be a {{incode|FaceObject}} obtained from {{incode|FreeCADGui.Selection.SelectionEx()[0].SubObjects[0]}}.
+* {{incode|sideFace}} specifies on which side of the {{incode|FaceObject}} a volume will be created; this volume will then be used to subtract from the {{incode|archObject}}. If {{incode|sideFace}} is {{incode|0}} it will create a volume in the rear of the face, otherwise it create it in front of the face.
+
+Example:
+
+{{Code|code=
+import FreeCAD, FreeCADGui, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 2000, 0)
+
+Line = Draft.makeWire([p1, p2])
+Wall = Arch.makeWall(Line, width=150, height=2000)
+
+p3 = FreeCAD.Vector(0, 2000, 0)
+p4 = FreeCAD.Vector(3000, 0, 0)
+
+Line2 = Draft.makeWire([p3, p4])
+Wall2 = Arch.makeWall(Line2, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+# Select the Wall
+main_object = FreeCADGui.Selection.getSelectionEx()[0]
+
+# Select the face of Wall2
+selection = FreeCADGui.Selection.getSelectionEx()[0]
+cut_face = selection.SubObjects[0]
+
+cutObj = Arch.cutComponentwithPlane(main_object, cut_face, 0)
+FreeCAD.ActiveDocument.recompute()
+
+Wall3 = Draft.move(Wall, FreeCAD.Vector(-4000, 0, 0), copy=True)
+Wall4 = Draft.move(Wall2, FreeCAD.Vector(-4000, 0, 0), copy=True)
+FreeCAD.ActiveDocument.recompute()
+
+# Select the Wall3
+main_object2 = FreeCADGui.Selection.getSelectionEx()[0]
+
+# Select the face of Wall4
+selection2 = FreeCADGui.Selection.getSelectionEx()[0]
+cut_face2 = selection2.SubObjects[0]
+
+cutObj2 = Arch.cutComponentwithPlane(main_object2, cut_face2, 1)
+FreeCAD.ActiveDocument.recompute()
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|[[Arch_CutLine/pt-br|Corte com uma linha]]
+|[[Arch_Add/pt-br|Adicionar componente]]
+|[[Arch_Workbench/pt-br|Arch]]
+|IconL=Arch_CutLine.svg
+|IconR=Arch_Add.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

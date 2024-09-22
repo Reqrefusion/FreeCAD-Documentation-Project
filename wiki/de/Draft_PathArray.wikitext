@@ -1,0 +1,221 @@
+<languages/>
+
+{{Docnav/de
+|[[Draft_CircularArray/de|KreisAnordnung]]
+|[[Draft_PathLinkArray/de|PfadVerknüpfungsanordnung]]
+|[[Draft_Workbench/de|Draft]]
+|IconL=Draft_CircularArray.svg
+|IconR=Draft_PathLinkArray.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{GuiCommand/de
+|Name=Draft PathArray
+|Name/de=Draft PfadAnordnung
+|MenuLocation=Änderung → Anordnungswerkzeuge → Pfad-Anordnung<br>Bearbeiten → Pfad-Anordnung
+|Workbenches=[[Draft_Workbench/de|Draft]], [[BIM_Workbench/de|BIM]]
+|Version=0.14
+|SeeAlso=[[Draft_OrthoArray/de|Draft RechtwinkligeAnordnung]], [[Draft_PolarArray/de|Draft PolareAnordnung]], [[Draft_CircularArray/de|Draft KreisAnordnung]], [[Draft_PathLinkArray/de|Draft PfadVerknüpfungsanordnung]], [[Draft_PointArray/de|Draft PunktAnordnung]], [[Draft_PointLinkArray/de|Draft PunktVerknüpfungsanordnung]]
+}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+Der Befehl [[Image:Draft_PathArray.svg|24px]] '''Draft PfadAnordnung''' erstellt eine regelmäßige Anordnung aus einem ausgewählten Objekt, indem er Kopien entlang eines Pfades positioniert. Der Befehl [[Draft_PathLinkArray/de|Draft PfadVerknüpfungsanordnung]] erstellt alternativ eine effizientere Verknüpfungsanordnung ([[App_Link|Link]]-Array). Außer der Art der Anordnung die erstellt wird, normale Anordnung oder Verknüpfungsanordnung, ist der Befehl [[Draft_PathLinkArray/de|Draft PfadVerknüpfungsanordnung]] identisch mit diesem Befehl.
+
+Beide Befehle können für 2D-Objekte verwendet werden, die mit den Arbeitsbereichen [[Draft_Workbench/de|Draft]] oder [[Sketcher_Workbench/de|Sketcher]] erstellt wurden, aber auch für viele 3D-Objekte, die mit anderen Arbeitsbereichen wie [[Part_Workbench/de|Part]], [[PartDesign_Workbench/de|PartDesign]] oder [[BIM_Workbench/de|BIM]] erstellt wurden.
+
+[[Image:Draft_PathArray_Example.png|400px]]
+{{Caption|Draft PfadAnordnung}}
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Ein Objekt auswählen, das angeordnet werden soll.
+# Ein Pfadobjekt zur Auswahl hinzufügen. Es ist auch möglich stattdessen Kanten auszuwählen. Die Kanten müssen zu demselben Objekt gehören und miteinander verbunden sein.
+# Es gibt mehrere Möglichkeiten den Befehl aufzurufen:
+#* Die Schaltfläche {{Button|[[Image:Draft_PathArray.svg|16px]] [[Draft_PathArray|Pfad-Anordnung]]}} drücken.
+#* [[Draft_Workbench/de|Draft]]: Den Menüeintrag {{MenuCommand|Änderung → Anordnungswerkzeuge → [[Image:Draft_PathArray.svg|16px]] Pfad-Anordnung}} auswählen.
+#* [[BIM_Workbench/de|BIM]]: Den Menüeintrag {{MenuCommand|Bearbeiten → [[Image:Draft_PathArray.svg|16px]] Pfad-Anordnung}} auswählen.
+# Die Anordnung wird erstellt.
+# Wahlweise die [[#Eigenschaften|Eigenschaften]] der Anordnung im [[property_editor/de|Eigenschafteneditor]] ändern.
+
+<span id="Alignment"></span>
+==Ausrichtung==
+
+The alignment of the elements in a Draft PathArray depends on the properties of the array and the orientation of the source object. The position of the source object is ignored: for the purpose of the array the {{Value|x}}, {{Value|y}} and {{Value|z}} are set to {{Value|0}}. If the {{PropertyData|Align}} property of the array is set to {{FALSE}} the orientation of the array elements is identical to that of the source object. If it is set to {{TRUE}} the X axis of the local coordinate system of each element placement is tangent to the path. The Y and Z axes of the local coordinate systems depend on the {{PropertyData|Align Mode}} property of the array. Other array properties involved in the alignment include {{PropertyData|Tangent Vector}}, {{PropertyData|Force Vertical}} and {{PropertyData|Vertical Vector}}.
+
+[[Image:Draft_PathArray_example2.png|600px]]
+{{Caption|3 Anordnungen die auf demselben nicht ebenen Pfad basieren. Von links nach rechts:  '''Align''' ist ''false'', '''Align''' ist ''true'' mit '''Align Mode''' ''Original'' und '''Align''' ist ''true'' mit '''Align Mode''' ''Frenet''}}.
+
+<span id="Align_Mode"></span>
+===Ausrichtungsmodus===
+
+Es gibt drei Ausrichtungsmodi
+
+====Original====
+
+This mode comes closest to the single {{PropertyData|Align Mode}} available in version 0.18. It relies on a fixed normal vector. If the path is planar this vector is perpendicular to the plane of the path, else a default vector, the positive Z axis, is used. From this normal vector and the local tangent vector (the local X axis) a [https://en.wikipedia.org/wiki/Cross_product cross product] is calculated. This new vector is used as the local Z axis. The orientation of the local Y axis is determined from the local X and Z axes.
+
+====Frenet====
+
+This mode uses the local normal vector derived from the path at each element placement. If this vector cannot be determined (for example in the case of a straight segment) a default vector, again the positive Z axis, is used instead. With this vector and the local tangent vector the local coordinate system is determined using the same procedure as in the previous paragraph.
+
+<span id="Tangent"></span>
+====Tangente====
+
+This mode is similar to {{PropertyData|Align Mode}} {{Value|Original}} but includes the possibility to pre-rotate the source object by specifying a {{PropertyData|Tangent Vector}}.
+
+===Force Vertical and Vertical Vector===
+
+These properties are only available if {{PropertyData|Align Mode}} is {{Value|Original}} or {{Value|Tangent}}. If {{PropertyData|Force Vertical}} is set to {{TRUE}} the local coordinate system is calculated in a different manner. The {{PropertyData|Vertical Vector}} is used as a fixed normal vector. From this normal vector and the local tangent vector (the local X axis) again a cross product is calculated. But now this vector is used as the local Y axis. The orientation of the local Z axis is determined from the local X and Y axes.
+
+Using these properties can be required if one of the edged of the path is (almost) parallel to the default normal of the path.
+
+<span id="Properties"></span>
+==Eigenschaften==
+
+Siehe auch: [[property_editor/de|Eigenschafteneditor]].
+
+Eine [[Draft_PathArray/de|Pfad-Anordnung]] (Path-Array-Objekt) ist von einem [[Part_Feature/de|Part-Formelement]] abgeleitet und erbt alle seine Eigenschaften (mit Ausnahme einiger Ansicht-Eigenschaften, die nicht an die Verknüpfungsanordnungen vererbt werden). Außerdem sind, wenn nicht anders angegeben, die folgenden zusätzlichen Eigenschaften vorhanden:
+
+===Data===
+
+{{TitleProperty|Link}}
+
+Die Eigenschaften dieser Gruppe stehen nur für Verknüpfungsanordnungen zur Verfügung. Siehe [[Std_LinkMake/de#Eigenschaften|Std VerknüpfungErstellen]] für weitere Informationen.
+
+* {{PropertyData|Scale|Float}}
+* {{PropertyData|Scale Vector|Vector|Hidden}}
+* {{PropertyData|Scale List|VectorList}}
+* {{PropertyData|Visibility List|BoolList|Hidden}}
+* {{PropertyData|Placement List|PlacementList|Hidden}}
+* {{PropertyData|Element List|LinkList|Hidden}}
+* {{PropertyData|_ Link Touched|Bool|Hidden}}
+* {{PropertyData|_ Child Cache|LinkList|Hidden}}
+* {{PropertyData|Colored Elements|LinkSubHidden|Hidden}}
+* {{PropertyData|Link Transform|Bool}}
+
+{{TitleProperty|Alignment}}
+
+* {{PropertyData/de|Align|Bool}}: Legt fest, ob die Elemente der Anordnung entlang des Pfades ausgerichtet werden oder nicht. Ist sie {{FALSE}}, sind alle anderen Eigenschaften in dieser Gruppe, außer {{PropertyData/de|Extra Translation}} nicht anwendbar und werden ausgeblendet.
+* {{PropertyData/de|Align Mode|Enumeration}}: Legt das Ausrichtungsverfahren fest; zur Auswahl stehen {{Value|Original}}, {{Value|Frenet}} oder {{Value|Tangent}}.
+* {{PropertyData/de|End Offset|Length}}: Legt die Länge vom Ende des Pfades bis zur letzten Kopie fest. Muss kleiner sein als die Länge des Pfades abzüglich der {{PropertyData/de|Start Offset}}. {{Version/de|0.21}}
+* {{PropertyData/de|Extra Translation|VectorDistance}}: Legt einen zusätzlichen Versatz für jedes Element entlang des Pfades fest.
+* {{PropertyData/de|Force Vertical|Bool}}: Legt fest, ob die vorgegebene Ausrichtung der Normale mit dem Wert der {{PropertyData/de|Vertical Vector}} überschrieben wird. Wird nur verwendet, wenn die {{PropertyData/de|Align Mode}} auf {{Value|Original}} oder {{Value|Tangent}} gesetzt ist.
+* {{PropertyData/de|Start Offset|Length}}: Legt die Länge vom Startpunkt des Pfades bis zur ersten Kopie fest. Muss kleiner als die Länge des Pfades sein. {{Version/de|0.21}}
+* {{PropertyData/de|Tangent Vector|Vector}}: Legt den Ausrichtungsvektor fest. Wird nur verwendet, wenn die {{PropertyData/de|Align Mode}} auf {{Value|Tangent}} gesetzt ist.
+* {{PropertyData/de|Vertical Vector|Vector}}: Legt den Vektor  zum Überschreiben der Richtung der Normale fest. Wird nur verwendet, wenn die {{PropertyData/de|Vertical Vector}} auf {{TRUE}} gesetzt ist.
+
+{{TitleProperty|Objects}}
+
+* {{PropertyData|Base|LinkGlobal}}: specifies the object to duplicate in the array.
+* {{PropertyData|Count|Integer}}: specifies the number of elements in the array.
+* {{PropertyData|Expand Array|Bool}}: specifies whether to expand the array in the [[Tree_view|Tree view]] to enable the selection of its individual elements. Only available for Link arrays.
+* {{PropertyData|Fuse|Bool}}: specifies if overlapping elements in the array are fused or not. Not used for Link arrays. {{Version|1.0}}
+* {{PropertyData|Path Object|LinkGlobal}}: specifies the object to be used for the path. It must contain {{Value|Edges}} in its [[Part_TopoShape|Part TopoShape]].
+* {{PropertyData|Path Subelements|LinkSubListGlobal}}: specifies a list of edges of the {{PropertyData|Path Object}}. If supplied only these edges are used for the path.
+
+<span id="View"></span>
+===Ansicht===
+
+{{TitleProperty|Link}}
+
+Die Eigenschaften dieser Gruppe, mit Ausnahme der ererbten Eigenschaften, stehen nur für Verknüpfungsanordnungen zur Verfügung. Siehe [[Std_LinkMake/de#Eigenschaften|Std VerknüpfungErstellen]] für weitere Informationen.
+
+* {{PropertyView|Draw Style|Enumeration}}
+* {{PropertyView|Line Width|FloatConstraint}}
+* {{PropertyView|Override Material|Bool}}
+* {{PropertyView|Point Size|FloatConstraint}}
+* {{PropertyView|Selectable|Bool}}: this is an inherited property that appears in the Selection group for other arrays
+* {{PropertyView|Shape Material|Material}}
+
+{{TitleProperty|Base}}
+
+The properties in this group, with the exception of the inherited property, are only available for Link arrays. See [[Std_LinkMake#Properties|Std LinkMake]] for more information.
+
+* {{PropertyView|Child View Provider|PersistentObject|Hidden}}
+* {{PropertyView|Material List|MaterialList|Hidden}}
+* {{PropertyView|Override Color List|ColorList|Hidden}}
+* {{PropertyView|Override Material List|BoolList|Hidden}}
+* {{PropertyView|Proxy|PythonObject|Hidden}}: this is an inherited property.
+
+{{TitleProperty|Display Options}}
+
+Die Eigenschaften in dieser Gruppe sind ererbte Eigenschaften. Siehe auch [[Part_Feature/de#Eigenschaften|Part Formelement]].
+
+* {{PropertyView|Bounding Box|Bool}}: this property is not inherited by Link arrays.
+* {{PropertyView|Display Mode|Enumeration}}: for Link arrays it can be {{value|Link}} or {{value|ChildView}}. For other arrays it can be: {{value|Flat Lines}}, {{value|Shaded}}, {{value|Wireframe}} or {{value|Points}}
+* {{PropertyView|Show In Tree|Bool}}
+* {{PropertyView|Visibility|Bool}}
+
+{{TitleProperty|Draft}}
+
+* {{PropertyView|Pattern|Enumeration}}: not used.
+* {{PropertyView|Pattern Size|Float}}: not used.
+
+{{TitleProperty|Object style}}
+
+Die Eigenschaften dieser Gruppe werden nicht an Verknüpfungsanordnungen vererbt.
+
+<span id="Scripting"></span>
+==Skripten==
+
+Siehe auch: [https://freecad.github.io/SourceDoc/ Autogenerierte API Dokumentation] und [[FreeCAD_Scripting_Basics/de|FreeCAD Grundlagen Skripten]].
+
+Zum Erstellen einer Pfad-Anordnung wird die Methode {{incode|make_path_array}} des Draft-Moduls verwendet ({{Version/de|0.19}}). Diese Methode ersetzt die veraltete Methode {{incode|makePathArray}}.
+
+{{Code|code=
+path_array = make_path_array(base_object, path_object,
+                             count=4, extra=App.Vector(0, 0, 0), subelements=None,
+                             align=False, align_mode="Original", tan_vector=App.Vector(1, 0, 0),
+                             force_vertical=False, vertical_vector=App.Vector(0, 0, 1),
+                             use_link=True)
+}}
+
+* {{incode|base_object}} ist das Objekt, das angeordnet werden soll. Es kann auch die Benennung (die Zeichenkette {{incode|Label}}) eines Objekts im aktuellen Dokument sein.
+* {{incode|path_object}}: Ist das Pfadobjekt (path object). Es kann auch die Benennung (die Zeichenkette {{incode|Label}}) eines Objekts im aktuellen Dokument sein.
+* {{incode|count}} ist die Anzahl der Elemente einer Anordnung.
+* {{incode|extra}} ist ein Vektor, der jedes Element versetzt.
+* {{incode|subelements}} ist eine Liste von Kanten im {{incode|path_object}}, z.B. {{incode|["Edge1", "Edge2"]}}. Wenn vorhanden, werden nur diese Kanten für den Pfad verwendet.
+* Ist {{incode|align}} auf {{incode|True}} gestzt, werden die Elemente abhängig von der Eigenschaft {{incode|align_mode}}, die die Werte {{incode|"Original"}}, {{incode|"Frenet"}} oder {{incode|"Tangent"}} annehmen kann, entlang des Pfades ausgerichtet.
+* {{incode|tan_vector}} ist ein Einheitsvektor, der die örtliche Tangentenrichtung der Elemente entlang des Pfades festlegt. Er wird verwendet, wenn {{incode|align_mode}} auf {{incode|"Tangent"}} gesetzt ist.
+* Ist {{incode|force_vertical}} auf {{incode|True}} gsetzt, wird {{incode|vertical_vector}} für die lokale Z-Achse der Elemente entlang des Pfades verwendet. Es wird verwendet, wenn {{incode|align_mode}} auf {{incode|"Original"}} oder {{incode|"Tangent"}} gesetzt ist.
+* Ist {{incode|use_link}} auf {{incode|True}} gesetzt, werden  [[App_Link/de|App-Links]] anstatt normaler Kopien erstellt.
+* {{incode|path_array}} wird mit der erstellten Anordnung zurückgegeben.
+
+Beispiel:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+p1 = App.Vector(500, -1000, 0)
+p2 = App.Vector(1500, 1000, 0)
+p3 = App.Vector(3000, 500, 0)
+p4 = App.Vector(4500, 100, 0)
+spline = Draft.make_bspline([p1, p2, p3, p4])
+obj = Draft.make_polygon(3, 500)
+
+path_array = Draft.make_path_array(obj, spline, 6)
+doc.recompute()
+
+wire = Draft.make_wire([p1, -p2, -p3, -p4])
+path_array2 = Draft.make_path_array(obj, wire, count=3, extra=App.Vector(0, -500, 0), subelements=["Edge2", "Edge3"], align=True, force_vertical=True)
+doc.recompute()
+}}
+
+
+{{Docnav/de
+|[[Draft_CircularArray/de|KreisAnordnung]]
+|[[Draft_PathLinkArray/de|PfadVerknüpfungsanordnung]]
+|[[Draft_Workbench/de|Draft]]
+|IconL=Draft_CircularArray.svg
+|IconR=Draft_PathLinkArray.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

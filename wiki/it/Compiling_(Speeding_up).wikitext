@@ -1,0 +1,75 @@
+<languages/>
+
+{{Docnav/it
+|[[FreeCAD_Docker_CLI_mode/it|Modalità CLI di FreeCAD Docker]]
+|[[Third_Party_Libraries/it|Librerie di terze parti]]
+}}
+
+{{TOCright}}
+
+<span id="Overview"></span>
+==Presentazione== 
+
+FreeCAD è una grande applicazione che può richiedere da 10 minuti a un'ora per essere compilata completamente dal sorgente. Ciò dipende principalmente dalla CPU in uso e dal numero di core utilizzati nel processo di compilazione. Ecco alcuni suggerimenti per abbreviare tale processo e ridurre i tempi di costruzione.
+
+== CCache ==
+
+Installare {{incode|ccache}} per la costruzione cache
+
+[https://ccache.dev/ Ccache] accelera la ricompilazione memorizzando nella cache le compilazioni precedenti e rilevando quando la stessa compilazione viene eseguita di nuovo. Ccache è un software gratuito, rilasciato sotto GPLv3 o successivo.
+
+Sulla maggior parte dei sistemi ccache verrà rilevato e abilitato automaticamente, puoi utilizzare l'opzione {{incode|FREECAD_USE_CCACHE}} {{incode|cmake}} per controllare questo comportamento.
+
+<span id="Disable_modules"></span>
+=== Disabilitare i moduli ===
+
+Quando si utilizza {{incode|cmake}} per configurare la build, è possibile disabilitare la compilazione di alcuni ambienti che al momento potrebbero non essere necessari. Questo è utile se si vuole solo testare alcuni ambienti di lavoro.
+
+Ad esempio, per evitare di costruire i banchi di lavoro FEM e Mesh:
+
+{{Code|code=
+cmake -DBUILD_FEM=OFF -DBUILD_MESH=OFF ../freecad-source
+}}
+
+Utilizzare {{incode|cmake-gui}}, {{incode|cmake-curses-gui}} o {{incode|cmake-qt-gui}} per visualizzare tutte le possibili variabili che possono essere modificate nella configurazione; utilizzando queste interfacce è possibile attivare o disattivare facilmente diversi banchi di lavoro.
+
+<span id="Number_of_jobs_in_parallel"></span>
+== Numero di lavori in parallelo ==
+
+Dopo la configurazione fatta con {{incode|cmake}}, il programma {{incode|make}} avvia il compilatore C++ effettivo per lavorare sui file del codice sorgente. Si può velocizzare la compilazione lavorando su vari file contemporaneamente. Ciò si ottiene con l'opzione {{incode|-j}} di {{incode|make}}, che indica il numero di "lavori" o comandi di compilazione eseguiti contemporaneamente. Questa opzione è un numero intero.
+
+Esegui quattro comandi di compilazione in parallelo:
+
+{{Code|code=
+make -j4
+}}
+
+Compilare contemporaneamente più file quanti sono i core della CPU nel sistema. Questo è utile se hai molti core e vuoi usarli tutti per compilare il software.
+
+{{code|code=
+make -j$(nproc)
+}}
+
+Compilare contemporaneamente più file quanti sono i core della CPU nel sistema, meno due. Usa questo in modo che il tuo sistema sia ancora pronto a svolgere qualche altra attività; ad esempio, due core ti permetteranno di usare un browser, mentre il resto dei core continuerà a compilare il software in background.
+
+{{code|code=
+make -j$(nproc --ignore=2)
+}}
+
+== distcc ==
+
+Il programma {{incode|distcc}} può essere utilizzato per eseguire compilazioni distribuite di codice C e C++ su più macchine in una rete.
+
+[https://www.distcc.org/ Distcc] dovrebbe sempre generare gli stessi risultati di una compilazione locale. È gratuito, semplice da installare ed utilizzare e solitamente due o più volte più veloce rispetto alla compilazione locale.
+
+Lo sviluppatore di FreeCAD 'etrombly' ha pubblicato una breve spiegazione su [https://forum.freecadweb.org/viewtopic.php?f=4&t=50810&p=459142#p458614 come installare distcc per compilare FreeCAD su una rete di computer utilizzando Docker].
+
+
+{{Docnav/it
+|[[FreeCAD_Docker_CLI_mode/it|Modalità CLI di FreeCAD Docker]]
+|[[Third_Party_Libraries/it|Librerie di terze parti]]
+}}
+
+{{Userdocnavi{{#translation:}}}}
+[[Category:Developer_Documentation{{#translation:}}]]
+[[Category:Developer{{#translation:}}]]

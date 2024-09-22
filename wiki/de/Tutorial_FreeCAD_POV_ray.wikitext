@@ -1,0 +1,815 @@
+<languages/>
+
+{{VeryImportantMessage|Der Arbeitsbereich [[Ray_Tracing_Workbench/de|Raytracing]] wird abgelöst durch den neuen Arbeitsbereich [https://github.com/FreeCAD/FreeCAD-render Render Workbench], der als Ersatz geplant ist. Der Arbeitsbereich Render kann mit dem [[Std_AddonMgr/de|Addon-Manager]] installiert werden. Diese Information wird bereitgestellt, weil FreeCAD als Standardeinstellung (mit Stand 0.19-24276) weiterhin mit dem Arbeitsbereich Raytracing ausgeliefert wird und der neue Arbeitsbereich generell in der gleichen Weise arbeiten sollte}}
+
+{{TutorialInfo/de
+|Topic=Rendern
+|Level=Mittel
+|Time=120 Minuten
+|Author=[https://forum.freecadweb.org/memberlist.php?mode=viewprofile&u=21943 vocx]
+|FCVersion=0.18 oder höher
+|Files=keine
+}}
+
+<span id="Introduction"></span>
+==Einleitung==
+
+Dieses Tutorial zeigt, wie man ein gerendertes Bild in FreeCAD mit dem POV-Ray Renderer erzeugt. Es wird davon ausgegangen, dass der Anwender bereits ein Teil oder eine Baugruppe in FreeCAD erstellt oder in FreeCAD importiert hat. Es verwendet die [[Raytracing Workbench/de|Raytracing Arbeitsbereich]], um die Datei für das Rendern zu erzeugen.
+
+Dieses Tutorial basiert auf dem Forumsbeitrag von schupin [https://forum.freecadweb.org/viewtopic.php?f=36&t=32745 FreeCAD / pov ray tutorial], der auch eine {{incode|.pov}} Datei enthält, die zur Erstellung eines Renderings benötigt wird.
+
+[[Image:Povray_before_after.png|600px|center]]
+
+{{Caption|align=center|Beispiel von schupin eines mit FreeCAD und POV-Ray erstellten 3D Modells und eines qualitativ hochwertigen Renderings.}}
+
+Die in diesem Tutorial verwendeten Dateien befinden sich im Beitrag Nr. 8 [https://forum.freecadweb.org/viewtopic.php?f=36&t=32745#p305169 im selben Diskussionsbeitrag].
+
+<span id="Basic_setup"></span>
+==Grundaufbau==
+
+Folge dem grundlegenden Arbeitsablauf, der in der Dokumentation [[Raytracing Workbench/de]] beschrieben ist.
+
+Damit das direkte Rendern funktioniert, muss die ausführbare Datei {{incode|povray}} in {{MenuCommand|Bearbeiten → Einstellungen → Raytracing → Rendern → POV-Ray Programmdatei}}; setze sie auf deinem Speicherort in deinem System, z.B. {{incode|/usr/bin/povray}}. Andere vom Renderer verwendete Optionen können hier ebenfalls definiert werden, einschließlich der Breite {{incode|+W}} und Höhe {{incode|+H}} des Bildes sowie die Verwendung von Antialiasing {{incode|+A}}.
+
+<span id="Setup_the_.pov_file"></span>
+==Einrichten der .pov Datei==
+
+1. Erstelle eine Baugruppe mit Körpern aus der [[Part_Workbench/de|Part]] oder [[PartDesign_Workbench/de|PartDesign Arbeitsbereich]] oder eines anderen Arbeitsbereichs, die Volumenkörper erzeugt, z.B. der [[Arch_Workbench]]. Weise den einzelnen Körpern, aus denen die Baugruppe besteht, Farben oder Materialien zu, die ungefähr der Farbe entsprechen, die du in deinem Rendering wünschst. 
+
+[[Image:01_T04_FreeCAD_POVray_model.png|600px|center]]
+
+{{Caption|align=center|Zusammenbau von drei Körpern, die in FreeCAD erstellt und mit Farben oder Materialien versehen wurden.}}
+
+2. Wenn dein Modell sehr detailliert ist, stelle sicher, dass die {{PropertyView/de|Ablenkung}} des Körpers auf einen niedrigen Wert zwischen {{incode|0.1}} und {{incode|0.01}} oder sogar kleiner eingestellt ist. Je niedriger dieser Wert ist, desto detaillierter wird das exportierte Mesh sein und desto besser wird die Qualität des Renderings sein.
+
+[[Image:02_T04_FreeCAD_POVray_deviation.png|center]]
+
+{{Caption|align=center|Abweichungseigenschaft der in FreeCAD erstellten Körper; die Abweichung muss gering sein, um die Teile mit guter Auflösung exportieren zu können.}}
+
+3. Erstelle ein POV-Ray Projekt, durch anklicken von {{Button|[[Image:Raytrace_New.svg|16px]] [[Raytracing New/de|Neu]]}} klickst. Wenn das Ansichtsfenster als [[Std OrthographicCamera/de|orthografisch]] eingestellt ist, ändere es in [[Std PerspectiveCamera/de|Perspektive]], da der Renderer normalerweise mit einer Kamera mit perspektivischer Ansicht arbeitet. Die Verwendung der perspektivischen Ansicht ermöglicht es dir, die Art der zu rendernden Szene besser zu erkennen.
+
+4. Wähle alle Objekte aus, die du zu deiner Szene hinzufügen möchtest, wähle dann das erstellte {{incode|PovProject}} Objekt und klicke auf {{Button|[[Image:Raytrace_NewPartSegment.svg|16px]]. [[Raytracing_InsertPart|EinfügenTeil]]}}.
+
+{{Emphasis|Hinweis:}} Hüte dich vor den Objekten, die derzeit nicht im 3D Ansichtsfenster sichtbar sind. Wenn sie unsichtbar sind, aber in der Szene enthalten sind, werden sie trotzdem gerendert. Wenn andererseits ein Körper wirklich nicht gerendert werden soll, wähle ihn nicht für die Aufnahme in das POV-Ray Projekt aus.
+
+{{Emphasis|Hinweis 2:}} Alle Objekte im POV-Ray Projekt werden einen Namen haben, der auf ihrem internen FreeCAD-Namen basiert. Es ist wichtig zu beachten, welches der POV-Ray Name ist, da diesen POV-Ray Namen weitere Optionen, z.B. die Materialtexturen, zugeordnet werden.
+
+5. Im 3D Ansichtsfenster kannst du die Ansicht zoomen, schwenken und drehen, um die Szene nach deinen Wünschen einzurichten. Stellen sicher, dass die Objekte im Ansichtsfenster zentriert sind, wähle dann das erstellte {{incode|PovProject}} Objekt aus und drücke {{Button|[[Image:Raytrace_ResetCamera.svg|16px]]. [[Raytracing ResetCamera/de|Kamera zurücksetzen]]}}.
+
+6. Die POV-Ray Datei ist nun fertig; sie enthält die ausgewählten Objekte und die Kamerainformationen. Wähle das erstellte {{incode|PovProject}} Objekt und drücke dann {{Button|[[Image:Raytrace_ExportProject.svg|16px]] [[Raytracing ExportProject/de|ExportProjekt]]}}, um die Datei  {{incode|.pov}} zu speichern.
+
+7. Die erzeugte {{incode|.pov}} Datei kann nun direkt aus FreeCAD heraus gerendert werden. Wähle das erstellte {{incode|PovProject}} Objekt aus und drücke dann {{Button|[[Image:Raytrace_Render.svg|16px]] [[Raytracing_Render/de|Render]]}}. Wenn das Popup Bild auf dem Bildschirm erscheint, klicke auf es, damit es in einem eigenen Fensterreiter an FreeCAD gesendet wird.
+
+[[Image:03_T04_FreeCAD_POVray_first_render.png|600px|center]]
+
+{{Caption|align=center|Erstes Rendern der mit POV-Ray erstellten Baugruppe mit der von der Raytracing Workbench geschriebenen Standardvorlage.}}
+
+7.1. Wenn die {{incode|.pov}} Datei bereits erstellt wurde, ist es auch möglich, {{incode|povray}} von der Befehlszeile aus zu starten.
+{{Code|code=
+povray assembly.pov +W800 +H600 +AM2 +A
+}}
+
+Die Optionen {{incode|+WX +HY}} legen die horizontale und vertikale Pixelgröße des endgültigen Bildes fest.
+
+Die Optionen {{incode|+AM2}} (Typ 2, rekursive Superabtastung) und {{incode|+A}} lösen ein Antialiasing aus, um ein glatteres Bild zu erzeugen.
+
+8. Durch Doppelklicken auf das {{incode|PovProject}} Objekt kann man sehen, dass es die {{incode|ProjectStd.pov}} Vorlage verwendet; diese Vorlage erzeugt eine grundlegende {{incode|.pov}} Datei, die ein einfaches und dunkles Bild erzeugt.
+
+Um das Aussehen des Bildes zu verbessern, verwende eine bessere Vorlage. Doppelklicke auf das Objekt {{incode|PovProject}} und wähle die Vorlage {{incode|RadiosityNormal.pov}}. Exportiere  dann eine neue {{incode|.pov}} Datei und führe den Renderer erneut aus. Das Bild sollte heller und allgemein besser aussehen.
+
+[[Image:04_T04_FreeCAD_POVray_first_render_radiosity.png|600px|center]]
+
+{{Caption|align=center|Rendern der mit POV-Ray erzeugten Baugruppe mit der von der Raytracing Workbench geschriebenen RadiosityNormal-Vorlage.}}
+
+Doppelklicke noch einmal auf das Objekt {{incode|PovProject}} und wähle nun die Vorlage  {{incode|RadiosityOutdoorHQ.pov}}. Exportiere dann eine neue {{incode|.pov}} Datei und führe den Renderer erneut aus. Die Erzeugung des Bildes sollte länger dauern, aber das Ergebnis sollte eine bessere Qualität haben.
+[[Image:05_T04_FreeCAD_POVray_first_render_radiosity_outdoor.png|600px|center]]
+
+{{Caption|align=center|Rendern der mit POV-Ray erzeugten Baugruppe, mit der von der Raytracing Workbench geschriebenen RadiosityOutdoorHQ Vorlage.}}
+
+Wenn das gerenderte Bild gut genug ist, dann kann es gespeichert werden, und es gibt nichts mehr zu tun. Um jedoch das Aussehen der Materialien genau zu kontrollieren und noch bessere Ergebnisse zu erzielen, muss die {{incode|.pov}} Datei manuell bearbeitet werden.
+
+In den folgenden Abschnitten bearbeiten wir die Basisdatei {{incode|.pov}}, die mit der Vorlage {{incode|ProjectStd}} erstellt wurde.
+
+<span id="Editing_the_.pov_file"></span>
+==Bearbeiten der .pov Datei==
+
+9. Die von FreeCAD generierte {{incode|.pov}} Datei ist eine einfache Textdatei, die mit jedem Editor geöffnet werden kann. Sie ähnelt grob einer C++ Quellcodedatei: Anweisungen beginnen mit einem Hash {{incode|#}} und werden mit einem Semikolon {{incode|;}} abgeschlossen. Geschweifte Klammern <code>{ }</code> werden verwendet, um Abschnittsblöcke zu begrenzen, und die Einrückung ist ein beliebiger Weißraum. Kommentare werden mit einem doppelten Schrägstrich {{incode|//}} angegeben; Blockkommentare können wie in C mit einem Paar {{incode|/* */}} definiert werden.
+
+Die Datei mag auf den ersten Blick kompliziert aussehen, aber 90 % ihres Inhalts sind nur Netzdaten, die nicht viele Änderungen erfordern, da diese Netze die Geometrie der Körper darstellen, die wir rendern wollen.
+
+Die Datei ist wie folgt strukturiert:
+* Beinhaltet
+* Globale Einstellungen
+* Himmelskugel
+* Flugzeuge
+* Oberflächen und Texturen
+* Kamera
+* Netz- und Körperinformationen
+* Lichtquelle
+
+Die Kamerainformationen werden nicht berührt, ebenso wenig wie die meisten Informationen in den Netzen. Die wichtigsten Änderungen werden in den anderen Abschnitten vorgenommen.
+
+Da die Netze nicht stark verändert werden, kann die Datei neu organisiert werden, so dass diese Informationen am Ende der Datei stehen.
+
+<div class="toccolours mw-collapsible mw-collapsed">
+Dies ist der vollständige Inhalt der Datei {{incode|.pov}}, nur ohne die Netze.
+<div class="mw-collapsible-content">
+{{Code|code=
+// Persistence of Vision Ray Tracer Scene Description File
+// for FreeCAD (http://www.freecadweb.org)
+
+#version 3.6;
+
+#include "colors.inc"
+#include "metals.inc"
+
+// ----------------------------------------
+
+global_settings {
+    assumed_gamma 1.0
+    ambient_light color rgb <1.0,1.0,1.0>
+    max_trace_level 20
+}  
+
+// ----------------------------------------
+
+
+sky_sphere {
+  pigment {
+    gradient y
+    color_map {
+      [0.0 rgb <0.6,0.7,1.0>]
+      [0.7 rgb <0.0,0.1,0.8>]
+    }
+  }
+}
+
+
+// ----------------------------------------
+
+plane {
+  y, -1
+  texture { pigment {rgb <0.0,0.0,0.0>} finish {ambient 0.0 reflection 0.05 specular 0.0} }
+}
+
+// Standard finish
+//#declare StdFinish = F_MetalA;
+//#declare StdFinish = finish { diffuse 0.7 };
+//#declare StdFinish = finish { phong 0.5 };
+//#declare StdFinish = finish { ambient rgb <0.5,0.5,0.5> };
+//#declare StdFinish = finish { crand 0.5 phong 0.9};
+#declare StdFinish = finish { ambient 0.01 diffuse 0.9 phong 1.0 phong_size 70 metallic brilliance 1.5} ;
+
+// declares position and view direction
+
+// Generated by FreeCAD (http://www.freecadweb.org/)
+#declare cam_location =  <-171.753,1229.11,-2667.08>;
+#declare cam_look_at  = <636.959,359.955,160.296>;
+#declare cam_sky      = <0.068217,0.958943,0.275273>;
+#declare cam_angle    = 45; 
+camera {
+  location  cam_location
+  look_at   cam_look_at
+  sky       cam_sky
+  angle     cam_angle 
+  right x*800/600
+}
+// Written by FreeCAD http://www.freecadweb.org/
+// face number1 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ... meshes should be defined here until the end of the file ...
+
+
+
+
+//default light
+light_source {
+  cam_location + cam_angle * 100
+  color rgb <10, 10, 10>
+}
+}}
+</div>
+</div>
+
+<span id="Basic_re-organization"></span>
+=== Grundlegende Reorganisation ===
+
+10. Öffne die Datei {{incode|.pov}} mit einem Texteditor, gehe zum Ende der Datei, wähle den {{incode|light_source}} Abschnitt aus, schneide ihn aus und füge  ihn vor der ersten {{incode|//face number1}} Zeile ein.
+
+Die resultierende Datei sollte die Abschnitte {{incode|camera}} und {{incode|light_source}} nebeneinander haben, zum Beispiel
+
+{{Code|code=
+// Generated by FreeCAD (http://www.freecadweb.org/)
+#declare cam_location =  <-171.753,1229.11,-2667.08>;
+#declare cam_look_at  = <636.959,359.955,160.296>;
+#declare cam_sky      = <0.068217,0.958943,0.275273>;
+#declare cam_angle    = 45; 
+camera {
+  location  cam_location
+  look_at   cam_look_at
+  sky       cam_sky
+  angle     cam_angle 
+  right x*800/600
+}
+
+//default light
+light_source {
+  cam_location + cam_angle * 100
+  color rgb <10, 10, 10>
+}
+// Written by FreeCAD http://www.freecadweb.org/
+// face number1 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.
+.
+.
+}}
+
+<span id="Prepare_lights"></span>
+=== Lichter vorbereiten ===
+
+11. Standardmäßig wird in der Projektdatei eine Leuchte mit einer Position und einer Farbe definiert.
+{{Code|code=
+light_source {
+  cam_location + cam_angle * 100
+  color rgb <10, 10, 10>
+}
+}}
+
+Die Position des Lichts wird durch einen Vektor {{incode|<x, y, z>}} definiert. Die {{incode|Farbe}} kann wie ein {{incode|<r, g, b>}} Vektor festgelegt werden, oder es kann auch eine benannte Farbe wie  {{incode|Weiß}} sein. Wenn die RGB Werte angegeben werden, sollten sie im Bereich von  {{incode|0.0}} bis {{incode|1.0}} liegen, damit das Licht eine normale Helligkeit hat.
+
+Wie andere Objekte auch, kann das Licht mit vielen Optionen modifiziert werden. Die Option {{incode|area_light}} erzeugt eine rechteckige Quelle, was realistischer ist, da es zu einer diffusen Beleuchtung führt, die weiche Schatten erzeugt. Das Schlüsselwort {{incode|adaptive}} hilft, die Berechnungszeit der Lichtwege zu reduzieren; je größer der Wert, desto genauer wird das Ergebnis sein; um lange Renderingzeiten zu vermeiden, solltest du die kleinste Ganzzahl verwenden, die ein akzeptables Ergebnis liefert ({{incode|1}} oder {{incode|2}} ist normalerweise ausreichend); um das beste Ergebnis zu erhalten, entferne das Schlüsselwort vollständig (lange Renderingzeit). Das Schlüsselwort {{incode|jitter}} hilft bei der Verbesserung der Schatten durch zufällige Verschiebung der Position der Lichter. Die Schlüsselwörter {{incode|circular}} und {{incode|orient}} verwandeln das Flächenlicht in eine sphärische Quelle, die bei abgerundeten Objekten in der Szene bessere Schatten erzeugt. Das Einbeziehen von {{incode|fade_distance}} und {{incode|fade_power}} ist hilfreich, um den Wert des Lichts mit der Entfernung abzuschwächen, genau wie es bei einer echten Lichtquelle geschieht.
+
+Richte das von rechts und oben kommende Licht ein.
+{{Code|code=
+light_source {
+    <1200, 1000, -1300>
+    color White
+    area_light <100, 0, 0>, <0, 0, 100>, 20, 20
+    adaptive 1
+    jitter
+    circular orient
+    fade_distance 1000 fade_power 2
+}
+}}
+
+Wenn die Lichtquelle in der Szene sein soll, kann es nützlich sein, auf dem Bildschirm einen Hinweis darauf zu sehen, wo diese Quelle sein sollte. Erstelle zu diesem Zweck eine Kugel mit einem kleinen Radius und nimm an, dass diese Kugel die Lichtquelle darstellt; positioniere die Kugel an der gewünschten Stelle, bewege dann das Licht sehr nahe an diese Koordinaten und teste die Beleuchtung der Szene; wenn du mit der Position des Lichts zufrieden bist, lösche die Kugel einfach.
+{{Code|code=
+sphere {
+    <1200, 1000, -1200>, 10
+    pigment { color White }
+}
+}}
+
+12. Der Abschnitt {{incode|sky_sphere}} wird verwendet, um einen realistischen Himmelshintergrund zu erstellen. Er wird üblicherweise als ein {{incode|gradient}} und eine {{incode|color_map}} von mindestens zwei Farben definiert, um einen fließenden Übergang von der Farbe des Horizonts zur Farbe des Zenits der Szene zu erzeugen.
+
+{{Code|code=
+sky_sphere {
+    pigment {
+        gradient y
+        color_map {
+            [0.0 color Gray50]
+            [0.7 color White]
+        }
+    }
+}
+}}
+
+[[Image:06_T04_FreeCAD_POVray_render_lights.png|600px|center]]
+
+{{Caption|align=center|Ausgehend von der Standardvorlage, Rendern der Szene mit POV-Ray, wobei die Lichtquelle und die Himmelskugel eingerichtet werden.}}
+
+<span id="Prepare_the_body_textures"></span>
+=== Bereite die Körpertexturen vor ===
+
+13. Die Texturen der einzelnen Körper müssen angepasst werden. Dies ist die zeitaufwendigste Aufgabe dieses Prozesses.
+
+In der {{incode|.pov}} Datei wird jeder Körper auf folgende Weise beschrieben
+* Fläche1, Fläche2, Fläche3, Fläche4, ...
+* Körper (Vereinigung der Flächen)
+* Objekt
+
+Ein Körpernetz wird durch Flächen definiert, und jede Fläche wird durch eine Reihe von Dreieckselementen definiert, die ihrerseits durch {{incode|vertex_vectors}}, {{incode|normal_vectors}} und {{incode|face_indices}} definiert werden. Diese Informationen müssen überhaupt nicht geändert werden. Dann wird jeder Körper als Vereinigung der angegebenen Flächen definiert. Auch diese Information muss nicht verändert werden.
+
+Schließlich wird jedes zu rendernde {{incode|object}} als einer der spezifizierten Körper definiert, mit einer bestimmten {{incode|texture}}, die ihrerseits durch Eigenschaften wie {{incode|pigment}} und {{incode|finish}} definiert wird.
+{{Code|code=
+// instance to render
+object {Pov_Body
+ texture {
+      pigment {color rgb <0.827451,0.827451,0.431373>}
+      finish {StdFinish } //definition on top of the project
+  }
+}
+}}
+
+Indem man die {{incode|.pov}} Datei nach dem Schlüsselwort {{incode|object}} durchsucht, ist es möglich, direkt zum gewünschten Teil in der Datei zu gehen und die {{incode|texture}} entsprechend zu modifizieren.
+
+Wie im Kommentar angegeben, steht die Definition von {{incode|StdFinish}} ganz oben in der Datei, in diesem Fall vor den Kamerainformationen. Dieser Wert kann auf vielfältige Weise deklariert werden, als Kombination verschiedener Eigenschaften, wie in den kommentierten und unkommentierten Zeilen gezeigt wird.
+{{Code|code=
+// Standard finish
+//#declare StdFinish = F_MetalA;
+//#declare StdFinish = finish { diffuse 0.7 };
+//#declare StdFinish = finish { phong 0.5 };
+//#declare StdFinish = finish { ambient rgb <0.5,0.5,0.5> };
+//#declare StdFinish = finish { crand 0.5 phong 0.9};
+#declare StdFinish = finish { ambient 0.01 diffuse 0.9 phong 1.0 phong_size 70 metallic brilliance 1.5} ;
+}}
+
+Im Allgemeinen ist eine {{incode|Textur}} ein Behälter, der ein Material beschreibt; er enthält Informationen wie das {{incode|Pigment}} (Farbe oder Grafik), {{incode|normal}} (wie sich die Farbe mit der Krümmung der Oberfläche ändert), {{incode|finish}} (Wechselwirkung der Oberfläche mit dem Licht), {{incode|pattern}} (Achat, Ziegel, Dellen, Leopard, Radial, Wellen, Fliesen, Wellen, Holz usw.) und andere Eigenschaften. Es gibt viele Optionen, die miteinander kombiniert werden können, um eine Textur zu erzeugen. Dieses Mischen ist nicht trivial, aber es gibt viele Beispiele online, um das gewünschte Aussehen des Materials zu erhalten.
+
+<span id="Material_libraries"></span>
+==== Materialbibliotheken ====
+
+14. POV-Ray wird mit einer umfangreichen Bibliothek von Materialien geliefert, die namentlich verwendet werden können. Standardmäßig stellt die Projektvorlage einige Materialien durch die Verwendung von {{incode|#include}} Anweisungen am Anfang der Datei zur Verfügung. Diese Materialien können nach Belieben weiter modifiziert werden.
+{{Code|code=
+#include "colors.inc"
+#include "metals.inc"
+}}
+
+Die Bibliothek {{incode|colors.inc}} definiert die Grundfarben durch ihren Namen, {{incode|Red}}, {{incode|Green}}, {{incode|Blue}}, {{incode|Yellow}}, {{incode|Cyan}}, {{incode|Magenta}}, {{incode|Clear}}, {{incode|White}} und {{incode|Black}}. Es definiert auch verschiedene andere Schattierungen sowie Funktionen zur Transformation von Farben. Die Bibliothek {{incode|metals.inc}} enthält Kupfer-, Silber-, Chrom- und Messingtexturen, und {{incode|golds.inc}} enthält die Goldtexturen.
+
+Die Standardbibliotheken befinden sich im Installationsverzeichnis von POV-ray, zum Beispiel
+{{Code|code=
+/usr/share/povray-3.7/include/
+}}
+
+<span id="New_textures"></span>
+==== Neue Texturen ====
+
+15. Um zum Beispiel eine Spiegeltextur zu erzeugen, wird dem {{incode|finish}} ein hoher Wert von {{incode|reflection}} zugewiesen.
+{{Code|code=
+#declare T_mirror = texture {
+    finish { reflection {0.9} }
+}
+}}
+
+Alternativ kann für Metalle eine vordefinierte Oberflächenbeschaffenheit verwendet werden.
+{{Code|code=
+#include "metals.inc"
+#declare T_mirror = texture {
+    finish { F_MetalE }
+}
+}}
+
+Dann kann sie dem spezifischen Objekt zugeordnet werden.
+{{Code|code=
+object {Pov_Body002
+    texture { T_mirror }
+}
+}}
+
+Die {{incode|woods.inc}} Bibliothek definiert die {{incode|T_Wood7}} Textur (gelbe Kiefer, zerklüftete Maserung). Sie kann als Grundlage für eine komplexere Textur verwendet werden, mit zusätzlicher Skalierung und Übersetzung.
+{{Code|code=
+#include "woods.inc"
+#declare T_wood = texture {
+    T_Wood7
+    scale 50.0
+    translate x*1
+    translate y*10
+}
+}}
+
+Dann wird sie dem spezifischen Objekt zugeordnet.
+{{Code|code=
+object {Pov_Body
+    texture { T_wood }
+}
+}}
+
+Die {{incode|glass.inc}} Bibliothek definiert  {{incode|F_Glass2}} als eine Oberfläche für transparentes Acryl; sie definiert auch  {{incode|I_Glass}} als ein Innenmaterial, das zusammen mit der Option {{incode|caustics}} verwendet wird, um die Effekte von Licht, das durch ein transparentes Material hindurchgeht, so genau wie möglich zu berechnen. In diesem Fall wird der Abschnitt {{incode|material}} verwendet, der äußere ({{incode|texture}}) und innere ({{incode|interior}}) Informationen des Materials enthält.
+
+{{Code|code=
+#declare M_vase = material {
+    texture {
+        pigment { color rgbf <1.0, 0.73333, 0.0, 0.75> }
+        finish { F_Glass2 }
+    }
+    interior { I_Glass caustics 1.0 }
+}
+}}
+
+Dann kann sie dem spezifischen Objekt zugeordnet werden.
+{{Code|code=
+object {Pov_Body001
+    material { M_vase }
+}
+}}
+
+[[Image:07_T04_FreeCAD_POVray_render_materials.png|600px|center]]
+
+{{Caption|align=center|Ausgehend von der Standardvorlage, Rendern der Szene mit POV-Ray, mit der Lichtquelle und der Himmelskugel eingerichtet und den Materialien zugeordnet.}}
+
+<span id="Prepare_planes"></span>
+=== Ebenen vorbereiten ===
+
+16. Wenn das ursprüngliche 3D Modell nicht zur Verfügung steht, können Ebenen hinzugefügt werden, um einen Boden oder eine Tischplatte zu simulieren, auf der die Objekte stehen. Es können weitere Ebenen definiert werden, die als Wände oder andere Arten von Begrenzungen dienen.
+
+Standardmäßig wird eine einzige Ebene erstellt. Sie wird 1 Millimeter unterhalb des Modells platziert, so dass sie als Boden erscheint. Der Ebene wird eine Grundtextur zugewiesen, die schwarz und leicht reflektierend ist.
+{{Code|code=
+plane {
+  y, -1
+  texture { pigment {rgb <0.0,0.0,0.0>} finish {ambient 0.0 reflection 0.05 specular 0.0} }
+}
+}}
+
+Beachte, dass in POV-Ray die X Achse als horizontal (links-rechts), die Y Achse als vertikal (oben-unten) und die Z Achse als Tiefe (vorne-hinten) definiert ist.
+
+Für einen einfachen grauen Boden, der kaum reflektierend verwendet wird
+{{Code|code=
+plane {
+  y, -1
+  texture { pigment {rgb <0.3, 0.3, 0.3>} finish {ambient 0.0 reflection 0.01 specular 0.0} }
+}
+}}
+
+[[Image:08_T04_FreeCAD_POVray_render_floor_gray.png|600px|center]]
+
+{{Caption|align=center|Ausgehend von der Standardvorlage wird die Szene mit POV-Ray gerendert, wobei die Lichtquelle und die Himmelskugel eingerichtet, die Materialien zugeordnet und eine Bodenebene mit einer grauen Grundtextur erstellt werden.}}
+
+17. Mit Hilfe von Normalen und Materialbibliotheken kann die Ebene ein komplexeres Aussehen erhalten.
+
+Definiere eine normale Karte, die verwendet wird, um der Fläche das Aussehen eines Parkettbodens zu geben.
+
+{{Code|code=
+#declare Parquet_normal = normal {
+    gradient z 2 slope_map { [0 <0,1>][0.05 <1,0>][0.95 <1,0>][1 <0,-1>] }
+    scale 80
+} ;
+}}
+
+Definiere dann die Ebene. Als {{incode|pigment}} verwende ein Holz {{incode|color_map}}, das in {{incode|woods.inc}} definiert ist, und modifiziere es mit {{incode|turbulence}} und {{incode|scale}}, so dass die Holzmaserung zufällig aussieht. Dann füge die erzeugte Normale zusammen mit einer weiteren Normalen hinzu; dies führt zu einer Textur des Parketts mit leichten Unregelmäßigkeiten. Dann als {{incode|finish}}, mache es ein wenig reflektierend und glänzend.
+
+{{Code|code=
+#include "woods.inc"
+plane {
+    y, -1
+    pigment {
+        wood color_map { M_Wood8A }
+        turbulence 0.5 scale <10, 1, 1>*20
+    }
+    normal {
+        average normal_map {
+          [1 Parquet_normal]
+          [1 wood 0.5 slope_map { [0 <0,0>][0.5 <0.5,1>][1 <1,0>] }
+              turbulence 0.5 scale <10, 1, 1>*20]
+        }
+    }
+    finish { ambient 0.0 reflection 0.1 specular 0.2 }
+}
+}}
+
+[[Image:09_T04_FreeCAD_POVray_render_floor_wood.png|600px|center]]
+
+{{Caption|align=center|Ausgehend von der Standardvorlage, Rendern der Szene mit POV-Ray, mit der Lichtquelle und der Himmelskugel eingerichtet, Materialien zugeordnet und einer Bodenebene mit einer Parketttextur.}}
+
+18. Füge eine zweite Ebene hinzu, diesmal senkrecht zur Z Richtung, um als Rückwand zu dienen. Verschiebe sie ein wenig hinter das Modell, um den Spiegel nicht zu verdecken. Füge die {{incode|stones.inc}} Bibliothek ein, füge eine generische Granittextur hinzu und skaliere sie ein wenig. Dadurch wird das Aussehen einer einfachen Trockenbauwand erreicht.
+
+{{Code|code=
+#include "stones.inc"
+plane {
+    z, 10
+    texture {
+        T_Grnt1   
+        scale 0.02
+    }
+}
+}}
+
+Eine dritte Ebene kann hinter der Position der Kamera hinzugefügt werden, so dass der Spiegel einen begrenzten Bereich zwischen den beiden Wänden reflektiert.
+
+{{Code|code=
+#include "stones.inc"
+plane {
+    z, -3700
+    texture {
+        T_Grnt1   
+        scale 0.02
+    }
+}
+}}
+
+[[Image:10_T04_FreeCAD_POVray_render_floor_wood_walls.png|600px|center]]
+
+{{Caption|align=center|Ausgehend von der Standardvorlage, Rendern der Szene mit POV-Ray, wobei die Lichtquelle und die Himmelskugel eingerichtet, die Materialien zugeordnet, eine Bodenebene mit einer Parketttextur und Rückwände mit Trockenbautexturen.}}
+
+<span id="Prepare_the_global_settings,_radiosity"></span>
+===Bereite die globalen Einstellungen vor, radiosity===
+
+19. Die globalen Einstellungen definieren das Umgebungslicht.
+
+{{Code|code=
+global_settings {
+    assumed_gamma 1.0
+    ambient_light color rgb <1.0,1.0,1.0>
+    max_trace_level 20
+}
+}}
+
+Die Eigenschaft {{incode|radiosity}} innerhalb der {{incode|global_settings}} steuert die Art und Weise, wie POV-Ray diffuse Lichtwechselwirkungen zwischen verschiedenen Objekten berechnet. Es ist wichtig, diese Eigenschaft anzupassen, um gute Rendering Ergebnisse zu erhalten.
+
+Da es zeitaufwendig sein kann, verschiedene {{incode|Radiosity}} Einstellungen zu testen, können Sie eine Variable {{incode|Rad_Quality}} und eine {{incode|#switch}} Anweisung verwenden, um schnell Render Einstellungen niedriger, mittlerer oder hoher Qualität festzulegen. Je höher die Qualitätseinstellungen sind, desto mehr Zeit wird zum Rendern eines Bildes benötigt.
+
+{{Code|code=
+#declare Rad_Quality = 1;
+
+global_settings {
+    assumed_gamma 1.0
+    ambient_light color rgb <1.0,1.0,1.0>
+    max_trace_level 20
+
+#switch (Rad_Quality)
+ #case (1)
+    radiosity { // Settings 1 (fast)
+        pretrace_start 0.08
+        pretrace_end   0.02
+        count 50
+        error_bound 0.5
+        recursion_limit 1
+    }
+    #break
+ #case (2)
+    radiosity { // Settings 2 (medium quality)
+        pretrace_start 0.08
+        pretrace_end   0.01
+        count 120
+        error_bound 0.25
+        recursion_limit 1
+    }
+    #break
+ #case (3)
+    radiosity { // Settings 3 (high quality)
+        pretrace_start 0.08
+        pretrace_end   0.005
+        count 400
+        error_bound 0.1
+        recursion_limit 2
+    }
+    #break
+#end
+}
+}}
+
+[[Image:11_T04_FreeCAD_POVray_render_floor_wood_walls_radiosity_1.png|600px|center]]
+
+{{Caption|align=center|Ausgehend von der Standardvorlage wird die Szene mit POV-Ray gerendert, wobei die Lichtquelle und die Himmelskugel eingerichtet, die Materialien zugeordnet, eine Bodenebene mit einer Parketttextur und die Rückwände mit Trockenbautexturen versehen werden. Radiosity Einstellungen für schnelles Rendern.}}
+
+20. Die Bibliothek {{incode|rad_def.inc}} definiert ein Makro, um die {{incode|radio}} schnell auf eine vordefinierte Konfiguration einzustellen.
+{{Code|code=
+#include "rad_def.inc"
+global_settings {
+    radiosity {
+        Rad_Settings(Setting, Normal, Media)
+    }
+}
+}}
+
+Der {{incode|Setting}} Wert kann eine der vordefinierten Konstanten sein:
+{{Code|code=
+Radiosity_Default
+Radiosity_Debug
+Radiosity_Fast
+Radiosity_Normal
+Radiosity_2Bounce
+Radiosity_Final
+Radiosity_OutdoorLQ
+Radiosity_OutdoorHQ
+Radiosity_OutdoorLight
+Radiosity_IndoorLQ
+Radiosity_IndoorHQ
+}}
+
+Die {{incode|Normal}} und {{incode|Media}} Werte sind entweder {{incode|off}} oder  {{incode|on}}.
+
+Um verschiedene Einstellungen zu testen, könnte daher die Anweisung {{incode|#switch}} auch wie im Folgenden geschrieben werden.
+
+{{Code|code=
+#declare Rad_Quality = 3;
+
+global_settings {
+    assumed_gamma 1.0
+    ambient_light color rgb <1.0,1.0,1.0>
+    max_trace_level 20
+
+#switch (Rad_Quality)
+ #case (1)
+    radiosity { // Settings 1 (fast)
+        Rad_Settings(Radiosity_Fast, off, off)
+    }
+    #break
+ #case (2)
+    radiosity { // Settings 2 (medium quality)
+        Rad_Settings(Radiosity_2Bounce, on, on)
+    }
+    #break
+ #case (3)
+    radiosity{ // Settings 3 (high quality)
+        Rad_Settings(Radiosity_Final, on, on)
+        recursion_limit 2
+    }
+    #break
+#end
+}
+}}
+
+Die genauen Werte, die von diesen Voreinstellungen verwendet werden, findest du in der Datei {{incode|rad_def.inc}}, die z.B. im Installationsverzeichnis von POV-Ray zu finden ist:
+{{Code|code=
+/usr/share/povray-3.7/include/
+}}
+
+Der [[Raytracing_Workbench/de|Raytracing Arbeitsbereich]] hat drei Standardvorlagen:
+* {{incode|ProjectStd.pov}}, sie verwendet {{incode|radiosity}} überhaupt nicht.
+* {{incode|RadiosityNormal.pov}}, es verwendet die Voreinstellung {{incode|Radiosity_Normal}}.
+* {{incode|RadiosityOutdoorHQ.pov}}, es verwendet die Voreinstellung {{incode|Radiosity_OutdoorHQ}}.
+
+<span id="Final_render"></span>
+== Endgültiges Rendern ==
+
+21. Die bearbeitete {{incode|.pov}} Datei kann gespeichert werden, wenn alle Anpassungen vorgenommen wurden.
+
+Die endgültige Struktur ist wie folgt:
+* Beinhaltet, mit zusätzlichen Bibliotheken
+* Globale Einstellungen, mit Radiosity-Parametern
+* Himmelskugel, mit hellerer Farbe
+* Ebenen, positioniert und mit Texturen
+* Oberflächen und Texturen, mit benutzerdefinierten Definitionen
+* Kamera, nicht geändert
+* Lichtquelle, mit zusätzlichen Eigenschaften
+* Netz- und Körperinformationen, unter Verwendung der zuvor definierten Texturen
+
+{{Emphasis|Hinweis:}} die Abschnitte der {{incode|.pov}} Datei können in beliebiger Reihenfolge sein, obwohl es wahrscheinlich einfacher ist, mit der Datei zu arbeiten, wenn sich die Netzinformationen am Ende befinden.
+
+Das endgültige Rendern kann durch Klicken auf {{Button|[[Image:Raytrace_Render.svg|16px]]}} durchgeführt werden. oder durch Aufruf der ausführbaren Datei von der Befehlszeile aus.
+
+{{Code|code=
+povray assembly.pov +W800 +H600 +AM2 +A
+}}
+
+[[Image:12_T04_FreeCAD_POVray_render_floor_wood_walls_radiosity_final.png|600px|center]]
+
+{{Caption|align=center|Ausgehend von der Standardvorlage wird die Szene mit POV-Ray gerendert, wobei die Lichtquelle und die Himmelskugel eingerichtet, die Materialien zugeordnet, eine Bodenebene mit einer Parketttextur und die Rückwände mit Trockenbautexturen versehen werden. Radiosity Einstellungen für ein qualitativ hochwertiges Ergebnis: {{incode|Radiosity_Final}} und {{incode|recursion_limit 2}}.}}
+
+<div class="toccolours mw-collapsible mw-collapsed">
+Dies ist der vollständige Inhalt der Datei {{incode|.pov}}, nur ohne den letzten Abschnitt, d.h. ohne die Netze.
+<div class="mw-collapsible-content">
+{{Code|code=
+// Persistence of Vision Ray Tracer Scene Description File
+// for FreeCAD (http://www.freecadweb.org)
+
+#version 3.6;
+
+#include "colors.inc"
+#include "metals.inc"
+#include "woods.inc"
+#include "glass.inc"
+#include "stones.inc"
+#include "rad_def.inc"
+
+// ----------------------------------------
+#declare Rad_Quality = 3;
+
+global_settings {
+    assumed_gamma 1.0
+    ambient_light color rgb <1.0,1.0,1.0>
+    max_trace_level 20
+
+#switch (Rad_Quality)
+ #case (1)
+    radiosity { // Settings 1 (fast)
+        Rad_Settings(Radiosity_Fast, off, off)
+    }
+    #break
+ #case (2)
+    radiosity { // Settings 2 (medium quality)
+        Rad_Settings(Radiosity_2Bounce, on, on)
+    }
+    #break
+ #case (3)
+    radiosity{ // Settings 3 (high quality)
+        Rad_Settings(Radiosity_Final, on, on)
+        recursion_limit 2
+    }
+    #break
+#end
+}
+
+// ----------------------------------------
+
+
+sky_sphere {
+    pigment {
+        gradient y
+        color_map {
+            [0.0 color Gray50]
+            [0.7 color White]
+        }
+    }
+}
+
+
+// ----------------------------------------
+
+#declare Parquet_normal = normal {
+    gradient z 2 slope_map { [0 <0,1>][0.05 <1,0>][0.95 <1,0>][1 <0,-1>] }
+    scale 80
+} ;
+
+// Floor
+plane {
+    y, -1
+    pigment {
+        wood color_map { M_Wood8A }
+        turbulence 0.5 scale <10, 1, 1>*20
+    }
+    normal {
+        average normal_map {
+          [1 Parquet_normal]
+          [1 wood 0.5 slope_map { [0 <0,0>][0.5 <0.5,1>][1 <1,0>] }
+              turbulence 0.5 scale <10, 1, 1>*20]
+        }
+    }
+    finish { ambient 0.0 reflection 0.1 specular 0.2 }
+}
+
+// Back wall
+plane {
+    z, 10
+    texture {
+        T_Grnt1   
+        scale 0.02
+    }
+}
+
+// Behind camera wall
+plane {
+    z, -3700
+    texture {
+        T_Grnt1   
+        scale 0.02
+    }
+}
+
+#declare T_mirror = texture {
+    finish { reflection {0.9} }
+//    finish { F_MetalE }
+}
+
+#declare T_wood = texture {
+    T_Wood7
+    scale 50.0
+    translate x*1
+    translate y*10
+}
+
+#declare M_vase = material {
+    texture {
+        pigment { color rgbf <1.0, 0.73333, 0.0, 0.75> }
+        finish { F_Glass2 }
+    }
+    interior { I_Glass caustics 1.0 }
+}
+// declares position and view direction
+
+// Generated by FreeCAD (http://www.freecadweb.org/)
+#declare cam_location =  <-171.753,1229.11,-2667.08>;
+#declare cam_look_at  = <636.959,359.955,160.296>;
+#declare cam_sky      = <0.068217,0.958943,0.275273>;
+#declare cam_angle    = 45; 
+camera {
+  location  cam_location
+  look_at   cam_look_at
+  sky       cam_sky
+  angle     cam_angle 
+  right x*800/600
+}
+//default light
+light_source {
+    <1200, 1000, -1300>
+    color White
+    area_light <100, 0, 0>, <0, 0, 100>, 20, 20
+    adaptive 1
+    jitter
+    circular orient
+    fade_distance 1000 fade_power 2
+}
+// Written by FreeCAD http://www.freecadweb.org/
+// face number1 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ... meshes should be defined here until the end of the file ...
+}}
+</div>
+</div>
+
+<span id="Final_notes"></span>
+== Schlussbemerkungen == 
+
+POV-Ray ist ein relativ altes Stück Software, das erstmals Anfang der 1990er Jahre veröffentlicht wurde. Seine Hauptvorteile gegenüber modernerer Software sind
+* es ist eine seit vielen Jahren bewährte Lösung
+* läuft in vielen Betriebssystemen
+* die Szene kann mit nur einer Textdatei eingestellt werden
+* erfordert einfache Berechnungsressourcen, um ein qualitativ hochwertiges Bild zu erzeugen, so dass es auch mit relativ alter Hardware funktioniert
+
+Dem Benutzer wird empfohlen, die POV-Ray Dokumentation und weitere Tutorials oder Beispiele zu lesen, um die richtigen Einstellungen für seine Bedürfnisse zu erhalten.
+* [http://www.povray.org/documentation/3.7.0/index.html POV-Ray für Unix Version 3.7]
+* [http://www.povray.org/documentation/3.7.0/t2_0.html POV-Ray Anleitung]
+* [http://www.povray.org/documentation/3.7.0/r3_0.html POV-Ray Referenz]
+
+
+{{Raytracing Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,115 @@
+<languages/>
+
+== Introduction ==
+
+{{TOCright}}
+
+Tous les objets du programme ont un [[Object_name/fr|object name]] qui les identifie de manière unique dans un document donné.
+
+Ces informations s'appliquent à tous les objets dérivés de [[App_DocumentObject/fr|App DocumentObject]] (classe {{incode|App::DocumentObject}}), qui comprend essentiellement tous les objets qu'il est possible de créer dans un document.
+
+<span id="Names"></span>
+== Les Names ==
+
+Il existe différentes propriétés pour les noms:
+* Le {{incode|Name}} ne peut contenir que des caractères alphanumériques simples et le trait de soulignement, {{incode|[_0-9a-zA-Z]}}.
+* Le {{incode|Name}} ne peut pas commencer par un nombre. Il doit commencer par une lettre ou le trait de soulignement, {{incode|[_a-zA-Z]}}.
+* Le {{incode|Name}} est attribué au moment de la création de l'objet ensuite, il n'est plus modifiable. L'objet ne peut jamais être renommé.
+* Le {{incode|Name}} doit être unique dans tout le document. Peu importe si deux objets sont de types complètement différents, par exemple, l'un est un [[PartDesign_Pocket/fr|PartDesign Cavité]] et l'autre est un [[Arch_Wall/fr|Arch Mur]]. Ils doivent avoir des noms différents.
+* Lors de la création d'un objet du même type, normalement le nom est augmenté d'un numéro séquentiel par exemple {{incode|Box}}, {{incode|Box001}}, {{incode|Box002}} etc.... Cela permet d'éviter la collusion des noms..
+* Une fois l'objet supprimé, son {{incode|Name}} devient disponible pour être utilisé par un objet nouvellement créé. Cela signifie que si {{incode|Box}}, {{incode|Box001}} et {{incode|Box002}} existent et que nous supprimons le premier élément, la boîte suivante créée avec [[Part_Box/fr|Part Cube]] ne sera pas {{incode|Box003}}, ce sera à nouveau {{incode|Box}}, cette chaîne étant disponible pour être réutilisée. Notez qu'il n'est pas possible de renommer {{incode|Box001}} ou {{incode|Box002}} en {{incode|Box}} car leurs noms sont fixes.
+
+En résumé, {{incode|Name}} agit essentiellement comme un identifiant unique (UID) pour un objet. Puisqu'un {{incode|Name}} unique est très restrictif, tous les objets ont également une propriété {{incode|Label}} qui permet de "renommer" l'objet en quelque chose de plus descriptif. Le {{incode|Name}} interne reste en fait fixe, mais le {{incode|Label}} modifiable par l'utilisateur peut être utilisé dans la plupart des situations où le {{incode|Name}} serait utilisé. Dans l'utilisation courante dans le programme et la documentation, "renommer" signifie changer le {{incode|Label}} et non le {{incode|Name}} réel de l'objet.
+
+<span id="Labels"></span>
+== Les Labels ==
+
+Il existe différentes propriétés pour les étiquettes:
+* Le {{incode|Label}} peut accepter n'importe quelle chaîne UTF8, y compris les accents et les espaces.
+* La [[Tree_view/fr|vue en arborescence]] affiche en fait le {{incode|Label}} de l'objet et pas le {{incode|Name}}. Par conséquent, chaque fois qu'un nouvel objet est créé, il est recommandé de remplacer {{incode|Label}} par une chaîne plus descriptive. Pour renommer l'objet, sélectionnez-le dans l'arborescence et appuyez sur {{KEY|F2}} (ou plutôt {{KEY|Return}} sur macOS), ou ouvrez le menu contextuel (clic droit) et choisissez {{MenuCommand|Rename}}.
+* Même après qu'un objet a été renommé (ré-étiqueté), le {{incode|Name}} interne sera toujours déclaré à de nombreux endroits, par exemple, dans la [[Status_bar/fr|Barre d'état]] ou dans la [[Selection_view/fr|Fenêtre de sélection]] lorsque l'objet est sélectionné.
+* Étant donné que les fonctions internes du programme font référence aux objets par {{incode|Name}}, de nombreuses boîtes de dialogue affichent le {{incode|Name}} en premier suivi de l'étiquette {{incode|Label}} modifiable par l'utilisateur entre parenthèses, par exemple, {{incode|Box (Extruded piece)}}.
+* Par défaut, le {{incode|Label}} est unique, tout comme le {{incode|Name}}. Cependant, ce comportement peut être modifié dans [[Preferences_Editor|éditeur de préférences]], {{MenuCommand|Edition → Préférences → Général → Document → Autoriser la duplication des étiquettes dans un document}}. Cela signifie qu'en général, {{incode|Label}} n'est pas unique dans le document et peut en fait être répété. Cependant, la recommandation est de garder le {{incode|Label}} unique, car c'est probablement ce qui est le plus utile pour identifier différents objets. Lors de l'écriture de fonctions personnalisées qui manipulent des objets, les méthodes doivent utiliser le {{incode|Name}} de l'objet plutôt que son {{incode|Label}} pour garantir que l'objet correct est utilisé.
+* Lors de l'utilisation des [[Expressions/fr|expressions]], par exemple, dans l'[[Property_editor/fr|Éditeur de propriétés]] ou dans une [[Spreadsheet/fr|feuille de calcul]], l'étiquette peut être référencé à l'aide de doubles crochets constitués de symboles "moins que" et "plus que".
+
+{{Code|code=
+<<Custom Label With Spaces>>.Height
+<<Label may use UTF8 characters>>.Width
+}}
+
+=== Label2 ===
+
+Il s'agit d'une chaîne simple qui peut contenir du texte arbitraire et peut donc être utilisée pour documenter (décrire plus en détail) l'objet créé.
+* Dans la [[Tree_view/fr|vue en arborescence]], modifiez le champ à côté de l'icône, sous "Description", en cliquant dessus et en appuyant sur {{KEY|F2}} (ou plutôt {{KEY|Retour}} sur macOS).
+* Vous pouvez également modifier cette propriété en modifiant l'attribut {{incode|Label2}} à partir de la [[Python_console/fr|console Python]].
+* L'attribut {{PropertyData|Label2}} est normalement masqué dans l'[[Property_editor/fr|éditeur de propriétés]] mais peut être rendu visible en ouvrant le menu contextuel (clic droit) et en sélectionnant {{MenuCommand|Afficher tout}}.
+
+<span id="Scripting"></span>
+== Script ==
+
+{{Emphasis|Voir aussi :}} [[FreeCAD_Scripting_Basics/fr|Débuter avec les scripts]] et [[Scripted_objects/fr|Objets créés par script]].
+
+Tout objet du logiciel est créé en interne avec la méthode {{incode|addObject()}} du document. La majorité des objets 2D et 3D que l'utilisateur verra dans la [[3D_view/fr|vue 3D]] sont dérivés d'un [[Part_Feature/fr|Part Feature]]. Dans l'exemple suivant, l'objet créé est une [[Part_Box/fr|Part Box]].
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = doc.addObject("Part::Box", "Name")
+obj.Label = "Custom label"
+}}
+
+<span id="Name"></span>
+=== Name (Nom) ===
+
+La fonction {{incode|addObject}} a deux arguments de chaîne de base.
+
+* Le premier argument indique le type d'objet, dans ce cas, {{incode|"Part::Box"}}.
+* Le deuxième argument est une chaîne qui définit l'attribut {{incode|Name}}. S'il n'est pas fourni, il utilise par défaut le même nom que la classe de l'objet, c'est-à-dire {{incode|"Part__Box"}} où les deux symboles invalides, les deux-points {{incode|::}}, sont remplacé par deux traits de soulignement {{incode|__}}.
+** Le {{incode|Nom}} ne peut contenir que des caractères alphanumériques simples et le trait de soulignement, {{incode|[_0-9a-zA-Z]}}. Si d'autres symboles sont donnés, ils seront convertis en traits de soulignement; par exemple, {{incode|"A+B:C*"}} est converti en {{incode|"A_B_C_"}}.
+** Le {{incode|Name}} ne peut pas commencer par un nombre; il doit commencer par une lettre ou le trait de soulignement, {{incode|[_a-zA-Z]}}. Par exemple, {{incode|"123ABC"}} est converti en {{incode|"_23ABC"}}.
+** Le {{incode|Name}} est fixe au moment de la création; il ne peut pas être modifié par la suite.
+** Le {{incode|Name}} doit être unique dans tout le document. Si le même {{incode|"Nom"}} est utilisé, un numéro séquentiel sera ajouté automatiquement afin que les noms résultants soient uniques; par exemple, si {{incode|"Name"}} existe déjà, les nouveaux objets seront appelés {{incode|"Name001"}}, {{incode|"Name002"}}, {{incode|"Name003"} } etc...
+
+<span id="Label"></span>
+===Label (Etiquette) ===
+
+{{Incode|Label}} est une propriété de l'objet créé et peut être changé en un texte plus significatif.
+* Lors de la création de l'objet, le {{incode|Label}} est le même que le {{incode|Name}}.
+* Cependant, contrairement au {{incode|Name}}, {{incode|Label}} peut accepter n'importe quelle chaîne UTF8 y compris les accents et les espaces.
+* Le {{incode|Label}} peut être modifié à tout moment en affectant simplement la chaîne souhaitée, <code>obj.Label = "New label"</code>
+
+<span id="Getting_an_object_by_Name_or_Label"></span>
+=== Accéder à un objet par Name ou Label  ===
+
+Tous les objets d'un document sont des attributs de données de l'objet [[App_DocumentObject/fr|Document]] correspondant. Le nom de l'attribut correspond à {{incode|Name}} interne de l'objet.
+
+{{Code|code=
+import FreeCAD as App
+
+obj1 = App.ActiveDocument.Box
+obj2 = App.ActiveDocument.Box001
+obj3 = App.ActiveDocument.Box002
+}}
+
+Cela équivaut à utiliser la méthode {{incode|getObject}} de document.
+{{Code|code=
+import FreeCAD as App
+
+obj1 = App.ActiveDocument.getObject('Box')
+obj2 = App.ActiveDocument.getObject('Box001')
+obj3 = App.ActiveDocument.getObject('Box002')
+}}
+
+Cependant, il est également possible d'obtenir l'objet par {{incode|Label}} davantage descriptif.
+{{Code|code=
+import FreeCAD as App
+
+obj1 = App.ActiveDocument.getObjectsByLabel("Concrete wall")[0]
+obj2 = App.ActiveDocument.getObjectsByLabel("Custom parallelepiped")[0]
+obj3 = App.ActiveDocument.getObjectsByLabel("Some special name for this cube__002")[0]
+}}
+
+Étant donné que {{incode|Label}} n'est en général pas unique, la méthode {{incode|getObjectsByLabel}} renvoie une liste avec tous les objets trouvés avec cette {{incode|Label}}. Cependant, si {{incode|Label}} est unique dans le document, le premier élément de cette liste doit être l'objet souhaité.
+
+{{Userdocnavi{{#translation:}}}}

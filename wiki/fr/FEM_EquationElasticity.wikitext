@@ -1,0 +1,134 @@
+<languages/>
+
+{{Docnav/fr
+|[[FEM_SolverZ88/fr|Solveur Z88]]
+|[[FEM_EquationDeformation/fr|Équation de déformation]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_SolverZ88.svg
+|IconR=FEM_EquationDeformation.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommand/fr
+|Name=FEM EquationElasticity
+|Name/fr=FEM Équation d'élasticité
+|MenuLocation=Résolution → Équations mécaniques → Équation d'élasticité
+||Workbenches=[[FEM_Workbench/fr|FEM]]
+|Version=0.17
+|SeeAlso=[[FEM_EquationDeformation/fr|FEM Équation de déformation]], [[FEM_tutorial/fr|FEM Tutoriel]]
+}}
+
+==Description==
+
+Cette équation décrit les propriétés mécaniques des corps solides.
+
+Pour plus d'informations sur les mathématiques de l'équation, voir [http://www.elmerfem.org/blog/documentation/ Elmer models manual], section ''Linear Elasticity''.
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Après avoir ajouté un solveur Elmer comme décrit [[FEM_SolverElmer/fr#.C3.89quations|ici]], sélectionnez-le dans la [[Tree_view/fr|vue en arborescence]].
+# Utilisez maintenant le bouton de la barre d'outils [[Image:FEM_EquationElasticity.svg|24px]] ou le menu {{MenuCommand|Résolution → Équations mécaniques → Équation d'élasticité}}.
+# Modifiez les [[#Param.C3.A8tres_du_solveur|paramètres du solveur de l'équation]] ou les [[FEM_SolverElmer_SolverSettings/fr|paramètres généraux du solveur]] si nécessaire.
+
+'''Remarque''' : pour les analyses d'élasticité non linéaire, vous devez utiliser l'[[Image:FEM_EquationDeformation.svg|32px]] [[FEM_EquationDeformation/fr|équation de déformation]] ({{Version/fr|0.21}}). L'équation d'élasticité ne concerne que les élasticités linéaires.
+
+'''Remarque''' : si vous utilisez plus d'un cœur de CPU pour le solveur ({{Version/fr|0.21}}), vous ne pouvez pas utiliser les paramètres par défaut du solveur. Cependant, l'utilisation d'un seul CPU et des paramètres de solveur par défaut est dans de nombreux cas plus rapide que l'utilisation de plusieurs CPU car le solveur d'élasticité n'est rapide que lorsque {{PropertyData|Linear Solver Type}} est réglé à ''Direct'' (la valeur par défaut est décrite [[FEM_SolverElmer_SolverSettings/fr#Système_linéaire|ici]]). Pour la résolution multi-CPU, on ne peut utiliser que la {{PropertyData|Linear Direct Method}} de ''MUMPS''. Cependant, MUMPS n'est pas disponible en téléchargement direct.
+
+<span id="Solver_Settings"></span>
+==Paramètres du solveur==
+
+Pour les paramètres généraux du solveur, voir les [[FEM_SolverElmer_SolverSettings/fr|Paramètres du solveur Elmer]].
+
+L'équation d'élasticité fournit ces paramètres spéciaux :
+* {{PropertyData|Calculate Pangle}} : si les angles principaux doivent être calculés.
+* {{PropertyData|Calculate Principal}} : si toutes les contraintes doivent être calculées.
+* {{PropertyData|Calculate Strains}} : si les déformations doivent être calculées. Ceci calculera également les contraintes, même si {{PropertyData|Calculate Principal}} ou {{PropertyData|Calculate Stresses}} sont {{FALSE}}.
+* {{PropertyData|Calculate Stresses}} : si les contraintes doivent être calculées. Par rapport à {{PropertyData|Calculate Principal}}, le critère d'élasticité de Tresca et la contrainte principale ne seront pas calculés.
+* {{PropertyData|Constant Bulk System}} : voir le manuel d'Elmer pour plus d'informations.
+* {{PropertyData|Displace Mesh}} : si le maillage peut être déformé. Par défaut {{TRUE}} et doit être mis à {{FALSE}} pour les analyses de fréquence propre.
+* {{PropertyData|Fix Displacement}} : si les déplacements ou les forces sont fixés, {{PropertyData|Model Lumping}} est automatiquement utilisé.
+* {{PropertyData|Geometric Stiffness}} : considère la rigidité géométrique du corps.
+* {{PropertyData|Incompressible}} : calcul du matériau incompressible en liaison avec le matériau viscoélastique de Maxwell et une {{PropertyData|Variable}} personnalisée.
+* {{PropertyData|Maxwell Material}} : calcul du modèle de matériau viscoélastique.
+* {{PropertyData|Model Lumping}} : utilise la [https://fr.wikipedia.org/wiki/Bloc_fonctionnel modélisation par blocs fonctionnels].
+* {{PropertyData|Model Lumping Filename}} : fichier permettant de sauvegarder les résultats de la modélisation par blocs fonctionnels.
+* {{PropertyData|Stability Analysis}} : si {{TRUE}}, {{PropertyData|Eigen Analysis}} devient une analyse de stabilité (analyse de flambage). Sinon, une analyse modale est effectuée.
+* {{PropertyData|Update Transient System}} : voir le manuel d'Elmer pour plus d'informations.
+* {{PropertyData|Variable}} : variable pour l'équation d'élasticité. Ne modifiez cette variable que si {{PropertyData|Incompressible}} est définie à {{TRUE}}, conformément au manuel d'Elmer.
+
+Valeurs propres :
+* {{PropertyData|Eigen Analysis}} : si une analyse propre doit être effectuée (calcul des modes propres et des fréquences propres).
+* {{PropertyData|Eigen System Complex}} : doit être à {{TRUE}} si le système propre est complexe. Il doit être à {{FALSE}} pour une analyse des valeurs propres amortie.
+* {{PropertyData|Eigen System Compute Residuals}} : calcule les résidus du système de valeurs propres.
+* {{PropertyData|Eigen System Damped}} : définit une analyse propre amortie. Ne peut être utilisé que si {{PropertyData|[[FEM_SolverElmer_SolverSettings/fr#Syst.C3.A8me_lin.C3.A9aire|Type de solveur linéaire]]}} est ''Iterative''.
+* {{PropertyData|Eigen System Select}} : sélection des valeurs propres qui sont calculées. Notez que la sélection de ''Largest*'' provoque une exécution infinie pour un solveur Elmer récent (à partir d'août 2022).
+* {{PropertyData|Eigen System Tolerance}} : tolérance de convergence pour la résolution itérative du système propre. La valeur par défaut est 100 fois la {{PropertyData|[[FEM_SolverElmer_SolverSettings/fr#Syst.C3.A8me_lin.C3.A9aire|Type de solveur linéaire]]}}.
+* {{PropertyData|Eigen System Values}} : numéro du mode propre le plus élevé qui doit être calculé.
+
+Équation :
+* {{PropertyData|Plane Stress}} : calcule la solution en fonction de la situation de contrainte plane. S'applique uniquement à la géométrie 2D.
+
+<span id="Analysis_Feature_Information"></span>
+==Informations sur les caractéristiques d'analyse==
+
+L'équation d'élasticité prend en compte les caractéristiques d'analyse suivantes si elles sont définies :
+
+* [[Image:FEM_ConstraintFixed.svg|32px]] [[FEM_ConstraintFixed/fr|Condition de limite fixe]]
+* [[Image:FEM_ConstraintDisplacement.svg|32px]] [[FEM_ConstraintDisplacement/fr|Condition limite de déplacement]]
+* [[Image:FEM_ConstraintForce.svg|32px]] [[FEM_ConstraintForce/fr|Charge d'effort]]
+* [[Image:FEM_ConstraintInitialTemperature.svg|32px]] [[FEM_ConstraintInitialTemperature/fr|Température initiale]]
+* [[Image:FEM_ConstraintPressure.svg|32px]] [[FEM_ConstraintPressure/fr|Charge de pression]]
+* [[Image:FEM_ConstraintSelfWeight.svg|32px]] [[FEM_ConstraintSelfWeight/fr|Charge de gravité]]
+* [[Image:FEM_ConstraintSpring.svg|32px]] [[FEM_ConstraintSpring/fr|Ressort]]
+
+<span id="Note"></span>
+===Remarque===
+
+* Sauf pour les calculs en 2D, pour toutes les caractéristiques d'analyse ci-dessus, il est important qu'elles agissent sur une face. Les caractéristiques en 3D définies comme des lignes ou des sommets ne sont pas reconnues par le solveur Elmer.
+
+<span id="Eigenmode_Analysis"></span>
+==Analyse en mode propre==
+
+Pour effectuer une analyse en mode propre (calcul des modes et fréquences propres), vous devez
+# Définir {{PropertyData|Eigen Analysis}} à {{TRUE}}.
+# Définir {{PropertyData|Displace Mesh}} à {{FALSE}}.
+# Définir {{PropertyData|Eigen System Values}} au le nombre le plus élevé de modes propres qui vous intéresse. Plus ce nombre est petit, plus le temps d'exécution du solveur est court puisque les modes supérieurs peuvent être omis du calcul.
+# Ajouter une [[FEM_ConstraintFixed/fr|Condition de limite fixe]] et définir au moins une face du corps comme fixe.
+# Lancer le solveur.
+
+Il est fortement recommandé d'utiliser {{PropertyData|Linear Solver Type}} réglé à ''Direct'' (valeur par défaut) car cela est beaucoup plus rapide et les résultats sont plus précis.
+
+<span id="Buckling_Analysis"></span>
+==Analyse de flambage==
+
+Pour effectuer une analyse de flambage, vous devez procéder de la même manière que pour une [[#Analyse_en_mode_propre|Analyse en mode propre]] et en plus :
+* Définir {{PropertyData|Stability Analysis}} à {{TRUE}}.
+
+<span id="Results"></span>
+==Résultats==
+
+Les résultats disponibles dépendent des [[#Param.C3.A8tres_du_solveur|paramètres du solveur]]. Si aucun des paramètres de {{PropertyData|Calculate *}} n'a été défini à ''true'', seul le déplacement est calculé. Sinon, les résultats correspondants seront également disponibles. Si {{PropertyData|Eigen Analysis}} est réglée à ''true'', tous les résultats seront disponibles pour chaque mode propre calculé.
+
+Si {{PropertyData|Eigen Analysis}} a été réglée à {{TRUE}}, les fréquences propres seront affichées à les logs du solveur dans le dialogue du solveur et également dans le document '''SolverElmerOutput''' qui sera créé dans l'arborescence une fois que le solveur aura terminé.
+
+'''Remarque :''' le vecteur de déplacement du mode propre <math>\vec{d}</math> a une valeur arbitraire puisque le résultat est
+
+<math>\quad
+\vec{d} = c\cdot\vec{u}
+</math>
+
+alors que <math>\vec{u}</math> est le vecteur propre et <math>c</math> est un nombre complexe.
+
+
+{{Docnav/fr
+|[[FEM_SolverZ88/fr|Solveur Z88]]
+|[[FEM_EquationDeformation/fr|Équation de déformation]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_SolverZ88.svg
+|IconR=FEM_EquationDeformation.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

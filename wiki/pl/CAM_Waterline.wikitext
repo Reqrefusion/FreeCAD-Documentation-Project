@@ -1,0 +1,206 @@
+<languages/>
+
+{{VeryImportantMessage|Jest to nieukończona funkcja eksperymentalna. [[CAM_experimental/pl|Włącz funkcje eksperymentalne]]}}
+
+{{UnfinishedDocu{{#translation:}}}}
+
+{{Docnav/pl
+|[[CAM_Surface/pl|Powierzchnia 3D]]
+|[[CAM_DressupAxisMap/pl|Odwzorowanie osi]]
+|[[CAM_Workbench/pl|środowisko pracy CAM]]
+|IconL=CAM_Surface.svg
+|IconR=CAM_DressupAxisMap.svg
+|IconC=Workbench_CAM.svg
+}}
+
+{{GuiCommand/pl
+|Name=CAM Waterline
+|Name/pl=CAM: Linia poziomu
+|MenuLocation=CAM → Linia poziomu
+|Workbenches=[[CAM_Workbench/pl|CAM]]
+|Version=0.19
+}}
+
+<span id="Description"></span>
+==Opis== 
+
+Narzędzie [[Image:Path_Waterline.svg|24px]] '''Linia poziomu''' tworzy nową operację Linii poziomu. Od wersji 0.19_pre operacja działa na całym modelu, generując G-code dla zadania. Obecnie w ustawieniach operacji nie ma funkcji wyboru określonych obszarów, powierzchni lub regionów modelu.
+
+Operacja Linii poziomu ma dwa algorytmy: OCL Drop Cutter i Experimental.
+* Algorytm OCL Drop Cutter łączy się z OCL.pyd, zewnętrznym modułem Open Source o nazwie [[OpenCamLib/pl|OpenCamLib]], który generuje ścieżki narzędzia z modelu 3D. OpenCamLib nie jest zintegrowany bezpośrednio z FreeCAD.
+* Eksperymentalny algorytm wykorzystuje wbudowaną klasę Path.Area().
+
+''' ''Uwaga'' ''': Aby skorzystać z operacji Linia poziomu powinieneś:
+# Prawidłowo zainstalować [[OpenCamLib/pl|OpenCamLib]].
+# Włączyć [[CAM_experimental/pl|funkcje eksperymentalne]] dla środowiska pracy CAM.
+# Sprawdzić nastawy {{MenuCommand|Edycja → Preferencje ... → CAM → Zaawansowane → Włącz funkcje zależne od OpenCamLib}}.
+
+<span id="Usage"></span>
+==Użycie==
+
+Poniżej przedstawiono instrukcje użytkowania dla wielu wariantów operacji '''Linii poziomu'''.
+
+<span id="Basic_Operation"></span>
+====Operacje podstawowe==== 
+
+# Naciśnij {{Button|[[Image:CAM_Waterline.svg|24px]] Linia poziomu}} lub wybierz narzędzie '''Linia poziomu''' z menu '''CAM'''.
+# Wybierz kontroler narzędzia dla operacji z okna dialogowego Kontroler narzędzia.
+# Dostosuj głębokość operacji zgodnie z potrzebami w zakładce Głębokość: Głębokość początkowa, Głębokość końcowa, Krok w dół.
+# W razie potrzeby dostosuj ustawienia w zakładce Wysokość.
+# Skonfiguruj ustawienia w zakładce Operacje w oparciu o wybrany algorytm:
+## OCL Dropcutter
+### Wybierz pole Ramka otaczająca: Przygotówka lub Punkt bazowy obiektu Ramki otaczającej.
+### Ustaw tryb warstwy: Pojedyncze przejście lub Wielokrotne przejście.
+### Ustaw interwał próbkowania używany do skanowania OCL.
+## Eksperymentalne
+### Wybierz Ramka otaczająca: Przygotówka lub Punkt bazowy obiektu Ramki otaczającej.
+### Ustaw tryb warstwy: Pojedyncze przejście lub Wielokrotne przejście.
+### Ustaw wzorzec cięcia, jeśli chcesz wyczyścić każdą warstwę.
+### Ustaw dostosowanie granic ''(naddatek materiału)''.
+# Jeśli chcesz wyświetlić podgląd wyniku przed zaakceptowaniem ustawień, kliknij przycisk Zastosuj.
+# Kliknij przycisk ''OK'', aby potwierdzić i wygenerować ścieżki.
+
+Aby uzyskać inne lub bardziej złożone efekty, należy dostosować dodatkowe właściwości operacji na karcie Dane w widoku Właściwości operacji.
+
+<span id="Notes_About_Experimental_Algorithm"></span>
+=====Uwagi o algorytmie eksperymentalnym=====
+
+* Nie obsługuje prawidłowo nawisów.
+* Zwraca ścieżki tylko dla frezów typu End Mill ''(bit narzędziowy)''.
+* Może nie wychwytywać poprawnie wszystkich elementów wewnętrznych.
+* Jest po prostu eksperymentalna i nie jest gotowa na integrację z głównym nurtem. Prosimy o sprawdzanie ścieżek za pomocą wbudowanego narzędzia {{KEY|[[Image:CAM_Simulator.svg|16px]] [[CAM_Simulator/pl|Symulator CAM]]}} lub innych narzędzi do kontroli G-Code innych firm, przed rozpoczęciem procesu obróbki.
+
+<span id="Available_Tool_(Cutter)_Shapes"></span>
+====Dostępne kształty narzędzi (frezów)====
+
+W przypadku korzystania z algorytmu "OCL Dropcutter", operacja Waterline wykorzystuje OpenCamLib [OCL/pl|OCL] do wyodrębniania ścieżek z podstawy części. W związku z tym wymagana jest translacja narzędzia między kontrolerem narzędzi FreeCAD a OCL w celu zakończenia skanowania wybranym kształtem narzędzia ''(frezu)''. Te kształty narzędzi są ''(powinny być)'' respektowane i dostępne dla OCL Dropcutter, o ile używane są wbudowane kształty narzędzi, zarówno narzędzia starszego typu, jak i narzędzia typu ToolBit:
+
+* Frez trzpieniowy
+* Frez kulowy
+* frez walcowo-czołowy
+* Końcówka fazująca
+* Grawer
+
+<span id="Additional_Notes"></span>
+====Uwagi dodatkowe====
+
+* Jeśli zdecydujesz się uruchomić symulator {{Button|[[Image:CAM_Simulator.svg|16px]] [[CAM_Simulator/pl|CAM symulator]]}}, w środowisku pracy CAM możesz nie zobaczyć usuwania materiału specyficznego dla kształtu narzędzia. Zachowaj ostrożność. Zaleca się wykonanie małego zadania próbnego przy użyciu pianki lub innego bardzo niegęstego materiału w celu sprawdzenia poprawności ścieżek z wybranym kontrolerem narzędzia. 
+* Od maja 2020 r. tylko frez walcowo-czołowy jest testowany w celu określenia dokładności translacji ustawień narzędzia z FreeCAD doOCL. Prosimy o przesyłanie wszelkich opinii dotyczących użycia frezów innych niż frezy walcowo-czołowe do sekcji [https://forum.freecadweb.org/viewforum.php?f=15 Path/CAM] na forum FreeCAD.
+
+<span id="Properties"></span>
+==Właściwości==
+
+''' ''Uwaga'' ''': Nie wszystkie z tych właściwości są dostępne w edytorze okna zadań. Niektóre są dostępne tylko na karcie Dane w panelu Widok właściwości dla tej operacji.
+
+{{TitleProperty|Podstawa}}
+
+Uwaga: Zaleca się, aby nie edytować właściwości Umiejscowienie operacji ścieżki. W razie potrzeby należy raczej przesunąć lub obrócić model zadania CAM.
+
+* {{PropertyData|Umiejscowienie}}: Ogólne położenie ''(pozycja i obrót)'' obiektu - w odniesieniu do punktu odniesienie położenia ''(lub punktu odniesienie położenia kontenera obiektu nadrzędnego)''.
+** {{PropertyData|Kąt}}: Kąt w stopniach zastosowany do obrotu obiektu wokół wartości właściwości Oś.
+** {{PropertyData|Oś}}: Oś ''(jedna lub wiele)'', wokół której ma zostać obrócony obiekt, ustawiona we właściwościach podrzędnych: X, Y, Z
+*** {{PropertyData|X}}: Wartość osi X.
+*** {{PropertyData|Y}}: Wartość osi Y.
+*** {{PropertyData|Z}}: Wartość osi Z.
+** {{PropertyData|Pozycja}}: Pozycja obiektu, ustawiona we właściwościach podrzędnych: X, Y, Z - względem początku ''(lub początku kontenera obiektu nadrzędnego)''.
+*** {{PropertyData|X}}: Wartość odległości X.
+*** {{PropertyData|Y}}: wartość odległości Y.
+*** {{PropertyData|Z}}: wartość odległości Z.
+* {{PropertyData|Etykieta}}: Nazwa obiektu podana przez użytkownika ''(UTF-8)''.
+
+{{TitleProperty|Opcje czyszczenia}}
+
+* {{PropertyData|Algorytm}}: Biblioteka używana do generowania ścieżki.
+* {{PropertyData|Ramka otaczająca}}: Czy operacja powinna być ograniczona przez obiekt podstawowy, czy przez obwiednię obiektu podstawowego?
+* {{PropertyData|Wyczyść ostatnią warstwę}}: Ustawia czyszczenie ostatniej warstwy w operacji wieloprzebiegowej.
+* {{PropertyData|Tryb obróbki}}: Kierunek, w którym ścieżka narzędzia powinna przebiegać wokół części: Wspinanie ''(zgodnie z ruchem wskazówek zegara)'' lub Konwencjonalny ''(przeciwnie do ruchu wskazówek zegara)''.
+* {{PropertyData|Wzorzec obróbki}}: Wzorzec czyszczenia do użycia.
+* {{PropertyData|Odsunięcie głębokości}}: 
+* {{PropertyData|Ignoruj zewnętrzne powyżej}}: 
+* {{PropertyData|Tryb warstwy}}: Tryb zakończenia operacji: jedno- lub wieloprzebiegowy.
+* {{PropertyData|Krok powyżej}}: 
+
+{{TitleProperty|Głębokość}}
+
+* {{PropertyData|Wysokość prześwitu}}: Wysokość potrzebna do usunięcia zacisków i przeszkód.
+* {{PropertyData|Głębokość końcowa}}: Głębokość końcowa narzędzia - najniższa wartość w Z.
+* {{PropertyData|Wysokość bezpieczna}}: Wysokość, powyżej której dozwolone są szybkie ruchy.
+* {{PropertyData|Głębokość początkowa}}: Głębokość początkowa narzędzia - pierwsza głębokość cięcia w Z.
+* {{PropertyData|Krok w dół}}: Przyrostowy krok w dół narzędzia.
+
+{{TitleProperty|Ścieżka}}
+
+* {{PropertyData|Aktywny}}: Ustaw wartość {{False/pl}}, aby zapobiec generowaniu kodu przez operację.
+* {{PropertyData|Baza}}: Geometria bazowa dla tej operacji.
+* {{PropertyData|Komentarz}}: Opcjonalny komentarz dla tej operacji.
+* {{PropertyData|Tryb chłodzenia}}: 
+* {{PropertyData|Czas cyklu}}: 
+* {{PropertyData|Kontroler narzędzi}}: Określa kontroler narzędzia używany w operacji.
+* {{PropertyData|Etykieta użytkownika}}: Etykieta przypisana przez użytkownika.
+
+{{TitleProperty|Punkt początkowy}}
+
+* {{PropertyData|Punkt początkowy}}: Niestandardowy punkt początkowy dla ścieżki tej operacji.
+** {{PropertyData|X}}: wartość odległości X.
+** {{PropertyData|Y}}: wartość odległości Y.
+** {{PropertyData|Z}}: wartość odległości Z.
+* {{PropertyData|Użyj punktu początkowego}}: Ustaw wartość {{True/pl}}, jeśli określono punkt początkowy.
+
+<span id="Tasks_Window_Editor_Layout"></span>
+==Układ edytora w oknie zadań== 
+
+''Opisy ustawień znajdują się na powyższej liście właściwości''.
+
+Ta sekcja jest po prostu mapą układu ustawień w edytorze okien dla operacji.
+
+<span id="Base_Location"></span>
+===Lokalizacja bazowa=== 
+
+* '''Dodaj''': Dodaje wybrane elementy, które powinny być bazą dla ścieżek.
+* '''Usuń''': Usuwa wybrane elementy z listy Lokalizacja bazowa.
+* '''Edytuj''': Czyści wszystkie elementy na liście Lokalizacja bazowa.
+
+<span id="Depths"></span>
+===Głębokości=== 
+
+* {{PropertyData|Głębokość początkowa}}
+* {{PropertyData|Głębokość końcowa}}
+* {{PropertyData|Krok w dół}}
+
+<span id="Heights"></span>
+===Wysokości=== 
+
+* {{PropertyData|Wysokość bezpieczna}}
+* {{PropertyData|Wysokość prześwitu}}
+
+<span id="Operation"></span>
+===Operacja=== 
+
+* {{PropertyData|Kontroler narzędzi}}.
+* {{PropertyData|Tryb chłodzenia}}
+* {{PropertyData|Algorytm}}
+* {{PropertyData|Ramka otaczająca}}
+* {{PropertyData|Tryb warstwy}}
+* {{PropertyData|Wzór obróbki}}~.
+* {{PropertyData|Regulacja granic}}~.
+* {{PropertyData|Odstęp między próbkami}}~.
+~Widoczność zmienia się wraz z innymi ustawieniami. 
+
+<span id="Resources"></span>
+==Zasoby== 
+
+* Symulator G-Code ''(ścieżka)'': [https://ncviewer.com/ NCViewer]
+* Symulator G-code ''(ścieżka)'': [https://www.camotics.org/ CAMotics]
+
+
+{{Docnav/pl
+|[[CAM_Surface/pl|Powierzchnia 3D]]
+|[[CAM_DressupAxisMap/pl|Odwzorowanie osi]]
+|[[CAM_Workbench/pl|środowisko pracy CAM]]
+|IconL=CAM_Surface.svg
+|IconR=CAM_DressupAxisMap.svg
+|IconC=Workbench_CAM.svg
+}}
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

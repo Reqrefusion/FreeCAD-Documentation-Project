@@ -1,0 +1,117 @@
+<languages/>
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+{{TOCright}}
+
+Wszystkie obiekty w programie mają [[Object_name/pl|nazwę obiektu]], która jednoznacznie identyfikuje je w obrębie danego dokumentu.
+
+Informacje te dotyczą wszystkich obiektów pochodnych od [[App_DocumentObject/pl|App: Obiektu dokumentu]] ''(klasa {{incode|App::DocumentObject}})'', która zasadniczo obejmuje wszystkie obiekty, które można utworzyć w dokumencie.
+
+<span id="Names"></span>
+==Nazwy==
+
+Nazwy mają różne właściwości:
+* {{Incode|Nazwa}} może zawierać tylko proste znaki alfanumeryczne i znak podkreślenia, {{Incode|[_0-9a-zA-Z]}}.
+* {{Incode|Nazwa}} nie może zaczynać się od cyfry, musi zaczynać się od litery lub podkreślenia, {{Incode|[_a-zA-Z]}}.
+* {{Incode|Nazwa}} jest przypisywana w czasie tworzenia obiektu, później nie można jej już edytować. Nigdy nie można zmienić nazwy obiektu.
+* {{Incode|Nazwa}} musi być unikalna w całym dokumencie. Nie ma znaczenia, czy dwa obiekty są zupełnie różnych typów, na przykład jeden to [[PartDesign_Pocket/pl|kieszeń]] środowiska Projekt Części, a drugi to [[Arch_Wall/pl|ściana]] środowiska Architektura. Muszą one mieć różne nazwy.
+* Podczas tworzenia obiektu tego samego typu, zwykle nazwa jest zwiększana o kolejny numer, a więc {{incode|Sześcian}}, {{incode|Sześcian001}}, {{incode|Sześcian002}} itd. Zapobiega to kolizji nazw.
+* Po usunięciu obiektu, jego {{incode|Nazwa}} staje się dostępna do użycia przez nowo utworzony obiekt. Oznacza to, że jeśli istnieją obiekty {{incode|Sześcian}}, {{incode|Sześcian001}} i {{incode|Sześcian002}}, a my usuniemy pierwszy z nich, to następnym obiektem utworzonym za pomocą [[Part_Box|Part Box]] nie będzie {{incode|Sześcian003}}, lecz {{incode|Sześcian}}, ponieważ ciąg ten jest dostępny do ponownego użycia. Zauważ, że nie jest możliwa zmiana nazwy obiektu {{incode|Sześcian001}} lub {{incode|Sześcian002}} na {{incode|Sześcian}}, ponieważ ich nazwy są niezmienne.
+
+Podsumowując, {{incode|Nazwa}} zasadniczo działa jak unikalny identyfikator (UID) dla obiektu. Ponieważ unikalna {{incode|Nazwa}} jest bardzo restrykcyjna, wszystkie obiekty mają również właściwość {{incode|Etykieta}}, która umożliwia "zmianę nazwy" obiektu na coś bardziej opisowego. Wewnętrzna {{Incode|Nazwa}} faktycznie pozostaje stała, ale edytowalna przez użytkownika {{Incode|Etykieta}} może być używana w większości sytuacji, w których użyto by {{Incode|Nazwy}}. W powszechnym użyciu w programie i dokumentacji "zmiana nazwy" oznacza zmianę {{incode|Etykiety}}, a nie rzeczywistej {{incode|Nazwy}} obiektu.
+
+<span id="Labels"></span>
+==Etykiety==
+
+Istnieją różne właściwości etykiet:
+* {{Incode|Etykieta}} może akceptować dowolny ciąg UTF8, w tym znaki akcentu i spacji.
+* W oknie [[Tree_view/pl|widoku drzewa]] wyświetlana jest {{incode|Etykieta}} obiektu, a nie jego {{incode|Nazwa}}. Dlatego za każdym razem, gdy tworzony jest nowy obiekt, dobrą praktyką jest zmiana {{incode|Etykiety}} na bardziej opisowy ciąg znaków. Aby zmienić nazwę ''(etykietę)'' obiektu, wybierz ją w widoku drzewa i naciśnij {{KEY|F2}} ''(lub raczej {{KEY|Return}} na macOS)'' lub otwórz menu podręczne ''(kliknij prawym przyciskiem myszy)'' i wybierz {{MenuCommand|Zmień nazę}}.
+* Nawet po zmianie nazwy obiektu, wewnętrzny {{Incode|NamNazwae}} będzie nadal wyświetlana w wielu miejscach, na przykład na pasku [[Status_bar|pasek stanu]] lub w oknie [[Selection_view/pl|widok wyboru]], gdy obiekt jest zaznaczony.
+* Ponieważ wewnętrzne funkcje programu odnoszą się do obiektów za pomocą {{Incode|Nazwy}}, wiele okien dialogowych wyświetli najpierw {{Incode|Nazwę}}, a następnie edytowalną przez użytkownika {{Incode|Etykietę}} w nawiasach, na przykład {{Incode|Sześcian ''(Element wyciągany)''}}.
+* Domyślnie {{Incode|Etykieta}} jest unikalna, podobnie jak {{Incode|Nazwa}}. Zachowanie to można jednak zmienić w [[Preferences_Editor/pl|edytorze preferencji]], {{MenuCommand|Edycja → Preferencje ... → Ogólne → Dokument → Zezwalaj na umieszczanie duplikatów etykiet obiektów w obrębie jednego dokumentu}}. Oznacza to, że generalnie {{Incode|Etykieta}} nie jest unikalna w dokumencie i może się powtarzać. Zaleca się jednak zachowanie unikalności {{incode|Etykiet}}, ponieważ jest to prawdopodobnie najbardziej przydatne do identyfikacji różnych obiektów. Podczas pisania niestandardowych funkcji, które manipulują obiektami, metody powinny używać {{incode|Nazwy}} obiektu, a nie jego {{incode|Etykiety}}, aby zagwarantować, że używany jest właściwy obiekt.
+* Podczas korzystania z [[Expressions/pl|wyrażeń]], na przykład w [[Property_editor/pl|edytorze właściwości]] lub w [[Spreadsheet/pl|arkuszu kalkulacyjnym]], Etykieta może być przywoływana za pomocą podwójnych nawiasów utworzonych z symboli "mniej niż" i "więcej niż".
+
+{{Code|code=
+<<Custom Label With Spaces>>.Height
+<<Label may use UTF8 characters>>.Width
+}}
+
+<span id="Label2"></span>
+===Etykieta2===
+
+Jest to prosty ciąg znaków, który może zawierać dowolny tekst, a zatem może być używany do dokumentowania ''(opisywania z większą ilością szczegółów)'' utworzonego obiektu.
+* W oknie [[Tree_view/pl|widoku drzewa]] edytuj pole obok ikony, w kolumnie "Opis", klikając je i naciskając {{KEY|F2}} ''(lub raczej {{KEY|Entern}} na macOS)''.
+* Można również zmienić tę właściwość, modyfikując atrybut {{incode|Etykieta2}} z poziomu [[Python_console/pl|Konsoli Python]].
+* Atrybut {{PropertyData|Etykieta2}} jest normalnie ukryty w [[Property_editor/pl|edytorze właściwości]], ale może być uwidoczniony poprzez otwarcie menu podręcznego ''(kliknięcie prawym przyciskiem myszy)'' i wybranie {{MenuCommand|Wyświetl wszystko}}.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]], oraz [[Scripted_objects/pl|Obiekty skryptowe]].
+
+Każdy obiekt w oprogramowaniu jest tworzony wewnętrznie za pomocą metody {{incode|addObject()}} dokumentu. Większość obiektów 2D i 3D, które użytkownik zobaczy w oknie [[3D_view/pl|widoku 3D]] pochodzi z [[Part_Feature/pl|Część: Cecha]]. W poniższym przykładzie utworzony obiekt to [[Part_Box/pl|Sześcian]] środowiska pracy Część.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = doc.addObject("Part::Box", "Name")
+obj.Label = "Custom label"
+}}
+
+<span id="Name"></span>
+===Nazwa===
+
+Funkcja {{incode|addObject}} posiada dwa podstawowe argumenty typu string.
+
+* Pierwszy argument wskazuje typ obiektu, w tym przypadku {{incode|"Part::Box"}}.
+* Drugi argument to ciąg znaków definiujący atrybut {{incode|Name}}. Jeśli nie zostanie on podany, domyślnie przyjmuje taką samą nazwę jak klasa obiektu, czyli {{incode|"Part__Box"}}, gdzie dwa nieprawidłowe symbole, dwukropki {{incode|::}}, są zastąpione dwoma podkreśleniami {{incode|__}}.
+** {{incode|Name}} może zawierać tylko podstawowe znaki alfanumeryczne i znak podkreślenia, {{incode|[_0-9a-zA-Z]}}. Jeśli podane zostaną inne symbole, zostaną one przekonwertowane na znak podkreślenia. Na przykład {{incode|"A+B:C*"}} zostanie przekonwertowane na {{incode|"A_B_C_"}}.
+** {{Incode|Name}} nie może zaczynać się od liczby, musi zaczynać się od litery lub podkreślenia, {{Incode|[_a-zA-Z]}}. Na przykład {{incode|"123ABC"}} jest konwertowany na {{incode|"_23ABC"}}.
+** Obiekt {{incode|Name}} jest ustalany w momencie utworzenia, nie można go później zmodyfikować.
+** Obiekt {{incode|Name}} musi być unikalny w całym dokumencie. Jeśli użyty zostanie ten sam obiekt {{Incode|"Name"}}, automatycznie dołączony zostanie kolejny numer, tak aby wynikowe nazwy były unikalne; na przykład, jeśli {{Incode|"Name"}} już istnieje, nowe obiekty zostaną nazwane {{Incode|"Name001"}}, {{Incode|"Name002"}}, {{Incode|"Name003"}} itd.
+
+<span id="Label"></span>
+===Etykieta===
+
+Obiekt {{incode|Label}} jest właściwością utworzonego obiektu i może zostać zmieniony na bardziej znaczący tekst.
+* Podczas tworzenia obiektu, {{incode|Label}} ma taką samą wartość jak {{incode|Name}}.
+* Jednak w przeciwieństwie do {{incode|Name}}, {{incode|Label}} może akceptować dowolny ciąg UTF8, łącznie ze znakami akcentówi i spacji.
+* Obiekt {{incode|Label}} można zmienić w dowolnym momencie, po prostu przypisując żądany ciąg znaków, <code>obj.Label = "New label"</code>.
+
+<span id="Getting_an_object_by_Name_or_Label"></span>
+===Pobieranie obiektu przez nazwę lub etykietę===
+
+Wszystkie obiekty w dokumencie są atrybutami danych odpowiedniego obiektu [[App_DocumentObject/pl|Dokument]]. Nazwa atrybutu odpowiada wewnętrznej {{incode|Nazwie}} obiektu.
+
+{{Code|code=
+import FreeCAD as App
+
+obj1 = App.ActiveDocument.Box
+obj2 = App.ActiveDocument.Box001
+obj3 = App.ActiveDocument.Box002
+}}
+
+Jest to równoważne użyciu metody {{incode|getObject}} dokumentu.
+{{Code|code=
+import FreeCAD as App
+
+obj1 = App.ActiveDocument.getObject('Box')
+obj2 = App.ActiveDocument.getObject('Box001')
+obj3 = App.ActiveDocument.getObject('Box002')
+}}
+
+Możliwe jest jednak również pobranie obiektu za pomocą bardziej opisowego identyfikatora {{incode|Label}}.
+{{Code|code=
+import FreeCAD as App
+
+obj1 = App.ActiveDocument.getObjectsByLabel("Concrete wall")[0]
+obj2 = App.ActiveDocument.getObjectsByLabel("Custom parallelepiped")[0]
+obj3 = App.ActiveDocument.getObjectsByLabel("Some special name for this cube__002")[0]
+}}
+
+Biorąc pod uwagę, że obiekt {{incode|Label}} nie jest unikalny, metoda {{incode|getObjectsByLabel}} zwraca listę wszystkich obiektów znalezionych z tym obiektem {{incode|Label}}. Jeśli jednak {{incode|Label}} jest unikalny w dokumencie, to pierwszym elementem tej listy powinien być żądany obiekt.
+
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,71 @@
+<languages/>
+
+{{Docnav/de
+|[[Arch_DAE/de|DAE]]
+|[[Arch_JSON/de|JSON]]
+|[[BIM_Workbench/de|BIM]]
+|IconL=
+|IconR=
+|IconC=Workbench_BIM.svg
+}}
+
+{{TOCright}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+Zusätzlich zu FreeCADs Standard-[http://en.wikipedia.org/wiki/Wavefront_.obj_file OBJ]-Exportfunktion hat derArbeitsbereich [[BIM_Workbench/de|BIM]] eine alternative Exportfunktion, die komplanare Flächen als eine einzige OBJ-Fläche exportiert, anstatt sie als [[Shape/de|Form]]-basierte Objekte zu triangulieren, wie es die Standard-Exportfunktion tut.
+
+<span id="Exporting_without_GUI"></span>
+== Exportieren ohne GUI ==
+
+Exportieren ohne die grafische Benutzeroberfläche ist auf der Kommandozeile nur mit dem Exportwerkzeug des Arbeitsbereichs [[Mesh_Export/de|Mesh]] möglich.
+
+In diesem Beispiel wird eine STEP-Datei importiert, die Farben der [[Shape/de|Form]] werden gespeichert, dann ein Netzobjekt daraus erstellt, die Farben des Originalobjekts auf die Flächen des neuen Netzobjekts angewendet, das dann im OBJ-Format exportiert wird. Weil dies mit dem Mesh-Arbeitsbereich passiert, ist das Ergebnis ein trianguliertes Netz.
+
+{{Code|code=
+import Mesh
+import MeshPart
+import Import
+
+data = Import.open("example.stp")
+shape = data[0][0].Shape
+shape_colors = data[0][1]
+
+mesh = MeshPart.meshFromShape(Shape=shape, LinearDeflection=0.1, Segments=True)
+
+face_colors = [(0, 0, 0)] * mesh.CountFacets
+
+for i in range(mesh.countSegments()):
+    color = shape_colors[i]
+    segm = mesh.getSegment(i)
+    for j in segm:
+        face_colors[j] = color
+
+mesh.write(Filename="new_example.obj", Material=face_colors, Format="obj")
+}}
+
+<span id="More_information"></span>
+==Weitere Informationen==
+
+* [https://forum.freecadweb.org/viewtopic.php?f=8&t=37452 Convert STEP to Wavefront OBJ with colors of faces] STEP zu OBJ umwandeln, mit den Farben von Flächen
+
+<span id="Tutorials"></span>
+==Anleitungen==
+
+* [[Import_from_STL_or_OBJ/de|Import von STL oder OBJ]]
+* [[Export_to_STL_or_OBJ/de|Export nach STL oder OBJ]]
+
+
+{{Docnav/de
+|[[Arch_DAE/de|DAE]]
+|[[Arch_JSON/de|JSON]]
+|[[BIM_Workbench/de|BIM]]
+|IconL=
+|IconR=
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:File_Formats{{#translation:}}]]

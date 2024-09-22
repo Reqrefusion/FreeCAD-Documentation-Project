@@ -1,0 +1,365 @@
+<languages/>
+<translate>
+
+<!--T:52-->
+{{VeryImportantMessage|This is an unfinished experimental feature. [[CAM_experimental|Enable Experimental Features]]}}
+
+</translate>
+{{UnfinishedDocu{{#translation:}}}}
+<translate>
+
+<!--T:48-->
+{{Docnav
+|[[CAM_Pocket_3D|Pocket 3D]]
+|[[CAM_Waterline|Waterline]]
+|[[CAM_Workbench|CAM]]
+|IconL=CAM_Pocket_3D.svg
+|IconR=CAM_Waterline.svg
+|IconC=Workbench_CAM.svg
+}}
+
+<!--T:1-->
+{{GuiCommand
+|Name=CAM Surface
+|MenuLocation=CAM → 3D Surface
+|Workbenches=[[CAM_Workbench|CAM]]
+|Version=0.19
+}}
+
+==Description== <!--T:2-->
+
+<!--T:3-->
+This tool creates a new [[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]] operation which is capable of generating G-code paths for the entire top surface of a 3D model (or is able to work with selected faces) and allows for faces to be avoided. This operation offers multiple cut patterns: Line, Zigzag, Circular, Circular Zigzag, Offset, and Spiral (similar to an adaptive pattern). As of version 0.19, this operation offers many customizations to allow for greater productivity.
+
+<!--T:53-->
+The [[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]] operation is also capable of generating basic rotational 3D surfacing paths. The rotational capabilities are limited to the entire model, and do not allow for specific faces or regions to be isolated. The rotational paths are also limited to line cut patterns.
+
+<!--T:7-->
+The 3D Surface Tool interfaces to OCL.pyd, a 3rd party Open Source module titled [[OpenCamLib|OpenCamLib]], that generates tool paths from a 3D model. OpenCamLib is not integrated directly into FreeCAD.  
+
+<!--T:8-->
+'''Note:''' In order to use the 3D Surface operation you must:
+# Properly install [[OpenCamLib|OpenCamLib]].
+# Enable [[CAM_experimental|Experimental Features]] for the CAM Workbench.
+# Check {{MenuCommand|Edit → Preferences... → CAM → Advanced → Enable OCL dependent features}}.
+
+==Usage== <!--T:40-->
+
+<!--T:41-->
+Usage instructions for multiple variations of the [[CAM_Surface|3D Surface]] operation are presented here.
+
+====Basic Operation==== <!--T:42-->
+
+<!--T:5-->
+# Press the {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}} icon, or select {{MenuCommand|CAM → 3D Surface}} from the dropdown menu.
+# Select the tool controller for the Operation from the Tool controller dialogue pop up window, if presented.
+# In the Base Geometry tab, select any specific faces you wish to focus on and/or avoid for the operation.
+# Adjust the operation depths as needed in the Depths tab: Start Depth, Finish Depth, Step Down.
+# Make adjustments in Heights tab if needed.
+# Configure settings in the Operations tab as needed:
+#* Choose your Coolant Mode.
+#* Choose the BoundBox: Stock or BaseBoundBox
+#* Set the Scan Type for the operation: Planar or Rotational
+#* Select the Layer Mode for the operation: Single-pass or Multi-pass
+#*# Single-pass is for a finishing pass
+#*# Multi-pass could be used for clearing in combination with the use of Depth Offset to leave a thin surface layer for a finish pass
+#* Add additional BoundBox Extra Offset to X and Y as desired (''Rotational scans only'')
+#* Set the Drop Cutter Direction: X or Y. This is the linear direction the cutter(spindle) will travel. (''Rotational scans only'')
+#* Add a Depth Offset value if you wish to leave a specified thickness of material on the surface, for say a final finish pass
+#* Set the Sample Interval used for the OCL scan.
+#* Set the Step Over value as a percentage of the diameter of the Tool.
+#* Check the Use Start Point box if you wish to provide a start point for the operation in the properties view of the data tab for the operation.
+#* Boundary Enforcement is enabled by default. This forces the cutter to remain inside the boundaries of the feature geometry for the operation, like a pocketing operation. Disable to allow the cutter to extend to the outside of the feature geometry. The Boundary Adjustment property supersedes this property.
+#* Optimize Linear Paths is enabled by default. Disabling will yield a longer gcode result and likely increase cut time.
+# If you wish to preview the result before accepting the settings, click {{Button|Apply}}
+# Click {{Button|OK}} button to confirm and generate paths.
+
+<!--T:73-->
+To achieve different, or more complex, effects, adjust additional operation properties within the Data tab of the Properties View for the operation.
+
+====Rotational Scans (4th-axis)==== <!--T:43-->
+
+<!--T:54-->
+# Initiate a [[#Basic_Operation|Basic Operation]] as described above and set the '''Scan Type''' to '''Rotational'''.
+# '''Note:''' Face selection is unavailable for Rotational scans, so changes to Base Geometry are ignored.
+# Locate the Data tab and Properties View for the new [[CAM_Surface|3D Surface]] operation.  A '''Rotation''' section should be available with additional properties to adjust, listed below.<BR>It is recommended that you set the desired rotation properties all at once before recomputing. This is done by clicking the ENTER key immediately after changing a property setting. This process will allow you to change and save multiple properties before recomputing the operation.
+# Adjust the following settings as needed:
+#* Set {{PropertyData|Cutter Tilt}} to the offset index(angle) [0-90]. (Used for ball mill cutters)
+#* Change {{PropertyData|Drop Cutter Dir}} to the axis of travel for the cutter(spindle).
+#* Change {{PropertyData|Drop Cutter Extra Offset}} to extend the BoundBox in the X and Y directions.
+#* Set {{PropertyData|Rotation Axis}} to the desired axis.
+#* Adjust {{PropertyData|Start Index}} to start index(angle) [0-360].
+#* Adjust {{PropertyData|Stop Index}} to stop index(angle) [0-360].
+# Click the {{KEY|[[File:View-refresh.svg|16px]] [[Std_Refresh|Refresh]]}} icon in the tool bar.
+# Wait for the results...
+
+=====Notes About Rotational Scans===== <!--T:74-->
+
+<!--T:36-->
+* '''Rotational''' scans require much more time and processing than '''Planar''' scans.  Factors affecting processing time include: Sample Interval, Step Over, tool diameter, and model size.  Again, rotational scans can take a long time.  Some might take 3, 5 or 10 minutes or longer.
+* For time purposes, it is better that you not recompute a rotational scan after every property change; rather, consider one of the following:
+** use the ' ''change all settings with ENTER key'' ' technique mentioned in Step 2 above, then {{KEY|[[File:View-refresh.svg|16px]] [[Std_Refresh|Refresh]]}} the operation.
+** deactivate the operation with the {{KEY|[[Image:CAM_OpActiveToggle.svg|16px]] [[CAM_OpActiveToggle|Active]]}} toggle tool, make your changes to the operation's properties, then click the {{KEY|[[Image:CAM_OpActiveToggle.svg|16px]] [[CAM_OpActiveToggle|Active]]}} icon again to re-activate the operation - which triggers a recompute internally.
+* The {{KEY|[[Image:CAM_Surface.svg|16px]] [[CAM_Surface|3D Surface]]}} operation is still considered an ''experimental feature'' as of 2019-06-25. As such, it may contain a few bugs yet to be clearly identified.  Please report bugs and issues in the [https://forum.freecadweb.org/viewforum.php?f=15 FreeCAD Path/CAM Forum].
+* The built in {{KEY|[[Image:CAM_Simulator.svg|16px]] [[CAM_Simulator|CAM Simulator]]}} does NOT support 4th-axis simulation. You will need to use a third party simulator to inspect or verify paths visually.  See the [[#Resources|Resources]] section below for suggestions.
+* You will likely see red rotational lines around your model in the viewport. This is normal in FreeCAD for the time being.
+
+=====Notes About Scans of complex models===== <!--T:75-->
+
+<!--T:76-->
+Excessively long processing times (longer than 10 minutes) can occur when processing large complex models. In addition to the factors already mentioned the following steps could help identify potential causes and solutions.
+
+<!--T:77-->
+'''''Low Memory'''''<br>
+Check how much memory is available while the scan is running using a tool such as the Windows '''Task Manager, Memory tab'''. If more than 90% of memory is consistently being used then a small '''Linear Deflection''' parameter could be generating a mesh that is too large for the available memory.<br>
+To confirm this ...
+# Create a new {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}} operation.
+# Switch to the Model tab and increase the {{PropertyData|Linear Deflection}} value. For example change from 2.5um to 20um
+# Switch back to the Tasks tab to complete setting up the operation.
+# Click {{Button|OK}} button to confirm and generate paths.<br>
+
+<!--T:78-->
+To make this value the default for all new {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}} operations, change the '''GeometryTolerance''' parameter.<br>
+{{MenuCommand|Tools → Edit Parameters ... → Preferences → Mod → CAM → GeometryTolerance }}. <br>
+Note as of version 0.19 the {{PropertyData|Linear Deflection}} default = GeometryTolerance / 4
+
+<!--T:79-->
+'''''Invalid Geometry'''''<br>
+If a model contains invalid geometry the scanning time can increase significantly. A model can be checked using the [[Part_CheckGeometry|Part CheckGeometry]] function in  [[Image:Workbench_Part.svg|24px]]'''Part Workbench'''. <br>
+To run the tool:
+# Switch to the [[Image:Workbench_Part.svg|24px]]'''Part Workbench''' and select the model to check
+# Click on the {{Button|[[Image:Part_CheckGeometry.svg|16px]] [[Part_CheckGeometry|Part CheckGeometry]]}} button available in the Part workbench toolbar OR use the {{MenuCommand|Part → [[Image:Part_CheckGeometry.svg|16px]] Check geometry}} entry from the top menu.
+# Click the '''Run Check''' button and review the results.
+
+<!--T:80-->
+If the results includes items like ''BOPAlgo SelfIntersect'' then the geometry is invalid and should be corrected by adjusting the model. <br>
+(Hint: Boolean operations and Loft commands can sometimes introduce ''Self Intersections'')<br>
+
+====Available Tool (Cutter) Shapes==== <!--T:81-->
+
+<!--T:82-->
+This 3D Surface op currently uses [[OpenCamLib|OpenCamLib]] to extract paths from the part base. As such, a tool setting translation is required between the FreeCAD tool controller and OCL in order to complete the scan with your chosen tool(cutter) shape. 
+
+<!--T:37-->
+These tool shapes are respected and available for this 3D Surface operation:
+
+<!--T:38-->
+* End mill
+* Ball end mill
+* Bull nose end mill
+* Chamfer bit
+* Engraver
+
+<!--T:39-->
+Should you choose to run the path simulator in the CAM Workbench, it only uses the standard end mill to simulate paths. Therefore, you will not see tool-shape-specific material removal. Material removal is shown using the end mill shape.
+
+<!--T:83-->
+NOTE: As of May 2019, only the End Mill has any type of testing to determine accuracy of the FreeCAD-to-OCL tool settings translation. Please post any feedback for non-end-mill usage to the [https://forum.freecadweb.org/viewforum.php?f=15 Path/CAM] section in the FreeCAD forums.
+
+==Properties: Version 0.19== <!--T:55-->
+
+<!--T:9-->
+''' ''Note'' ''': Not all of these Properties are available in the Task Window Editor. Some are only accessible in the Data tab of the Properties View panel for this Operation.
+
+<!--T:12-->
+{{TitleProperty|Base}}
+
+<!--T:13-->
+Note: It is suggested that you do not edit the Placement property of path operations. Rather, move or rotate the CAM Job model as needed.
+
+<!--T:14-->
+* {{PropertyData|Placement}}: Overall placement [position and rotation] of the object - with respect to the origin (or origin of parent object container)
+** {{PropertyData|Angle}}: Angle in degrees applied to rotation of the object around Axis property value
+** {{PropertyData|Axis}}:  Axis (one or multiple) around which to rotate the object, set in sub-properties: X, Y, Z
+*** {{PropertyData|X}}: X axis value
+*** {{PropertyData|Y}}: Y axis value
+*** {{PropertyData|Z}}: Z axis value
+** {{PropertyData|Position}}: Position of the object, set in sub-properties: X, Y, Z - with respect to the origin (or origin of parent object container)
+*** {{PropertyData|X}}: X distance value
+*** {{PropertyData|Y}}: Y distance value
+*** {{PropertyData|Z}}: Z distance value
+* {{PropertyData|Label}}: User-provided name of the object (UTF-8)
+
+<!--T:56-->
+{{TitleProperty|Clearing Options}}
+
+<!--T:57-->
+* {{PropertyData|Bound Box}}: Should the operation be limited by the stock object or by the bounding box of the base object
+* {{PropertyData|Cut Mode}}: The direction that the toolpath should go around the part: Climb(ClockWise) or Conventional(CounterClockWise)
+* {{PropertyData|Cut Pattern}}: Clearing pattern to use
+* {{PropertyData|Cut Pattern Reversed}}: Reverse the cut order of the stepover paths. For circular cut patterns, begin at the outside and work toward the center
+* {{PropertyData|Depth Offset}}: Z-axis offset from the surface of the object
+* {{PropertyData|Layer Mode}}: The completion mode for the operation: single or multi-pass
+* {{PropertyData|Pattern Center At}}: Choose location of the center point for starting the cut pattern
+* {{PropertyData|Pattern Center Custom}}: Set the start point for the cut pattern
+* {{PropertyData|Profile Edges}}: Profile the edges of the selection. There are the following options (images can be seen in this forum post: https://forum.freecad.org/viewtopic.php?p=676452#p676452):
+** {{PropertyData|None}}: Don't create a profile
+** {{PropertyData|Only}}: Create only a profile and no inner paths
+** {{PropertyData|First}}: Start with the profile and then do the rest
+** {{PropertyData|Last}}: Start with the rest and then do the profile
+* {{PropertyData|Sample Interval}}: The Sample Interval. Small values cause long wait times
+* {{PropertyData|Step Over}}: Step over percentage of the drop cutter path
+
+<!--T:15-->
+{{TitleProperty|Depth}}
+
+<!--T:16-->
+* {{PropertyData|Clearance Height}}: The height needed to clear clamps and obstructions
+* {{PropertyData|Final Depth}}: Final Depth of Tool- lowest value in Z
+* {{PropertyData|Safe Height}}: The above which Rapid motions are allowed.
+* {{PropertyData|Start Depth}}: Starting Depth of Tool- first cut depth in Z
+* {{PropertyData|Step Down}}: Incremental Step Down of Tool
+
+<!--T:58-->
+{{TitleProperty|Mesh Conversion}}
+
+<!--T:59-->
+* {{PropertyData|Angular Deflection}}: Smaller values yield a finer, more accurate mesh. Smaller values increase processing time a lot
+* {{PropertyData|Linear Deflection}}: Smaller values yield a finer, more accurate mesh. Smaller values do not increase processing time much but can increase memory comsumption
+
+<!--T:60-->
+{{TitleProperty|Optimization}}
+
+<!--T:61-->
+* {{PropertyData|Circular Use G2 G3}}: Convert co-planar arcs to G2/G3 gcode commands for `Circular` and `CircularZigZag` cut patterns
+* {{PropertyData|Gap Sizes}}: Feedback: three smallest gaps identified in the path geometry
+* {{PropertyData|Gap Threshold}}: Collinear and co-radial artifact gaps that are smaller than this threshold are closed in the path
+* {{PropertyData|Optimize Linear Paths}}: Enable optimization of linear paths (co-linear points). Removes unnecessary co-linear points from G-Code output
+* {{PropertyData|Optimize Step Over Transitions}}: Enable separate optimization of transitions between, and breaks within, each step over path
+
+<!--T:17-->
+{{TitleProperty|Path}}
+
+<!--T:62-->
+* {{PropertyData|Active}}: Make False, to prevent operation from generating code
+* {{PropertyData|Base}}: The base geometry for this operation
+* {{PropertyData|Comment}}: An optional comment for this Operation
+* {{PropertyData|Coolant Mode}}: Coolant mode for this operation
+* {{PropertyData|Cycle Time}}: Operations Cycle Time Estimation
+* {{PropertyData|Tool Controller}}: Defines the Tool controller used in the Operation
+* {{PropertyData|User Label}}: User assigned label
+
+<!--T:19-->
+{{TitleProperty|Rotation}}
+
+<!--T:63-->
+* {{PropertyData|Cutter Tilt}}: Set the cutter (spindle) tilt angle.
+* {{PropertyData|Drop Cutter Dir}}: The direction along which dropcutter lines are created
+* {{PropertyData|Drop Cutter Extra Offset}}: Additional offset to the selected bounding box - use sub-properties to set values
+** {{PropertyData|X}}: X distance value
+** {{PropertyData|Y}}: Y distance value
+** {{PropertyData|Z}}: Z distance value
+* {{PropertyData|Rotation Axis}}: Set the axis for model rotation.
+* {{PropertyData|Start Index}}: Start index(angle) for rotation
+* {{PropertyData|Stop Index}}: Stop index(angle) for rotation
+
+<!--T:64-->
+{{TitleProperty|Selected Geometry Settings}}
+
+<!--T:65-->
+* {{PropertyData|Avoid Last X Faces}}: Avoid cutting the last 'N' faces in the Base Geometry list of selected faces
+* {{PropertyData|Avoid Last X Internal Features}}: Do not cut internal features on avoided faces
+* {{PropertyData|Boundary Adjustment}}: Positive values push the cutter toward, or beyond, the boundary. Negative values retract the cutter away from the boundary
+* {{PropertyData|Boundary Enforcement}}: If true, the cutter will remain inside the boundaries of the model or selected face(s)
+* {{PropertyData|Handle Multiple Features}}: Choose how to process multiple Base Geometry features
+* {{PropertyData|Internal Features Adjustment}}: Positive values push the cutter toward, or into, the feature. Negative values retract the cutter away from the feature
+* {{PropertyData|Internal Features Cut}}: Cut internal feature areas within a larger selected face
+
+<!--T:66-->
+{{TitleProperty|Start Point}}
+
+<!--T:67-->
+* {{PropertyData|Start Point}}:  The custom start point for the path of this operation, set in sub-properties: X, Y, Z
+** {{PropertyData|X}}: X axis value
+** {{PropertyData|Y}}: Y axis value
+** {{PropertyData|Z}}: Z axis value
+* {{PropertyData|Use Start Point}}: Make True, if specifying a Start Point
+
+<!--T:68-->
+{{TitleProperty|Surface}}
+
+<!--T:69-->
+* {{PropertyData|Scan Type}}: Planar: Flat, 3D surface scan. Rotational: 4th-axis rotational scan.
+
+<!--T:23-->
+{{TitleProperty|Waste}}
+
+<!--T:24-->
+* {{PropertyData|Ignore Waste}}: Ignore areas that proceed below specified depth.
+* {{PropertyData|Ignore Waste Depth}}: Depth used to identify waste areas to ignore.
+* {{PropertyData|Release From Waste}}: Cut through waste to depth at model edge, releasing the model.
+
+==Tasks Window Editor Layout== <!--T:84-->
+
+<!--T:25-->
+''Descriptions for the settings are provided in the Properties list above.''
+
+<!--T:85-->
+This section is simply a layout map of the settings in the window editor for the Operation.
+
+===Base Location=== <!--T:26-->
+
+<!--T:70-->
+* '''Base Geometry import selection''': Use this list to select Base Geometry to be imported from the selected, existing operation
+* '''Import''': Imports the selected operation's Base Geometry into the current operations Base Geometry list
+* '''Base Geometry list for current operation''': List of Base Geometry for current operation, if any selected
+* '''Add''': Adds selected element(s) which should be the base(s) for the path(s)
+* '''Remove''': Remove the selected item(s) in the Base Location list
+* '''Clear''': Clear all items in the Base Location list
+
+===Depth=== <!--T:28-->
+
+<!--T:29-->
+* {{PropertyData|Start Depth}}
+* {{PropertyData|Final Depth}}
+* {{PropertyData|Step Down}}
+
+===Height=== <!--T:30-->
+
+<!--T:31-->
+* {{PropertyData|Safe Height}}
+* {{PropertyData|Clearance Height}}
+
+===Operation=== <!--T:34-->
+
+<!--T:35-->
+* {{PropertyData|Tool Controller}}
+* {{PropertyData|Coolant Mode}}
+
+<!--T:71-->
+* {{PropertyData|BoundBox}}
+* {{PropertyData|Scan Type}}
+* {{PropertyData|Layer Mode}}
+* {{PropertyData|BoundBox extra offset X}}
+* {{PropertyData|BoundBox extra offset Y}}
+* {{PropertyData|Drop Cutter Direction}}
+* {{PropertyData|Depth Offset}}
+* {{PropertyData|Step Over}}
+* {{PropertyData|Sample Interval}}
+* {{PropertyData|Optimize Output Enabled}}
+
+<!--T:72-->
+* {{PropertyData|Use Start Point}}
+* {{PropertyData|Boundary Enforcement}}
+* {{PropertyData|Optimize Linear Paths}}
+
+==Resources== <!--T:46-->
+
+<!--T:47-->
+* G-code(path) simulator: [https://ncviewer.com/ NCViewer]
+* G-code(path) simulator: [https://www.camotics.org/ CAMotics]
+
+
+<!--T:49-->
+{{Docnav
+|[[CAM_Pocket_3D|Pocket 3D]]
+|[[CAM_Waterline|Waterline]]
+|[[CAM_Workbench|CAM]]
+|IconL=CAM_Pocket_3D.svg
+|IconR=CAM_Waterline.svg
+|IconC=Workbench_CAM.svg
+}}
+
+</translate>
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

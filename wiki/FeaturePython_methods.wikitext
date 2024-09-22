@@ -1,0 +1,79 @@
+<languages/>
+<translate>
+
+</translate>
+{{TOCright}}
+<translate>
+
+==Introduction== <!--T:1-->
+
+<!--T:2-->
+This page serves as a reference for the available overridable methods on [[Create_a_FeaturePython_object_part_I|Create a FeaturePython object part I]] or [[Scripted_objects|Scripted objects]].
+
+==Primary reference== <!--T:3-->
+The below methods account for ~99% of the use-cases power-users may have for Python proxy classes.
+
+<!--T:8-->
+{| class="wikitable" cellpadding="5px" width="100%"
+|style="width:25%" | {{incode|execute(self, obj)}}
+|style="width:25%" | Called during document recomputes
+|style="width:50%" | Do not call {{incode|recompute()}} from this method (or any method called from {{incode|execute()}}) as this causes a nested recompute.
+|-
+| {{incode|onBeforeChange(self, obj, prop)}}
+| Called before a property value is changed
+| {{incode|prop}} is the name of the property to be changed, not the property object itself. Property changes cannot be cancelled.  Previous / next property values are not simultaneously available for comparison.
+|-
+| {{incode|onChanged(self, obj, prop)}}
+| Called after a property is changed
+| {{incode|prop}} is the name of the property to be changed, not the property object itself.
+|-
+| {{Incode|onDocumentRestored(self, obj)}}
+| Called after a document is restored or a FeaturePython object is copied.
+| Occasionally, references to the FeaturePython object from the class, or the class from the FeaturePython object may be broken, as the class {{incode|__init__()}} method is not called when the object is reconstructed. Adding {{incode|self.Object <nowiki>=</nowiki> obj}} or {{incode|obj.Proxy <nowiki>=</nowiki> self}} often solves these issues.
+|}
+
+<!--T:9-->
+It is not uncommon to encounter a situation where the Python callbacks are not being triggered as they should. Beginners in this area can rest assured that the FeaturePython callback system is not fragile or broken. Invariably when callbacks fail to run it is because a reference is lost or undefined in the underlying code. If, however, callbacks appear to be breaking with no explanation, providing object/proxy references in the {{incode|onDocumentRestored()}} callback (as noted in the first table above) may alleviate these problems. Until you are comfortable with the callback system, it may be useful to add print statements in each callback to print messages to the console during development.
+
+==Additional methods== <!--T:10-->
+The below methods are for '''advanced''' usage of Python proxy classes and you won't have a need for them  most of the time.
+
+<!--T:11-->
+* mustExecute
+* getViewProviderName
+* getSubObject
+* getSubObjects
+* getLinkedObject
+* hasChildElement
+* isElementVisible
+* canLinkProperties
+* allowDuplicateLabel
+* redirectSubName
+* canLoadPartial
+* onBeforeChangeLabel
+
+==Determining available Python methods== <!--T:12-->
+Within the [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L161-L351 FeaturePython Template Class] exists various <code>imp-><method name>()</code> calls.
+
+<!--T:13-->
+Each of these correspond to an available bound Python method.
+
+<!--T:14-->
+For example, <code>imp->execute()</code> [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L193 on line 193] means the <code>execute</code> method is available.
+
+<!--T:15-->
+Note, <code>getPyObject()</code> and <code>init()</code> are special-cases and don't follow the above heuristic.
+
+==See also== <!--T:6-->
+
+<!--T:7-->
+* [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L44-L86 FreeCAD GitHub: FeaturePython.h - public API]
+* [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L167 FreeCAD GitHub: FeaturePythonT template class]
+* [https://forum.freecadweb.org/viewtopic.php?f=22&t=49194 FreeCAD Forum Discussion: Scripted Objects Complete Method Reference]
+
+
+</translate>
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}

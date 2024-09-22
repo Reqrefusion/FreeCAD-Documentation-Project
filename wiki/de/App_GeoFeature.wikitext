@@ -1,0 +1,111 @@
+<languages/>
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Einleitung==
+
+[[File:Feature.svg|32px]]
+
+Ein [[App_GeoFeature/de|App-GeoFeature]]-Objekt, oder formal ein {{incode|App::GeoFeature}}, ist die Basisklasse der meisten Objekte, die geometrische Elemente in der [[3D_view/de|3D-Ansicht]] anzeigen, da es eine {{PropertyData/de|Placement}} enthält.
+
+[[File:FreeCAD_core_objects.svg|800px]]
+
+{{Caption|Vereinfachtes Diagramm der Beziehungen zwischen den Kernobjekten in FreeCAD}}
+
+<span id="Usage"></span>
+==Anwendung==
+
+Das [[App_GeoFeature/de|App GeoFeature]] ist ein internes Objekt; es kann daher nicht von der grafischen Oberfläche aus erstellt werden. Es ist generell nicht dafür vorgesehen, direkt eingesetzt zu werden, eher zum Ableiten einer Unterklasse für ein nacktes Objekt, das nur eine grundlegende {{PropertyData/de|Placement}} enthält, die seine Position in der [[3D_view/de|3D-Ansicht]] festlegt.
+
+Einige der wichtigsten abgeleiteten Objekte sind folgende:
+* Die Klasse [[Part_Feature/de|Part Feature]] (Part-Formelement), übergeordnete Klasse der meisten Objekte mit 2D- und 3D- [[Part_TopoShape/de|TopoFormen]].
+* Die Klasse [[Mesh_Feature/de|Mesh Feature]] (Mesh-Formelement), übergeordnete Klasse der meisten von [[Mesh_MeshObject/de|Netzobjekten]] abgeleiteten Objekte; keine Festkörper.
+* Die Klasse [[FEM_Mesh/de|Fem FemMeshObject]] (FEM-Netzobjekt), übergeordnete Klasse der FEM-Netze, die mit dem Arbeitsbereich [[FEM_Workbench/de|FEM]] erstellt wurden.
+* Die Klasse [[CAM_Feature/de|CAM Feature]] (CAM-Element), übergeordnete Klasse der Werkzeugbahnen (paths), die mit dem Arbeitsbereich [[CAM_Workbench/de|CAM]] für CNC-Bearbeitungen erstellt wurden.
+* Die Klasse [[App_Part/de|App Part]] (App-Part), die [[Std_Part/de|Std-Parts]] definiert, die als Behälter von Körpern eingesetzt werden, um Baugruppen zusammenzustellen.
+
+Wird dieses Objekt mit [[Python/de|Python]] erstellt, sollte anstatt eine Unterklasse von {{incode|App::GeoFeature}} abzuleiten, eine Unterklasse von {{incode|App::GeometryPython}} abgeleitet werden, da letztere einen Standard-Viewprovider enthält sowie {{incode|Proxy}}-Attribute für das Objekt selbst und seinen Viewprovider. Siehe [[App_GeoFeature/de#Skripten|Skripten]].
+
+<span id="Properties_App_GeoFeature"></span>
+==Eigenschaften eines App-GeoFeature-Objekts==
+
+Siehe [[Property/de|Objekteigenschaften]] für alle Arten von Eigenschaften, die skriptgenerierte Objekte besitzen können.
+
+Das Objekt [[App_GeoFeature/de|App GeoFeature]] (Klasse {{incode|App::GeoFeature}}) ist von dem grundlegenden [[App_DocumentObject/de|App DocumentObject]] (Klasse {{incode|App::DocumentObject}}) abgeleitet und erbt alle seine Eigenschaften. Zusätzlich besitzt es eine {{PropertyData/de|Placement}}, die seine Position in der [[3D_view/de|3D-Ansicht]] bestimmt.
+
+<span id="Properties_App_GeometryPython"></span>
+==Eigenschaften eines App-GeometryPython-Objekts==
+
+Siehe [[Property/de|Objekteigenschaften]] für alle Arten von Eigenschaften, die skriptgenerierte Objekte besitzen können.
+
+Das Objekt [[App_GeoFeature/de|App GeometryPython]] (Klasse {{incode|App::GeometryPython}}) wird von einem [[App_GeoFeature/de|App GeoFeature]] (Klasse {{incode|App::GeoFeature}}) abgeleitet und erbt alle seine Eigenschaften. Es besitzt einige zusätzliche Eigenschaften.
+
+Diese sind die im [[Property_editor/de|Eigenschafteneditor]] vorhandenen Eigenschaften. Ausgeblendete Eigenschaften können mit dem Befehl {{MenuCommand|Alle anzeigen}} im Kontextmenü des [[Property_editor/de|Eigenschafteneditors]] angezeigt werden.
+
+<span id="Data"></span>
+===Daten===
+
+{{TitleProperty|Basis}}
+
+* {{PropertyData|Proxy|PythonObject|Hidden}}: a custom class associated with this object.
+* {{PropertyData|Placement|Placement}}: the position of the object in the [[3D_view|3D view]]. The placement is defined by a {{incode|Base}} point (vector), and a {{incode|Rotation}} (axis and angle). See [[Placement|Placement]].
+** {{PropertyData|Angle}}: the angle of rotation around the {{PropertyData|Axis}}. By default, it is {{value|0°}} (zero degrees).
+** {{PropertyData|Axis}}: the unit vector that defines the axis of rotation for the placement. Each component is a floating point value between {{value|0}} and {{value|1}}. If any value is above {{value|1}}, the vector is normalized so that the magnitude of the vector is {{value|1}}. By default, it is the positive Z axis, {{value|(0, 0, 1)}}.
+** {{PropertyData|Position}}: a vector with the 3D coordinates of the base point. By default, it is the origin {{value|(0, 0, 0)}}.
+* {{PropertyData|Label|String}}: the user editable name of this object, it is an arbitrary UTF8 string.
+* {{PropertyData|Label2|String|Hidden}}: a longer, user editable description of this object, it is an arbitrary UTF8 string that may include newlines. By default, it is an empty string {{value|""}}.
+* {{PropertyData|Expression Engine|ExpressionEngine|Hidden}}: a list of expressions. By default, it is empty {{value|[]}}.
+* {{PropertyData|Visibility|Bool|Hidden}}: whether to display the object or not.
+
+<span id="View"></span>
+===Ansicht===
+
+{{TitleProperty|Basis}}
+* {{PropertyView/de|Proxy|PythonObject|Hidden}}: eine spezielle, mit diesen Objekt vebundene, [[Viewprovider/de|Viewprovider]]-klasse.
+
+{{TitleProperty|Display Options}}
+* {{PropertyView|Bounding Box|Bool}}: if it is {{TRUE}}, the object will show the bounding box in the [[3D_view|3D view]].
+* {{PropertyView|Display Mode|Enumeration}}: see the information in [[App_FeaturePython|App FeaturePython]].
+* {{PropertyView|Show In Tree|Bool}}: see the information in [[App_FeaturePython|App FeaturePython]].
+* {{PropertyView|Visibility|Bool}}: see the information in [[App_FeaturePython|App FeaturePython]].
+
+{{TitleProperty|Object Style}}
+* {{PropertyView|Shape Color|Color}}: a tuple of three floating point RGB values {{value|(r,g,b)}} to define the color of the faces in the [[3D_view|3D view]]; by default it is {{value|(0.8, 0.8, 0.8)}}, which is displayed as {{value|[204, 204, 204]}} on base 255, a <span style="background-color:#ccc; width:3em; height:12pt; padding: 2px 1em 2px;"> light gray </span>.
+* {{PropertyView|Shape Material|Material|Hidden}}: an [[App_Material|App Material]] associated with this object. By default it is empty.
+* {{PropertyView|Transparency|Percent}}: an integer from {{value|0}} to {{value|100}} that determines the level of transparency of the faces in the [[3D_view|3D view]]. A value of {{value|100}} indicates completely invisible faces; the faces are invisible but they can still be picked as long as {{PropertyView|Selectable}} is {{TRUE}}.
+
+{{TitleProperty|Selection}}
+* {{PropertyView|On Top When Selected|Enumeration}}: see the information in [[App_FeaturePython|App FeaturePython]].
+* {{PropertyView|Selectable|Bool}}: if it is {{TRUE}}, the object can be picked with the pointer in the [[3D_view|3D view]]. Otherwise, the object cannot be selected until this option is set to {{TRUE}}.
+* {{PropertyView|Selection Style|Enumeration}}: see the information in [[App_FeaturePython|App FeaturePython]].
+
+<span id="Scripting"></span>
+==Skripten==
+
+{{Emphasis|Siehe auch:}} [[FreeCAD_Scripting_Basics/de|FreeCAD Grundlagen Skripten]] und [[Scripted_objects/de|Skriptgenerierte Objekte]].
+
+Siehe [[Part_Feature/de|Part Formelement]] für allgemeine Informationen zum Hinzufügen von Objekten zu einem Dokument.
+
+Ein GeoFeature wird mit der Methode {{incode|addObject()}} des Dokuments erstellt. Soll ein Objekt mit einer 2D- oder 3D- [[Part_TopoShape|Topoform]] erstellt werden, ist es vielleicht besser, eine Unterklasse zu erstellen, die auf den Umgang mit Formen spezialisiert ist, z.B. [[Part_Feature/de|Part Fomelement]] oder [[Part_Part2DObject/de|Part Part2DObject]].
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("App::GeoFeature", "Name")
+obj.Label = "Custom label"
+}}
+
+Für die Ableitung von [[Python/de|Python]]-Unterklassen sollte das {{incode|App::GeometryPython}}-Objekt erstellt werden.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("App::GeometryPython", "Name")
+obj.Label = "Custom label"
+}}
+
+
+{{Document_objects_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

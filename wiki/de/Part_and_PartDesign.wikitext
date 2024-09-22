@@ -1,0 +1,247 @@
+<languages/>
+{{TOCright}}
+
+<span id="Overview"></span>
+==Übersicht==
+
+Im Laufe der Jahre gab es viele Diskussionen über die Unterschiede und Auswirkungen der Verwendung des [[File:Workbench_Part.svg|24px]] [[Part_Workbench/de|Part]] und des [[File:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/de|PartDesign]] Arbeitsbereichs.
+
+Es ist eine gute Idee, den einen oder den anderen zu verwenden, bis der Benutzer mit dem einen vertraut ist, und dann das andere zu lernen. In der Regel wird auch empfohlen, dass neue Benutzer die beiden nicht mischen, bis sie die Auswirkungen verstanden haben.
+
+Lass uns über diese Auswirkungen sprechen.
+
+<span id="Part_Workbench_Concepts"></span>
+==Part Arbeitsbereich Konzepte==
+
+Part Arbeitsbereich ist im Wesentlichen [[Constructive_solid_geometry/de|CSG style modeling]]. Der Bediener kombiniert verschiedene Grundelemente, um am Ende eine Darstellung der gewünschten Form zu erhalten. (Tatsächlich geht Part Arbeitsbereich einen Schritt weiter als nur Grundelemente und erlaubt dem Anwender, eine Skizze+Extrudieren Ausführung (oder Skizze+Drehen, Austragen, Ausformen ...) zu verwenden, um auch zufällige Formen zu erstellen.)
+Wenn ein Grundelement oder eine Form erstellt wird, hat es keine Beziehung zu anderen erstellten Objekten (mit Ausnahme von Skizzen und deren Anhängen), es ist ein einzelner solitärer Körper.
+
+[[File:Part_CSG_Prims.png|frame|centre|Solitary solids]]
+
+
+This condition remains so, until, the operator uses some operation to combine them (typically a Boolean that adds or subtracts them).
+Each starting solid remains accessible separately and the operation creates a new object.
+
+The take away is the single solitary solid bit and the combining them bit.
+
+<span id="PartDesign_Workbench_Concepts"></span>
+==PartDesign Arbeitsbereich Konzepte==
+
+Im PartDesign Arbeitsbereich wird das Körperobjekt direkt als einzelner, kumulativer Festkörper konstruiert.
+
+Der 1. Schritt in einem Körper muss ein Materialblock sein, entweder aus einem additiven Grundelement oder einer Extrusion aus einer Skizze, oder eine importierte Form (dann Basis Formelement genannt).
+
+Dieser anfängliche Materialblock wird nach und nach verändert, bis die gewünschte Endform (Festkörper) erreicht ist.
+
+Es ist kumulativ in dem Sinne, dass bei jedem Vorgang Material hinzugefügt oder entfernt wird.
+
+ 
+By default, the "tip" of the body - unless there is a voluntary change in the visualization of a particular feature - is the last operation performed on the body. This is the current and visible state of the body, ready to be changed again by new feature.
+
+Any function under the body represents the cumulative shape of the solid from the 1st feature to the feature considered.
+
+So '''to have the complete solid''', on the one hand the Tip feature must be the last stage of the construction of this solid, and on the other hand '''it is the body which must be selected''' and not a stage of its construction.
+
+This will make it possible, in the event of a modification, '''to always have the last version of the solid represented.'''
+
+
+'''Note and additions :'''
+At each time of the construction, the last function used is the "Tip", which can be defined too as "active stage in the construction of the object" or "stage preceding the next action in the construction of the object". When the object's drawing is complete, Tip is naturally the last stage or feature of the construction. But if desired, in case of forgetting, any feature of the construction can be provisionally declared as Tip: it then becomes the step preceding the next action in the construction of the object, which means that new feature(s) can be inserted anywhere in the construction, '''on the condition that no incompatibilities are created with the suite'''.
+
+When everything is finished, you have to redeclare the last feature as Tip, which corresponds to the finished object.
+
+[[File:Part_Design_Cumulativ.png|frame|centre|Cumulative Body Solid]]
+
+This image shows a Body. It is a cumulative solid that consists of a padded sketch and a cone primitive. This is a single solid.
+
+If Tip on '''Pad''', the pad can exist separately, but if Tip on '''Cone''', the cone cannot exist separately (Tip on cone = pad + cone).
+
+(Another thing mentioned often is a Body '''''MUST''''' be a single contiguous solid. This means all geometry created by a feature in the Body ''must'' touch it's predecessor.)
+
+<span id="The_Ramifications"></span>
+==Die Auswirkungen==
+
+Although not recommended for newcomers, it is possible to combine tools from Part workbench and PartDesign workbench, provided you know what you are doing. For example :
+
+People get caught when they attempt to use some feature under the Body (rather than the Body itself) as one selection of a Part Workbench Boolean operation. This is a problem, because the selected feature does not represent '''THE''' complete solid.
+
+In a sense, from a Part Workbench standpoint, the Body represents another primitive. So, using a Body (remember it is a proxy for the tip) and a Part Workbench object to do a Boolean is valid. But the resulting object is a Part Workbench object. And, thus PartDesign Workbench tools can't be used on it any longer.
+
+And, it can get even more complicated. If you create a new Body and drag the result from the previous paragraph into it, a BaseObject is created. And you can go off an use the PartDesign Workbench tools on it.
+
+<span id="The_Caveats"></span>
+==Die Vorbehalte==
+
+There is a caveat with the Tip and it's representation of the single solid in the Body. ''If'' the tip is a subtractive feature and is used in a dress up operation, for instance a Mirror, the Mirror is operating on the underlying feature (a pocket for example). Thus the cumulative solid is not mirrored, but the subtractive feature is. The result of this must create a single solid.
+
+In this example, a mirror of the tip (which is the pocket of the slot) around any of the base planes, or even a face of the solid will not produce a mirrored solid of the entire model. (In fact, it will produce a Mirrored feature in the tree that is essentially empty.)
+
+[[File:PhantomMirror.png|frame|centre|Solitary solids]]
+
+In this example, a mirror of the tip (which is the pocket of the slot) is performed around the datum plane and produces a mirrored slot:
+
+[[File:MirroredSlot.png|frame|centre|Solitary solids]]
+
+See the [[File:PartDesign_Mirrored.svg|24px|link=PartDesign_Mirrored]] [[PartDesign_Mirrored|PartDesign Mirrored]] tool wiki page for more information.
+
+<span id="Comparison"></span>
+==Vergleich==
+
+You can see below the same example built with each of the two workbenches. Of course, there are always several possible construction timelines with each workbench.
+[[File:PartWBvsPartDesignWBexample.jpg|frame|center|Compare constructions with Part workbench and PartDesign workbench]]
+
+{| class="wikitable"
+|+ 
+|-
+! In [[Image:Workbench_PartDesign.svg|24px]] PartDesign workbench !! In [[Image:Workbench_Part.svg|24px]] Part workbench
+|-
+| 01- [[File:PartDesign_Body.svg|32px]] New body > [[File:Sketcher_NewSketch.svg|32px]] New Sketch in XZ plane || 01- [[Image:Workbench_Sketcher.svg|24px]] Sketcher workbench > [[Image:Sketcher_NewSketch.svg‎‎|32px]] Sketch in XZ plane
+|-
+| [[File:01sketchXZ PartWBvsPartDesignWBn.jpg|center]] || 
+[[File:01Psketch PartWBvsPartDesignWBn.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 02- [[File:PartDesign_Revolution.svg|32px]] Revolution / Z || 02- [[Image:Part_Revolve.svg|32px]] Revolve / Z
+|-
+| [[File:02revolutionZ PartWBvsPartDesignWBn.jpg|center]] || 
+[[File:02revolveZ PartWBvsPartDesignWBn.jpg|center]] 
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 03- [[File:Sketcher_NewSketch.svg|32px]] New Sketch in XY plane || 03- [[Image:Workbench_Sketcher.svg|24px]] Sketcher workbench > [[Image:Sketcher_NewSketch.svg‎‎|32px]] New Sketch in XY plane
+|-
+| [[File:03sketchXY PartWBvsPartDesignWBn.jpg|center]] || 
+[[File:03sketchXY PartWBvsPartDesignWBn.jpg|center]] 
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 04- [[File:PartDesign_Pocket.svg|32px]] Pocket || 04a- [[Image:Part_Extrude.svg|32px]] Extrude
+|-
+| [[File:04pocket PartWBvsPartDesignWBn.jpg|center]] || 
+[[File:04aExtrude PartWBvsPartDesignWB.jpg|center]] 
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+|  || 04b- [[Image:Part_Cut.svg|32px]] Cut
+|-
+| [[File:00nothing PartWBvsPartDesignWB.jpg|center]] || 
+[[File:04bCut PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 05- [[File:Sketcher_NewSketch.svg|32px]] New Sketch in XZ plane || 05- [[Image:Workbench_Sketcher.svg|24px]] Sketcher workbench > [[Image:Sketcher_NewSketch.svg‎‎|32px]] New Sketch in XZ plane
+|-
+| [[File:05sketchXZ PartWBvsPartDesignWB.jpg|center]] || 
+[[File:05PsketchXZ PartWBvsPartDesignWB.jpg|center]] 
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 06- [[File:PartDesign_Pad.svg|32px]] Pad sym/XZ || 06a- [[Image:Part_Extrude.svg|32px]] Extrude sym/XZ
+|-
+| [[File:06padSymXZ PartWBvsPartDesignWB.jpg|center]] || 
+[[File:06aExtrude PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+|  || 06b- [[Image:Workbench_Draft.svg|24px]] Draft [[File:Draft_PolarArray.svg|32px]] Polar Pattern
+|-
+| [[File:00nothing PartWBvsPartDesignWB.jpg|center]] || 
+[[File:06bDraftPolarPattern PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+|  || 06c- [[Image:Part_Fuse.svg|32px]] Fusion
+|-
+| [[File:00nothing PartWBvsPartDesignWB.jpg|center]] || 
+[[File:06cFusion PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 07- [[File:Sketcher_NewSketch.svg|32px]] New Sketch on base planar face || 07- [[Image:Workbench_Sketcher.svg|24px]] Sketcher workbench > [[Image:Sketcher_NewSketch.svg‎‎|32px]] New Sketch in XZ plane
+|-
+| [[File:07sketchBaseSupFace PartWBvsPartDesignWB.jpg|center]] || 
+[[File:07PsketchXZ PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 08- [[File:PartDesign_Hole.svg|32px]] Hole - counterbore || 08a- [[Image:Part_Revolve.svg|32px]] Revolve
+|-
+| [[File:08hole-counterbore PartWBvsPartDesignWB.jpg|center]] || 
+[[File:08aRevolve PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+|  || 08b- [[Image:Workbench_Draft.svg|24px]] Draft [[File:Draft_PolarArray.svg|32px]] Polar Pattern
+|-
+| [[File:00nothing PartWBvsPartDesignWB.jpg|center]] || 
+[[File:08bDraftPolarPattern PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 09- [[Image:PartDesign_PolarPattern.svg|32px]] Polar Pattern of Hole and Pad || 09- [[Image:Part_Cut.svg|32px]] Cut
+|-
+| [[File:09polarPatternHoleAndPad PartWBvsPartDesignWB.jpg|center]] || 
+[[File:09Cut PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+Compare the construction trees in the two workbenches as well as their organization and reading timeline :
+
+{| class="wikitable"
+|+ 
+|-
+| 10- Construction tree in PartDesign workbench || 10- Construction tree in Part workbench
+|-
+| [[File:PartvsPartDesign TreePartDesignWB.jpg|center]] || 
+[[File:PartvsPartDesign TreePartWB.jpg|center]]
+|-
+|}
+
+<span id="Conclusion"></span>
+==Schlussfolgerung==
+
+Die Arbeitsbereiche Part und PartDesign können mit etwas Vorsicht zusammen verwendet werden, um recht komplexe Modelle zu erstellen.
+ 
+[[#Top|Anfang]]
+
+{{Part Tools navi{{#translation:}}}}
+{{PartDesign Tools navi{{#translation:}}}}
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,118 @@
+<languages/>
+
+{{Docnav/de
+|[[Arch_Remove/de|Entfernen]]
+|[[BIM_Setup/de|Einrichten]]
+|[[BIM_Workbench/de|BIM]]
+|IconL=Arch_Remove.svg
+|IconR=BIM_Setup.svg
+|IconC=Workbench_Arch.svg
+}}
+
+{{VeryImportantMessage|DIESER BEFEHL IST BESTANDTEIL DES INTEGRIERTEN ARBEITSBEREICHS [[BIM_Workbench/de|BIM]] IN V1.0<br>
+Diese Seite wurde für diese Version aktualisiert.}}
+
+{{GuiCommand/de
+|Name=Arch CutPlane
+|Name/de=Arch Schnittebene
+|MenuLocation=Modify → Mit einer Ebene beschneiden
+|Workbenches=[[BIM_Workbench/de|BIM]]
+}}
+
+<span id="Description"></span>
+==Beschreibung== 
+
+Das Werkzeug '''Arch Schnittebene'''  beschneidet einen Arch-Festkörper (Arch-Objekt), wie z.B. eine [[Arch_Wall/de|Arch Wand]] oder [[Arch_Structure|Arch Struktur]] mit einer ebenen Fläche.
+
+[[Image:Arch_CutPlane_example.jpg|400px]]
+{{Caption|Links: Vor der Anwendung des Werkzeugs Schnittebene. Mitte: Resultierende Wand nach dem Beschnitt. Rechts: Ein weiteres optionales Ergebnis}}
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Soll die Schnittebene von einer geraden Kante abgeleitet werden ({{Version/de|1.0}}), kann wahlweise die [[Draft_SelectPlane/de|Arbeitsebene]] ausgerichtet werden:
+#* Die ausgewählte Kante kann (darf) nicht parallel zur Normale der Arbeitsebene sein.
+#* Die erstellte Schnittebene steht senkrecht auf der Arbeitsebene.
+# Das zu schneidende Objekt auswählen.
+# Eine der folgende Möglichkeiten auswählen:
+#* Ein Objekt mit einer einzelnen ebenen Fläche auswählen. {{Version/de|1.0}}
+#* Eine ebene Fläche in der [[3D_view/de|3D-Ansicht]] auswählen.
+#* Ein Objekt mit einer einzelnen geraden Kante auswählen. {{Version/de|1.0}}
+#* Eine gerade Kante in der [[3D_view/de|3D-Ansicht]] auswählen. {{Version/de|1.0}}
+# Es gibt mehrere Möglichkeiten, den Befehl aufzurufen:
+#* Die Schaltfläche {{Button|[[Image:Arch_CutPlane.svg|16px]] [[Arch_CutPlane|Mit einer Ebene beschneiden]]}} drücken.
+#* Den Menüeintrag {{MenuCommand|Modify → [[Image:Arch_CutPlane.svg|16px]] Mit einer Ebene beschneiden}} auswählen.
+# {{MenuCommand|Hinter}} oder {{MenuCommand|Vorne}} auswählen, um die Seite der Schnittfläche zu bestimmen, auf der Material entfernt werden soll.
+# Die Schaltfläche {{Button|OK}} drücken.
+
+<span id="Scripting"></span>
+==Skripten==
+
+{{Emphasis|Siehe auch:}} [[Arch_API/de|Arch API]] und [[FreeCAD_Scripting_Basics/de|FreeCAD Grundlagen Skripten]].
+
+Das Werkzeug Schnittebene kann in [[Macros/de|Makros]] und von der [[Python/de|Python]] Konsole aus mit folgender Funktion verwendet werden:
+
+{{Code|code=
+cutObj = cutComponentwithPlane(archObject, cutPlane, sideFace)
+}}
+
+* Erstellt ein {{incode|cutObj}}-Objekt aus dem gegebenen {{incode|archObject}}, das mit {{incode|cutPlane}} beschnitten wird, das eine Fläche eines anderen Objekts ist.
+** {{incode|archObject}} sollte ein {{incode|SelectionObject}} sein, das aus {{incode|FreeCADGui.Selection.SelectionEx()[0]}} stammt.
+** {{incode|cutPlane}} sollte ein {{incode|FaceObject}} sein, das aus  {{incode|FreeCADGui.Selection.SelectionEx()[0].SubObjects[0]}} stammt.
+* {{incode|sideFace}} gibt an, auf welcher Seite des {{incode|FaceObject}} ein Volumenkörper erzeugt werden soll; dieser Volumenkörper wird dann von dem {{incode|archObject}} abgezogen (subtracted). Falls {{incode|sideFace}} den Wert {{incode|0}} hat, wird ein Volumenkörper hinter der Fläche erzeugt, anderenfalls vor der Fläche.
+
+Beispiel:
+
+{{Code|code=
+import FreeCAD, FreeCADGui, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 2000, 0)
+
+Line = Draft.makeWire([p1, p2])
+Wall = Arch.makeWall(Line, width=150, height=2000)
+
+p3 = FreeCAD.Vector(0, 2000, 0)
+p4 = FreeCAD.Vector(3000, 0, 0)
+
+Line2 = Draft.makeWire([p3, p4])
+Wall2 = Arch.makeWall(Line2, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+# Select the Wall
+main_object = FreeCADGui.Selection.getSelectionEx()[0]
+
+# Select the face of Wall2
+selection = FreeCADGui.Selection.getSelectionEx()[0]
+cut_face = selection.SubObjects[0]
+
+cutObj = Arch.cutComponentwithPlane(main_object, cut_face, 0)
+FreeCAD.ActiveDocument.recompute()
+
+Wall3 = Draft.move(Wall, FreeCAD.Vector(-4000, 0, 0), copy=True)
+Wall4 = Draft.move(Wall2, FreeCAD.Vector(-4000, 0, 0), copy=True)
+FreeCAD.ActiveDocument.recompute()
+
+# Select the Wall3
+main_object2 = FreeCADGui.Selection.getSelectionEx()[0]
+
+# Select the face of Wall4
+selection2 = FreeCADGui.Selection.getSelectionEx()[0]
+cut_face2 = selection2.SubObjects[0]
+
+cutObj2 = Arch.cutComponentwithPlane(main_object2, cut_face2, 1)
+FreeCAD.ActiveDocument.recompute()
+}}
+
+
+{{Docnav/de
+|[[Arch_Remove/de|Entfernen]]
+|[[BIM_Setup/de|Einrichten]]
+|[[BIM_Workbench/de|BIM]]
+|IconL=Arch_Remove.svg
+|IconR=BIM_Setup.svg
+|IconC=Workbench_Arch.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

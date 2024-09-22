@@ -1,0 +1,74 @@
+<languages/>
+
+{{Docnav
+|[[Arch_MergeWalls|MergeWalls]]
+|[[Arch_ToggleIfcBrepFlag|ToggleIfcBrepFlag]]
+|[[BIM_Workbench|BIM]]
+|IconL=Arch_MergeWalls.svg
+|IconR=Arch_ToggleIfcBrepFlag.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/sv|Name=Arch Check|Name/sv=Arch Check|Workbenches=[[Arch_Workbench/sv|Arch]]|MenuLocation=Arch → Utilities → Check|SeeAlso=[[Arch CloseHoles/sv|Arch CloseHoles]]}}
+</div>
+
+<span id="Description"></span>
+==Beskrivning==
+
+This tool checks the current document or the selected objects for non-solid [[Part_Workbench|Part]] or [[BIM_Workbench|BIM]] objects, that might give problems, since most operations of the BIM Workbench require solid objects.
+
+==Usage==
+
+# Select the {{MenuCommand|Utils → [[Image:Arch_Check.svg|16px]] Check}} option from the menu.
+
+==Scripting==
+
+{{Emphasis|See also:}} [[Arch_API|Arch API]] and [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+This tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following function:
+{{Code|code=
+list_bad = check(objectslist, includehidden=False)
+}}
+
+* Checks if the given objects in {{incode|objectslist}} contain only solids.
+* If {{incode|includehidden}} is {{incode|True}} it will include all hidden objects, otherwise it will omit them from the search.
+* Returns {{incode|list_bad}}, a list with the objects that are not derived from a {{incode|Part::Feature}}, or components that are not closed, not valid, don't contain solids, or that contain faces that are not part of any solid. This is used to detect [[BIM_Workbench|BIM]] or [[Draft_Workbench|Draft]] wires and profiles that aren't solids.
+** Each element in {{incode|list_bad}} is another list {{incode|[object, message]}}, where {{incode|object}} is the detected non-solid, and {{incode|message}} indicates the reason why it was included in this list.
+
+Example:
+
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 0, 0)
+baseline = Draft.makeLine(p1, p2)
+Wall1 = Arch.makeWall(baseline, length=None, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+Wall2 = Arch.makeWall(None, length=2000, width=200, height=1000)
+FreeCAD.ActiveDocument.recompute()
+
+Circle = Draft.makeCircle(450)
+Wire = Draft.makeWire([FreeCAD.Vector(1000, 0, 0), FreeCAD.Vector(1500, 1000, 0), FreeCAD.Vector(2500, -1000, 0)])
+
+list_bad = Arch.check([Wall1, Wall2, Circle, Wire], includehidden=True)
+print(list_bad)
+}}
+
+
+{{Docnav
+|[[Arch_MergeWalls|MergeWalls]]
+|[[Arch_ToggleIfcBrepFlag|ToggleIfcBrepFlag]]
+|[[BIM_Workbench|BIM]]
+|IconL=Arch_MergeWalls.svg
+|IconR=Arch_ToggleIfcBrepFlag.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

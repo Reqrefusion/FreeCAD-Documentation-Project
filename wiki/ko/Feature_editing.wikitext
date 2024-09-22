@@ -1,0 +1,186 @@
+<languages/>
+{{TOCright}}
+
+<span id="Introduction"></span>
+== 소개 ==
+
+이 페이지에서는 FreeCAD 0.17부터 도입된[[Image:Workbench_PartDesign.svg|32px]] [[PartDesign Workbench/ko|부품설계 작업대]]를 사용하는 방법을 설명합니다. 
+
+[[Image:Workbench_Part.svg|24px]] [[Part Workbench/ko|부품 작업대]] 와 다른 작업대에서는 형상을 결합하여 모델을 구성하는 반면([[Constructive solid geometry|Constructive solid geometry]] 참조), [[Image:Workbench_PartDesign.svg|24px]] [[PartDesign Workbench/ko|부품설계 작업대]]에서는 {{Emphasis|[[PartDesign_Feature/ko|특징(Feature)]]}}을 사용합니다. [https://en.wikipedia.org/wiki/Feature_recognition 특징]은 모델 형상의 기하학적 특징이고 부품설계 작업대에서는 이러한 (도형의 기하학적) 특징들을 만들어 나아갑니다.
+
+<span id="Feature_editing_methodology"></span>
+== 특징 편집 방법론 ==
+
+모델의 첫 번째 특징은 일반적으로 '''기본 특징(base feature)'''이라고 합니다. 모델에 더 많은 특징이 추가됨에 따라 각 특징은 이전 특징의 형상을 취하고 물질을 추가하거나 제거하여 한 특징에서 다음 특징으로 선형적인 의존성을 만듭니다. 실제로 이 방법론은 일반적인 제조 공정을 모방한 것입니다. 즉, 블록을 한쪽에서 절단한 다음 다른 쪽에서 구멍을 뚫고 다듬는 등의 작업을 수행합니다.
+
+모든 특징은 모델 트리에 순차적으로 나열되며 언제든지 편집할 수 있으며 하단의 마지막 특징은 최종 부품을 나타냅니다.
+
+특징은 다양한 범주로 분류될 수 있습니다.
+
+* '''프로파일 기반''': 이러한 특징은 추가되거나 제거될 물질의 모양을 정의하는 프로파일에서 시작됩니다. 프로파일은 스케치, 기존 형상의 평면형 면(프로파일은 모서리에서 추출됨), ShapeBinder 또는 활성 Body에 포함된 Draft 객체일 수 있습니다.
+
+* '''덧셈''': 기존 모델에 물질을 추가합니다. 추가 기능에는 노란색 아이콘이 표시됩니다.
+
+* '''뺄셈''': 기존 모델에서 물질을 제거합니다. 빼기 기능에는 빨간색과 파란색 아이콘이 표시됩니다.
+
+* '''기본도형 기반''': 기하학적 기본 도형(입방체, 원통, 원뿔, 원환체…)를 기반으로 합니다. 덧셈적이거나 뺄셈적일 수 있습니다.
+
+* '''변형 특징''': 기존 특징에 변형(대칭, 선형 복사, 원형 복사, 다중 복사)을 적용합니다.
+
+* '''꾸밈''': 모깎기/다듬기, 모따기, 구배 등 모서리나 면에 처리를 적용하는 특징입니다.
+
+* '''절차적''': 변형, 꾸밈 특징과 같이 스케치를 기반으로 하지 않는 특징들을 말합니다.
+
+<span id="Body"></span>
+== 몸통(Body) ==
+
+부품설계 작업대에서 작업하려면 먼저  '''[[Body/ko|몸통]]'''을 만들어야 합니다. [[File:PartDesign_Body.svg|24px]]몸통([[PartDesign Body]])은 하나의 연속된 고체(single contiguous solid)를 형성하는 일련의 특징들을 담는 그릇입니다.
+
+[[File:PartDesign Body tree.png|none]]
+
+'''하나의 연속된 고체란 무엇입니까?''' 단일 금속 블록을 기계로 가공한 주물이나 물체와 같은 물체입니다. 물체에 못, 나사, 접착제 또는 용접이 포함된 경우 단일 연속 고체가 아닙니다. 실제적인 예로, 나무 의자는 각 하위 구성요소(다리, 칸막이, 좌석 등)마다 하나씩 포함된 여러 몸통들로 구성됩니다.
+
+FreeCAD 문서에서는 여러 몸통을 만들 수 있습니다. 또한 결합하여 한 덩어리의 고체를 형성할 수도 있습니다.
+
+문서에서는 하나의 몸통만 활성화할 수 있습니다. 활성화된 몸통은 새로 생성된 특징을 가져옵니다. 몸통을 두 번 클릭하면 활성화하거나 비활성화할 수 있습니다. 활성화된 몸통은 연한 파란색으로 강조 표시됩니다.
+
+이전 나무 의자 예와 같이 모델에 여러 몸통들이 필요한 경우 범용 목적 [[Image:Std_Part.svg|24px]] [[Std Part|Part 컨테이너]]를 사용하여 몸통들을 그룹화하고 전체를 하나의 단위로 이동할 수 있습니다.
+
+<span id="Body_visibility_management"></span>
+=== 몸통 가시성 관리 ===
+
+몸통은 기본적으로 가장 최근의 특징을 외부에 표시합니다. 이 특징은 기본적으로 끝단(tip)으로 정의됩니다. 좋은 비유는 '빙산의 일각(tip)'이라는 표현입니다: 물 위에는 빙산의 끝부분만 보이고 나머지 덩어리의 대부분(다른 특징들)은 숨겨져 있습니다. 몸통에 새로운 특징이 추가되면서 이전 특징의 가시성은 꺼지고 새로운 특징이 끝단이 되어 표시됩니다.
+
+한 번에 하나의 특징만 표시될 수 있습니다. 모델 트리에서 특징을 선택하고 {{KEY|Spacebar}}를 눌러 몸통내 특징의 [[Std_ToggleVisibility/ko|가시성 전환]]을 할 수 있으며, 실제로 몸통의 특징생성 이력을 거슬러 올라갑니다.
+
+<span id="Body_Origin"></span>
+=== 몸통의 원점 ===
+
+몸통에는 스케치와 특징에서 사용할 수 있는 참조 평면(XY, XZ, YZ)과 축(X, Y, Z)으로 구성된 원점이 있습니다. 스케치는 원점 평면에 부착할 수 있으며 스케치를 기반으로 하는 특징을 모델에 추가하거나 빼기 위해 더 이상 평면형 면에 매핑할 필요가 없습니다.
+
+<span id="Moving_and_Reordering_Objects"></span>
+=== 개체 이동 및 재정렬 ===
+
+새로운 개체(특징, 스케치 또는 데이텀 형상)를 삽입하기 위해 몸통 트리 중간에 있는 특징에 대한 끝단(tip)을 일시적으로 재정의할 수 있습니다. 몸통 내의 특징을 재정렬하거나 다른 몸통으로 이동하는 것도 가능합니다. 개체를 선택하고 마우스 오른쪽 버튼을 클릭하면 두 가지 옵션을 모두 제공하는 상황에 맞는 메뉴가 나타납니다. 객체가 면에 부착되는 등 소스 몸통에 종속성이 있는 경우 이동이 불가능 할 수 있습니다. 스케치를 다른 몸통으로 이동하려면 외부 형상에 대한 링크가 포함되어서는 안 됩니다.
+
+<span id="Difference_with_other_CAD_systems"></span>
+=== 다른 CAD 프로그램과의 차이점 ===
+
+FreeCAD와 Catia 같은 다른 프로그램의 근본적인 차이점은 FreeCAD를 사용하면 동일한 [[Image:PartDesign_Body.svg|24px]] '''[[PartDesign Body|PartDesign Body]]'''에서 분리된 고체를 많이 가질 수 없다는 것입니다. 즉, 새로운 특징은 항상 이전 기능 위에 구축되어야 합니다. 또는 다른 방식으로 말하면 새로운 특징은 이전 특징과 "접촉"해야 합니다.그래서 두 특징이 서로 융합되어 단일 고체가 됩니다. "떠 있는" 고체를 가질 수 없습니다.
+
+[[File:PartDesign_Body_non-contiguous.png|550px]]
+
+{{Caption|Catia와 FreeCAD의 차이점. 왼쪽: Catia에서는 이전 몸통의 특징에서 분리된 몸통을 허용합니다. 오른쪽: FreeCAD에서는 새로운 특징은 항상 이전 특징과 접촉하거나 교차하여 융합되어 하나의 연속된 고체가 되어야 합니다.}}
+
+<span id="Datum_geometry"></span>
+== 기준 도형 ==
+
+기준 도형은 사용자 정의 평면, 선, 점 또는 외부에 연결된 형상으로 구성됩니다. 스케치 및 특징에 대한 참조로 사용하기 위해 생성될 수 있습니다. 기준 도형에 대한 부착 가능성은 다양합니다.
+
+일부 CAD 프로그램에서는 이전 몸통에서 떨어진 기준 평면을 정의하고 연결이 끊긴 고체를 생성할 수 있습니다.따라서 많은 기준 평면을 배치하고 그 위에 객체를 만드는 것은 문제가 없습니다. 일반적으로 평면을 최종 위치로 조정하여 개별 개체가 서로 융합되도록 합니다.
+
+FreeCAD에서는 앞에서 언급한 것처럼 분리된 고체는 허용되지 않으므로, 연속되지 않은 고체를 생성하는 기준 평면의 스케치는 실패합니다.
+
+FreeCAD에서는 비표준 방향으로 스케치(패딩, 포켓 등)를 배치하는 경우 기준 평면이 적합합니다. 즉, 세 개의 주요 축을 중심으로 오프셋되거나 회전된 평면에서입니다. 기준면과 동일한 방식으로 스케치를 비표준 방향으로 배치할 수도 있으므로 기준면을 사용할 필요가 없는 경우가 많습니다.
+
+동일한 비표준 방향의 스케치가 두 개 이상 있는 경우에도 기준면이 적합합니다. 이 경우 기준 평면을 사용할 수 있으며 관련 스케치와 스케치에서 생성된 특징을 모두 조정하려면 기준 평면에 대한 방향만 조정하면 됩니다.
+
+스케치와 기준 평면은 모두 기본 평면에 부착되어야 합니다. 생성된 형상(패드나 포켓과 같은 형상 생성 작업의 결과 형상)을 참조하는 것은 피해야 합니다. 면과 모서리의 이름이 바뀌고 번호가 다시 매겨지고 참조가 더 이상 동일한 것을 참조하지 않기 때문입니다. 이를 위상적 불안정성(topological instability) 이라고 하며 FreeCAD가 일부 외부 기하학적 라이브러리를 사용하는 방식 때문입니다. 앞으로는 이 부분이 개선되길 바랍니다. (아래의 안정적인 모델 생성을 위한 조언을 참조하세요).
+
+스케치를 지원하는 데 사용되지 않더라도 기준 도형 객체는 모델링 프로세스에서 중요한 기능이나 거리에 주의를 끌기 위한 시각적 표시기로 여전히 유용합니다.(단, 스케치에 형상을 추가하는 것만으로도 유사한 시각적 피드백을 얻을 수 있습니다.)
+
+[[File:PartDesign_Body_non-contiguous_slanted.png|550px]]
+
+{{Caption|Catia와 FreeCAD의 차이점. 왼쪽: Catia에서는 이전 특징에서 분리된 몸통을 허용합니다. 오른쪽: FreeCAD에서 새로운 특징은 항상 이전 피처와 접촉하거나 교차하여 융합되어 하나의 연속된 고체가 되어야 합니다. 이 예에서 새 고체는 Y축을 중심으로 회전하는 기준면을 기반으로 합니다.}}
+
+<span id="Cross-referencing"></span>
+== 상호 참조 ==
+
+기준도형을 통해 한 몸통의 요소를 다른 몸통에 상호 참조할 수 있습니다. 예를 들어 기준 형상 바인더를 사용하면 몸통의 면을 다른 몸통의 참조로 복사할 수 있습니다. 이렇게 하면 서로 다른 두 몸통에 덮개가 있는 상자를 쉽게 만들 수 있습니다. FreeCAD는 여러분의 의도 확인을 요청하여 실수로 다른 몸통에 연결하는 것을 방지합니다.
+
+<span id="Attachment"></span>
+== 부착 ==
+
+개체 부착은 부품설계 작업대만의 도구가 아니라 v0.17에 도입된 부품 유틸리티로 부품 메뉴에서 찾을 수 있습니다. 이는 몸통의 표준 평면과 축에 스케치와 참조 형상을 연결하기 위해 부품설계 작업대에서 주로 사용됩니다. 기준점, 선 및 평면을 생성하는 매우 광범위한 방법을 사용할 수 있습니다. 선택적 부착 오프셋 매개변수를 사용하면 이 도구를 매우 다양하게 활용할 수 있습니다.
+
+더 많은 정보는 [[Part_EditAttachment|Attachment]] 페이지와 [[Basic_Attachment_Tutorial|Basic Attachment Tutorial]]에서 확인할 수 있습니다.
+
+<span id="Advice_for_creating_stable_models"></span>
+== 안정적인 모델을 만들기 위한 조언 ==
+
+파라메트릭 모델링의 아이디어는 특정 매개변수의 값을 변경할 수 있고 후속 단계가 새 값에 따라 변경된다는 것을 의미합니다. 그러나 심각한 변경이 이루어지면 FreeCAD에서 아직 해결되지 않은 [[Topological_naming_problem|topological naming problem]]로 인해 모델이 깨져 버릴 수 있습니다. 다음 설계 원칙을 준수하면 깨짐을 최소화할 수 있습니다.
+
+* Avoid attaching sketches and datum objects to generated geometry of the model. (Generated geometry is any face or edge created as a result of a pad, pocket, etc..)
+* Place your sketches on standard coordinate planes, or on custom datum planes attached to standard planes.
+** Sketches attached to basic coordinate planes/axes or to datum planes attached to coordinate planes/axes, will not get unexpectedly reattached to a different reference.
+* When creating datum geometry, do not attach it to generated geometry
+** Attach it to standard planes/axes and/or sketches or datum objects which use attachment offsets to standard planes/axes.
+* Use a "master sketch". Since a master sketch is done before rest of the model, it only references the coordinate planes/axes.
+** A master sketch should be as simple as possible, containing basic geometric elements of your model.
+** Master sketch elements can be referenced when modelling subsequent features.
+** A master sketch can be the first sketch in the Body, or outside the body completely
+** A master sketch can be referenced as external geometry or via a ShapeBinder.
+* Don't create ShapeBinders from generated geometry
+* Keep in mind that ShapeBinders can be an issue when geometry is deleted from the sketch it is based on.
+* If you inevitably have to reference an intermediate feature, e.g. the result of a thickness operation
+** Use the first reference possible in the list of subsequent features where the referenced geometric element occurs.
+** If you take an early feature as reference, all changes to intermediate steps won't break your model.
+** Try to reference a sketch or sketch geometry rather than generated geometry.
+* Use ''dress ups'', like fillets and chamfers, as late in the feature tree as possible
+* Note, using spreadsheets, dynamic data, master sketches, etc. generally produce more parametric models and help avoid the topological naming issue.
+
+<span id="Body_building_workflow"></span>
+== 몸통 생성 작업흐름 ==
+
+[[PartDesign_Workbench/ko|부품설계 작업대]]에서는 여러 가지 작업흐름이 있습니다.  항상 염두해야 할 점은 [[PartDesign_Body|PartDesign Body]] 내부에 생성된 모든 특징이 함께 융합되어 최종 개체를 얻는다는 것입니다.
+
+<span id="Different_sketches"></span>
+=== 다른 스케치 ===
+
+스케치는 평면에 의해 지지되어야 합니다. 이 평면은 몸통의 원점에 의해 정의된 기본 평면(XY, XZ 또는 YZ) 중 하나일 수 있습니다. 스케치는 [[Image:PartDesign_Pad.svg|24px]] [[PartDesign Pad|PartDesign Pad]]와 같은 도구를 사용하여 양의 고체(덧셈), 또는[[Image:PartDesign_Pocket.svg|24px]][[PartDesign Pocket|PartDesign Pocket]]와 같은 도구를 사용하여 음의 고체(뺄셈)로 돌출됩니다. 전자는 몸통의 최종 형상에 부피를 추가하는 반면, 후자는 최종 형상에서 부피를 줄입니다. 이런 식으로 스케치와 부분적 고체를 원하는 수만큼 생성할 수 있습니다. 최종 형상(tip)은 이러한 작업을 함께 융합한 결과입니다. 당연히 몸통은 뺄셈 연산만으로 구성될 수 없습니다. 최종 형상은 0이 아닌 양의 부피를 가진 고체이어야 하기 때문입니다.
+
+[[Image:PartDesign_workflow_1.svg|600px]]
+
+<span id="Sequential_features"></span>
+=== 순차적 특징들 ===
+
+스케치는 이전 고체 작업의 면에 의해 받쳐질 수 있습니다. 이는 특정 특징이 생성된 후에만 사용할 수 있는 면에 접근해야 하는 경우 필요할 수 있습니다. 그러나 원본 특징이 수정되면 순차상의 다음 특징이 깨져 버릴 수 있으므로 이 작업흐름은 권장되지 않습니다. 이것이 [[Topological_naming_problem|topological naming problem]]입니다.
+
+[[Image:PartDesign_workflow_2.svg|600px]]
+
+<span id="Use_of_datum_planes_for_support"></span>
+=== 받침을 위한 기준평면 사용 ===
+
+기준평면은 스케치를 받침하는 데 유용합니다. 이러한 보조 평면은 몸통의 기본 평면에 부착되어야 합니다.
+
+''참고: 대부분의 경우 부착 오프셋이 있는 기본 평면에 부착된 스케치는 동일한 기능을 수행할 수 있습니다. 기준도형은 여러 스케치나 기타 구성에서 사용될 때 특히 유용합니다. 이는 기준도형에 대한 모든 변경 사항이 그것에 부착된 스케치 등에 적용된다는 의미입니다. 스케치 속성에서 부착 오프셋을 사용하는 대신 기준도형에 단일 스케치를 추가하는 것은 본질적으로 중복되는 불필요한 작업입니다.''
+
+스케치와 마찬가지로 생성된 형상(모서리, 이전에 생성된 고체의 면)에 기준평면을 부착할 수 있지만 이 방법은 위상 명명 문제(topological naming problem)를 일으킬 수 있으므로 '''''권장되지 않습니다'''''.
+
+또한 [[Image:PartDesign_ShapeBinder.svg|24px]] [[PartDesign_ShapeBinder|PartDesignShapeBinder]]를 사용하여 외부 형상을 몸통으로 가져와 참조할 수 있습니다. 그런 다음 스케치를 기준면을 사용하거나 사용하지 않고 이 보조 몸통에 부착할 수 있습니다.
+
+''다시 말하지만, ShapeBinder는 생성된 형상이 아니라 이전 몸통의 스케치를 기반으로 해야 합니다.''
+
+기준도형을 사용하는 것은 기본 평면 및 부착 오프셋과 함께 사용할 때 안정적인 모델을 생성하는 가장 좋은 방법인 경우가 많지만 사용자의 작업이 조금 더 필요합니다. 기본 부착에 대한 자세한 내용은 다음을 참조하세요: [[Basic_Attachment_Tutorial/ko|기본 부착 자습서]] ''참고: 이 자습서에서는 스케치에 대해 설명하지만 기준도형 부착도 비슷한 방식으로 수행됩니다.''
+
+<span id="Tutorials"></span>
+== 자습서 ==
+
+<div class="mw-translate-fuzzy">
+[[Tutorials/ko|자습서]] 페이지에서는 [[Image:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/ko|부품설계 작업대]]의 [[Feature_editing/ko|특징 편집하기]] 방법을 사용하는 몇 가지 예를 제공합니다.
+* [[Creating_a_simple_part_with_PartDesign/ko|부품작업대에서 간단한 부품 만들기]]
+* [[Basic_Part_Design_Tutorialko|기본 부품 설계 자습서]]
+* [[Basic_Attachment_Tutorialko|기본 부착 자습서]]
+</div>
+
+<span id="Related"></span>
+==관련==
+
+* [[Constructive_solid_geometry|Constructive solid geometry]]
+
+[[Image:PartDesign_workflow_3.svg|600px]]
+
+
+{{PartDesign Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Common Questions{{#translation:}}]]

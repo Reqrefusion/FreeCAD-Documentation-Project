@@ -1,0 +1,132 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic= Analiza elementów skończonych
+|Level= początkujący
+|Time= 10 minut + czas Solvera
+|Author=[http://freecadweb.org/wiki/index.php?title=User:Drei Drei]
+|FCVersion=0.17 lub nowszy
+}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Niniejszy poradnik ma na celu zapoznanie czytelnika z podstawowym tokiem pracy środowiska MES, jak również z większością dostępnych narzędzi do przeprowadzania analizy statycznej.
+
+[[Image:FEM_tutorial_result.png|600px]]
+
+<span id="Requirements"></span>
+==Wymagania==
+
+* FreeCAD w wersji 0.17 lub nowszej.
+* [http://sourceforge.net/projects/netgen-mesher/ Netgen] i / lub [http://geuz.org/gmsh/ GMSH] zainstalowany w systemie ''(dołączony do instalacji FreeCAD)''.
+* [http://www.calculix.de/ Calculix] który jest zainstalowany w systemie ''(dołączony do instalacji FreeCAD)''.
+* Czytelnik powinien posiadać podstawową wiedzę na temat korzystania z Środowisk pracy [[Part_Workbench/pl|Część]] oraz [[PartDesign_Workbench/pl|Projekt Części]].
+
+<span id="Procedure"></span>
+==Sposób postępowania==
+
+<span id="Modeling"></span>
+===Modelowanie===
+
+W tym przykładzie jako obiekt badania używany jest sześcian, ale zamiast niego mogą być używane modele utworzone w środowiskach pracy [[Part_Workbench/pl|Część]] lub [[PartDesign_Workbench/pl|Projekt Części]].
+
+# Naciśnij przycisk [[Image:Std_New.svg|24px|link=Std_New/pl|Utwórz nowy pusty dokument]] aby utworzyć nowy dokument.
+# Aktywuj środowisko pracy [[Image:Workbench_Part.svg|24px|link=Part_Workbench/pl|Projekt Części]] [[Part_Workbench/pl|Część]].
+# Stwórz sześcian.
+# Zmień jego '''wymiary''' na następujące:
+## długość: {{Value|8.00mm}}
+## szerokość: {{Value|1.00mm}}
+## wysokość: {{Value|1.00mm}}
+
+Teraz mamy model, z którym możemy pracować.
+
+<span id="Creating_the_Analysis"></span>
+===Tworzenie analizy===
+
+#Uruchom środowisko pracy [[Image:Workbench_FEM.svg|24px|link=FEM_Workbench/pl]] [[FEM_Workbench/pl|MES]].
+# Wybierz z menu {{MenuCommand|Model → [[Image:FEM_Analysis.svg|16px]] Kontener analizy‏‎}}
+
+<span id="Constraints_and_Forces"></span>
+===Wiązania i siły===
+
+# Ukryj siatkę z widoku drzewa.
+# Wyświetl oryginalny model.
+# Wybierz [[Image:FEM_ConstraintFixed.svg|24px|link=FEM_ConstraintFixed/pl|Warunek brzegowy utwierdzenia]] [[FEM_ConstraintFixed/pl|Warunek brzegowy utwierdzenia]].
+# Wybierz tylną stronę sześcianu ''(strona na osi '''YZ''')'' i kliknij na przycisk {{Button|OK}}.
+# Wybierz [[Image:FEM_ConstraintForce.svg|24px|link=FEM_ConstraintForce/pl|Obciążenie siłą]] [[FEM_ConstraintForce/pl|Obciążenie siłą]].
+# Kliknij w przycisk {{Button|Dodaj}} wybierz przednią ścianę sześcianu ''(ściana równoległa do tylnej)'' i ustaw wartość "Obciążenie [N]" na {{Value|9000000.00}}.
+# Ustaw wartość '''Kierunek''' na '''-Z''' poprzez wybranie jednej z krawędzi równoległych do tego kierunku.
+# Kliknij na przycisk {{Button|OK}}.
+
+Ustaliliśmy teraz ograniczenia i siły dla naszych badań statycznych.
+
+<span id="Material"></span>
+===Materiał===
+
+# Wybierz [[Image:FEM_MaterialSolid.svg|24px]] [[FEM_MaterialSolid/pl|Materiał bryły ...]] i wybierz Calculix-Steel jako materiał.
+# Kliknij na przycisk {{Button|OK}}.
+
+<span id="Meshing"></span>
+===Tworzenie siatki===
+
+Zaleca się wykonanie siatki jako ostatni etap przygotowań do analizy ze względu na skojarzenie z geometrią w programie FreeCAD.
+W zależności od instalacji programu FreeCAD mogą występować generatory siatek Netgen lub GMSH, można użyć dowolnego z nich.
+
+<span id="Netgen"></span>
+====Netgen====
+
+# Zaznacz model.
+# Kliknij na przycisk [[Image:FEM_MeshNetgenFromShape.svg|24px]] [[FEM_MeshNetgenFromShape/pl|Siatka MES z kształtu przy pomocy generatora Netgen]] aby utworzyć siatkę Netgen modelu dla analizy MES.
+# W oknie dialogowym '''Tworzenie siatki''', kliknij przyciski {{Button|Zastosuj}} oraz {{Button|OK}}
+
+Możesz także przeciągnąć i upuścić obiekt siatki do analizy mechanicznej, która nie występuje w [[Tree_view/pl|widoku drzewa]].
+
+<span id="GMSH"></span>
+====GMSH====
+
+# Zaznacz model
+# Kliknij na przycisk [[Image:FEM_MeshGmshFromShape.svg|24px]] [[FEM_MeshGmshFromShape/pl|Siatka MES z kształtu przy pomocy generatora Gmsh]]:  aby utworzyć siatkę Gmsh modelu dla analizy MES.
+# W oknie dialogowym '''Tworzenie siatki'' kliknij przycisk {{Button|Apply}} oraz {{Button|OK}}.
+
+Obecnie mamy do czynienia z siatką naszego obiektu i jesteśmy gotowi do dodania wiązań i sił.
+
+<span id="Running_the_Solver"></span>
+===Uruchomienie solvera===
+
+<span id="Standard_Procedure"></span>
+====Procedura typowa====
+
+# Wybierz obiekt solvera [[Image:FEM_SolverCalculixCxxtools.svg|24px]] zawarty w kontenerze '''Analiza'''.
+# Wybierz z menu [[Image:FEM_SolverControl.svg|24px]] [[FEM_SolverControl/pl|Kontrola pracy solvera]] 
+# Wybierz {{Button|Zapisz plik wejściowy .inp}}.
+# Wybierz {{Button|Uruchom Calculix}}.
+# Kliknij w przycisk {{Button|OK}}.
+
+<span id="Quick_Procedure"></span>
+====Procedura skrócona====
+
+# Wybierz obiekt solvera [[Image:FEM_SolverCalculixCxxtools.svg|24px]] zawarty w kontenerze '''Analiza'''.
+# Kliknij w przycisk [[Image:FEM_SolverRun.svg|24px]] [[FEM_SolverRun/pl|Uruchom analizę]].
+
+<span id="Analyzing_Results"></span>
+===Analizowanie wyników===
+
+# W widoku drzewa wybierz obiekt '''CCX_Wyniki'''.
+# Wybierz [[Image:FEM_ResultShow.svg|24px|link=FEM_ResultShow/pl|Pokaż wyniki]] [[FEM_ResultShow/pl|Pokaż wyniki]].
+# Wybierz jeden z dostępnych typów wyników, do przeglądania.
+# Suwak na dole może być użyty do zmiany wyglądu siatki. Pozwala to na wizualizację deformacji doświadczanej przez obiekt, pamiętając, że jest to wynik przybliżony.
+# Aby usunąć wyniki wybierz [[Image:FEM_ResultsPurge.svg|24px|link=FEM_ResultsPurge/pl|Oczyszczanie z wyników]] [[FEM_ResultsPurge/pl|Usuń wyniki]].
+
+{{Note|Porównanie wyników do poprzedniej wersji pliku przykładowego|Jeśli wybierzesz typ wyniku '''Przemieszczenie Z'', zobaczysz, że uzyskana wartość jest prawie identyczna jak w przykładzie testowym dostarczonym przez FreeCAD. Różnice mogą pojawić się na skutek zastosowania odmiennej jakości siatki i liczby posiadanych przez nią węzłów.}}
+
+Zakończyliśmy teraz prezentacje podstawowego przepływu pracy dla środowiska [[FEM_Workbench/pl|MES]].
+
+<span id="Notes"></span>
+==Uwagi==
+
+* Aby zapoznać się z poradnikiem wideo opartym na tym pisemnym poradniku, obejrzyj: [https://www.youtube.com/watch?v=SZTIqhfCSVc Poradnik FEM materiał zbrojony].
+
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

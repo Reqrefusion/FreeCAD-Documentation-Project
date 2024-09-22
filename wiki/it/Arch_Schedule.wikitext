@@ -1,0 +1,143 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_MultiMaterial/it|Multi-Materiale]]
+|[[Arch_CompPipe/it|Strumenti di Tubo]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_MultiMaterial.svg
+|IconR=Arch_CompPipe.png
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/it|Name=Arch Schedule|Name/it=Scheda|Workbenches=[[Arch_Workbench/it|Arch]]|MenuLocation=Arch → Scheda|SeeAlso=[[Arch Equipment/it|Arredo]]}}
+</div>
+
+<span id="Description"></span>
+==Descrizione==
+
+<div class="mw-translate-fuzzy">
+Lo strumento Scheda consente di creare e compilare automaticamente un [[Spreadsheet_Workbench/it|foglio di calcolo]] con contenuti prelevati dal modello.
+</div>
+
+Per una soluzione più generale, consultare il [https://github.com/furti/FreeCAD-Reporting/tree/master Reporting Workbench] nell'elenco degli [[External_workbenches/it|ambienti esterni]]. Questo ambiente utilizza la sintassi SQL per estrarre informazioni dal documento.
+
+<span id="Usage"></span>
+==Utilizzo==
+
+<div class="mw-translate-fuzzy">
+# Aprire o creare un documento di FreeCAD con alcuni oggetti.
+# Premere il pulsante {{Button|[[Image:Arch_Schedule.svg|16px]] [[Arch_Schedule/it|Scheda]]}}
+# Regolare le opzioni desiderate.
+# Premere {{Button|OK}}.
+</div>
+
+<span id="Workflow"></span>
+==Flusso di lavoro==
+
+In primo luogo è necessario disporre di un modello. Ad esempio, ecco un documento con un paio di oggetti Arch, ma sono supportati anche altri oggetti.
+
+[[Image:Arch_schedule_example01.jpg]]
+
+<div class="mw-translate-fuzzy">
+Poi premere il pulsante {{Button|[[Image:Arch_Schedule.svg|16px]] [[Arch_Schedule/it|Scheda]]}}. Si ottiene un pannello delle Azioni come questo. È piuttosto ampio, quindi può essere necessario allargarlo.
+</div>
+
+[[Image:ArchSchedule.png]]
+
+<div class="mw-translate-fuzzy">
+Poi si può riempire riga per riga. Ogni riga è una "query" e restituisce una riga nel foglio di calcolo. Premere il pulsante '''Aggiungi''' per aggiungere una nuova riga e fare doppio clic su ciascuna cella di quella riga per inserire i valori. Il pulsante '''Del''' cancella la riga che contiene una cella selezionata, e '''Clear''' elimina tutte le righe. I valori che è possibile mettere nelle colonne sono:
+</div>
+
+<div class="mw-translate-fuzzy">
+* '''Description''': Una descrizione per questa query. La colonna Descrizione è la prima colonna del foglio di calcolo risultante. Nella descrizione è obbligatorio avere una query rappresentata. Se si lascia la cella descrizione vuota, l'intera riga viene saltata e lasciata vuota nel foglio di calcolo. Ciò consente di aggiungere delle righe "separatrici".
+* '''Property''': Questa è la query reale che si desidera eseguire su tutti gli oggetti selezionati. Possono esserci due termini: la parola {{incode|count}} o una proprietà dell'oggetto:
+** Se si inserisce {{incode|count}} (o {{incode|Count}} o {{incode|COUNT}}, non si fa distinzione tra maiuscole e minuscole) gli oggetti selezionati verranno semplicemente conteggiati.
+** Se si immette una proprietà di un oggetto, verrà recuperato e sommato il valore di questa proprietà per ciascuno degli oggetti selezionati. Gli oggetti che non hanno tale proprietà verranno ignorati. Utilizza la notazione punto per riferirti al caso delle proprietà: {{incode|PropertyOfObject.PropertyOfProperty1.PropertyOfProperty2}}. Se la proprietà prima del primo punto inizia con una lettera minuscola verrà considerata un riferimento all'oggetto stesso e verrà ignorata. Inserire ad esempio {{incode|object.Shape.Volume}} equivale a inserire {{incode|Shape.Volume}}.
+* '''Unit''': un'unità opzionale in cui esprimere i risultati. Sta all'utente fornire un'unità che corrisponda alla query che si sta facendo, ad esempio, se si stanno recuperando volumi, si dovrebbe utilizzare un'unità di volume, come {{incode|m^3}}. Se si usa un'unità sbagliata, ad es. cm, si otterranno risultati errati.
+* '''Objects''': si può lasciare vuoto, quindi verranno considerati da questa query tutti gli oggetti del documento, oppure si può fornire un elenco di nomi di oggetti (non etichette) separati da punto e virgola (;). Se uno qualsiasi degli oggetti in questo elenco è un gruppo, verranno selezionati anche i suoi figli. Quindi il modo più semplice per utilizzare questa funzionalità è raggruppare gli oggetti in modo significativo nel documento e fornire qui semplicemente un nome al gruppo. Si può anche utilizzare il pulsante {{Button|Aggiungi la selezione}} per aggiungere oggetti attualmente selezionati nel documento. È necessario utilizzare nomi interni in questa posizione. Per selezionare gli oggetti in base alla loro etichetta, lasciare questa colonna vuota e utilizzare invece la colonna Filtro.
+* '''Filter''': Qui è possibile aggiungere un elenco di filtri separati da punti e virgola {{incode|;}}. Ogni filtro è scritto nella forma: {{incode|property:value}}. È possibile utilizzare solo proprietà che contengono un valore stringa. Sia la proprietà che il valore non fanno distinzione tra maiuscole e minuscole. L'{{incode|value}} può essere tralasciato ma non l'{{incode|:}}. Per gestire correttamente le schede create con versioni precedenti di Scheda la proprietà {{incode|type}} verrà tradotta nella proprietà {{incode|ifctype}}. È consigliabile non utilizzare {{incode|type}} nelle nuove pianificazioni.
+: Per esempio:
+:: {{incode|label:floor1;ifctype:window}} manterrà solo gli oggetti che hanno "floor1" nel loro {{PropertyData|Label}} e "window" nel loro {{PropertyData|IFC Type}}. Verrà inclusa una finestra con {{PropertyData|Label}} "Floor1-AA" e {{PropertyData|IFC Type}} "Window Standard Case".
+:: {{incode|label:door}} Manterrà solo gli oggetti che hanno "door" nella loro {{PropertyData|Label}}.
+:: {{incode|!label:door}} Manterrà solo gli oggetti che non hanno "door" nella loro {{PropertyData|Label}}.
+:: {{incode|ifctype:structural}} Manterrà solo gli oggetti che hanno "structural" nel loro {{PropertyData|IFC Type}}.
+:: {{incode|!ifctype:something}} Manterrà solo gli oggetti che non hanno "structural" nel loro {{PropertyData|IFC Type}} o che non hanno la proprietà {{PropertyData|IFC Type}}.
+:: {{incode|!ifctype:}} Manterrà solo gli oggetti che non hanno la proprietà {{PropertyData|IFC Type}}.
+</div>
+
+{| class="wikitable"
+|+ Example filter queries
+|-
+! Query
+! Description
+|-
+| {{incode|label:floor1;ifctype:window}}
+| Will retain only objects that have "floor1" in their {{PropertyData|Label}} and "window" in their {{PropertyData|IFC Type}}. A window with the {{PropertyData|Label}} "Floor1-AA" and the {{PropertyData|IFC Type}} "Window Standard Case" will be included.
+|-
+| {{incode|label:door}}
+| Will retain only objects that have "door" in their {{PropertyData|Label}}
+|-
+| {{incode|!label:door}}
+| Will retain only objects that do not have "door" in their {{PropertyData|Label}}
+|-
+| {{incode|ifctype:structural}}
+| Will retain only objects that have "structural" in their {{PropertyData|IFC Type}}
+|-
+| {{incode|!ifctype:something}}
+| Will retain only objects that do not have "structural" in their {{PropertyData|IFC Type}} or that do not have the {{PropertyData|IFC Type}} property
+|-
+| {{incode|!ifctype:}}
+| Will retain only objects that do not have the {{PropertyData|IFC Type}} property
+|}
+
+<div class="mw-translate-fuzzy">
+Il pulsante {{Button|Importa}} permette di costruire questa lista in un altro foglio di calcolo, e importarla qui come file CSV.
+</div>
+
+<div class="mw-translate-fuzzy">
+Quindi si può costruire una lista di query di questo tipo:
+</div>
+
+[[Image:ArchScheduleExample.png]]
+
+<div class="mw-translate-fuzzy">
+Dopo di che, premendo {{Button|OK}}, al documento viene aggiunto un nuovo oggetto Scheda che contiene un foglio di calcolo con i risultati:
+</div>
+
+[[Image:Arch_schedule_example04.jpg]]
+
+<div class="mw-translate-fuzzy">
+Facendo doppio clic sull'oggetto Scheda, si ritorna al pannello delle Azioni e si può modificare i valori. Facendo doppio clic sul Foglio di calcolo, si ottengono i risultati nelle 3 colonne: la descrizione, il valore e l'unità (se applicabile):
+</div>
+
+[[Image:Arch_schedule_example05.jpg]]
+
+<div class="mw-translate-fuzzy">
+Dall'ambiente Spreadsheet il foglio di calcolo può quindi essere esportato normalmente in formato CSV.
+</div>
+
+<span id="Dynamic_properties"></span>
+==Proprietà dinamiche==
+
+È possibile aggiungere le proprie proprietà agli oggetti. Queste sono chiamate [[Property_editor/it#Azioni|Proprietà dinamiche]]. Se sono stati aggiunti con l'opzione {{MenuCommand|Prefisso nome gruppo}} selezionata, i loro nomi inizieranno effettivamente con il nome del gruppo, ma questo prefisso non verrà visualizzato nell'[[Property_editor/it|Editor delle proprietà]]. I loro nomi hanno questa forma: {{incode|NameOfGroup_NameOfProperty}}. Per farvi riferimento in una pianificazione è necessario utilizzare questo nome completo.
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_MultiMaterial/it|Multi-Materiale]]
+|[[Arch_CompPipe/it|Strumenti di Tubo]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_MultiMaterial.svg
+|IconR=Arch_CompPipe.png
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

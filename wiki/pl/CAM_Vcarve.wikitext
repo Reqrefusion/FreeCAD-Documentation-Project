@@ -1,0 +1,152 @@
+<languages/>
+
+{{Docnav/pl
+|[[CAM_Deburr/pl|Usuwanie zadziorów]]
+|[[CAM_Pocket_3D/pl|Obróbka kieszeni]]
+|[[CAM_Workbench/pl|środowisko pracy CAM]]
+|IconL=CAM_Deburr.svg
+|IconR=CAM_Pocket_3D.svg
+|IconC=Workbench_CAM.svg
+}}
+
+{{GuiCommand/pl
+|Name=CAM Vcarve
+|Name/pl=CAM: Wycięcie V
+|MenuLocation=CAM → Wycięcie V
+|Workbenches=[[CAM_Workbench/pl|CAM]]
+|Version=0.19
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie [[Image:CAM_Vcarve.svg|24px]] '''Wycięcie V''' służy przede wszystkim do grawerowania w linii środkowej [[Image:Draft_ShapeString.svg|24px|link=Draft_ShapeString/pl]] [[Draft_ShapeString/pl|Kształtu z tekstu]] na części. Jednakże, może być przydatne dla innych rodzajów operacji 2D.
+
+W przeciwieństwie do grawerowania, które podąża za liniami w obrysie, Wycięcie V wykorzystuje frez w kształcie litery V i próbuje oczyścić obszar, przesuwając frez w dół środka obszaru i zmieniając głębokość cięcia. Ponieważ promień frezu w kształcie litery V zmienia się wraz z głębokością, zmienia się również szerokość cięcia. Rezultatem jest bardziej naturalnie wyglądające cięcie, szczególnie w przypadku czcionek szeryfowych.
+
+[[File:Engravepath.png|thumb]]
+[[File:Vcarvepath.png|thumb|Example Vcarving Path]]
+[[Image:Vcarved.png|thumb]]
+[[File:Scrolltest.png|thumb]]
+
+Algorytm Wycięcie V oblicza ścieżkę wzdłuż linii środkowej regionu przy użyciu diagramu Woronoja. Ta linia środkowa jest ścieżką, którą narzędzie będzie podążać w płaszczyźnie XY. Następnie oblicza "maksymalny wpisany okrąg" wzdłuż ścieżki. Jest to największy okrąg, jaki można narysować w tym punkcie i pozostać całkowicie wewnątrz obszaru oczyszczania. Korzystając z promienia okręgu i kąta wierzchołkowego frezu, obliczana jest głębokość cięcia.  
+
+<span id="Usage"></span>
+==Użycie==
+
+<span id="Prepare_the_shapes_to_engrave"></span>
+===Przygotowanie kształtów do grawerowania===
+
+* {{Button|[[File:Draft_ShapeString.svg|24px]] [[Draft_ShapeString/pl|Kształt z tekstu]]}} są użyteczne od razu.
+* Pliki SVG wymagają pewnego dopracowania, zarówno w edytorze, jak i w środowisku pracy [[File:Workbench_Draft.svg|24px|link=Draft_Workbench/pl]] [[Draft_Workbench/pl|Rysunek Roboczy]]:
+** W edytorze ''(np. [https://www.inkscape.org Inkscape])'': upewnij się, że plik zawiera tylko ścieżki i że ścieżki są niezgrupowane. Upewnij się, że nie ma przecinających się ścieżek, ''(w Inkscape)'' użyj Ścieżka → Uprość i połącz, aby połączyć ścieżki, które się nakładają.
+** Przełącz się na [[File:Workbench_Draft.svg|24px|link=Draft_Workbench/pl]] [[Draft_Workbench/pl|Rysunek Roboczy]] w selektorze [[Std_Workbench/pl|środowisk pracy]].
+** Zaimportuj SVG używając {{MenuCommand|Plik → Import → wybierz "SVG jako geometria"}}. 
+** Wynik powinien wyglądać podobnie do tego:
+**:[[File:Svgimport.png|bez ramki]]
+**:{{Caption|Powyżej: Wyniki importu "SVG jako geometria"}}
+:::Ścieżki z dziurami ''(litery, winorośl na powyższym obrazku)'' są importowane jako dwie oddzielne ścieżki (nazwane zgodnie z {{incode|Path905}} i {{incode|Path905001}} w oknie [[Tree_view/pl|Widoku drzewa]]), jedna z nich to dziura, a druga to kontur;. Zajmiemy się tym w następnym kroku
+** Aby uzyskać ściany 2D, '''Wycięcie V''' potrzebuje:
+*** Dla ścieżek <u>bez</u> otworów: 
+***# Wybierz ścieżkę
+***# Wybierz {{MenuCommand|Modyfikacja → [[Image:Draft_Upgrade.svg|16px|link=Draft_Upgrade/pl]] [[Draft_Upgrade/pl|Ulepsz kształt]]}}
+***# Następnie {{MenuCommand|Modyfikacja → [[Image:Draft_Downgrade.svg|16px|link=Draft_Downgrade/pl]] [[Draft_Downgrade/pl|Rozbij kształt]]}}
+*** Dla ścieżek <u>z</u> dziurami: 
+***# Wybierz ścieżkę zewnętrzną, a następnie wewnętrzną 
+***# Wybierz {{MenuCommand|Modyfikacja → [[Image:Draft_Downgrade.svg|16px|link=Draft_Downgrade/pl]] [[Draft_Downgrade/pl|Rozbij kształt]]}} '''dwa razy'''
+**:Niektóre ścieżki będą zachowywać się inaczej, więc może być konieczne pobawienie się {{KEY|[[Image:Draft_Upgrade.svg|16px]] Ulepsz kształt}} i {{KEY|[[Image:Draft_Downgrade.svg|16px]] Rozbij kształt}}, aż otrzymasz coś o nazwie: {{incode|Face<numer>}}.
+**:Wynik końcowy powinien wyglądać następująco:
+**:[[File:Svgfaces.png|bez ramki]]
+
+<span id="Create_the_Vcarve_operation"></span>
+===Tworzenie operacji Wycięcie V===
+
+* Przełącz się na środowisko pracy {{Button|[[File:Workbench_CAM.svg|16px]] [[CAM_Workbench/pl|Część]]}} w [[Std_Workbench/pl|selektorze środowisk pracy]].
+* Dodaj zadanie, użyj obiektów o nazwie {{incode|Face<numer>}} ''(lub Kształt z tekstu)'' jako podstawy, dodać kontroler narzędzia v-bit, ustawić posuwy, prędkości itp.
+* Operacja obsługuje tylko jeden obiekt (albo pojedynczy obiekt ściany, albo Kształtu z tekstu), więc dla każdego obiektu:
+** Wybierz {{MenuCommand|Ścieżka → [[Image:CAM_Vcarve.svg|24px]] Wycięcie V}} z menu głównego. Spowoduje to otwarcie panelu konfiguracji.
+** Otwórz zakładkę {{Button|Geometria bazowa}} i dodaj wszystkie ściany Kształtu z tekstu lub ściany pojedynczego obiektu ściany uzyskanego powyżej
+** Naciśnij {{Button|Zastosuj}} i sprawdź wygenerowaną ścieżkę; w razie potrzeby dostosuj parametry operacji (w większości sytuacji można ustawić wyższy próg).
+** Naciśnij {{Button|OK}}, aby zakończyć
+
+<span id="Options"></span>
+==Opcje==
+
+Pusto
+
+<span id="Properties"></span>
+==Właściwości==
+
+<span id="Data"></span>
+===Dane===
+
+{{TitleProperty|Podstawa}}
+
+* {{PropertyData|Umiejscowienie}}: -
+* {{PropertyData|Etykieta}}: -
+
+{{TitleProperty|Głębokość}}
+
+* {{PropertyData|WysokośćPrześwitu}}: -
+* {{PropertyData|GłębokośćKońcowa}}: -
+* {{PropertyData|WysokośćBezpieczna}}: -
+* {{PropertyData|GłębokośćStartowa}}: -
+* {{PropertyData|KrokWDół}}: -
+
+{{TitleProperty|Wartości operacyjne}}
+
+* {{PropertyData|OpGłębokośćKOńcowa}}: -
+* {{PropertyData|OpGłębokośćStartowa}}: -
+* {{PropertyData|OpZMaxPrzygotówki}}: -
+* {{PropertyData|OpZMinPrzygotówki}}: -
+* {{PropertyData|OpŚrednicaNarzędzia}}: -
+
+{{TitleProperty|Ścieżka}}
+
+* {{PropertyData|Aktywna}}: -
+* {{PropertyData|Komentarz}}: -
+* {{PropertyData|TrybChłodzenia}}: -
+* {{PropertyData|WierzchołekStartowy}}: -
+* {{PropertyData|KontrolerNarzędzia}}: -
+* {{PropertyData|EtykietaUżytkownika}}: -
+
+<span id="Hidden"></span>
+====Ukryte====
+
+* {{PropertyData|Baza}}: -
+* {{PropertyData|ObjektBazowy}}: -
+* {{PropertyData|KształtBazowy}}: -
+* {{PropertyData|SilnikWyrażeń}}: -
+* {{PropertyData|Etykieta2}}: -
+* {{PropertyData|Ścieżka}}: -
+* {{PropertyData|Proxy}}: -
+* {{PropertyData|Widoczność}}: -
+
+<span id="View"></span>
+===Widok===
+
+Pusto
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[FreeCAD_Scripting_Basics/pl|FreeCAD podstawy tworzenia skryptów]].
+
+Przykład:
+
+{{Code|code=
+#Place code example here.
+}}
+
+
+{{Docnav/pl
+|[[CAM_Deburr/pl|Usuwanie zadziorów]]
+|[[CAM_Pocket_3D/pl|Obróbka kieszeni]]
+|[[CAM_Workbench/pl|środowisko pracy CAM]]
+|IconL=CAM_Deburr.svg
+|IconR=CAM_Pocket_3D.svg
+|IconC=Workbench_CAM.svg
+}}
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

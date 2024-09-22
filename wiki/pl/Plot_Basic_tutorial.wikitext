@@ -1,0 +1,154 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic=Poradnik: Podstawy środowiska pracy Wykres
+|Level=Początkujący
+|Time=
+|Author=
+|FCVersion=-
+|Files=
+}}
+
+W tym poradniku dowiemy się, jak wykonać podstawowy wykres przy użyciu środowiska pracy [[Plot_Workbench/pl|Wykres]] i konsoli [[Python_console/pl|Python]]. 
+
+[[Image:Plot_Trigonometric_Example.png|600px]]
+{{Caption|Przykład prostego wykresu}}
+
+Na poprzednim obrazku możesz zobaczyć rezultat, jaki w przybliżeniu uzyskamy. Po tym poradniku nauczysz się:
+* Jak utworzyć wykres w konsoli [[Python_console/pl|Python]].
+* Jak wykreślić kilka danych w konsoli [[Python_console/pl|Python]].
+* Jak wyświetlić [[Image:Plot_Grid.svg|24px]] [[Plot_Grid/pl|linie siatki]].
+* Jak wyświetlić [[Image:Plot_Legend.svg|24px]] [[Plot_Legend/pl|legendę]].
+* Jak edytować [[Image:Plot_Series.svg|24px]] [[Plot_Series/pl|etykiety serii]], wprowadzając tekst w [http://www.latex-project.org LaTeX].
+* Jak edytować [[Image:Plot_Labels.svg|24px]] [[Plot_Labels/pl|etykiety osi]], wprowadzając tekst w edytorze [http://www.latex-project.org LaTeX].
+* Jak edytować style serii.
+* Jak zapisać swój wykres.
+
+<span id="Plotting_data"></span>
+==Wykreślanie danych==
+
+Aby wykreślić dane nie musisz tworzyć nowego dokumentu FreeCAD, wystarczy, że uruchomisz konsolę [[Python_console/pl|Python]] i zaczniesz wysyłać komendy, lub użyjesz [[Macros/pl|makrodefinicji]].
+
+<span id="Creating_plot_document"></span>
+===Tworzenie dokumentu wykresu===
+
+Wykresy są specjalnymi dokumentami, które można utworzyć ręcznie w celu późniejszego dodania danych, lub pozwolić, aby środowisko pracy utworzyło je automatycznie w momencie rozpoczęcia wykreślania danych. Tworzenie własnych dokumentów wykresów ma dwie zalety:
+* Możesz ustawić etykietę okna dokumentu.
+* Możesz łatwo kontrolować, na którym dokumencie wykreślać dane.
+
+Aby utworzyć nowy dokument działki wystarczy uruchomić następujące komendy:
+
+{{Code|code=
+try:
+    from FreeCAD.Plot import Plot
+except ImportError:
+    from freecad.plot import Plot
+
+Plot.figure("TrigonometricTest")
+}}
+
+W wersji FreeCAD 0.19 wymagane jest zainstalowanie środowiska pracy [[Image:Workbench_Plot.svg|24px]] [[Plot_Workbench/pl|Wykres]] za pomocą [[Std_AddonMgr/pl|Menadżera dodatków]], natomiast od wersji 0.20 FreeCAD nie wymaga już zewnętrznego dodatku do wykonywania wykresów.
+Powyższe polecenia utworzą nową zakładkę w [[Main_view_area/pl|głównym oknie]] o nazwie '''TrigonometricTest'''. Nowo utworzony dokument posiada już zestaw osi. Każdy dokument wykresu posiada co najmniej jeden zestaw osi.
+
+<span id="Drawing_functions"></span>
+===Funkcje rysowania===
+
+Można również rozpocząć pracę od tego miejsca, ponieważ, jak już wyjaśniono, polecenie plot utworzy w razie potrzeby nowy dokument. Następną rzeczą, którą musimy zrobić, jest utworzenie danych dla funkcji sinus i cosinus, które chcemy wykreślić:
+
+{{Code|code=
+import math
+t = range(0,101)
+t = [tt/100.0 for tt in t]
+s = [math.sin(2.0*math.pi*tt) for tt in t]
+c = [math.cos(2.0*math.pi*tt) for tt in t]
+}}
+
+Spowoduje to utworzenie 3 tablic danych ''(ze 101 punktami)'':
+* ''t'' = Czas w sekundach.
+* ''s'' = Funkcja sinus.
+* ''c'' = funkcja cosinus.
+
+W celu wykreślenia obu funkcji wystarczy uruchomić kolejne komendy:
+
+{{Code|code=
+Plot.plot(t,s)
+Plot.plot(t,c)
+}}
+
+Spowoduje to wykreślenie naszych funkcji. Polecenie '''plot''' dopuszcza jako argument etykietę serii, ale ponieważ będziemy ją później edytować za pomocą narzędzi środowiska pracy Wykres, nie przekazujemy jeszcze tych danych.
+
+<span id="Configuring_plot"></span>
+==Konfiguracja wykresu==
+
+<span id="Showing_grid_and_legend"></span>
+===Wyświetlanie siatki i legendy===
+
+Zmień środowisko pracy FreeCAD na [[Plot_Workbench/pl|Wykres]] w menu {{MenuCommand|Widok → Środowiska pracy}}. Po załadowaniu, użyj narzędzia [[Plot_Grid/pl|siatki]], aby ją wyświetlić.
+
+[[Image:Plot_Grid.svg‎]]
+{{Caption|Ikonka narzędzia Pokaż / ukryj siatkę}}
+
+Możesz powtórzyć tę czynność, aby ukryć siatkę. Możesz również wyświetlić [[Plot_Legend/pl|legendę]] za pomocą dostarczonego narzędzia.
+
+[[Image:Plot_Legend.svg]]
+{{Caption|Ikonka narzędzia Pokaż / ukryj legendę}}
+
+Jak widzisz, legenda jest pusta, ponieważ nie ustawiliśmy jeszcze żadnej etykiety serii. W środowisku pracy [[Plot_Workbench/pl|Wykres]] serie bez etykiety nie są wyświetlane w legendzie.
+
+<span id="Setting_series_label"></span>
+===Ustawianie etykiet serii===
+
+Za pomocą narzędzia [[Plot_Series/pl|serii]] możesz edytować niektóre parametry serii.
+
+[[Image:Plot_Series.svg‎]]
+{{Caption|Ikonka narzędzia konfiguracji serii}}
+
+Najpierw wybierz serię, którą chcesz edytować, na przykład zaczniemy od pierwszej. Odznacz opcje {{CheckBox|Brak etykiety}} i ustaw tę etykietę:
+
+{{Code|code=
+$y = \sin \left( 2 \pi t \right)$
+}}
+
+Ponieważ [http://matplotlib.org/ matplotlib] obsługuje [http://www.latex-project.org LaTeX], możesz ustawić wszystkie etykiety i tytuły, które chcesz, za jego pomocą. Ustaw następującą etykietę na drugą serię:
+
+{{Code|code=
+$y = \cos \left( 2 \pi t \right)$
+}}
+
+<span id="Setting_series_style"></span>
+===Ustawianie stylu serii===
+
+Seria pozwala na ustawienie wielu różnych właściwości. Spróbuj ustawić właściwości pokazane na przykładowym obrazku, zmieniając kolory serii i styl rysowania drugiej serii.
+
+<span id="Setting_axes_labels"></span>
+===Ustawianie etykiet osi===
+
+Za pomocą narzędzia [[Plot_Labels/pl|Etykiety]] można ustawić etykiety przypisane do wszystkich utworzonych osi.
+
+[[Image:Plot_Labels.svg‎]]
+{{Caption|Ikonka narzędzia Ustaw etykiety}}
+
+Ustaw te dane:
+* Title = Przykład funkcji trygonometrycznych
+* X Label = $t$
+* Y Label = $y = \mathrm{f} \left( t \right)$
+
+Zmień również rozmiar czcionki w tytule i wszystkich etykietach na {{Value|20}}.
+
+<span id="Saving_plot"></span>
+==Zapisywanie wykresu==
+
+Za pomocą narzędzia do [[Plot_Save/pl|zapisywania]] wykresu możesz zapisać swój wykres jako plik graficzny w kilku formatach.
+
+[[Image:Plot_Save.svg]]
+{{Caption|Ikonka narzędzia Zapisz wykres}}
+
+Najpierw należy wybrać ścieżkę dostępu do pliku wyjściowego.
+
+Możesz ustawić rozmiar obrazu wyjściowego w calach, na przykład możemy ustawić 11.7x8.3, który jest rozmiarem papieru '''DIN A4'''. DPI ''(Dots per inch)'' będzie kontrolować rozdzielczość obrazu, na przykład 100 dpi. W połączeniu z podanymi wymiarami da to obraz o wymiarach 1170x830 pikseli.
+
+
+{{Plot_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:External_Workbenches{{#translation:}}]]
+[[Category:Addons{{#translation:}}]]

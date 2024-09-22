@@ -1,0 +1,184 @@
+<languages/>
+{{TOCright}}
+
+<span id="Creating_a_SketchObject_using_Python"></span>
+==Erstellen eines Sketch-Objekts mit Python==
+
+So wird ein Sketch-Objekt erstellt:
+
+{{Code|code=
+import FreeCAD as App
+import Part
+import Sketcher
+
+doc = App.newDocument()  
+
+sketch = doc.addObject("Sketcher::SketchObject", "Sketch")
+sketch.addGeometry(Part.LineSegment(App.Vector(1.2, 1.8, 0),
+                                    App.Vector(5.2, 5.3, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(6.5, 1.5, 0),
+                                    App.Vector(10.2, 5.0, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(12.2, 1.0, 0),
+                                    App.Vector(15.4, 5.0, 0)), False)
+
+doc.recompute()
+}}
+
+Es werden der neu erstellten Skizze auch noch drei [[Topological_data_scripting/de#Linie|Linien]] hinzugefügt.
+
+<span id="Creating_a_constraint_using_Python"></span>
+==Erstellen einer Randbedingung mit Python==
+
+Die geometrischen Randbedingungen
+[[File:Sketcher_ConstrainCoincident.svg|24px]] [[File:Sketcher_ConstrainPointOnObject.svg|24px]] [[File:Sketcher_ConstrainVertical.svg|24px]] [[File:Sketcher_ConstrainHorizontal.svg|24px]] [[File:Sketcher_ConstrainParallel.svg|24px]] [[File:Sketcher_ConstrainPerpendicular.svg|24px]] [[File:Sketcher_ConstrainTangent.svg|24px]] [[File:Sketcher_ConstrainEqual.svg|24px]] [[File:Sketcher_ConstrainSymmetric.svg|24px]] und [[File:Sketcher_ConstrainBlock.svg|24px]] können mit Makros und von der Python-Konsole aus durch Verwendung des folgenden Befehls erstellt werden:
+
+{{Code|code=sketch.addConstraint(Sketcher.Constraint(ConstraintType, EdgeOrPartOfEdge…)) }}
+
+Die maßlichen Randbedingungen  [[File:Sketcher_ConstrainLock.svg|24px]] [[File:Sketcher_ConstrainDistanceX.svg|24px]] [[File:Sketcher_ConstrainDistanceY.svg|24px]] [[File:Sketcher_ConstrainDistance.svg|24px]] [[File:Sketcher_ConstrainRadius.svg|24px]] [[File:Sketcher_ConstrainDiameter.svg|24px]] [[File:Sketcher_ConstrainAngle.svg|24px]] und die spezielle Randbedingung [[File:Sketcher_ConstrainSnellsLaw.svg|24px]] [[Sketcher_ConstrainSnellsLaw/de|Lichtbrechung (nach Snellius-Gesetz) festlegen]] können mit Makros und von der Python-Konsole aus durch Verwendung des folgenden Befehls erstellt werden:
+
+{{Code|code=sketch.addConstraint(Sketcher.Constraint(DimensionalConstraintType, EdgeOrPartOfEdge…, App.Units.Quantity("float_value unit"))) }}
+
+z. B.
+
+{{Code|code=sketch.addConstraint(Sketcher.Constraint(DimensionalConstraintType, EdgeOrPartOfEdge…, App.Units.Quantity("123.0 mm"))) }}
+
+Das erste Argument {{incode|ConstraintType}} wird weiter unten unter  [[#Arten_von_Randbedingungen|Arten von Randbedingungen]] beschrieben.
+
+Eine Randbedingung kann bis zu sechs Argumente besitzen; das können Kanten sein oder Angaben, welcher Bestandteil einer Kante von der Randbedingung verwendet wird. In den Dokumentationen der einzelnen Randbedingungen findet man Details zu den Kombinationen von Kanten und Bestandteilen von Kanten, die als Argumente übergeben werden können.
+Das Hauptproblem bei dieser Funktion besteht darin, die Liniennummer und die Knotennummer der zu bearbeitenden Linien korrekt zu identifizieren.
+Die folgenden Abschnitte beschreiben, wie man die [[#Identifizierung der Nummerierung einer Linie|Nummerierung einer Linie]] und die [[#Identifizierung der Nummerierung der Abschnittsteile einer Linie|Nummerierung der Bestandteile einer Linie]] herausfindet.
+
+<span id="Constraint_types"></span>
+==Arten von Randbedingungen==
+
+Bei geometrischen Randbedingungen ist das erste Argument eines der folgenden. Die möglichen Kombinationen von Argumenten, die für jede Beschränkung zulässig sind, findet man auf der Referenzseite der zugehörigen Funktion.
+
+{| class="wikitable"
+|-
+! Schlüsselwort !! Symbol !! Funktion
+|-
+| {{incode|"Coincident"}} || [[File:Sketcher_ConstrainCoincident.svg|24px]] || [[Sketcher_ConstrainCoincident/de|Koinzidenz festlegen]]
+|-
+| {{incode|"PointOnObject"}} || [[File:Sketcher_ConstrainPointOnObject.svg|24px]] || [[Sketcher_ConstrainPointOnObject/de|Punkt auf Objekt festlegen]]
+|-
+| {{incode|"Vertical"}} || [[File:Sketcher_ConstrainVertical.svg|24px]] || [[Sketcher_ConstrainVertical/de|Vertikal festlegen]]
+|-
+| {{incode|"Horizontal"}} || [[File:Sketcher_ConstrainHorizontal.svg|24px]] || [[Sketcher_ConstrainHorizontal/de|Horizontal festlegen]]
+|-
+| {{incode|"Parallel"}} || [[File:Sketcher_ConstrainParallel.svg|24px]] || [[Sketcher_ConstrainParallel/de|Parallel festlegen]]
+|-
+| {{incode|"Perpendicular"}} || [[File:Sketcher_ConstrainPerpendicular.svg|24px]] || [[Sketcher_ConstrainPerpendicular/de|Rechtwinklig festlegen]]
+|-
+| {{incode|"Tangent"}} || [[File:Sketcher_ConstrainTangent.svg|24px]] || [[Sketcher_ConstrainTangent/de|Tangential festlegen]]
+|-
+| {{incode|"Equal"}} || [[File:Sketcher_ConstrainEqual.svg|24px]] || [[Sketcher_ConstrainEqual/de|Gleichheit festlegen]]
+|-
+| {{incode|"Symmetric"}} || [[File:Sketcher_ConstrainSymmetric.svg|24px]] || [[Sketcher_ConstrainSymmetric/de|Symmetrie festlegen]]
+|-
+| {{incode|"Block"}} || [[Image:Sketcher_ConstrainBlock.svg|24px]] || [[Sketcher_ConstrainBlock/de|Fixieren]]
+|}
+
+Bei maßlichen Randbedingungen ist das erste Argument eines der folgenden. Die möglichen Kombinationen von Argumenten, die für jede Randbedingung zulässig sind, findet man auf der Referenzseite der zugehörigen Funktion.
+
+{| class="wikitable"
+|-
+! Schlüsselwort !! Symbol !! Funktion
+|-
+| {{incode|"DistanceX"}} || [[File:Sketcher_ConstrainDistanceX.svg|24px]] || [[Sketcher_ConstrainDistanceX/de|Horizontalen Abstand festlegen]]
+|-
+| {{incode|"DistanceY"}} || [[File:Sketcher_ConstrainDistanceY.svg|24px]] || [[Sketcher_ConstrainDistanceY/de|Vertikalen Abstand festlegen]]
+|-
+| {{incode|"Distance"}} || [[File:Sketcher_ConstrainDistance.svg|24px]] || [[Sketcher_ConstrainDistance/de|Abstand festlegen]]
+|-
+| {{incode|"Radius"}} || [[File:Sketcher_ConstrainRadius.svg|24px]] || [[Sketcher_ConstrainRadius/de|Radius oder Gewicht festlegen]]
+|-
+| {{incode|"Diameter"}} || [[File:Sketcher_ConstrainDiameter.svg|24px]] || [[Sketcher_ConstrainDiameter/de|Durchmesser festlegen]]
+|-
+| {{incode|"Angle"}} || [[File:Sketcher_ConstrainAngle.svg|24px]] || [[Sketcher_ConstrainAngle/de|Winkel festlegen]]
+|-
+| {{incode|"AngleViaPoint"}} || [[File:Sketcher_ConstrainAngle.svg|24px]] || [[Sketcher_ConstrainAngle/de|Winkel festlegen]]
+|}
+
+Die Randbedingung [[File:Sketcher_ConstrainSnellsLaw.svg|24px]] [[Sketcher_ConstrainSnellsLaw/de|Lichtbrechung (nach Snellius-Gesetz) festlegen]] verhält sich im Zusammenhang mit der Skripterstellung wie eine maßliche Randbedingung. Auch hier findet man auf der zugehörigen Referenzseite die möglichen Kombinationen von Argumenten, die für diese Randbedingung zulässig sind.
+
+{| class="wikitable"
+|-
+! Schlüsselwort !! Symbol !! Funktion
+|-
+| {{incode|"SnellsLaw"}} || [[File:Sketcher_ConstrainSnellsLaw.svg|24px]] || [[Sketcher_ConstrainSnellsLaw/de|Lichtbrechung (nach Snellius-Gesetz) festlegen]]
+|}
+
+Die Randbedingung [[File:Sketcher_ConstrainLock.svg|24px]] [[Sketcher_ConstrainLock/de|Sperren]] ist ein GUI-Befehl, der die Randbedingungen [[File:Sketcher_ConstrainDistanceX.svg|24px]] [[Sketcher_ConstrainDistanceX/de|Horizontalen Abstand festlegen]] und [[File:Sketcher_ConstrainDistanceY.svg|24px]] [[Sketcher_ConstrainDistanceY/de|Vertikalen Abstand festlegen]] erstellt; sie ist keine eigenständige Randbedingung.
+
+<span id="Identifying_the_numbering_of_a_line"></span>
+==Identifizierung der Nummerierung einer Linie==
+
+Ich habe drei Linien gezeichnet, wie in der folgenden Abbildung dargestellt.
+
+[[File:PartDesignConstraintPointOnPointScriptingFigure1.jpg|600px]]
+
+Durch bewegen des Mauszeigers über die Linie, lässt sich die Liniennummer unten links im FreeCAD Fenster anzeigen, siehe nächste Abbildung.
+
+[[File:PartDesignConstraintPointOnPointScriptingFigure2.jpg|600px]]
+
+Leider beginnt die im FreeCAD-Fenster angezeigte Nummerierung  bei 1, während die Nummerierung der Linien, die für das Skript verwendet wird, bei 0 beginnt: Das bedeutet, dass jedes Mal eins abgezogen werden muss, wenn man auf eine Linie verweisen möchte.
+
+Positive Zahlen bezeichnen Skizzenkanten (Geraden, Kreise, Kegelschnitte, B-Splines usw.). Die folgenden Werte können verwendet werden, um Elemente zu kennzeichnen, die keine Skizzenkanten sind:
+
+* {{incode|-1}} bezeichnet die horizontale X-Achse
+* {{incode|-2}} bezeichnet die vertikale Y-Achse
+* {{incode|-n}} bezeichnet die Nummer des externen Geometrieelements {{incode|n-3}} (z. B. würde das externe Geometrieelement mit Index 0 in der reduzierten Liste {{incode|Sketch.ExternalGeometry}} mit -3 bezeichnet, das folgende Element in der reduzierten Liste mit -4 usw.).
+
+<span id="Identifying_the_numbering_of_the_sub-parts_of_a_line"></span>
+==Identifizierung der Nummerierung der Bestandteile einer Linie==
+
+Um festzulegen, welcher Bestandteile einer Linie von einer Randbedingung betroffen ist, können die folgenden Werte verwendet werden:
+* {{incode|0}}, um anzugeben, dass die Randbedingung die gesamte Kante betrifft.
+* {{incode|1}}, um anzugeben, dass die Randbedingung den Anfangspunkt der Kante betrifft (ein Vollkreis hat keinen Anfangspunkt).
+* {{incode|2}}, um anzugeben, dass die Randbedingung den Endpunkt der Kante betrifft.
+* {{incode|3}}, um anzugeben, dass die Randbedingung den Mittelpunkt der Kante betrifft. Kann nur für Kreise, Kreisbögen, Ellipsen und Ellipsenbögen verwendet werden.
+* {{incode|n}}, um anzugeben, dass die Randbedingung den n-ten Kontrollpunkt eines B-Splines betrifft.
+
+Die mit 1 und 2 gekennzeichneten Knoten sind in der Reihenfolge ihrer Erstellung nummeriert. Um die Reihenfolge ihrer Erstellung herauszufinden (sind viele Linien vorhanden, kann es schwierig werden sich zu erinnern, welcher Knoten zuerst erstellt wurde), musst nur der Mauszeiger über die beiden Knoten einer Linie bewegt werden, siehe folgende Abbildung.
+
+[[File:PartDesignConstraintPointOnPointScriptingFigure3.jpg|600px]]
+
+Liest man z. B. 4 und 5, bedeutet dies, dass der Knoten mit der niedrigeren Nummer (4 in diesem Beispiel) mit der Nummer 1 (zuerst im Skriptbefehl) und der Knoten mit der höheren Nummer (5 in diesem Beispiel) mit der Nummer 2 im Skriptbefehl referenziert wird.
+
+<span id="Example"></span>
+==Beispiel==
+
+Nehmen wir das vorherige Beispiel der drei Linien. Die nachfolgende Abbildung zeigt die Nummerierung der einzelnen Linien und ihrer Knoten gemäß der Konvention für die Skripterstellung.
+
+[[Image:PartDesignConstraintPointOnPointScriptingFigure3Bis.jpg|600px]]
+
+{{Caption|<b>blauer Text:</b> Nummerierung der Linie, <b>schwarzer Text:</b> Nummerierung der Knoten}}
+
+Der Befehl {{incode|sketch.addConstraint(Sketcher.Constraint("Coincident", 1, 2, 2, 1))}} ergibt folgendes Ergebnis:
+
+[[Image:PartDesignConstraintPointOnPointScriptingFigure4.jpg|600px]]
+
+Der gesamte Kode zum Zeichnen der drei Linien und der Anwendung der Randbedingung "Coincident" auf zwei Punkte von zwei Linien sieht ungefähr so aus:
+
+{{Code|code=
+import FreeCAD as App
+import Part
+import Sketcher
+
+doc = App.newDocument()  
+
+sketch = doc.addObject("Sketcher::SketchObject", "Sketch")
+sketch.addGeometry(Part.LineSegment(App.Vector(1.2, 1.8, 0),
+                                    App.Vector(5.2, 5.3, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(6.5, 1.5, 0),
+                                    App.Vector(10.2, 5.0, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(12.2, 1.0, 0),
+                                    App.Vector(15.4, 5.0, 0)), False)
+sketch.addConstraint(Sketcher.Constraint("Coincident", 1, 2, 2, 1))
+
+doc.recompute()
+}}  
+
+
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

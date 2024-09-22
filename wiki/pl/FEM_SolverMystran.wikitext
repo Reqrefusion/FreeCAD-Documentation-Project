@@ -1,0 +1,172 @@
+<languages/>
+
+{{Docnav
+|[[FEM_SolverElmer/pl|Solver Elmer]]
+|[[FEM_SolverZ88/pl|Solver Z88]]
+|[[FEM_Workbench/pl|środowisko pracy MES]]
+|IconL=FEM_SolverElmer.svg
+|IconR=FEM_SolverZ88.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommand/pl
+|Name=FEM SolverMystran
+|Name/pl=Solver Mystran
+|MenuLocation=Rozwiąż → Solver Mystran
+|Workbenches=[[FEM_Workbench/pl|MES]]
+|Shortcut={{KEY|S}} {{KEY|M}}
+|Version=0.20
+|SeeAlso=[[FEM_tutorial/pl|Poradnik MES]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Polecenie '''SolverMystran''' umożliwia używanie solvera [https://www.mystran.com MYSTRAN]. Można z niego skorzystać do:
+# Ustawienia parametrów analizy.
+# Wybrania katalogu roboczego.
+# Uruchamiania solvera MYSTRAN.
+
+<span id="Installation"></span>
+==Instalacja==
+
+=== Windows ===
+
+Plik wykonywalny solvera Mystran dla Windows można znaleźć [https://github.com/MYSTRANsolver/MYSTRAN w serwisie GitHub]. Wskaż folder, w którym jest {{FileName|mystran.exe}} (plik wykonywalny musi się dokładnie tak nazywać - usuń pozostałą część domyślnej nazwy) w zmiennej PATH systemu Windows lub po prostu umieść plik w katalogu {{FileName|FreeCAD\bin}}. Jeśli to konieczne, wybierz go w {{MenuCommand|Preferencje → MES → Mystran}}.
+
+'''Solver Mystran''' wymaga też dwóch innych pakietów:
+* [https://github.com/SteveDoyle2/pyNastran pyNastran] - do zapisywania pliku przypadku analizy.
+* [https://github.com/ceanwang/hfcMystran hfcMystran] - do odczytywania plliku wyników NEU Mystrana.
+
+pyNastran można zainstalować poprzez pip:
+# Otwórz wiersz poleceń w Twoim folderze {{FileName|FreeCAD\bin}}. 
+# Wprowadź: {{Incode|python -m pip install pyNastran}}
+# Zostanie zainstalowany w folderze {{FileName|FreeCAD\bin\lib\site-packages}}.
+
+hfcMystran można pobrać z jego strony GitHub jako plik zip (''Code --> Download ZIP''). Wypakuj go i umieść w folderze {{FileName|FreeCAD\Mod}}.
+
+=== Linux ===
+
+Instalacja w systemie Linux jest podobna, ale są pewne różnice. 
+
+Po pobraniu pliku wykonywalnego Mystrana, zmień jego nazwę jak wyjaśniono powyżej, pozwól na jego uruchamianie (''prawy przycisk myszy → Properties → Permissions → Allow executing file as program'') i umieść go w katalogu {{FileName|usr/bin}} programu FreeCAD. 
+
+Aby zainstalować pyNastran, wprowadź następujące polecenia w [[Python_console/pl|konsoli Pythona]] w programie FreeCAD:
+
+{{Code|code=
+import subprocess
+subprocess.run(['pip', 'install', 'pyNastran'])
+}}
+
+Wreszcie, pobierz i rozpakuj hfcMystran i umieść go w katalogu {{FileName|usr/Mod}} programu FreeCAD.
+
+<span id="Quick_test"></span>
+==Szybki test==
+
+Po instalacji możesz wybrać {{MenuCommand|Narzędzia → Otwórz przykłady}} w środowisku pracy MES. Pod {{MenuCommand|Solver → Mystran}} znajdziesz kilka działających przykładów.
+
+<span id="Usage"></span>
+==Użycie==
+
+# Po utworzeniu [[Image:FEM_Analysis.svg|16px|link=FEM_Analysis]] [[FEM_Analysis/pl|Kontenera analizy]], skorzystaj z jednej z następujących możliwości:
+#* Wybierz opcję {{MenuCommand|Rozwiąż → [[Image:FEM_SolverMystran.svg|x16px]] Solver Mystran}} z menu.
+#* Wciśnij klawisz {{KEY|S}} a następnie {{KEY|M}}.
+# Dwukrotnie kliknij na obiekcie [[Image:FEM_SolverMystran.svg|x16px]] SolverMystran.
+# Wciśnij przycisk {{Button|Zapisz}}.
+# Wciśnij przycisk {{Button|Uruchom}}.
+
+<span id="Limitations"></span>
+==Ograniczenia==
+
+* Obecnie tylko przemieszczenia są dostępne jako wykresy konturowe z analiz z tym solverem. Aby zobaczyć naprężenia, przełącz się do środowiska pracy hfMystran, otwórz swój przypadek i jego plik F06. Do tworzenia wykresów wszystkich wyników można skorzystać z GUI pyNastran.
+* Tylko następujące typy elementów są obecnie wspierane: czworościany pierwszego i drugiego rzędu, trójkątne i czworokątne elementy powłokowe pierwszego rzędu oraz elementy belkowe pierwszego rzędu. Jeśli inne elementy zostały wygenerowane przy pomocy Gmsh, solver Mystran wyświetli błąd.
+
+<span id="File_function"></span>
+==Funkcja plików==
+
+Pod Mod\Fem\femsolver\mystran są następujące plikiː
+
+{{Code|code=
+add_con_displacement.py
+add_con_fixed.py
+add_con_force.py
+add_femelement_geometry.py
+add_femelement_material.py
+add_mesh.py
+add_solver_control.py
+writer.py
+solver.py
+tasks.py
+}}
+
+Funkcja każdego pliku toː
+
+writer.py - główny plik kontrolny
+
+{{Code|code=
+model = BDF()
+model = add_solver_control.add_solver_control(pynasf, model, self)
+model = add_femelement_geometry.add_femelement_geometry(pynasf, model, self)
+model = add_mesh.add_mesh(pynasf, model, self)
+model = add_femelement_material.add_femelement_material(pynasf, model, self)
+model = add_con_fixed.add_con_fixed(pynasf, model, self)
+model = add_con_displacement.add_con_displacement(pynasf, model, self)
+model = add_con_force.add_con_force(pynasf, model, self)
+}}
+
+BDF() - Utwórz pusty plik przypadku.
+
+{{Code|code=
+$pyNastran: version=msc
+$pyNastran: punch=False
+$pyNastran: encoding=utf-8
+$pyNastran: nnodes=0
+$pyNastran: nelements=0
+ENDDATA
+}}
+
+add_solver_control.py - Dodawanie EXECUTIVE CONTROL DECK i CASE CONTROL DECK.
+
+{{Code|code=
+$EXECUTIVE CONTROL DECK
+SOL 101
+CEND
+$CASE CONTROL DECK
+ECHO = NONE
+TITLE = pyNastran for generating solverinput for for Mystran
+SUBCASE 1
+    DISPLACEMENT(SORT1,REAL) = ALL
+    LOAD = 1
+    SPC = 1
+    SPCFORCES(SORT1,REAL) = ALL
+    STRESS(SORT1,REAL,VONMISES,BILIN) = ALL
+    SUBTITLE = Default
+BEGIN BULK
+$PARAMS
+PARAM       POST      -1
+}}
+
+add_femelement_geometry.py - Dodawanie kart GRID
+
+add_mesh.py - Dodawanie kart elementów
+
+add_femelement_material.py - Dodawanie karty MAT1
+
+add_con_fixed.py - Dodawanie kart SPCADD i SPC1
+
+add_con_displacement.py - Dodawanie kart SPCADD i SPC1
+
+add_con_force.py - Dodawanie kart FORCE
+
+
+{{Docnav
+|[[FEM_SolverElmer/pl|Solver Elmer]]
+|[[FEM_SolverZ88/pl|Solver Z88]]
+|[[FEM_Workbench/pl|środowisko pracy MES]]
+|IconL=FEM_SolverElmer.svg
+|IconR=FEM_SolverZ88.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

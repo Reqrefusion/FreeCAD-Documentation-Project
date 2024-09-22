@@ -1,0 +1,112 @@
+<languages/>
+
+{{Docnav/de
+|[[Surface_CurveOnMesh/de|KurveAufNetz]]
+|
+|[[Surface_Workbench/de|Surface]]
+|IconL=Surface_CurveOnMesh.svg
+|IconR=
+|IconC=Workbench_Surface.svg
+}}
+
+{{GuiCommand/de
+|Name=Surface BlendCurve
+|Name/de=Surface Übergangskurve
+|MenuLocation=Surface → Blend Curve
+|Workbenches=[[Surface_Workbench/de|Surface]]
+|Version=0.21
+}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+{{Button|[[File:Surface_BlendCurve.svg|16px]] [[Surface_BlendCurve|Surface Blend Curve]]}} Erzeugt eine Bezier Kurve zwischen zwei Kanten, mit der gewünschten Stetigkeit.
+
+Die Basisgeometrie kann zu Kurven die mit dem [[Draft_Workbench|Draft Workbench]] oder dem [[Sketcher_Workbench|Sketcher Workbench]] erzeugt wurden gehören, kann aber auch zu festen Objekten die mit dem [[Part_Workbench|Part Workbench]] erzeugt wurden, gehören.
+
+[[File:Surface_BlendCurve_G3_example.png|400px]]
+[[File:Surface_BlendCurve_Comb.png|400px]]
+{{Caption|Flächen Übergangsurve die 2 Kanten mit G3 Kontinuität verbindet. Das orange Polygon repräsentiert die Kontrollpunkte. Der Kamm der Kurve (von [[Curves_Workbench|Curves addon]]) ist an den Kontaktpunkten glatt.}}
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Wähle zwei Kanten in [[3D_view|3D view]]
+# Es gibt mehrere Wege den Befehl zu starten:
+#* Drücke die {{Button|[[Image:Surface_BlendCurve.svg|16px]] [[Surface_BlendCurve|Surface Blend Curve]]}} Schaltfläche.
+#* Wähle die {{MenuCommand|Surface → [[Image:Surface_BlendCurve.svg|16px]] Blend Curve}} Option aus dem Menü.
+# Stelle die Form der Kurve in den Daten Eigenschaften des Objektes ein.
+
+<span id="Properties"></span>
+==Eigenschaften==
+
+Eine [[Surface_BlendCurve|Flächen Übergangskurve]] wird von der Basisklasse  [[Part_Feature|Part Feature]] ({{incode|Part::Feature}} durch die {{incode|Part::Spline}} Unterklasse), abgeleitet, deshalb verwendet sie die Eigenschaften der Letzteren.
+
+Zusätzlich zu den in [[Part_Feature|Part Feature]] beschriebenen Eigenschaften, hat die Oberflächen Übergangskurve im [[Property_editor|Eigenschaften Editor]] folgende Eigenschaften.
+
+<span id="Data"></span>
+=== Daten ===
+
+{{TitleProperty|Übergangskurve}}
+
+* {{PropertyData|Startkante|LinkSub}}: Erste Eingangskante.
+* {{PropertyData|Start Stetigkeit|Integer}}: Grad der Stetigkeit.
+* {{PropertyData|Start Parameter|Float}}: Normalisierter Parameter entlang der Kante; von {{Value|0.0}}(Kantenstart) bis {{Value|1.0}}(Kantenende).
+* {{PropertyData|Start Länge|Float}}: Länge der Tangente.
+* {{PropertyData|Endkante|LinkSub}}: Zweite Eingangskante..
+* {{PropertyData|Ende Stetigkeit|Integer}}: Grad der Stetigkeit
+* {{PropertyData|Ende Parameter|Float}}: Normalisierter Parameter entlang der Kante; von {{Value|0.0}}(Kantenstart) bis {{Value|1.0}}(Kantenende).
+* {{PropertyData|Ende Länge|Float}}: Länge der Tangente.
+
+<span id="View"></span>
+=== Ansicht ===
+
+{{TitleProperty|Basis}}
+
+* {{PropertyView|Kontrollpunkte|Bool}}: Voreingestellt ist {{FALSE}}; falls auf {{TRUE}} gesetzt werden die Kontrollpunkte der Kurve überlagert dargestellt.
+
+<span id="Scripting"></span>
+==Skripten==
+
+{{Emphasis|Siehe auch:}} [[FreeCAD_Scripting_Basics|FreeCAD Basis Scripten]].
+
+Das Werkzeug Übergangskurve kann in [[Macros/de|Makros]] und von der [[Python/de|Python]]-Konsole aus zum Einfügen von {{incode|Surface::FeatureBlendCurve}}-Objekten verwendet werden.
+* Die dabei zur Definition der Kurve verwendeten Kanten müssen als [[FeaturePython_Custom_Properties/de#App::PropertyLinkSub|LinkSub]] den  {{incode|Startkante}} und {{incode|Endkante}} Eigenschaften des Objektes zugeordnet werden.
+* Alle Objekte mit Kanten müssen, bevor sie als Eingabe für die Eigenschaften der Übergangskurve verwendet werden können, berechnet werden.
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+points1 = [App.Vector(-20, -20, 0), App.Vector(-20, -8, 0), App.Vector(-17, 7, 0), App.Vector(-18, 25, 0)]
+obj1 = Draft.make_bspline(points1)
+
+points2 = [App.Vector(60, 26, 0), App.Vector(37, 4, 0), App.Vector(33, -20, 0)]
+obj2 = Draft.make_bspline(points2)
+
+doc.recompute()
+
+bcurve = doc.addObject("Surface::FeatureBlendCurve","BlendCurve")
+bcurve.StartEdge = (obj1, 'Edge1')
+bcurve.EndEdge = (obj2, 'Edge1')
+bcurve.EndParameter = 1.00
+bcurve.StartSize = -5.00
+bcurve.EndSize = -5.00
+
+doc.recompute()
+}}
+
+
+{{Docnav/de
+|[[Surface_CurveOnMesh/de|KurveAufNetz]]
+|
+|[[Surface_Workbench/de|Surface]]
+|IconL=Surface_CurveOnMesh.svg
+|IconR=
+|IconC=Workbench_Surface.svg
+}}
+
+{{Surface Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

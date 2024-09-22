@@ -1,0 +1,119 @@
+<languages/>
+
+{{Docnav/fr
+|[[Arch_Remove/fr|Supprimer]]
+|[[BIM_Setup/fr|Configuration]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_Remove.svg
+|IconR=BIM_Setup.svg
+|IconC=Workbench_Arch.svg
+}}
+
+{{VeryImportantMessage|Cette commande fait partie de l'ensemble intégré de l'[[BIM_Workbench/fr|atelier BIM]] avec la V1.0<br>
+Cette page a été mise à jour pour cette version.}}
+
+{{GuiCommand/fr
+|Name=Arch CutPlane
+|Name/fr=Arch Couper selon un plan
+|MenuLocation=Modification → Couper selon un plan
+|Workbenches=[[BIM_Workbench/fr|BIM]]
+}}
+
+==Description== 
+
+L'outil '''Arch Couper selon un plan''' coupe un objet solide Arch comme un [[Arch_Wall/fr|Arch Mur]] ou une [[Arch_Structure/fr|Arch Structure]] avec une face plane.
+
+[[Image:Arch_CutPlane_example.jpg|400px]]
+{{Caption|À gauche : avant d'appliquer l'outil Couper selon un plan.<br>
+Au milieu : mur résultant après la coupe.<br>
+À droite : un autre résultat}}
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Si le plan de coupe doit être dérivé d'une arête droite ({{Version/fr|1.0}}), vous pouvez aligner le [[Draft_SelectPlane/fr|plan de travail]] :
+#* L'arête sélectionnée ne peut pas être parallèle à la normale du plan de travail.
+#* La face de la coupe générée sera perpendiculaire au plan de travail.
+# Sélectionnez l'objet à découper.
+# Effectuez l'une des opérations suivantes :
+#* Sélectionner un objet avec une seule face plane. {{Version/fr|1.0}}
+#* Sélectionnez une face plane dans la [[3D_view/fr|vue 3D]].
+#* Sélectionnez un objet avec une seule arête droite. {{Version/fr|1.0}}
+#* Sélectionnez une arête droite dans la [[3D_view/fr|vue 3D]]. {{Version/fr|1.0}}
+# Il y a plusieurs façons de lancer la commande :
+#* Appuyez sur le {{Button|[[Image:Arch_CutPlane.svg|16px]] [[Arch_CutPlane/fr|Couper selon un plan]]}}.
+#* Sélectionnez l'option {{MenuCommand|Modification → [[Image:Arch_CutPlane.svg|16px]] Couper selon un plan}} du menu.
+# Choisissez {{MenuCommand|Derrière}} ou {{MenuCommand|Devant}} pour indiquer de quel côté de la face de la coupe, la matière doit être enlevée.
+# Appuyez sur le bouton {{Button|OK}}.
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Voir aussi :}} [[Arch_API/fr|Arch API]] et [[FreeCAD_Scripting_Basics/fr|Débuter avec les scripts FreeCAD]].
+
+L'outil Couper selon un plan peut être utilisé dans une [[Macros/fr|macro]] et à partir de la console [[Python/fr|Python]] en utilisant la fonction suivante :
+
+{{Code|code=
+cutObj = cutComponentwithPlane(archObject, cutPlane, sideFace)
+}}
+
+* Crée un objet {{incode|cutObj}} à partir de {{incode|archObject}} qui est coupé par {{incode|cutPlane}} lequel est la face d'un autre objet.
+** {{incode|archObject}} doit être un {{incode|SelectionObject}} obtenu à partir de {{incode|FreeCADGui.Selection.SelectionEx()[0]}}.
+** {{incode|cutPlane}} doit être un {{incode|FaceObject}} obtenu à partir de {{incode|FreeCADGui.Selection.SelectionEx()[0].SubObjects[0]}}.
+* {{incode|sideFace}} indique de quel côté de {{incode|FaceObject}} un volume sera créé; ce volume sera ensuite utilisé pour être soustrait de {{incode|archObject}}. Si {{incode|sideFace}} vaut {{incode|0}}, cela créera un volume à l'arrière de la face, sinon il le créera devant la face.
+
+Exemple :
+
+{{Code|code=
+import FreeCAD, FreeCADGui, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 2000, 0)
+
+Line = Draft.makeWire([p1, p2])
+Wall = Arch.makeWall(Line, width=150, height=2000)
+
+p3 = FreeCAD.Vector(0, 2000, 0)
+p4 = FreeCAD.Vector(3000, 0, 0)
+
+Line2 = Draft.makeWire([p3, p4])
+Wall2 = Arch.makeWall(Line2, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+# Select the Wall
+main_object = FreeCADGui.Selection.getSelectionEx()[0]
+
+# Select the face of Wall2
+selection = FreeCADGui.Selection.getSelectionEx()[0]
+cut_face = selection.SubObjects[0]
+
+cutObj = Arch.cutComponentwithPlane(main_object, cut_face, 0)
+FreeCAD.ActiveDocument.recompute()
+
+Wall3 = Draft.move(Wall, FreeCAD.Vector(-4000, 0, 0), copy=True)
+Wall4 = Draft.move(Wall2, FreeCAD.Vector(-4000, 0, 0), copy=True)
+FreeCAD.ActiveDocument.recompute()
+
+# Select the Wall3
+main_object2 = FreeCADGui.Selection.getSelectionEx()[0]
+
+# Select the face of Wall4
+selection2 = FreeCADGui.Selection.getSelectionEx()[0]
+cut_face2 = selection2.SubObjects[0]
+
+cutObj2 = Arch.cutComponentwithPlane(main_object2, cut_face2, 1)
+FreeCAD.ActiveDocument.recompute()
+}}
+
+
+{{Docnav/fr
+|[[Arch_Remove/fr|Supprimer]]
+|[[BIM_Setup/fr|Configuration]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_Remove.svg
+|IconR=BIM_Setup.svg
+|IconC=Workbench_Arch.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

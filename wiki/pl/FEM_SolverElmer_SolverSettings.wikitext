@@ -1,0 +1,112 @@
+<languages/>
+{{TOCright}}
+
+Ta strona opisuje ustawienia dla [[FEM_SolverElmer/pl|solvera Elmer]].
+
+<span id="General"></span>
+=Ogólne=
+
+Elmer jest solverem do zagadnień sprzężonych. Możesz więc używać wielu głównych równań do przeprowadzania analiz. Poszczególne równania są wymienione na stronie przedstawiającej [[FEM_SolverElmer/pl#Równania|Solver Elmer]].
+
+Dostępne są ustawienia solvera wspólne dla wszystkich równań. Zostały opisane tutaj. Ustawienia dostępne tylko dla danego równania są opisane na stronie tego równania.
+
+Elmer oferuje [[#Typy|typy analiz]] ''steady-state'' ''(stan ustalony)'' i ''transient'' ''(stan nieustalony)'' oraz dwa główne systemy rozwiązywania, [[#Układ_liniowy|liniowy]] i [[#Układ_nieliniowy|nieliniowy]]. Układ nieliniowy jest używany do [[Image:FEM_EquationFlow.svg|24px]] [[FEM_EquationFlow/pl|równania przepływu]] i [[Image:FEM_EquationHeat.svg|24px]] [[FEM_EquationHeat/pl|równania ciepła]].
+
+<span id="Editing_Settings"></span>
+=Edycja ustawień=
+
+Ustawienia solvera można znaleźć w [[Property_editor/pl|edytorze właściwości]] po kliknięciu na równaniu w  [[Tree_view/pl|widoku drzewa]]. Możesz je tam edytować bezpośrednio, jak każdą inną właściwość.
+
+==Solver==
+
+<span id="Coordinate_System"></span>
+===Układ współrzędnych===
+
+Domyślny układ współrzędnych to ''Cartesian 3D'' ''(kartezjański 3D)''. Niektóre równania nie mogą korzystać ze wszystkich układów współrzędnych. Jest to opisane na stronach Wiki odpowiednich równań.
+
+<span id="Timestepping_(transient_analyses)"></span>
+===Przyrosty czasowe ''(analizy stanu nieustalonego)''===
+
+'''Uwaga''': FreeCAD 0.20.x ma już następujące ustawienia, ale zapisywane są wyniki tylko dla ostatniej chwili czasowej. Od FreeCAD 0.21 wyniki są zapisywane dla różnych chwil czasowych.
+
+Dla analiz stanu nieustalonego należy zdefiniować przyrosty czasowe. Jest to robione przy pomocy następujących ustawień:
+
+* {{PropertyData|BDFOrder}}: Rząd metody ''BDF'' ([https://en.wikipedia.org/wiki/Backward_differentiation_formula Backward Differentiation Formula]). Zalecane jest używanie domyślnej wartości ''2''.
+* {{PropertyData|Output Intervals}}: Szereg interwałów. Wyniki będą zapisywane zgodnie z tymi interwałami. Przykładowo, jeśli wyniki mają być zapisywane co trzeci krok czasowy, należy ustawić ''3''. Szereg odpowiada właściwości {{PropertyData|Timestep Intervals}}.<br>'''Uwaga:''' Pierwszy wynik będzie zawsze dla pierwszego kroku czasowego. Aby np. uzyskać wyniki po 25 % całkowitego czasu i jeśli ostatni wynik ma być dla końcowego czasu, należy ustawić {{PropertyData|Output Intervals}} na ''5'' a {{PropertyData|Timestep Intervals}} na ''21''. {{Version/pl|0.21}}
+* {{PropertyData|Timestep Intervals}}: Szereg interwałów czasowych. Solver będzie przeliczał jeden interwał po drugim. Przykładowo, jeśli solver ma przeliczyć pierwsze 10 sekund w krokach po 0.1 sekund a następnie 50 sekund w krokach po 1 sekundzie i się zatrzymać to należy ustawić interwały czasowe [100, 50] i interwały rozmiaru kroków [0.1, 1.0].
+* {{PropertyData|Timestep Sizes}}: Szereg rozmiarów kroków czasowych. Jednostką czasu jest sekunda. Szereg odpowiada właściwości {{PropertyData|Timestep Intervals}}.
+
+'''Uwaga:''' Chociaż używane są pojęcia "chwile czasowe" i "sekundy", chwile czasowe są właściwie postępami solvera jeśli analiza nie jest zależna od czasu.
+
+Aby zobaczyć jak wizualizować wyniki, sprawdź stronę [[FEM_SolverElmer/pl#Wizualizacja|Elmer wizualizacja]].
+
+<span id="Type"></span>
+===Typ===
+
+* {{PropertyData|Simulation type}}: Czy analiza jest ''Steady state'' ''(stan ustalony)'', ''Transient'' ''(stan nieustalony)'' czy po prostu ''Scanning'' ''(skanowanie)''. Stan nieustalony oznacza, że liczona jest ewolucja układu w czasie. Zobacz sekcję [[#Przyrosty_czasowe_''(analizy_stanu_nieustalonego)''|Przyrosty czasowe]] aby sprawdzić wymagane ustawienia.
+* {{PropertyData|Steady State Max Iterations}}: Maksymalna liczba iteracji solvera stanu ustalonego.
+* {{PropertyData|Steady State Min Iterations}}: Minimalna liczba iteracji solvera stanu ustalonego.
+
+<span id="Equation"></span>
+==Równanie==
+
+<span id="Base"></span>
+===Podstawa===
+
+Wszystkie równania mają te właściwości:
+* {{PropertyData|Label}}: Nazwa równania w widoku drzewa.
+* {{PropertyData|Priority}}: Liczba określająca priorytet tego równania w stosunku do innych równań w analizie. Równanie z najwyższą liczbą będzie rozwiązywane jako pierwsze. Jeśli dwa równania mają tą samą liczbę, to której jest pierwsze w widoku drzewa będzie rozwiązywane najpierw.
+* {{PropertyData|Stabilize}}: Jeśli ta właściwość jest ustawiona na {{true/pl}} to solver będzie korzystał ze stabilizowanej metody elementów skończonych podczas rozwiązywania równania ciepła z członem konwekcyjnym. Jeśli ta właściwość jest ustawiona na {{false/pl}}, zamiast tego będzie używana stabilizacja Residual Free Bubble ''(RFB)''. Jeśli dominuje konwekcja, stabilizacja jest konieczna do rozwiązania równania.
+
+<span id="Linear_System"></span>
+===Układ liniowy===
+
+Ten układ ma następujące właściwości:
+* {{PropertyData|BiCGstabl Degree}}: Rząd wielomianu dla iteracyjnej metody solvera ''BiCGStabl ''. Ma to efekt tylko jeśli właściwość {{PropertyData|Linear Solver Type}} jest ustawiona na ''Iterative'' a właściwość {{PropertyData|Linear Iterative Method}} jest ustawiona na ''BiCGStabl''. Na początek zalecane jest użycie domyślnej wartości {{Value|2}}.
+* {{PropertyData|Idrs Parameter}}: Parametr dla iteracyjnej metody solvera ''Idrs ''. Ma to efekt tylko jeśli właściwość {{PropertyData|Linear Solver Type}} jest ustawiona na ''Iterative'' a właściwość {{PropertyData|Linear Iterative Method}} jest ustawiona na ''Idrs''. Na początek  zalecane jest użycie domyślnej wartości {{Value|2}}. Ustawienie wartości {{Value|3}} może zwiększyć trochę szybkość obliczeń. Dla analiz przepływu metoda ''Idrs'' jest do 30&nbsp;% szybsza niż domyślna metoda ''BiCGStab''.
+* {{PropertyData|Linear Direct Method}}: Metoda używana do rozwiązywania bezpośredniego. Ma to efekt tylko jeśli właściwość {{PropertyData|Linear Solver Type}} jest ustawiona na ''Direct''.</br>Możliwe metody to ''Banded'', ''MUMPS'' i ''Umpfpack''. Zauważ, że ''MUMPS'' zwykle wymaga instalacji przed użyciem.</br>'''Uwaga''': przy używaniu więcej niż jednego rdzenia procesora dla solvera ({{Version/pl|0.21}}) można używać tylko ''MUMPS''. [https://mumps-solver.org/ MUMPS] musi być zainstalowane ręcznie dla solvera Elmer. Dostępne jest do pobrania tylko po wysłaniu prośby mailem.
+* {{PropertyData|Linear Iterations}}: Maksymalna liczba iteracji dla solvera iteracyjnego. Ma to efekt tylko jeśli właściwość {{PropertyData|Linear Solver Type}} jest ustawiona na ''Iterative''.
+* {{PropertyData|Linear Iterative Method}}: Metoda używana do rozwiązywania iteracyjnego. Ma to efekt tylko jeśli właściwość {{PropertyData|Linear Solver Type}} jest ustawiona na ''Iterative''.
+* {{PropertyData|Linear Preconditioning}}: Metoda używana do prekondycjonowania. Więcej informacji na ten temat można znaleźć w prezentacji [http://www.nic.funet.fi/index/elmer/slides/ElmerLinearSolvers.pdf Linear Solvers of Elmer in serial & parallel] ''(strona 8)''. 
+* {{PropertyData|Linear Solver Type}}: Czy rozwiązywanie jest ''Direct'' ''(bezpośrednie)'' czy ''Iterative'' ''(iteracyjne)''.
+* {{PropertyData|Linear System Solver Disabled}}: Wyłącza solvera liniowy. Należy tego używać tylko w szczegółnych przypadkach.</br>Można tego użyć do tymczasowego wyłączenia równania, ponieważ nie jest ono wtedy rozwiązywane. Są jednak przypadki gdy solver zamiast tego trafia na nieskończoną pętlę
+* {{PropertyData|Linear Tolerance}}: Tolerancja do zatrzymania solvera. Jeśli błąd jest mniejszy niż tolerancja, praca solvera zostanie zakończona. W innym wypadku, przeprowadzona zostanie pełna liczba iteracji określona przez właściwość {{PropertyData|Linear Iterations}}.</br>W dzienniku pracy solvera Elmer można zobaczyć jak błąd jest minimalizowany podczas działania solvera. ''(Zobacz w dzienniku na końcu każdej iteracji solvera wartość za ''Relative Change'')''. Jeśli nie spada to poniżej konkretnej wartości, ale osiąga wartość powyżej aktualnej tolerancji, która jest dla Ciebie akceptowalna, możesz zwiększyć tolerancję.
+
+<span id="Nonlinear_System"></span>
+===Układ nieliniowy===
+
+Ten układ jest iteracyjny i ma następujące właściwości:
+
+* {{PropertyData|Nonlinear Iterations}}: Maksymalna liczba iteracji.
+* {{PropertyData|Nonlinear Newton After Iterations}}: Solver nieliniowy zaczyna obliczenia z niezawodnym algorytmem''Picard''. Po kilku iteracjach algorytm jest zmieniany na ''Newton'', który zbiega się szybciej, ale jest mniej niezawodny jeśli wyniki chwilowo się rozbiegają ''(mogą występować oscylacje)''. Ta właściwość ustawia liczbę iteracji, po których nastąpi zmiana algorytmu z ''Picard'' na ''Newton''.<br>'''Uwaga''': zmiana jest dokonywana po tym gdy jedna z tych właściwości zostanie osiągnięta pierwsza: {{PropertyData|Nonlinear Newton After Iterations}} lub {{PropertyData|Nonlinear Newton After Tolerance}}.
+* {{PropertyData|Nonlinear Newton After Tolerance}}: Analogicznie jak {{PropertyData|Nonlinear Newton After Iterations}}, ale tutaj ustawiana jest tolerancja. Jest to norma nieliniowego residuum. Jeśli to zostanie osiągnięte, nastąpi zmiana algorytmu z ''Picard'' na ''Newton''.
+* {{PropertyData|Nonlinear Tolerance}}: Tolerancja do zatrzymania solvera. Jeśli błąd jest mniejszy niż tolerancja, praca solvera zostanie zakończona. W innym wypadku, przeprowadzona będzie pełna liczba iteracji określonych przez właściwość {{PropertyData|Nonlinear Iterations}}.<br>W dzienniku pracy solvera Elmer można zobaczyć jak błąd jest minimalizowany podczas pracy solvera. Jeśli nie schodzi on poniżej określonej wartości, która jest akceptowalna, ale jest powyżej aktualnej tolerancji, możesz zwiększyć tolerancję.
+* {{PropertyData|Relaxation Factor}}: To jest najważniejsze ustawienie w przypadku gdy solver się nie zbiega:
+
+<span id="Relaxation_Factor"></span>
+====Współczynnik relaksacji====
+
+Jeśli wyniki iteracji solvera oscylują numerycznie, wtedy nie mogą się zbiec do finalnej, stabilnej wartości. Aby tego uniknąć, obliczona zmienna <math>T_{i}</math> i-tej iteracji nie jest brana jako wejście do następnej iteracji, ale wykorzystywana jest  wartość <math>T_{i}^{'}</math>, która jest "tłumiona" z wynikiem poprzedniej iteracji. Współczynnik relaksacji <math>\lambda</math> jest więc definiowany jako:
+
+<math>\quad
+T_{i}^{'} = \lambda T_{i}+\left(1-\lambda\right)T_{i-1}
+</math>
+
+Zatem przy domyślnej wartości 1.0 nie jest używane tłumienie. Im mniejsza wartość <math>\lambda</math>, tym większe tłumienie i dłuższy czas osiąganie zbieżności. Więc jeśli solver się nie zbiega, zacznij zmieniać współczynnik relaksacji do 0.9, następnie do 0.8 itd. Wartości poniżej 0.3 są nietypowe i jeśli ich potrzebujesz, powinieneś przyjrzeć się bliżej podstawom matematycznym Twojej analizy.</br>
+Dla przypadków gdzie uzyskujesz prawidłową zbieżność, możesz ustawić <math>\lambda</math> powyżej 1.0 aby przyspieszyć osiąganie zbieżności.
+
+<span id="Steady_State"></span>
+===Stan ustalony===
+
+Ta część ustawień ma tylko jedną właściwość:
+* {{PropertyData|Steady State Tolerance}}: Określona tolerancja stanu ustalonego lub układu sprzężonego. Solvery wszystkich równań muszą spełnić własne tolerancje dla zmiennej <math>\omega^2</math>, którą liczą zanim cały układ zostanie uznany za zbieżny. Kryterium tolerancji to:
+<math>\quad
+\left\Vert u_{i}-u_{i-1}\right\Vert <\epsilon\left\Vert u_{i}\right\Vert 
+</math>
+
+podczas gdy  <math>\epsilon</math> jest tolerancją stanu ustalonego a <math>u_{i}</math> jest obliczaną zmienną w i-tej iteracji.
+
+
+ 
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

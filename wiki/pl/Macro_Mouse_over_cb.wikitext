@@ -1,0 +1,60 @@
+<languages/>
+
+{{Macro
+|Name=Macro Mouse over cb
+|Icon=Macro_Mouse_over_cb.png
+|Description=This macro displays in the report view all elements below the cursor (all elements covered by other elements will also be displayed)
+|Author=Chris_G
+|Version=00.00
+|Date=2016-12-13
+|FCVersion=All
+|Download=[https://wiki.freecad.org/images/5/55/Macro_Mouse_over_cb.png ToolBar Icon]
+|SeeAlso=[[Macro_FC_element_selector|Macro FC element selector]]
+}}
+
+==Description==
+
+This macro displays in the report view all elements below the cursor (all elements covered by other elements will also be displayed).
+
+==Usage==
+
+Run the macro, the macro stay resident in memory.
+
+==Script==
+
+Toolbar icon [[Image:Macro_Mouse_over_cb.png ]]
+
+'''Macro_Mouse_over_cb.FCMacro'''
+
+{{MacroCode|code=
+from pivy import coin
+import FreeCADGui
+
+def mouse_over_cb( event_callback):
+    event = event_callback.getEvent()
+    pos = event.getPosition().getValue()
+    listObjects = FreeCADGui.ActiveDocument.ActiveView.getObjectsInfo((int(pos[0]),int(pos[1])))
+    obj = []
+    if listObjects:
+        FreeCAD.Console.PrintMessage("\n *** Objects under mouse pointer ***")
+        for o in listObjects:
+            label = str(o["Object"])
+            if not label in obj:
+                obj.append(label)
+        FreeCAD.Console.PrintMessage("\n"+str(obj))
+
+
+view = FreeCADGui.ActiveDocument.ActiveView
+
+mouse_over = view.addEventCallbackPivy( coin.SoLocation2Event.getClassTypeId(), mouse_over_cb )
+
+# to remove Callback :
+#view.removeEventCallbackPivy( coin.SoLocation2Event.getClassTypeId(), mouse_over_cb)
+
+}}
+
+==Links==
+
+The forum discussion [https://forum.freecadweb.org/viewtopic.php?f=10&t=19072 finding/selecting all elements below cursor]
+
+Other similar macro [https://forum.freecadweb.org/viewtopic.php?f=18&t=12381&p=151950#p151950 Selecting internal faces of a pressure vessel] (download the file [https://forum.freecadweb.org/download/file.php?id=31041 FC_element_selector_v1p1p1.py])

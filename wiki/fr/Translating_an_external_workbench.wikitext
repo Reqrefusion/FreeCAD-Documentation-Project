@@ -1,0 +1,290 @@
+<languages/>
+
+Dans les notes suivantes, {{incode|"context"}} doit être le nom de votre extension ou de votre atelier, par exemple, {{incode|"MySuperAddon"}} ou {{incode|"DraftPlus"}}, ou autre. Les majuscules ont leur importance ici : {{incode|"Context"}} n'est pas la même chose que {{incode|"context"}} par exemple. Le contexte fait en sorte que toutes les traductions de votre code seront rassemblées sous le même nom, pour être plus facilement identifiées par les traducteurs. En d'autres termes, ils sauront exactement à quelle extension ou atelier appartient une chaîne de caractères particulière.
+
+'''Remarque''' : Voici un script tout-en-un qui automatise la procédure complète mentionnée ci-dessous (il est tout de même conseillé de lire la procédure pour savoir ce que le script doit faire) : https://github.com/yorikvanhavre/BIM_Workbench/blob/master/utils/updateTranslations.py.
+
+<span id="Preparing_the_sources"></span>
+== Préparer les sources ==
+
+<span id="General"></span>
+=== Généralités ===
+
+* Ajouter un dossier {{incode|translations/}}. Vous pouvez le nommer autrement, mais ce sera plus facile car c'est la même chose dans FreeCAD. Dans ce dossier, vous placerez les fichiers {{incode|.ts}} (les fichiers de traduction "source") et les fichiers {{incode|.qm}} (fichiers de traduction compilés).
+* Seul le texte affiché pour l'utilisateur dans l'interface de FreeCAD doit être traduit. Le texte affiché uniquement dans la console Python ne doit pas être traduit.
+* Le texte qui s'imprime dans la {{incode|FreeCAD.Console}} est affiché dans la "vue rapport" et doit donc être traduit. La "vue rapport" est différente depuis la console Python.
+
+<span id="In_every_Python_.py_file"></span>
+=== Dans chaque fichier Python .py ===
+
+* Dans chaque fichier où vous devez traduire du texte, vous devez définir une fonction {{incode|translate()}}. Elle doit être nommée exactement {{incode|translate}} : l'extracteur de chaînes de caractères s'appuie sur ce nom exact. Vous pouvez utiliser le nom entièrement qualifié de Qt, mais c'est un peu plus propre à utiliser :
+
+: {{Code|code=
+import FreeCAD
+translate = FreeCAD.Qt.translate
+}}
+
+* Tout le texte qui doit être traduit doit être traité par la fonction {{incode|translate()}} :
+
+: {{Code|code=
+print("My text")
+}}
+
+: devient :
+
+: {{Code|code=
+print(translate("context", "My text"))
+}}
+
+: Sachez que {{incode|translate()}} n'est pas seulement une fonction normale : elle sert également de "balise" (tag) pour l'utilitaire de traitement de texte {{incode|lupdate}}, et doit donc être nommée exactement "translate". Le programme {{incode|lupdate}} est un simple processeur de texte, il n'exécute pas votre code. Vous devez passer des chaînes de caractères directement à la fonction {{incode|translate()}} : vous ne pouvez pas passer de variables, de constantes, etc. Par exemple :
+
+: {{Code|code=
+# This works:
+FreeCAD.Console.PrintMessage(translate("context", "My text") + "\n")
+
+# This does not, lupdate only sees the word "a_variable", and doesn't know what that is:
+a_variable = "My text"
+FreeCAD.Console.PrintMessage(translate("context", a_variable ) + "\n")
+
+# But this works -- a_variable will contain the translated string:
+a_variable = translate("context", "My text")
+FreeCAD.Console.PrintMessage(a_variable  + "\n")
+}}
+
+: Ceci peut être utilisé partout : dans {{incode|print()}}, dans {{incode|FreeCAD.Console.PrintMessage()}}, dans les dialogues Qt, etc. Les fonctions {{incode|FreeCAD.Console}} n'ajoutent pas automatiquement le caractère de nouvelle ligne ({{incode|\n}}), qui doit donc être ajouté à la fin si vous le souhaitez. Ce caractère n'a pas besoin d'être traduit non plus, il peut donc se trouver en dehors de la fonction de traduction :
+
+: {{Code|code=
+FreeCAD.Console.PrintMessage(translate("context", "My text") + "\n")
+}}
+
+* Si vous utilisez des fichiers {{incode|.ui}} réalisés avec QtDesigner, vous n'avez rien à faire de spécial avec eux.
+* Lorsque vous créez de nouveaux objets, ne traduisez pas le "Name" de l'objet. Traduisez plutôt le "Label" de l'objet. La différence est qu'un "Nom" est unique ; il reste le même pendant toute la durée de vie de l'objet ; en revanche, une "Étiquette" peut être modifiée par l'utilisateur comme il le souhaite.
+* Lorsque vous créez des propriétés pour vos objets, ne traduisez pas le nom de la propriété. Mais placez la description dans {{incode|QT_TRANSLATE_NOOP}} :
+
+: {{Code|code=
+obj.addProperty("App::PropertyBool", "MyProperty", "PropertyGroup", QT_TRANSLATE_NOOP("App::Property", "This is what My Property does"))
+}}
+
+: N'utilisez pas votre propre {{incode|"context"}} dans ce cas précis. Gardez {{incode|"App::Property"}}.
+
+<span id="In_InitGui.py"></span>
+=== Dans InitGui.py ===
+
+* Ajouter la ligne suivante en haut du fichier :
+
+: {{Code|code=
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+}}
+
+: La macro {{incode|QT_TRANSLATE_NOOP}} ne fait rien, mais elle marque les textes qui seront repris plus tard par l'utilitaire {{incode|lupdate}}. Nous ne l'utilisons que dans des cas particuliers où FreeCAD s'occupe lui-même de tout.
+
+* Pour traduire les noms des menus et des barres d'outils, utilisez le mot {{incode|"Workbench"}} comme contexte :
+
+: {{Code|code=
+self.appendMenu(QT_TRANSLATE_NOOP("Workbench", "My menu"), [list of commands, ...])
+self.appendToolbar(QT_TRANSLATE_NOOP("Workbench", "My toolbar"), [list of commands, ...])
+}}
+
+* Ajoutez le chemin vers votre dossier {{incode|translations/}} et mettez à jour la locale dans la fonction Initialized :
+
+: {{Code|code=
+FreeCADGui.addLanguagePath("/path/to/translations")
+FreeCADGui.updateLocale()
+}}
+
+: Le fichier {{incode|InitGui.py}} n'a pas d'attribut '''file''', il n'est donc pas facile de trouver l'emplacement relatif du dossier des traductions. Une façon simple de contourner ce problème est de faire en sorte qu'il importe un autre fichier du même dossier, et de faire dans ce fichier :
+
+: {{Code|code=
+FreeCADGui.addLanguagePath(os.path.join(os.path.dirname(__file__), "translations"))
+FreeCADGui.updateLocale()
+}}
+
+<span id="Inside_each_FreeCAD_command_class"></span>
+=== À l'intérieur de chaque classe de commande de FreeCAD ===
+
+* Ajouter la ligne suivante en haut du fichier :
+
+: {{Code|code=
+def QT_TRANSLATE_NOOP(context, text):
+    return text
+}}
+
+* Traduisez les {{incode|'MenuText'}} et {{incode|'Tooltip'}} de la commande comme ceci :
+
+: {{Code|code=
+def GetResources(self):
+    return {'Pixmap'  : "path/to/icon.svg"),
+            'MenuText': QT_TRANSLATE_NOOP("CommandName", "My Command"),
+            'ToolTip' : QT_TRANSLATE_NOOP("CommandName", "Describes what the command does"),
+            'Accel'   : "Shift+A"
+    }
+}}
+
+: où {{incode|"CommandName"}} est le nom de la commande, défini par :
+
+: {{Code|code=
+FreeCADGui.addCommand('CommandName', My_Command_Class())
+}}
+
+<span id="Gather_all_the_strings_from_your_module"></span>
+== Rassemblez toutes les chaînes de votre module ==
+
+* Vous aurez besoin des outils {{incode|lupdate}}, {{incode|lconvert}}, {{incode|lrelease}} et {{incode|pylupdate}} installés sur votre système. Dans les distributions Linux, ils sont généralement fournis dans des paquets nommés {{incode|pyside-tools}} ou {{incode|pyside2-tools}}. Sur certains systèmes, {{incode|lupdate}} est nommé {{incode|lupdate4}} ou {{incode|lupdate5}} ou {{incode|lupdate-qt4}} ou similaire. Idem pour les autres outils. Vous pouvez utiliser la version Qt4 ou Qt5 à votre choix. Dans Qt6 il n'y a pas de système de traduction séparé pour les fichiers Python, {{incode|lupdate}} est utilisé pour extraire les chaînes de caractères de tous les types de fichiers sources.
+* Si vous avez des fichiers {{incode|.ui}}, vous devez d'abord exécuter {{incode|lupdate}} :
+
+: {{Code|code=
+lupdate *.ui -ts translations/uifiles.ts
+}}
+
+: Cette méthode est récursive et trouvera les fichiers {{incode|.ui}} dans toute la structure de votre répertoire.
+
+* Si vous avez des fichiers {{incode|.py}}, vous devez aussi exécuter {{incode|pylupdate}} :
+
+: {{Code|code=
+pylupdate *.py -ts translations/pyfiles.ts
+}}
+
+* Si vous avez exécuté les deux opérations, vous devez maintenant unifier ces deux fichiers en un seul :
+
+: {{Code|code=
+lconvert -i translations/uifiles.ts translations/pyfiles.ts -o translations/MyModule.ts
+}}
+
+* Vérifiez le contenu des trois fichiers {{incode|.ts}} pour vous assurer qu'ils contiennent les chaînes de caractères, puis vous pouvez supprimer {{incode|pyfiles.ts}} et {{incode|uifiles.ts}}.
+* Vous pouvez faire tout cela dans un script bash comme celui-ci :
+
+: {{Code|code=
+#!/bin/sh
+lupdate *.ui -ts translations/uifiles.ts
+pylupdate *.py -ts translations/pyfiles.ts
+lconvert -i translations/uifiles.ts translations/pyfiles.ts -o translations/MyModule.ts
+rm translations/pyfiles.ts
+rm translations/uifiles.ts
+}}
+
+<span id="Send_the_.ts_file_to_a_translation_platform"></span>
+== Envoyer le fichier .ts à une plateforme de traduction ==
+
+Il est temps de faire traduire votre fichier {{incode|.ts}}. Vous pouvez choisir de créer un compte sur une plateforme de traduction publique telle que [https://crowdin.com/ Crowdin] ou [https://www.transifex.com/ Transifex], ou vous pouvez bénéficier de notre [https://crowdin.com/project/freecad-addons compte FreeCAD existant sur Crowdin], qui compte déjà de nombreux utilisateurs et qui a donc plus de chance de faire traduire votre fichier rapidement par des personnes connaissant FreeCAD.
+
+Si vous souhaitez héberger votre fichier sur le compte FreeCAD Crowdin, contactez [https://forum.freecadweb.org/memberlist.php?mode=viewprofile&u=68 Yorik] sur le [https://forum.freecadweb.org/ forum FreeCAD].
+
+{{Emphasis|Note:}} certaines plates-formes comme Crowdin peuvent s'intégrer à GitHub et effectuer automatiquement tout le processus à partir des points 2, 3 et 4. Pour cela, vous ne pouvez pas utiliser le compte FreeCAD Crowdin ; vous devrez créer votre propre compte.
+
+<span id="Merge_the_translations"></span>
+== Fusionner les traductions ==
+
+Une fois que votre fichier {{incode|.ts}} a été traduit, même partiellement, vous pouvez télécharger les traductions à partir du site :
+
+* Vous téléchargerez généralement un fichier {{incode|.zip}} contenant un {{incode|.ts}} par langue
+* Placez tous les fichiers {{incode|.ts}} traduits, ainsi que votre fichier {{incode|.ts}} de base, dans le dossier {{incode|translations/}}
+
+<span id="Compile_the_translations"></span>
+== Compiler les traductions ==
+
+Maintenant, lancez le programme {{incode|lrelease}} sur chaque fichier que vous avez:
+
+{{Code|code=
+lrelease "translations/Draft_de.ts"
+lrelease "translations/Draft_fr.ts"
+lrelease "translations/Draft_pt-BR.ts"
+}}
+
+Vous pouvez automatiser le processus:
+
+{{Code|code=
+for f in translations/*_*.ts
+do
+    lrelease "translations/$f"
+done
+}}
+
+Vous devriez trouver un fichier {{incode|.qm}} pour chaque fichier {{incode|.ts}} traduit. Les fichiers {{incode|.qm}} sont ceux qui seront utilisés par Qt et FreeCAD au moment de l'exécution.
+
+C'est tout ce dont vous avez besoin. Notez que certaines parties de votre atelier ne peuvent pas être traduites à la volée si vous décidez de changer de langue. Si tel est le cas, vous devrez redémarrer FreeCAD pour que la nouvelle langue prenne effet.
+
+<span id="Testing_translations"></span>
+== Tester les traductions ==
+
+# Basculez FreeCAD vers une langue que vous avez traduite (par exemple l'Allemand)
+# Chargez la traduction dans FreeCAD, par exemple {{incode|FreeCADGui.addTranslationPath("/path/to/the/folder/containing/qmfile")}}
+# Tester quelque chose, par exemple {{incode|FreeCAD.Qt.translate("your context", "some string")}}
+
+Résultat : Cela devrait vous donner la traduction allemande. Si cela fonctionne bien, alors la configuration de base est correcte. Alors nous pouvons regarder autre chose. Par exemple, les noms des commandes devraient toujours utiliser un contexte spécial qui est le nom de la commande telle qu'elle est enregistrée dans FreeCAD.
+
+<span id="Important_notes"></span>
+=== Remarques importantes === 
+
+* Assurez-vous que vous utilisez un *contexte* et une *chaîne* qui se trouvent réellement dans le fichier ts/qm bien sûr.
+
+<span id="Convenience_script"></span>
+== Script pratique ==
+
+Yorik maintient un script pratique pour l'atelier BIM, qui peut rassembler, charger et télécharger des fichiers ts.
+Vous pouvez simplement copier et adapter ce script à votre atelier :
+
+https://github.com/yorikvanhavre/BIM_Workbench/blob/master/utils/updateTranslations.py
+
+<span id="Technical_details_and_advanced_usage"></span>
+== Détails techniques et utilisation avancée ==
+
+Dans les exemples ci-dessus, deux fonctions distinctes sont utilisées : {{incode|translate()}} et {{incode|QT_TRANSLATE_NOOP}}. Vous pouvez également rencontrer {{incode||tr()}} et {{incode|QT_TR_NOOP}}, qui fournissent automatiquement l'argument "context" en fonction de l'emplacement de l'appel. Ces deux paires de fonctions sont fondamentalement différentes. 
+
+{{incode|translate()}} et {{incode|tr()}} accomplissent deux tâches distinctes : au moment de l'exécution, elles effectuent la traduction réelle de la chaîne qui leur est passée en chaîne traduite finale. Ceci est vrai qu'on leur fournisse une chaîne littérale, une variable ou une constante : la recherche est dynamique et en temps réel pendant l'exécution du code. Toutefois, elles fournissent une fonction supplémentaire hors temps d'exécution : elles sont reconnues par l'utilitaire {{incode|pylupdate}}. Si (et seulement si) elles contiennent une chaîne de caractères littérale, cette chaîne est extraite par l'utilitaire. SEULS les chaînes de caractères sont extraites par {{incode|pylupdate}}. Si une variable est passée, elle est ignorée par l'utilitaire {{incode|pylupdate}}. Qt essaiera de fournir une traduction au moment de l'exécution, mais cela ne fonctionnera que si un autre morceau de code a appelé une des fonctions de traduction avec la chaîne littérale qui doit être traduite, afin que {{incode|pylupdate}} puisse l'extraire. Notez que le code contenant la chaîne littérale ne doit jamais être exécuté, il doit simplement exister en tant que ligne de code dans un fichier quelque part : {{incode|pylupdate}} n'effectue aucune analyse ou exécution de code, il effectue simplement une recherche et une extraction de chaîne.
+
+En revanche, {{incode|QT_TRANSLATE_NOOP}} et {{incode|QT_TR_NOOP}} ne font rien du tout à l'exécution : ce sont des "no-ops" littérales et sont complètement ignorées par le code en cours d'exécution. Leur seule utilité est de marquer une chaîne littérale pour qu'elle soit extraite par {{incode|pylupdate}} : il est inutile de placer une variable dans un appel à l'une de ces fonctions, cela n'aura aucun effet. Elles sont utilisées dans les cas où {{incode|translate()}} ou {{incode|tr()}} seront appelées avec une variable contenant le texte à traduire. Par exemple, tout code utilisé pour créer une commande ou une propriété utilisera une fonction de type NOOP autour du texte ou de l'info-bulle du menu de la commande, ou de la docstring de la propriété : à l'exécution, lorsque FreeCAD affiche ces éléments à l'utilisateur, il appelle {{incode|translate()}} : les chaînes littérales doivent avoir été extraites par {{incode|pylupdate}} au moment de la création, par exemple :
+
+{{Code|code=
+def GetResources(self):
+    return {'Pixmap'  : "path/to/icon.svg",
+            'MenuText': QT_TRANSLATE_NOOP("CommandName", "My Command"),
+            'ToolTip' : QT_TRANSLATE_NOOP("CommandName", "Describes what the command does"),
+            'Accel'   : "Shift+A"
+    }
+}}
+
+Dans cette utilisation, au moment de l'exécution, le dictionnaire renvoyé par cette fonction est littéralement :
+
+{{Code|code=
+{ 
+    'Pixmap'  : "path/to/icon.svg",
+    'MenuText': "My Command",
+    'ToolTip' : "Describes what the command does",
+    'Accel'   : "Shift+A"
+}
+}}
+
+Il n'y a aucune référence à un quelconque type d'information de traduction. Lorsque FreeCAD affiche réellement ces informations à l'utilisateur, le pseudo-code est le suivant :
+
+{{Code|code=
+for command in commands:
+    resources = command.GetResources()
+    menu_text = translate(resources['MenuText'])
+}}
+
+Dans ce cas, {{incode|lupdate}} ne peut pas extraire de chaîne de caractères de l'appel à {{incode|translate()}} car il fait référence à une variable. Ainsi, {{incode|lupdate}} ignore cet appel, mais au moment de l'exécution, Qt recherche la chaîne qui lui est passée. Tant que quelque part dans le code, il y a un appel à l'une des fonctions de traduction avec une chaîne littérale correspondante (dans ce cas, dans la fonction {{incode|GetResources()}}), cet appel de traduction réussira.
+
+Pour vérifier que les chaînes de caractères attendues sont extraites, vous pouvez exécuter manuellement la commande {{incode|pylupdate}} :
+
+{{Code|code=
+pylupdate myfile.py -ts outfile.ts
+}}
+
+Le fichier {{incode|outfile.ts}} contiendra l'ensemble des chaînes de caractères qui sont téléchargées vers CrowdIn pour être traduites.
+
+<span id="Important_references"></span>
+== Références importantes ==
+
+* Pourquoi et comment traduire les fonctions {{incode|openCommand()}} ([https://forum.freecadweb.org/viewtopic.php?f=10&t=55869 fil de discussion])
+
+<span id="Related_Pages"></span>
+== Pages en relation ==
+
+* [[External_workbenches/fr|Ateliers externes]]
+* [[Localisation/fr|Localisation]]
+* Pour plus d'informations faites vos demandes ici sur le forum : [https://forum.freecadweb.org/viewtopic.php?f=10&t=36413 Translating external workbenches].
+
+
+{{Userdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]

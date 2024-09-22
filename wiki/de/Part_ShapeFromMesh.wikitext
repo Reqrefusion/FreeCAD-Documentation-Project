@@ -1,0 +1,90 @@
+<languages/>
+
+{{Docnav/de
+|[[Part_BoxSelection/de|RechteckAuswahl]]
+|[[Part_PointsFromMesh/de|PunkteAusNetz]]
+|[[Part_Workbench/de|Part]]
+|IconL=Part_BoxSelection.svg
+|IconR=Part_PointsFromMesh.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/de
+|Name=Part ShapeFromMesh‏‎
+|Name/de=Part FormAusNetz
+|MenuLocation=Part → Form aus Dreiecksnetz erstellen...
+|Workbenches=[[Part_Workbench/de|Part]]
+|SeeAlso=[[Part_MakeSolid/de|Part FestkörperErstellen]], [[Part_RefineShape/de|Part FormAufbereiten]], [[Part_PointsFromMesh/de|Part PunkteAusNetz]]
+}}
+
+<span id="Introduction"></span>
+==Einleitung==
+
+Der Befehl {{Button|[[Image:Part_ShapeFromMesh.svg|24px]] [[Part_ShapeFromMesh/de|Part FormAusNetz]]}} erzeugt eine Form aus einem [[Mesh/de|Netzobjekt]]. Netzobjekte haben in FreeCAD nur begrenzte Bearbeitungsmöglichkeiten, ihre Konvertierung in [[Shape/de|Formen]] ermöglicht ihre Verwendung mit booleschen Verknüpfungen und vielen weiteren Bearbeitungsbefehlen.
+
+Der umgekehrte Vorgang wird mit [[File:Mesh_FromPartShape.svg|16px]] [[Mesh_FromPartShape/de|Mesh NetzAusPartForm]] aus dem Arbeitsbereich [[File:Workbench_Mesh.svg|16px]] [[Mesh_Workbench/de|Mesh]] ausgeführt.
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Das Analysieren und Reparieren der Netzobjekte sollte, wenn erforderlich, bevor dieser Befehl gestartet wird. Geeignete Werkzeuge für diese Aufgabe findet man im Arbeitsbereich [[File:Workbench_Mesh.svg|16px]] [[Mesh_Workbench/de|Mesh]].
+# Ein oder mehrere Netzobjekte auswählen.
+# Den Menüeintrag {{MenuCommand|Part → [[File:Part_ShapeFromMesh.svg|16px]] Form aus Dreiecksnetz erstellen}} auswählen.
+# Das Dialogfenster {{MenuCommand|Form aus Netz}} wird geöffnet.
+# Wahlweise die Checkbox {{MenuCommand|Form nähen}} aktivieren und eine Toleranz festlegen:
+#* Diese Option wird normalerweise nicht gebraucht. Sie ist für Netzobjekte vorgesehen, die nicht wasserdicht sind und kleine Lücken zwischen Kanten aufweisen.
+#* Ist die Option ausgewählt, wird ein Verbund von Hüllen anstatt eines Verbundes von Flächen erstellt.
+#* Der Vorgang des Vernähens kann eine hohe Rechenleistung erfordern.
+# Die Schaltfläche {{Button|OK}} drücken.
+# Zu jedem ausgewählten Netzobjekt wird eine [[Shape/de|Form]] (Shape object) als separates neues Objekt erstellt.
+# Wahlweise [[File:Part_RefineShape.svg|16px]] [[Part_RefineShape/de|Part FormAufbereiten]] auf diese Objekte anwenden.
+# Wahlweise die endgültigen Objekte mit [[File:Part_MakeSolid.svg|16px]] [[Part_MakeSolid/de|Part FestkörperErstellen]] in Festkörper umwandeln.
+
+<span id="Properties"></span>
+==Eigenschaften==
+
+Siehe auch: [[Property_editor/de|Eigenschafteneditor]].
+
+Der Befehl Part ShapeFromMesh erstellt [[Part_Feature/de|Part Formelemente]] ohne weitere Eigenschaften.
+
+<span id="Scripting"></span>
+==Skripten==
+
+Das Erstellen einer [[Shape/de|Form]] aus einem [[Mesh/de|Netz]] kann mit der Methode {{incode|makeShapeFromMesh}} aus einem [[Part_TopoShape/de|Part TopoShape]]-Objekt erfolgen; es muss das Quellnetz und die Toleranz angegeben sowie das Ergebnis einem neuen [[Part_Feature/de|Part Formelement]] (Feature object) zuweisen werde.
+
+Man beachte, dass das Netz neu berechnet werden muss, bevor es in eine Form umgewandelt wird, andernfalls würden die Topologieinformationen fehlen und die Umwandlung könnte nicht erfolgreich durchgeführt werden.
+
+{{Code|code=
+import FreeCAD as App
+import Part
+
+doc = App.ActiveDocument
+mesh = doc.addObject("Mesh::Cube", "Mesh")
+mesh.recompute()
+
+shape = Part.Shape()
+shape.makeShapeFromMesh(mesh.Mesh.Topology, 0.1)
+
+solid = doc.addObject("Part::Feature", "Solid")
+solid.Shape = Part.Solid(shape.removeSplitter())
+solid.Placement.Base = App.Vector(15, 0, 0)
+doc.recompute()
+}}
+
+<span id="Links"></span>
+== Verweise ==
+
+* [https://www.youtube.com/watch?v=5lwENZeNiNg&feature=youtu.be Bearbeite STL Dateien in FreeCAD] Video von  AllVisuals4U.
+
+
+{{Docnav/de
+|[[Part_BoxSelection/de|RechteckAuswahl]]
+|[[Part_PointsFromMesh/de|PunkteAusNetz]]
+|[[Part_Workbench/de|Part]]
+|IconL=Part_BoxSelection.svg
+|IconR=Part_PointsFromMesh.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

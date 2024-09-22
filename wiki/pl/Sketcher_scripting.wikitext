@@ -1,0 +1,183 @@
+<languages/>
+{{TOCright}}
+
+<span id="Creating_a_SketchObject_using_Python"></span>
+==Tworzenie obiektu Szkicu przy użyciu środowiska Python==
+
+Tworzymy obiekt Szkic w następujący sposób:
+
+{{Code|code=
+import FreeCAD as App
+import Part
+import Sketcher
+
+doc = App.newDocument()  
+
+sketch = doc.addObject("Sketcher::SketchObject", "Sketch")
+sketch.addGeometry(Part.LineSegment(App.Vector(1.2, 1.8, 0),
+                                    App.Vector(5.2, 5.3, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(6.5, 1.5, 0),
+                                    App.Vector(10.2, 5.0, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(12.2, 1.0, 0),
+                                    App.Vector(15.4, 5.0, 0)), False)
+
+doc.recompute()
+}}
+
+Dodaje również trzy [[Topological_data_scripting/pl#Linia|linie]] w nowo utworzonym Szkicu.
+
+<span id="Creating_a_constraint_using_Python"></span>
+==Tworzenie wiązań przy użyciu środowiska Python==
+
+Wiązania geometryczne [[File:Sketcher_ConstrainPointOnObject.svg|24px]] [[File:Sketcher_ConstrainVertical.svg|24px]] [[File:Sketcher_ConstrainHorizontal.svg|24px]] [[File:Sketcher_ConstrainParallel.svg|24px]] [[File:Sketcher_ConstrainPerpendicular.svg|24px]] [[File:Sketcher_ConstrainTangent.svg|24px]] [[File:Sketcher_ConstrainEqual.svg|24px]] [[File:Sketcher_ConstrainSymmetric.svg|24px]] oraz [[File:Sketcher_ConstrainBlock.svg|24px]] można tworzyć z poziomu makropoleceń oraz z poziomu konsoli Python za pomocą następującego polecenia:
+
+{{Code|code=sketch.addConstraint(Sketcher.Constraint(ConstraintType, EdgeOrPartOfEdge…)) }}
+
+Wiązania wymiarowe [[File:Sketcher_ConstrainLock.svg|24px]] [[File:Sketcher_ConstrainDistanceX.svg|24px]] [[File:Sketcher_ConstrainDistanceY.svg|24px]] [[File:Sketcher_ConstrainDistance.svg|24px]] [[File:Sketcher_ConstrainRadius.svg|24px]] [[File:Sketcher_ConstrainDiameter.svg|24px]] [[File:Sketcher_ConstrainAngle.svg|24px]] oraz specjalne [[File:Sketcher_ConstrainSnellsLaw.svg|24px]] [[Sketcher_ConstrainSnellsLaw/pl|wiązanie prawo Snell'a]] można tworzyć z poziomu makropoleceń oraz konsoli Python za pomocą poniższego polecenia:
+
+{{Code|code=sketch.addConstraint(Sketcher.Constraint(DimensionalConstraintType, EdgeOrPartOfEdge…, App.Units.Quantity("float_value unit"))) }}
+
+na przykład
+
+{{Code|code=sketch.addConstraint(Sketcher.Constraint(DimensionalConstraintType, EdgeOrPartOfEdge…, App.Units.Quantity("123.0 mm"))) }}
+
+Pierwszy argument {{incode|ConstraintType}} jest opisany poniżej w akapicie [[#Rodzaje_wiązań|Rodzaje wiązań]].
+
+Wiązanie może przyjąć do sześciu argumentów, które są krawędziami lub wskazują, która część krawędzi jest używana przez wiązanie. Szczegóły dotyczące tego, jakie kombinacje krawędzi i ich części mogą być przekazane jako argumenty, znajdują się w dokumentacji poszczególnych wiązań.
+Głównym problemem w przypadku tej funkcji jest poprawne określenie numeru linii i numeru wierzchołka linii, które chcemy przetworzyć.
+Poniższe akapity opisują jak [[#Rozpoznawanie_numeracji_linii|identyfikować numerację linii]] oraz jak [[#Rozpoznawanie_numeracji_części_składowych_linii|identyfikować numerację części podrzędnych linii]].
+
+<span id="Constraint_types"></span>
+==Rodzaje wiązań==
+
+W przypadku wiązań geometrycznych pierwszym argumentem jest jeden z poniższych. Aby uzyskać informacje na temat możliwych kombinacji argumentów dozwolonych dla każdego wiązania, zobacz odpowiednią stronę funkcji.
+
+{| class="wikitable"
+|-
+! Kod !! Ikonka !! Funkcja
+|-
+| {{incode|"Coincident"}} || [[File:Sketcher_ConstrainCoincident.svg|24px]] || [[Sketcher_ConstrainCoincident/pl|Zbieżność]]
+|-
+| {{incode|"PointOnObject"}} || [[File:Sketcher_ConstrainPointOnObject.svg|24px]] || [[Sketcher_ConstrainPointOnObject/pl|Punkt na obiekcie]]
+|-
+| {{incode|"Vertical"}} || [[File:Sketcher_ConstrainVertical.svg|24px]] || [[Sketcher_ConstrainVertical/pl|Pionowo]]
+|-
+| {{incode|"Horizontal"}} || [[File:Sketcher_ConstrainHorizontal.svg|24px]] || [[Sketcher_ConstrainHorizontal/pl|Poziomo]]
+|-
+| {{incode|"Parallel"}} || [[File:Sketcher_ConstrainParallel.svg|24px]] || [[Sketcher_ConstrainParallel/pl|Równolegle]]
+|-
+| {{incode|"Perpendicular"}} || [[File:Sketcher_ConstrainPerpendicular.svg|24px]] || [[Sketcher_ConstrainPerpendicular/pl|Prostopadle]]
+|-
+| {{incode|"Tangent"}} || [[File:Sketcher_ConstrainTangent.svg|24px]] || [[Sketcher_ConstrainTangent|Stycznie]]
+|-
+| {{incode|"Equal"}} || [[File:Sketcher_ConstrainEqual.svg|24px]] || [[Sketcher_ConstrainEqual/pl|Zrównane]]
+|-
+| {{incode|"Symmetric"}} || [[File:Sketcher_ConstrainSymmetric.svg|24px]] || [[Sketcher_ConstrainSymmetric/pl|Symetrycznie]]
+|-
+| {{incode|"Block"}} || [[Image:Sketcher_ConstrainBlock.svg|24px]] || [[Sketcher_ConstrainBlock/pl|Zablokowanie]]
+|}
+
+W przypadku wiązań wymiarowych pierwszym argumentem jest jeden z poniższych. Zobacz odpowiednią stronę funkcji dla możliwych kombinacji argumentów dozwolonych dla każdego wiązania
+
+{| class="wikitable"
+|-
+! Kod !! Ikonka !! Funkcja
+|-
+| {{incode|"DistanceX"}} || [[File:Sketcher_ConstrainDistanceX.svg|24px]] || [[Sketcher_ConstrainDistanceX/pl|Długość w poziomie]]
+|-
+| {{incode|"DistanceY"}} || [[File:Sketcher_ConstrainDistanceY.svg|24px]] || [[Sketcher_ConstrainDistanceY/pl|Długość w pionie]]
+|-
+| {{incode|"Distance"}} || [[File:Sketcher_ConstrainDistance.svg|24px]] || [[Sketcher_ConstrainDistance/pl|Odległości]]
+|-
+| {{incode|"Radius"}} || [[File:Sketcher_ConstrainRadius.svg|24px]] || [[Sketcher_ConstrainRadius/pl|Promień]]
+|-
+| {{incode|"Diameter"}} || [[File:Sketcher_ConstrainDiameter.svg|24px]] || [[Sketcher_ConstrainDiameter/pl|Średnica]]
+|-
+| {{incode|"Angle"}} || [[File:Sketcher_ConstrainAngle.svg|24px]] || [[Sketcher_ConstrainAngle/pl|Kąt]]
+|-
+| {{incode|"AngleViaPoint"}} || [[File:Sketcher_ConstrainAngle.svg|24px]] || [[Sketcher_ConstrainAngle/pl|Kąt]]
+|}
+
+Wiązanie [[File:Sketcher_ConstrainSnellsLaw.svg|24px]] [[Sketcher_ConstrainSnellsLaw/pl|prawo Snell'a]] w kontekście skryptów zachowuje się jak wiązanie wymiarowe. Ponownie, zobacz odpowiednią stronę funkcji dla możliwych kombinacji argumentów dozwolonych dla każdego wiązania.
+
+{| class="wikitable"
+|-
+! Kod !! Ikonka !! Funkcja
+|-
+| {{incode|"SnellsLaw"}} || [[File:Sketcher_ConstrainSnellsLaw.svg|24px]] || [[Sketcher_ConstrainSnellsLaw/pl|prawo Snell'a]]
+|}
+
+Wiązanie [[File:Sketcher_ConstrainLock.svg|24px]] [[Sketcher_ConstrainLock|Lock]] to polecenie GUI, które tworzy więz [[File:Sketcher_ConstrainDistanceX.svg|24px]]. [[Sketcher_ConstrainDistanceX|Odległości poziomej]] i [[File:Sketcher_ConstrainDistanceY.svg|24px]], czyli nie jest wiązaniem samym w sobie.
+
+<span id="Identifying_the_numbering_of_a_line"></span>
+==Rozpoznawanie numeracji linii==
+
+Narysowałem trzy linie, jak pokazano na poniższym rysunku.
+
+[[File:PartDesignConstraintPointOnPointScriptingFigure1.jpg|600px]]
+
+Przesuwając kursor myszy nad linią jej numer można zobaczyć w lewym dolnym rogu okna programu FreeCAD, patrz następny rysunek.
+
+[[File:PartDesignConstraintPointOnPointScriptingFigure2.jpg|600px]]
+
+Niestety numeracja wyświetlana w oknach programu FreeCAD zaczyna się od 1, podczas gdy numeracja linii użytej w skrypcie zaczyna się od 0: oznacza to, że musisz odjąć jeden za każdym razem, gdy chcesz odwołać się do linii.
+
+Liczby dodatnie oznaczają krawędzie szkicu (linie proste, okręgi, stożki, krzywe itd.). Następujące wartości mogą być używane do oznaczania elementów, które nie są krawędziami szkicu:
+
+* {{incode|-1}} oznacza poziomą oś x
+* {{incode|-2}} oznacza pionową oś y
+* {{incode|-n}} oznacza numer elementu geometrii zewnętrznej {{incode|n-3}} (np. element geometrii zewnętrznej o indeksie 0 na spłaszczonej liście {{incode|n-3}}) ''(np. element geometrii zewnętrznej o indeksie 0 na spłaszczonej liście {{incode|sketch.ExternalGeometry}} byłby oznaczony przez -3, kolejny element na spłaszczonej liście byłby oznaczony -4 i tak dalej)''.
+
+<span id="Identifying_the_numbering_of_the_sub-parts_of_a_line"></span>
+==Rozpoznawanie numeracji części składowych linii==
+
+Podczas określania, na którą część linii ma wpływ wiązanie, można użyć następujących wartości:
+* {{incode|0}}, aby wskazać, że wiązanie wpływa na całą krawędź.
+* {{incode|1}}, aby wskazać, że wiązanie wpływa na punkt początkowy krawędzi ''(pełny okrąg nie ma punktu początkowego)''.
+* {{incode|2}}, aby wskazać, że wiązanie wpływa na punkt końcowy krawędzi.
+* {{incode|3}}, aby wskazać, że wiązanie wpływa na punkt środkowy krawędzi. Może być używane tylko dla okręgów, łuków okręgów, elips i łuków eliptycznych.
+* {{incode|n}} do wskazania, że wiązanie wpływa na n-ty biegun [[File:Sketcher_CompCreateBSpline.png|x24px]] [[Sketcher_CompCreateBSpline/pl|krzywej złożonej]].
+
+Wierzchołki oznaczone numerami 1 i 2 są ponumerowane zgodnie z kolejnością ich utworzenia. Aby sprawdzić kolejność ich utworzenia ''(jeśli masz wiele linii, nie pamiętasz, który wierzchołek utworzyłeś jako pierwszy)'', wystarczy przesunąć kursor myszki nad dwa wierzchołki jednej linii, patrz poniższy rysunek.
+
+[[File:PartDesignConstraintPointOnPointScriptingFigure3.jpg|600px]]
+
+4 i 5, oznacza to, że do wierzchołka o niższym numerze ''(4 w tym przykładzie)'' odwołamy się za pomocą numeru 1 ''(pierwszego w poleceniu skryptu)'', a do wierzchołka o wyższym numerze ''(5 w tym przykładzie)'' odwołamy się za pomocą numeru 2 w poleceniu skryptu.
+
+<span id="Example"></span>
+==Przykład==
+
+Weźmy przykład z poprzednich trzech linijek. Kolejna cyfra wskazuje numerację każdej linii i ich wierzchołków zgodnie z konwencją dotyczącą skryptów.
+
+[[Image:PartDesignConstraintPointOnPointScriptingFigure3Bis.jpg|600px]]
+
+{{Caption|<b>niebieski tekst:</b> numeracja linii, <b>czarny tekst:</b> numeracja wierzchołków}}
+
+Polecenie {{incode|sketch.addConstraint(Sketcher.Constraint("Coincident", 1, 2, 2, 1))}} daje następujący wynik:
+
+[[Image:PartDesignConstraintPointOnPointScriptingFigure4.jpg|600px]]
+
+Pełny kod do narysowania trzech linii i dodania wiązania zbieżności dla dwóch punktów z dwóch linii wygląda następująco:
+
+{{Code|code=
+import FreeCAD as App
+import Part
+import Sketcher
+
+doc = App.newDocument()  
+
+sketch = doc.addObject("Sketcher::SketchObject", "Sketch")
+sketch.addGeometry(Part.LineSegment(App.Vector(1.2, 1.8, 0),
+                                    App.Vector(5.2, 5.3, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(6.5, 1.5, 0),
+                                    App.Vector(10.2, 5.0, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(12.2, 1.0, 0),
+                                    App.Vector(15.4, 5.0, 0)), False)
+sketch.addConstraint(Sketcher.Constraint("Coincident", 1, 2, 2, 1))
+
+doc.recompute()
+}}  
+
+
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

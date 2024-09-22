@@ -1,0 +1,146 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/es
+|[[Draft_AutoGroup/es|AutoGrupo]]
+|[[Draft_AddConstruction/es|Añadir a grupo de construcción]]
+|[[Draft_Workbench/es|Borrador]]
+|IconL=Draft_AutoGroup.svg
+|IconR=Draft_AddConstruction.svg
+|IconC=Workbench_Draft.svg
+}}
+</div>
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/es
+|Name=Draft WorkingPlaneProxy
+|Name/es=Borrador PlanoTrabajoProxy
+|MenuLocation=Borrador → Utilidades → Crear proxy del plano trabajo
+|Workbenches=[[Draft_Workbench/es|Borrador]], [[Arch_Workbench/es|Arquitectura]]
+|SeeAlso=[[Draft_SelectPlane/es|Borrador SeleccionarPlano]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descripción== 
+
+<div class="mw-translate-fuzzy">
+Este comando colocará un objeto Proxy de Plano alineado con el actual [[Draft_SelectPlane/es|Plano trabajo]].
+</div>
+
+[[Image:Draft WPProxy example.png|400px]]
+{{Caption|Tres proxies de planos de trabajo que muestran diferentes orientaciones y rellenos}}
+
+<span id="Usage"></span>
+==Utilización== 
+
+<div class="mw-translate-fuzzy">
+# Asegúrate de que el [[Draft SelectPlane/es|Plano trabajo]] está configurado como quieres.
+# A continuación, vaya al menú {{MenuCommand|Borrador → Utilidades → [[Image:Draft_WorkingPlaneProxy.svg|16px]] Crear proxy de plano trabajo}}.
+</div>
+
+== Context menu ==
+
+For a Draft WorkingPlaneProxy these additional options are available in the [[Tree_view|Tree view]] context menu:
+
+* {{MenuCommand|[[Image:Draft_SelectPlane.svg|16px]] Write camera position}}: updates the {{PropertyView|View Data}} property of the working plane proxy with the current [[3D_view|3D view]] camera settings.
+* {{MenuCommand|[[Image:Draft_SelectPlane.svg|16px]] Write objects state}}: updates the {{PropertyView|Visibility Map}} property of the working plane proxy with the current visibility state of objects in the document.
+
+==Notes==
+
+<div class="mw-translate-fuzzy">
+==Notas==
+* El plano de trabajo almacenado en el objeto Proxy puede restaurarse haciendo doble clic en el objeto en la vista de árbol, o seleccionando el objeto Proxy y utilizando el {{Button|[[Image:Draft SelectPlane.svg|16px]] [[Draft_SelectPlane/es|Borrador SeleccionarPlano]].}}.
+* La posición de la cámara se almacena en el objeto Proxy en el momento de su creación. Esta posición puede actualizarse en cualquier momento: haz zoom, panorámica y rotación de la vista como desees, luego haz clic con el botón derecho en el objeto Proxy en la vista de árbol y selecciona {{Button|[[Image:Draft SelectPlane.svg|16px]]. Escribir posición de la cámara}}.
+* El estado de visibilidad de todos los objetos también se almacena en el objeto Proxy en el momento de su creación. Este estado puede actualizarse en cualquier momento: establezca la propiedad {{PropertyView|Visibility}} de los objetos a {{TRUE}} o {{FALSE}} según desee, luego haga clic con el botón derecho en el objeto Proxy en la vista de árbol, y seleccione {{Button|[[Image:Draft SelectPlane.svg|16px]] Escribir estado de los objetos}}.
+* Los proxies de plano pueden moverse y girarse como cualquier otro objeto para que definan el plano de trabajo deseado. Su apariencia visual también se puede cambiar en el [[Property_editor/es|Editor de propiedades]].
+</div>
+
+<span id="Properties"></span>
+==Propiedades==
+
+See also: [[Property_editor|Property editor]].
+
+A Draft WorkingPlaneProxy object is derived from an [[App_FeaturePython|App FeaturePython]] object and inherits all its properties. It also has the following additional properties:
+
+=== Data ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyData|Placement|Placement}}: specifies the position of the working plane proxy in the [[3D_view|3D view]]. See [[Placement|Placement]].
+* {{PropertyData|Shape|Shape|Hidden}}: specifies the shape of the working plane proxy.
+
+=== View ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyView|Line Color|Color}}: specifies the color of all elements of the working plane proxy.
+* {{PropertyView|Line Width|Float}}: specifies the line width of the axes and arrow symbols.
+* {{PropertyView|Restore State|Bool}}: specifies if the {{PropertyView|Visibility Map}} is restored when the [[Draft_SelectPlane|working plane]] is aligned with the working plane proxy.
+* {{PropertyView|Restore View|Bool}}: specifies if the {{PropertyView|View Data}} is restored when the [[Draft_SelectPlane|working plane]] is aligned with the working plane proxy.
+* {{PropertyView|Transparency|Percent}}: specifies the transparency of the face of the working plane proxy.
+* {{PropertyView|View Data|FloatList}}: specifies the camera position and settings.
+* {{PropertyView|Visibility Map|Map|Hidden}}: specifies the visibility state of objects.
+
+{{TitleProperty|Draft}}
+
+* {{PropertyView|Arrow Size|Length}}: specifies the size of the arrow symbols displayed at the tip of the three axes.
+* {{PropertyView|Display Size|Length}}: specifies the length and width of the working plane proxy.
+
+<span id="Scripting"></span>
+==Guión==
+
+<div class="mw-translate-fuzzy">
+{{Emphasis|Ver también:}} [[Draft_API/es|Borrador API]] y [[FreeCAD_Scripting_Basics/es|FreeCAD Fundamentos de Guión]].
+</div>
+
+<div class="mw-translate-fuzzy">
+Los objetos proxy del plano de trabajo se pueden utilizar en [[Macros/es|macros]] y desde la consola de [[Python/es|Python]] utilizando la siguiente función:
+</div>
+
+If the [[Draft_Workbench|Draft Workbench]] is active the FreeCAD application object has a {{incode|DraftWorkingPlane}} property which stores the current working plane. The {{Incode|Placement}} from the {{Incode|getPlacement}} method of the {{incode|DraftWorkingPlane}} object can be used to create an aligned working plane proxy. The {{Incode|Placement}} of a working plane proxy in turn can be used to realign the working plane.
+
+{{Code|code=
+# This code only works if the Draft Workbench is active!
+
+import FreeCAD as App
+import FreeCADGui as Gui
+import Draft
+
+doc = App.newDocument()
+
+workplane = App.DraftWorkingPlane
+place = workplane.getPlacement()
+
+proxy = Draft.make_workingplaneproxy(place)
+proxy.ViewObject.DisplaySize = 3000
+proxy.ViewObject.ArrowSize = 200
+
+axis2 = App.Vector(1, 1, 1)
+point2 = App.Vector(3000, 0, 0)
+place2 = App.Placement(point2, App.Rotation(axis2, 90))
+
+proxy2 = Draft.make_workingplaneproxy(place2)
+proxy2.ViewObject.DisplaySize = 3000
+proxy2.ViewObject.ArrowSize = 200
+
+workplane.setFromPlacement(proxy2.Placement, rebase=True)
+Gui.Snapper.setGrid()
+
+doc.recompute()
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/es
+|[[Draft_AutoGroup/es|AutoGrupo]]
+|[[Draft_AddConstruction/es|Añadir a grupo de construcción]]
+|[[Draft_Workbench/es|Borrador]]
+|IconL=Draft_AutoGroup.svg
+|IconR=Draft_AddConstruction.svg
+|IconC=Workbench_Draft.svg
+}}
+</div>
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

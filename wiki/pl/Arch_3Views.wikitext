@@ -1,0 +1,92 @@
+<languages/>
+
+{{Docnav
+|
+|
+|[[Arch_Workbench|Arch]]
+|IconL=
+|IconR=
+|IconC=Workbench_Arch.svg
+}}
+
+{{VeryImportantMessage|TO POLECENIE JEST PRZESTARZAŁE<br>
+Nie jest dostępne w {{VersionPlus/pl|1.0}}.}}
+
+{{GuiCommand/pl
+|Name=Arch 3Views,
+|Name/pl=Architektura: Trzy widoki
+|MenuLocation=Architektura → Narzędzia → Trzy widoki
+|Workbenches=[[Arch_Workbench/pl|Architektura]]
+|SeeAlso=[[Arch_SplitMesh/pl|Podziel siatkę]], [[Arch_MeshToShape/pl|Kształt z siatki]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+{{Emphasis|Polecenie to nie jest obecnie używane}}. Służy do generowania płaskich, opartych na kształtach widoków z obiektu opartego na [[Mesh_Workbench/pl|siatce]], do wykorzystania przez narzędzie {{Button|[[Image:Arch Equipment.svg|24px]] [[Arch_Equipment/pl|Wyposażenie]]}}.
+
+<span id="Usage"></span>
+==Użycie== 
+
+# Wybierz obiekt siatki.
+# Wybierz przycisk {{KEY|[[Image:Arch 3Views.svg|16px]]}} lub {{MenuCommand|Architektura → Narzędzia → [[Image:Arch 3Views.svg|16px]] Trzy widoki}} z menu głównego.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[Arch_API/pl|API: Architektura]] i [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]].
+
+Narzędzie '''Kształt z siatki''' może być używane w [[Macros/pl|makrodefinicjach]] i z konsoli [[Python/pl|Python]] za pomocą następującej funkcji:
+{{Code|code=
+shape = createMeshView(obj, direction=FreeCAD.Vector(0, 0, -1), outeronly=False, largestonly=False)
+}}
+* Tworzy płaski {{incode|shape}}, który jest rzutem danego obiektu siatki ({{incode|obj}}) w danym {{incode|direction}}.
+* Jeśli {{incode|outeronly}} ma wartość {{incode|True}}, tylko zewnętrzny kontur jest brany pod uwagę, odrzucając wewnętrzne otwory.
+* Jeśli {{incode|largestonly}} ma wartość {{incode|True}}, użyty zostanie tylko największy segment danej siatki.
+
+Użyj {{incode|Part.show()}}, aby wyświetlić wynikowy płaski kształt.
+
+Przykład:
+{{Code|code=
+import FreeCAD, Draft, Arch, Mesh, MeshPart
+
+Line = Draft.makeWire([FreeCAD.Vector(0, 0, 0), FreeCAD.Vector(2000, 2000, 0)])
+Wall = Arch.makeWall(Line, width=150, height=3000)
+FreeCAD.ActiveDocument.recompute()
+
+Shape = Wall.Shape.copy(False)
+Shape.Placement = Wall.getGlobalPlacement()
+
+mesh_obj = FreeCAD.ActiveDocument.addObject("Mesh::Feature", "Mesh")
+mesh_obj.Mesh = MeshPart.meshFromShape(Shape=Shape, MaxLength=520)
+mesh_obj.ViewObject.DisplayMode = "Flat Lines"
+FreeCAD.ActiveDocument.recompute()
+
+XAxis = FreeCAD.Vector(1, 0, 0)
+YAxis = FreeCAD.Vector(0, 1, 0)
+ZAxis = FreeCAD.Vector(0, 0, -1)
+
+s1 = Arch.createMeshView(mesh_obj, ZAxis)
+s2 = Arch.createMeshView(mesh_obj, XAxis)
+s3 = Arch.createMeshView(mesh_obj, YAxis)
+
+Part.show(s1)
+Part.show(s2)
+Part.show(s3)
+
+Wall.ViewObject.Visibility = False
+mesh_obj.ViewObject.Visibility = False
+}}
+
+
+{{Docnav/pl
+|
+|
+|[[Arch_Workbench/pl|środowisko pracy Architektura]]
+|IconL=
+|IconR=
+|IconC=Workbench_Arch.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

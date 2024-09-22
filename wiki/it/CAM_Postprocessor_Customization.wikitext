@@ -1,0 +1,154 @@
+<languages/>
+{{UnfinishedDocu{{#translation:}}}}
+
+{{Docnav
+|[[CAM_SetupSheet|SetupSheet]]
+|[[CAM_fourth_axis|Fourth axis]]
+|[[CAM_Workbench|CAM]]
+|IconL=
+|IconR=
+|IconC=Workbench_CAM.svg
+}}
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Introduzione==
+
+<div class="mw-translate-fuzzy">
+FreeCAD usa come rappresentazione interna dei percorsi generati i cosiddetti G-codes. Possono descrivere cose come: velocità e avanzamenti, arresto del motore, ecc. Ma la cosa più importante sono i movimenti che descrivono. Questi movimenti sono piuttosto semplici: Possono essere linee rette o archi di cerchio. Curve più sofisticate come le B-spline sono già approssimate dal [[Image:Workbench_Path.svg|24px]] di FreeCAD. [[Path Workbench/it|Ambiente Path]].
+</div>
+
+<span id="What_the_postprocessor_can_do_for_you"></span>
+==Cosa può fare il postprocessore per voi==
+
+<div class="mw-translate-fuzzy">
+Molti fresatrice usano anche i G-codes per controllare il processo di fresatura. Possono assomigliare quasi ai codici interni, ma ci possono essere alcune differenze:
+* la macchina può avere una sequenza di avvio speciale
+* può avere una speciale sequenza di arresto
+* gli archi possono essere definiti con un centro relativo o assoluto
+* può richiedere numeri di linea in un certo formato
+* Può utilizzare i cosiddetti cicli "canned" per sottoprocessi predefiniti come la foratura.
+* Si può preferire l'output del G-code in unità metriche o imperiali.
+* Potrebbe essere utile eseguire una serie di mosse prima di chiamare un cambio utensile per rendere l'azione più facile per l'operatore
+* Potreste voler includere commenti per la leggibilità o sopprimerli per mantenere il programma piccolo
+* Potresti voler includere un'intestazione personalizzata per identificare o documentare il programma per riferimenti futuri.
+* ...
+</div>
+
+Inoltre ci sono altri linguaggi per controllare un fresatrice, come HPGL, DXF o altri.
+
+Il postprocessore è un programma che traduce i codici interni in un file completo, che può essere caricato sulla vostra macchina.
+
+<span id="Preparation_for_writing_your_own_postprocessor"></span>
+==Preparazione per scrivere il proprio postprocessore==
+
+Puoi iniziare con un modello molto semplice che mostri come la tua macchina legge linee rette e archi. Preparalo con qualsiasi programma adatto alla tua macchina.
+
+Un file per tali percorsi che iniziano a (0,0,0) e vanno verso Y sarebbe utile. Assicuratevi che sia l'utensile stesso a muoversi lungo questo percorso, vale a dire che non deve essere applicata alcuna compensazione del raggio dell'utensile.
+
+[[File:Path_PostProcessorSketch.png]]
+
+Il percorso in FreeCAD sarebbe simile a questo. Notate la piccola freccia blu che indica la direzione di partenza. Per un primo tentativo si può fornire solo un livello nel piano XY.
+
+[[File:Path PostProcessorModel.png]]
+
+<div class="mw-translate-fuzzy">
+Puoi quindi dare un'occhiata al file e confrontarlo con l'output di postprocessori esistenti come {{FileName|linux_cnc_post.py}} o {{FileName|grbl_post.py}} e provare tu stesso ad adattarli o caricare il tuo sul forum di Path https://forum.freecadweb.org/viewforum.php?f=15 per ricevere aiuto.
+</div>
+
+<span id="Naming_convention"></span>
+==Convenzione dei nomi==
+
+<div class="mw-translate-fuzzy">
+Per un formato di file {{FileName|<filename>}} il postprocessore dovrebbe ottenere il nome {{FileName|<filename>_post.py}}. Si prega di notare che {{FileName|_post.py}} deve essere in tutte le lettere minuscole.
+</div>
+
+The new name should be reflected at the head of the parser arguments list in the {{FileName|<filename>_post.py}} file, e.g.:
+
+{{Code|lang=text|code=
+parser = argparse.ArgumentParser(prog="grbl", add_help=False)
+}}
+
+<div class="mw-translate-fuzzy">
+Se la state testando, mettetela nella vostra directory delle macro. Se funziona bene, considera di metterla a disposizione degli altri (postala nel forum di FreeCAD Path) in modo che possa essere inclusa nella distribuzione di FreeCAD in futuro.
+</div>
+
+<span id="Other_existing_postprocessors"></span>
+==Altri postprocessori esistenti==
+
+<div class="mw-translate-fuzzy">
+Per fare un paragone si possono guardare i postprocessori che vengono forniti con l'installazione di FreeCAD. Si trovano sotto la directory Mod in Path/PathScripts/post. Molto usati sono i postprocessori [[Image:linuxcnc.png|64px]] [http://linuxcnc.org/ linuxcnc] e [[Image:grbl.png|64px]] [https://github.com/grbl/grbl grbl]. Studiare il loro codice può dare indicazioni utili.
+* Su Linux il percorso è /usr/share/freecad/Mod/Path/PathScripts/post
+</div>
+
+<span id="Programming_your_own_postprocessor"></span>
+<div class="mw-translate-fuzzy">
+==Programmare il proprio postprocessore==
+Questo post discute alcuni elementi interni dei postprocessori linuxcnc. La stessa struttura è usata anche in altri postprocessori.
+</div>
+
+This post discusses some internals from the linuxcnc postprocessors. The same strucure is used in other postprocessors as well.
+
+<div class="mw-translate-fuzzy">
+Guardando linux_cnc_post.py, vedrete la funzione di esportazione (dalla 0.19.20514 alla linea 156)
+</div>
+
+{{Code|code=
+def export(objectslist, filename, argstring):
+    # pylint: disable=global-statement
+    ...
+    gcode = ""
+    ...
+    ...
+}}
+
+<div class="mw-translate-fuzzy">
+raccoglie passo dopo passo nella variabile "gcode" i codici G elaborati e gestisce l'esportazione complessiva degli oggetti post-processabili (operazioni, utensili, lavori, ecc.).
+L'esportazione gestisce le cose di alto livello come i commenti e il refrigerante, ma tutti gli oggetti che hanno più comandi di percorso (cambi di utensili e operazioni) li delega alla funzione parse (a partire dalla 0.19.20514 è alla linea 288).
+</div>
+
+{{Code|code=
+def parse(pathobj):
+    ...
+    out = ""
+    lastcommand = None
+    ...
+    ...
+}}
+
+<div class="mw-translate-fuzzy">
+Analogamente alla funzione "export" raccoglie i G-codes nella variabile "out". Nella variabile "command" i comandi visti nella funzione "inspect G-code" del Ambiente Path sono memorizzati e possono essere esaminati per ulteriori elaborazioni.
+</div>
+
+{{Code|code=
+        for c in pathobj.Path.Commands:
+
+            command = c.Name
+}}
+
+Riconosce i diversi codici G, M, F, S e altri G-codes. Ricordando l'ultimo comando nella variabile "lastcommand" può sopprimere successive ripetizioni di comandi modali.
+
+Sia il parse che l'export non fanno altro che formattare le stringhe e concatenarle insieme in quello che sarà l'output finale.
+
+Vedrete che entrambe le funzioni chiamano anche la funzione "linenumber()". Se l'utente vuole i numeri di linea, la funzione linenumber restituisce la stringa da incollare nel punto appropriato, altrimenti restituisce una stringa vuota quindi non viene aggiunto nulla.
+
+<span id="Related"></span>
+==Relazioni==
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path_PostProcess.svg|24px]] [[Path_Post/it|Path PostProcesso]]
+</div>
+
+
+{{Docnav
+|[[CAM_SetupSheet|SetupSheet]]
+|[[CAM_fourth_axis|Fourth axis]]
+|[[CAM_Workbench|CAM]]
+|IconL=
+|IconR=
+|IconC=Workbench_CAM.svg
+}}
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

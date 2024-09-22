@@ -1,0 +1,381 @@
+<languages/>
+{{VeryImportantMessage|''(Listopad 2018)'' Te informacje mogą być niekompletne i nieaktualne. Najnowsze API można znaleźć na stronie [https://www.freecadweb.org/api autogenerowana dokumentacja API].}}
+Funkcje te są częścią środowiska pracy [[TechDraw_Workbench/pl|Rysunek Techniczny]] i mogą być używane w [[Macros/pl|makrodefinicjach]] oraz z konsoli środowiska [[Python/pl|Python]] po zaimportowaniu modułu {{incode|TechDraw}}.
+
+Dobre przykłady podstawowych skryptów Rysunku Technicznego można znaleźć na stronie [https://github.com/FreeCAD/FreeCAD/tree/master/src/Mod/TechDraw/TDTest skrypty testów jednostkowych]. 
+
+Zobacz stronę [[TechDrawGui_API/pl|Api dla GUI]] aby poznać więcej funkcji.
+
+Przykład:
+
+{{Code|code=
+import FreeCAD
+import TechDraw
+
+page = FreeCAD.ActiveDocument.addObject('TechDraw::DrawPage', 'Page')
+FreeCAD.ActiveDocument.addObject('TechDraw::DrawSVGTemplate', 'Template')
+FreeCAD.ActiveDocument.Template.Template = templateFileSpec
+FreeCAD.ActiveDocument.Page.Template = FreeCAD.ActiveDocument.Template
+page.ViewObject.show()
+view = FreeCAD.ActiveDocument.addObject('TechDraw::DrawViewPart', 'View')
+rc = page.addView(view)
+}}
+
+{{APIFunction|EdgeWalker|listOfEdges, [bool]|Tworzy linie z krawędzi na wejściu przez planarne przechodzenie grafu.  Opcjonalnie wyklucza OuterWire ustawiając opcjonalny parametr na false.|Lista przewodów posortowana według rozmiaru (malejąco)}}
+{{APIFunction|findOuterWire|listOfEdges|Wyszukuje OuterWire (największy) z listy krawędzi (które tworzą graf planarny).|Outer wire}}
+{{APIFunction|findShapeOutline|TopoShape, scale, direction|Odwzorowuje kształt w kierunku i znajduje zewnętrzną linię wyniku.|Outline wire}}.
+
+{{APIFunction|viewPartAsDxf|DrawViewPart|Zwraca krawędzie DrawViewPart w formacie Dxf.|String}}
+Przykład:
+
+{{Code|code=
+fileSpecDxf = "fcOut.dxf"
+v = App.ActiveDocument.View
+s = TechDraw.viewPartAsDxf(v)
+dxfEnd = "0\nEOF\n"
+dxfFile = open(fileSpecDxf, "w")
+dxfFile.write(s)
+dxfFile.write(dxfEnd)
+dxfFile.close()
+}}
+
+{{APIFunction|viewPartAsSvg|DrawViewPart|Zwraca krawędzie DrawViewPart w formacie Svg.|String}}
+Przykład:
+
+{{Code|code=
+fileSpecSvg = "fcOut.svg"
+v = App.ActiveDocument.View
+s = TechDraw.viewPartAsSvg(v)
+head = '<svg\n' + \
+       '	xmlns="http://www.w3.org/2000/svg" version="1.1" \n' + \
+       '	xmlns:freecad="http://www.freecadweb.org/wiki/index.php?title=Svg_Namespace">\n'
+tail = '\n</svg>'
+svgFile = open(fileSpecSvg, "w")
+svgFile.write(head)
+svgFile.write(s)
+svgFile.write(tail)
+svgFile.close()
+}}
+
+{{APIFunction|writeDXFView|DrawViewPart, FileName|Zapisz DrawViewPart w formacie Dxf.|File}}
+Przykład:
+
+{{Code|code=
+import TechDraw
+TechDraw.writeDXFView(myPart,myFileName)
+}}
+
+{{APIFunction|writeDXFPage|DrawPage, FileName|Zapisz DrawPage w formacie Dxf.|File}}
+Przykład:
+
+{{Code|code=
+import TechDraw
+TechDraw.writeDXFPage(myPage,myFileName)
+}}
+
+<span id="DrawViewPart_Cosmetics"></span>
+===DrawViewPart geometrie pomocnicze===
+
+<span id="CosmeticVertex_(CV)_routines_accessible_from_Python"></span>
+====Procedury CosmeticVertex (CV) dostępne z poziomu Pythona====
+
+dvp = App.ActiveDocument.View  #CV należą do widoków. <br>
+
+Dodaje wierzchołek CosmeticVertex w punkcie p1 ''(współrzędne widoku)''. Zwraca unikalny znacznik.<br>
+tag = dvp.makeCosmeticVertex(vector p1) 
+
+Dodaje wierzchołek CosmeticVertex w punkcie p1 ''(współrzędne modelu 3d)''. Zwraca unikalny znacznik. <br>
+tag = dvp.makeCosmeticVertex3d(vector p1) 
+
+Zwraca CosmeticVertex z unikalnym identyfikatorem.<br>
+cv = dvp.getCosmeticVertex(string id) 
+
+Zwraca CosmeticVertex z nazwą (Vertex6).  Używany w selekcjach.<br>
+cv = dvp.getCosmeticVertexBySelection(string name) 
+
+Usuwa CosmeticVertex z widoku. Zwraca None.<br>
+dvp.removeCosmeticVertex(object cv) 
+
+Usuwa wszystkie CosmeticVertices z widoku. Zwraca None.<br>
+dvp.clearCosmeticVertices()
+
+Atrybuty CosmeticView<br>
+Tag: niepowtarzalny identyfikator. String.<br>
+Point: lokalizacja w widoku. Vector.<br>
+
+<!--T:28-->
+********************************************************************************
+{{Code|code=
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+<!--T:29-->
+# Py CosmeticVertex demo
+import FreeCAD
+import TechDraw
+
+<!--T:30-->
+v = App.ActiveDocument.View
+p = App.Vector(-3.0, -3.0, 0.0)
+
+<!--T:31-->
+#make CV
+tag = v.makeCosmeticVertex(p)
+print("t: {}".format(tag))
+
+<!--T:32-->
+#retrieve CV
+cv = v.getCosmeticVertex(tag)
+print("cv: {}".format(cv))
+print("Tag: {}".format(cv.Tag))
+
+
+<!--T:34-->
+cv2 = v.getCosmeticVertexBySelection("Vertex4")
+print("New Point: {}".format(cv2.Point))
+
+<!--T:35-->
+#make CV from 3d
+p3d = App.Vector(2.0, 2.0, 2.0)
+print("3d point in: {}".format(p3d))
+tag3d = v.makeCosmeticVertex3d(p3d)
+cv3 = v.getCosmeticVertex(tag3d)
+print("3d point out: {}".format(cv3.Point))
+}}
+
+<span id="CosmeticEdge_(CE)_routines_accessible_from_Python"></span>
+====Procedury CosmeticEdge (CE) dostępne z poziomu Pythona====
+
+dvp = App.ActiveDocument.View  #CE's należą do widoków.<br>
+
+Utwórz krawędź CosmeticEdge od p1 do p2(współrzędne widoku). Zwraca unikalny znacznik.<br>
+tag = dvp.makeCosmeticLine(p1, p2)
+
+tworzy krawędź CosmeticEdge w środku o promieniu radius(współrzędne widoku). Zwraca niepowtarzalny tag.<br>
+tag = dvp.makeCosmeticCircle(center, radius)
+
+tworzy krawędź CosmeticEdge w środku o promieniu radius (współrzędne widoku) od kąta początkowego do kąta końcowego. Zwraca niepowtarzalny tag.<br>
+tag = dvp.makeCosmeticCircleArc(center, radius, start, end)
+
+Zwraca CosmeticEdge z unikalnym identyfikatorem.<br>
+ce = dvp.getCosmeticEdge(id)
+
+Zwraca CosmeticEdge według nazwy (Edge25).  Używane w selekcjach.<br>
+ce = dvp.getCosmeticEdgeBySelection(name)
+
+Usuwa CosmeticEdge ce z widoku. Zwraca None.<br>
+dvp.removeCosmeticEdge(ce)
+
+Usuwa wszystkie linie CosmeticLines z widoku. Zwraca None.<br>
+dvp.clearCosmeticEdges()
+
+atrybuty CosmeticEdge<br>
+Tag: niepowtarzalny identyfikator. String.<br>
+Format: appearance attributes (style, color, weight, visible). Tuple.<br>
+
+<!--T:47-->
+********************************************************************************
+{{Code|code=
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+<!--T:48-->
+# Py CosmeticEdge demo
+import FreeCAD
+import TechDraw
+
+<!--T:49-->
+#points
+org = App.Vector(0.0, 0.0, 0.0)
+midTop = FreeCAD.Vector (1.0, 5.0, 0.0)   # middle, top
+midBot = FreeCAD.Vector(2.0, -5.0, 0.0)      # middle, bottom
+stdZ = FreeCAD.Vector(0.0, 0.0, 1.0)
+center = FreeCAD.Vector(0.0, 0.0, 0.0)
+arcCenter = FreeCAD.Vector(3.0, 3.0, 0.0)
+vPt = FreeCAD.Vector(-3.0, 3.0, 0.0)
+topRight = FreeCAD.Vector(5.0, 5.0, 0.0)
+bottomLeft = FreeCAD.Vector(-5.0, -5.0, 0.0)
+
+<!--T:50-->
+#angles
+arcStart = -45
+arcEnd = 45
+
+<!--T:51-->
+#styles
+solid = 1 
+dashed = 2
+dotted = 3
+#weights
+weight15 = 0.15
+weight75 = 0.75
+#colors
+pyRed = (1.0, 0.0, 0.0, 0.0)
+pyBlue = (0.0, 1.0, 0.0, 0.0)
+pyGreen = (0.0, 0.0, 1.0, 0.0)
+pyBlack = (0.0, 0.0, 0.0, 0.0)
+shadow = (0.1, 0.1, 0.1, 0.0)
+
+<!--T:52-->
+radius = 5.0
+style = dashed
+weight = weight75
+
+<!--T:53-->
+dvp = App.ActiveDocument.View
+
+<!--T:54-->
+print(dvp)
+
+<!--T:55-->
+print("making line")
+tag = dvp.makeCosmeticLine(midTop,midBot,style, weight, pyBlue)
+ce = dvp.getCosmeticEdge(tag)
+print("line tag: {}".format(tag))
+
+<!--T:56-->
+print("making diagonal")
+dvp.makeCosmeticLine(bottomLeft,topRight,solid, weight, pyGreen)
+
+<!--T:57-->
+print("making circle")
+tag2 = dvp.makeCosmeticCircle(center, radius, style, weight, pyRed)
+ce2 = dvp.getCosmeticEdge(tag2)
+
+<!--T:58-->
+print("making circleArc")
+dvp.makeCosmeticCircleArc(arcCenter, radius, arcStart, arcEnd, style, weight, shadow)
+
+<!--T:59-->
+#replace
+print("making new format")
+oldFormat = ce.Format
+newFormat = (dotted,oldFormat[1], pyRed, True)
+ce.Format = newFormat
+
+<!--T:61-->
+print("removing CE with tag: {}".format(tag2))
+dvp.removeCosmeticEdge(tag2)
+
+<!--T:62-->
+print("finished")
+}}
+
+<span id="CenterLine_(CL)_routines_accessible_from_Python"></span>
+====Procedury CenterLine (CL) dostępne z poziomu Pythona====
+
+Tworzy nową linię CenterLine<br>
+tag = dvp.makeCenterLine(subObjs, mode)<br>
+
+Pobiera CenterLine z niepowtarzalnym znacznikiem.<br>
+cl = dvp.getCenterLine(tag)
+
+Pobiera CenterLine według nazwy podobiektu. Używane w selekcji.<br>
+cl = dvp.getCenterLine("Edge5")
+
+Usuwa CenterLine cl z widoku. Zwraca None.<br>
+dvp.removeCenterLine(cl)
+
+Atrybuty CenterLine<br>
+Tag: niepowtarzalny identyfikator. String. ReadOnly.<br>
+Type: 0 - face, 1 - 2 line, 2 - 2 point. Integer. ReadOnly.<br>
+Mode: 0 - vert, 1 - horiz, 2 - aligned. Integer.<br>
+Format: atrybuty wyglądu (style, color, weight, visible). Tuple.<br>
+HorizShift: przesunięcie w lewo/prawo. Float.<br>
+VertShift: przesunięcie góra/dół. Float.<br>
+Rotation: obrót w stopniach. Float.<br>
+Extension: dodatkowa długość do dodania. Float.<br>
+Flip: Odwróć kolejność punktów, aby uzyskać 2 punkty CenterLine. Boolean.<br>
+Edges: nazwy krawędzi źródłowych. List of string.<br>
+Faces: nazwy ścian źródłowych. List of string.<br>
+Points: nazwy punktów źródłowych ''(wierzchołków)''. List of string.<br>
+
+<!--T:70-->
+********************************************************************************
+{{Code|code=
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+<!--T:71-->
+# Py CenterLine demo
+import FreeCAD
+import Part
+import TechDraw
+
+<!--T:72-->
+start = FreeCAD.Vector (1.0, 5.0, 0.0)   # middle, top
+end = FreeCAD.Vector(1.0, -5.0, 0.0)      # middle, bottom
+faceNames = ["Face0"]
+edgeNames = ["Edge2", "Edge3"]
+vertNames = ["Vertex1", "Vertex2"]
+vMode = 0   #vertical
+hMode = 1   #horizontal
+aMode = 2   #aligned
+#styles
+solid = 1 
+dashed = 2
+dotted = 3
+#weights
+weight15 = 0.15
+weight75 = 0.75
+#colors
+pyRed = (1.0, 0.0, 0.0, 0.0)
+pyBlue = (0.0, 1.0, 0.0, 0.0)
+pyBlack = (0.0, 0.0, 0.0, 0.0)
+#adjustments
+hShift = 1.0
+vShift = 1.0
+extend = 4.0
+rotate = 30.0
+flip = False;
+
+<!--T:73-->
+dvp = App.ActiveDocument.View
+
+<!--T:74-->
+print("making face CenterLine")
+tag = dvp.makeCenterLine(faceNames,vMode)
+cline = dvp.getCenterLine(tag)
+print("cline tag: {}".format(tag))
+
+<!--T:75-->
+#replace
+print("making new format")
+oldFormat = cline.Format
+newFormat = (dotted,oldFormat[1], pyRed, True)
+cline.Format = newFormat
+cline.Extension = 10.0
+
+<!--T:77-->
+print("making edgeCenterLine")
+cline2 = dvp.makeCenterLine(edgeNames,hMode)
+
+<!--T:78-->
+print("making vertexCenterLine")
+cline3 = dvp.makeCenterLine(vertNames,aMode)
+
+<!--T:79-->
+print("finished")
+}}
+
+<span id="DrawViewPart_Geometry"></span>
+===Geometrie DrawViewPart===
+
+[topoShapeEdge] = dvp.getVisibleEdges() 
+
+[topoShapeEdge] = dvp.getHiddenEdges()
+
+topoShapeEdge = dvp.getEdgeByIndex(i) <br/>
+topoShapeEdge = dvp.getEdgeBySelection("Edge1")
+
+topoShapeVertex = dvp.getVertexByIndex(i) <br/>
+topoShapeVertex = dvp.getVertexBySelection("Vertex1")
+
+Przerysuj grafikę dla tego widoku. <br>
+dvp.requestPaint()
+
+{{TechDraw Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:API{{#translation:}}]]
+[[Category:Poweruser Documentation{{#translation:}}]]
+{{clear}}

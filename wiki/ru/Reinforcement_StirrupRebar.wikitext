@@ -1,0 +1,152 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Arch_Rebar_LShape/ru|L-Образная арматура]]
+|[[Arch_Rebar_BentShape/ru|Изогнутая арматура]]
+|[[Arch_Workbench/ru|Архитектурный верстак "Arch"]]
+|IconL=Arch_Rebar_LShape.svg
+|IconR=Arch_Rebar_BentShape.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/ru
+|Name/ru=Кольцевая арматура
+|Name=Arch_Rebar_Stirrup
+|MenuLocation=Arch → Rebar tools → Stirrup<br>3D/BIM → Reinforcement tools → Stirrup
+|Workbenches=[[Arch_Workbench/ru|Arch]], [[BIM_Workbench/ru|BIM]]
+|Version=0.17
+|SeeAlso=[[Reinforcement_Workbench/ru|Reinforcement]], [[Arch_Rebar/ru|Арматура по эскизу]], [[Arch_Rebar_Helical/ru|Спиральная арматура]]
+}}
+</div>
+
+<span id="Description"></span>
+==Описание==
+
+<div class="mw-translate-fuzzy">
+Инструмент {{KEY|[[Image:Arch_Rebar_Stirrup.png|16px]] Stirrup Rebar}} позволяет пользователю создавать в структурном элементе арматурный стержень с изогнутой формой.
+</div>
+
+This tool is part of the [[Reinforcement_Workbench|Reinforcement Workbench]], an [[External_workbenches|external workbench]] that can be installed with the [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr|Addon Manager]].
+
+[[Image:Arch_Rebar_Stirrup_example.png|400px]]
+<div class="mw-translate-fuzzy">
+[[Image:Stirrup.png|800px]]
+</div>
+
+<span id="Usage"></span>
+==Применение==
+
+<div class="mw-translate-fuzzy">
+# Создайте элемент [[Arch Structure|structure]] 
+# Выберите любую грань структуры
+# Then select  {{KEY|[[Image:Arch_Rebar_Stirrup.png|16px]] Stirrup Rebar}} from the rebar tools
+# A task panel will pop-out on the left side of the screen as shown below [[Image:StirrupDialog.png|250px]]
+# Select the desired orientation
+# Give the inputs like left cover, right cover, top cover, bottom, front cover, bent angle, bent factor, rounding and diameter of the rebar
+# Select the mode of distribution either amount or spacing
+# If spacing is selected, a user can also opt for [[Custom_Spacing|custom spacing]]
+# Pick selected face is used to verify or change the face for rebar distribution
+# Нажмите {{KEY | OK}} или {{KEY | Apply}}, чтобы создать арматуру
+# Нажмите {{KEY | Cancel}}, чтобы выйти из панели задач
+</div>
+
+[[Image:StirrupDialog.png|250px]]
+{{Caption|Task panel for the tool}}
+
+<span id="Properties"></span>
+==Свойства== 
+
+* {{PropertyData|Front Cover}}:
+Расстояние между арматурой и выбранной поверхностью.
+* {{PropertyData|Right Cover}}: The distance between the right end of the rebar to right face of the structure.
+* {{PropertyData|Left Cover}}: The distance between the left end of the rebar to the left face of the structure.
+* {{PropertyData|Bottom Cover}}: The distance between rebar from the bottom face of the structure.
+* {{PropertyData|Top Cover}}: The distance between rebar from the top face of the structure.
+* {{PropertyData|Bent Angle}}: Bent angle defines the angle at the ends of a stirrup.
+* {{PropertyData|Bent Factor}}: Bent Factor defines length of stirrup end.
+* {{PropertyData|Amount}}: The amount of rebars.
+* {{PropertyData|Spacing}}:Расстояние между осями каждого стержня.
+
+<span id="Scripting"></span>
+<div class="mw-translate-fuzzy">
+==Сценарии==
+</div>
+
+{{Emphasis|See also:}} [[Arch API|Arch API]], [[Reinforcement API|Reinforcement API]] and [[FreeCAD Scripting Basics|FreeCAD Scripting Basics]].
+
+<div class="mw-translate-fuzzy">
+Инструмент {{KEY | [[Image: Arch_Rebar_Stirrup.png | 16px]] Stirrup Rebar}} можно использовать в [[macros]] и на консоли python с помощью следующей функции:
+</div>
+{{Code|code=
+Rebar = makeStirrup(l_cover, r_cover, t_cover, b_cover, f_cover,
+                    bentAngle, bentFactor, diameter, rounding, amount_spacing_check, amount_spacing_value,
+                    structure=None, facename=None)
+}}
+
+* Creates a {{incode|Rebar}} object from the given {{incode|structure}}, which is an [[Arch Structure|Arch Structure]], and {{incode|facename}}, which is a face of that structure.
+** If no {{incode|structure}} nor {{incode|facename}} are given, it will take the user selected face as input.
+* {{incode|l_cover}}, {{incode|r_cover}}, {{incode|t_cover}}, {{incode|b_cover}}, and {{incode|f_cover}} are inner offset distances for the rebar elements with respect to the faces of the structure. They are respectively the left, right, top, bottom, and front offsets.
+* {{incode|diameter}} is the diameter of the reinforcement bars inside the structure.
+* {{incode|rounding}} is the parameter that determines the bending radius of the reinforcement bars as they make a loop.
+* {{incode|bentLength}} and {{incode|bentAngle}} define the length and angle of the tip of the reinforcement loop.
+* {{incode|amount_spacing_check}} if it is {{incode|True}} it will create as many reinforcement loops as given by {{incode|amount_spacing_value}}; if it is {{incode|False}} it will create reinforcement loops separated by the numerical value of {{incode|amount_spacing_value}}.
+* {{incode|amount_spacing_value}} specifies the number of reinforcement loops, or the value of the separation between them, depending on {{incode|amount_spacing_check}}.
+
+<span id="Example"></span>
+=== Пример ===
+
+{{Code|code=
+import Draft, Arch, Stirrup
+
+# It doesn't work if the structure is not based on a face
+# Structure = Arch.makeStructure(length=1000, width=400, height=400)
+
+Rect = Draft.makeRectangle(400, 400)
+Structure = Arch.makeStructure(Rect, height=1600)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = Stirrup.makeStirrup(20, 20, 20, 20, 20,
+                            115, 4, 8, 2, True, 10, Structure, "Face6")
+}}
+
+=== Edition of the rebar ===
+
+You can change the properties of the rebar with the following function:
+
+{{Code|code=
+editStirrup(Rebar, l_cover, r_cover, t_cover, b_cover, f_cover,
+            bentAngle, bentFactor, diameter, rounding, amount_spacing_check, amount_spacing_value,
+            structure=None, facename=None)
+}}
+
+* {{incode|Rebar}} is a previously created {{incode|StirrupRebar}} object.
+* The other parameters are the same as required by the {{incode|makeStirrup()}} function.
+* {{incode|structure}} and {{incode|facename}} may be omitted so that the rebar stays in the original structure.
+
+{{Code|code=
+import Stirrup
+
+Stirrup.editStirrup(Rebar, 20, 20, 20, 20, 50,
+                    100, 4, 14, 8, True, 8)
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Arch_Rebar_LShape/ru|L-Образная арматура]]
+|[[Arch_Rebar_BentShape/ru|Изогнутая арматура]]
+|[[Arch_Workbench/ru|Архитектурный верстак "Arch"]]
+|IconL=Arch_Rebar_LShape.svg
+|IconR=Arch_Rebar_BentShape.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

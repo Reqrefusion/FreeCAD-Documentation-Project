@@ -1,0 +1,109 @@
+<languages/>
+
+{{Docnav
+|[[Draft_WireToBSpline|WireToBSpline]]
+|[[Draft_Slope|Slope]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_WireToBSpline.svg
+|IconR=Draft_Slope.svg
+|IconC=Workbench_Draft.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/cs|Name=Draft_Draft2Sketch|Name/cs=Kreslení Kreslení2Náčrt|Workbenches=[[Draft_Workbench/cs|Kreslení]], [[Arch_Workbench/cs|Architektura]]|MenuLocation=Kreslení -> Nákres do Náčrtu}}
+</div>
+
+==Description== 
+
+<div class="mw-translate-fuzzy">
+==Popis==
+Tento nástroj konvertuje [[Draft_Workbench/cs|objekty Kreslení]] do [[Sketcher_Workbench/cs|objektu Náčrt]] a naopak.
+</div>
+
+[[Image:Draft_Draft2Sketch_example.png]]
+<div class="mw-translate-fuzzy">
+[[Image:Draft Draft2Sketch example.jpg||480px]]
+</div>
+
+==Usage== 
+
+<div class="mw-translate-fuzzy">
+==Použití==
+# Vyberte objekt Kreslení nebo Náčrt
+# Stiskněte tlačítko {{KEY|[[Image:Draft Draft2Sketch.png|16px]] [[Draft Draft2Sketch/cs|Kreslení2Náčrt]]}}
+</div>
+
+==Notes==
+
+* Non-Draft objects that are totally planar can also be converted.
+* The command can only handle objects made up out of straight lines, circular arcs, elliptical arcs, B-Splines and Bézier curves.
+* [[Draft_BezCurve|Draft BezCurves]] will be approximated by [[Sketcher_CreateBSpline|Sketcher BSplines]].
+* The external [[KicadStepUp_Workbench|KicadStepUp Workbench]] contains a command to convert a [[Draft_BSpline|Draft BSpline]] into a series of [[Sketcher_CreateArc|Sketcher Arcs]]. For more information see the forum topic [https://forum.freecadweb.org/viewtopic.php?f=9&t=25082 BSplines to Shape2DView and Sketcher].
+* [https://forum.freecadweb.org/viewtopic.php?f=3&t=58781#p505207 This other forum topic] contains a macro for such a conversion.
+
+==Scripting==
+
+<div class="mw-translate-fuzzy">
+==Skriptování==
+Není dostupné, podívejte se na dokumentaci [[Sketcher_Workbench/cs|Modulu Náčrt]] jak vytvořit náčrt pomocí skriptování.
+</div>
+
+To convert objects to a sketch use the {{incode|make_sketch}} method ({{Version|0.19}}) of the Draft module. This method replaces the deprecated {{incode|makeSketch}} method.
+
+{{Code|code=
+sketch = make_sketch(objects_list, autoconstraints=False, addTo=None, delete=False, name="Sketch", radiusPrecision=-1, tol=1e-3)
+}}
+
+* {{incode|objects_list}} contains the objects to be converted. It is either a single object or a list of objects. {{incode|Draft}} objects, {{incode|Part::Feature}} objects and {{incode|Part.Shape}} objects are supported.
+* If {{incode|autoconstraints}} is {{incode|True}} coincident constraints are added to nodes belonging to the same source object.
+* {{incode|addTo}} is the existing sketch object the geometry is added to. If not supplied a new sketch is created.
+* If {{incode|delete}} is {{incode|True}} the source objects are deleted.
+* {{incode|name}} is the name for the new sketch.
+* {{incode|radiusPrecision}} indicates how radius constraints should be handled:
+** Use {{incode|-1}} to disable radius constraints.
+** Use {{incode|0}} to add individual radius constraints.
+** Use a positive number to round radii according to this precision, and to add equal constraints between curves with equal radii.
+* {{incode|tol}} is the tolerance used to check if shapes are planar and co-planar. Use {{incode|-1}} for a strict analysis.
+* {{incode|sketch}} is returned with the sketch object.
+
+To convert a sketch to Draft objects use the {{incode|draftify}} method of the Draft module.
+
+{{Code|code=
+draftify(objectslist, makeblock=False, delete=True)
+}}
+
+* {{incode|objectslist}} contains the objects to be converted. It is either a single object or a list of objects.
+* If {{incode|makeblock}} is {{incode|True}} the converted objects are grouped in a {{incode|Part::Part2DObject}}.
+* If {{incode|delete}} is {{incode|True}} the source objects are deleted.
+
+Example:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+rectangle = Draft.make_rectangle(2000, 1000)
+circle = Draft.make_circle(500)
+doc.recompute()
+
+sketch_from_draft = Draft.make_sketch([rectangle, circle], autoconstraints=True, delete=False, radiusPrecision=0)
+doc.recompute()
+
+draft_from_sketch = Draft.draftify(sketch_from_draft, delete=False)
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Draft_WireToBSpline|WireToBSpline]]
+|[[Draft_Slope|Slope]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_WireToBSpline.svg
+|IconR=Draft_Slope.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

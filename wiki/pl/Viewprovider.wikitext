@@ -1,0 +1,142 @@
+<languages/>
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Dostawcy widoku to klasy, które definiują sposób, w jaki obiekty będą wyglądać w oknie [[Tree_view/pl|widoku drzewa]] i [[3D_view/pl|widoku 3D]], oraz jak będą współdziałać z niektórymi akcjami graficznymi, takimi jak [[Selection_methods/pl|zaznaczanie]] obiektów.
+
+Uzupełniają one [[Scripted_objects/pl|obiekty tworzone skryptami]]. Podczas gdy klasa bazowa obiektu skryptowego definiuje jego [[Property/pl|właściwości]] {{Emphasis|dane}}, viewprovider definiuje jego [[Property/pl|właściwości]] {{Emphasis|widok}}. Te właściwości widoku nie są istotnymi informacjami o obiekcie, ponieważ wskazują tylko powierzchowne informacje, takie jak szerokość linii, kolor linii, kolor powierzchni itp. W sesji terminalowej dostawca widoku nie jest ładowany, ponieważ nie będzie interfejsu do manipulowania tymi widocznymi właściwościami.
+
+Podobnie jak w przypadku właściwości danych, właściwości widoku są dostępne z poziomu [[Property_editor/pl|edytora własciwości]].
+
+<span id="Python_view_providers"></span>
+==Dostawcy widoków Python==
+
+Klasy viewprovider zazwyczaj zawierają w nazwie ciąg {{incode|ViewProvider}}. Są one przypisywane do atrybutu {{incode|ViewObject}} obiektu bazowego.
+
+W tym przykładzie definiujemy dwie właściwości dla Dostawcy widoku, tylko jeśli właściwości jeszcze nie istnieją, i przypisujemy im wartości domyślne. Definiujemy również metodę {{incode|onChanged}}, która jest uruchamiana za każdym razem, gdy zmienia się właściwość. Musimy przetestować właściwość według nazwy, a następnie wywołamy jedną z dwóch metod, które wykonają rzeczywistą pracę polegającą na aktualizacji wzorca lub ustawieniu jego rozmiaru.
+{{Code|code=
+# views/view_custom.py
+class ViewProviderCustom:
+    """Viewprovider of the custom object."""
+
+    def __init__(self, vobj):
+        self.Object = vobj.Object
+
+        self._set_properties(vobj)
+        vobj.Proxy = self
+
+    def _set_properties(self, vobj):
+        if not hasattr(vobj, "Pattern"):
+            vobj.addProperty("App::PropertyEnumeration",
+                             "Pattern",
+                             "Custom",
+                             "Defines a hatch pattern for this object.")
+            vobj.Pattern = ["None", "diagonals", "cross", "brick"]
+
+        if not hasattr(vobj, "PatternSize"):
+            vobj.addProperty("App::PropertyFloat",
+                             "PatternSize",
+                             "Custom",
+                             "Defines the size of the hatch pattern.")
+            vobj.PatternSize = 1
+
+    def onChanged(self, vobj, prop):
+        if prop in "Pattern":
+            self._set_pattern(vobj.Pattern)
+        if prop in "PatternSize":
+            self._set_size(vobj.PatternSize)
+
+    def _set_pattern(self, pattern):
+        ...
+
+    def _set_size(self, size):
+        ...
+}}
+
+Normalnym przepływem pracy jest dodanie najpierw klasy proxy obiektu, na przykład {{incode|CustomObject}}, a następnie dostawcy widoku, na przykład {{incode|ViewProviderCustom}}. Viewprovider może być przypisany tylko wtedy, gdy zweryfikowaliśmy, że interfejs graficzny jest dostępny, ponieważ w przeciwnym razie atrybut {{incode|ViewObject}} nie istnieje, a użycie tego elementu jako danych wejściowych dla naszej klasy będzie błędem.
+{{Code|code=
+import FreeCAD as App
+import objects.custom as custom
+import views.view_custom as view_custom
+
+doc = App.newDocument()
+obj = doc.addObject("Part::FeaturePython", "Custom")
+
+custom.CustomObject(obj)
+
+if App.GuiUp:
+    view_custom.ViewProviderCustom(obj.ViewObject)
+}}
+
+<span id="Custom_icons"></span>
+==Ikonki użytkownika==
+
+Implementując metodę {{incode|getIcon}}, można zdefiniować ikonkę, która będzie wyświetlana w [[Tree_view/pl|widok drzewa]] w górnej części [[Combo_view/pl|widoku połączonego]].
+
+Wartością zwrotną może być pełna ścieżka do ikony.
+{{Code|code=
+import os
+some_path = "/home/user/.FreeCAD/custom_icons"
+
+class ViewProviderCustom:
+    ...
+
+    def getIcon(self):
+        return os.path.join(some_path, "my_icon.svg")
+}}
+
+Względna ścieżka do ikony w skompilowanym pliku zasobów.
+{{Code|code=
+import MyModule_rc.py
+
+class ViewProviderCustom:
+    ...
+
+    def getIcon(self):
+        return ":/icons/my_icon.svg"
+}}
+
+Nieobrobiona [https://en.wikipedia.org/wiki/X_PixMap Ikona XPM], która jest zasadniczo grafiką ASCII.
+{{Code|code=
+import MyModule_rc.py
+
+class ViewProviderCustom:
+    ...
+
+    def getIcon(self):
+        return """
+               /* XPM */
+               static char *Some_icon_xpm[] = {
+               /* columns rows colors chars-per-pixel */
+               "16 16 3 1 ",
+               "  c None",
+               ". c #D71414",
+               "+ c #AA1919",
+               /* pixels */
+               "                ",
+               "  +          +  ",
+               " +.+        +.+ ",
+               "  +.+      +.+  ",
+               "   +        +   ",
+               "      ++++      ",
+               "     +....+     ",
+               "     +...++     ",
+               "     +..+++     ",
+               "     +.++.+     ",
+               "      ++++      ",
+               "   +        +   ",
+               "  +.+      +.+  ",
+               " +.+        +.+ ",
+               "  +          +  ",
+               "                "
+               };
+               """
+}}
+
+Zobacz różne przykłady na stronie [[Custom_icon_in_tree_view/pl|Własna ikona w widoku drzewa]].
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}

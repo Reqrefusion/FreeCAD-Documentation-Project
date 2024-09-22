@@ -1,0 +1,134 @@
+<languages/>
+
+{{Docnav/fr
+|[[Reinforcement_LShapeRebar/fr|Armature en L]]
+|[[Reinforcement_BentShapeRebar/fr|Armature cintrée]]
+|[[Reinforcement_Workbench/fr|Atelier Reinforcement]]
+|IconL=Reinforcement_LShapeRebar.svg
+|IconR=Reinforcement_BentShapeRebar.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+{{GuiCommand/fr
+|Name=Reinforcement Stirrup
+|Name/fr=Reinforcement Armature en étrier
+|MenuLocation=3D/BIM → Outils pour les armatures → Armature en étrier
+|Workbenches=[[BIM_Workbench/fr|BIM]], [[Reinforcement_Workbench/fr|Reinforcement]]
+|Version=0.17
+|SeeAlso=
+}}
+
+==Description==
+
+L'outil [[Reinforcement_StirrupRebar/fr|Armature en étrier]] permet à l'utilisateur de créer un ensemble d'armatures en étrier à l'intérieur d'un objet de [[Arch_Structure/fr|Structure]].
+
+Cette outil fait partie de l'[[Reinforcement_Workbench/fr|atelier Reinforcement]], un [[External_workbenches/fr|atelier externe]] qui peut être installé avec le [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr/fr|Gestionnaire des extensions]].
+
+[[Image:Arch_Rebar_Stirrup_example.png|400px]]
+{{Caption|Un jeu d'armatures en étrier à l'intérieur d'une [[Arch_Structure/fr|Arch Structure]]}}
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Sélectionnez n’importe quelle face d’un objet précédemment créé {{Button|[[Image:Arch_Structure.svg|16px]] [[Arch_Structure/fr|Arch Structure]]}}.
+# Ensuite, sélectionnez {{Button|[[Image:Reinforcement_StirrupRebar.svg|16px]] [[Reinforcement_StirrupRebar/fr|Armature en étrier]]}} dans la barre des outils pour les armatures.
+# Un [[Task_Panel/fr|panneau des tâches]] apparaîtra sur le côté gauche de l'écran, comme indiqué ci-dessous.
+# Sélectionnez l'orientation souhaitée.
+# Remplissez les entrées telles que "Left Cover", "Right Cover", "Top Cover", "Bottom Cover", "Front Cover", "Bent Angle", "Bent Factor", "Rounding" et "Diameter" de l'armature.
+# Sélectionnez le mode de distribution "Amount" ou "Spacing".
+#* Si "Spacing" est sélectionné, l'utilisateur peut également opter pour [[Custom_Spacing/fr|espacement personnalisé]].
+# {{Button|Pick Selected Face}} est utilisé pour vérifier ou modifier la face pour la distribution des armatures.
+# Cliquez sur {{Button|OK}} ou {{Button|Apply}} pour générer les armatures.
+# Cliquez sur {{Button|Cancel}} pour quitter le panneau de tâches.
+
+[[Image:StirrupDialog.png|250px]]
+{{Caption|Panneau des tâches de l'outil}}
+
+<span id="Properties"></span>
+==Propriétés== 
+
+* {{PropertyData|Front Cover}} : distance entre l'armature et la face sélectionnée.
+* {{PropertyData|Right Cover}} : distance entre l'extrémité droite de l'armature et la face droite de la structure.
+* {{PropertyData|Left Cover}} : distance entre l'extrémité gauche de l'armature et la face gauche de la structure.
+* {{PropertyData|Bottom Cover}} : distance entre l'armature et la face inférieure de la structure.
+* {{PropertyData|Top Cover}} : distance entre l'armature et la face supérieure de la structure.
+* {{PropertyData|Bent Angle}} : angle de pliage définit l'angle aux extrémités d'un étrier.
+* {{PropertyData|Bent Factor}} : longueur de l'extrémité de l'étrier.
+* {{PropertyData|Amount}} : quantité de barres d'armature.
+* {{PropertyData|Spacing}} : distance entre les axes de chaque barre.
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Voir aussi :}} [[Arch_API/fr|Arch API]], [[Reinforcement_API/fr|Reinforcement API]] et [[FreeCAD_Scripting_Basics/fr|FreeCAD Débuter avec les scripts]].
+
+L'outil Armature en étrier peut être utilisé dans une [[Macros/fr|macro]] et depuis la console [[Python/fr|Python]] en utilisant la fonction suivante :
+{{Code|code=
+Rebar = makeStirrup(l_cover, r_cover, t_cover, b_cover, f_cover,
+                    bentAngle, bentFactor, diameter, rounding, amount_spacing_check, amount_spacing_value,
+                    structure=None, facename=None)
+}}
+
+* Crée un objet {{incode|Rebar}} à partir de la {{incode|structure}} donnée qui est une [[Arch Structure/fr|Arch Structure]], et {{incode|facename}} qui est une face de cette structure.
+** Si ni {{incode|structure}} ni {{incode|facename}} n'est donné, la face sélectionnée par l'utilisateur sera entrée.
+* {{incode|l_cover}}, {{incode|r_cover}}, {{incode|t_cover}}, {{incode|b_cover}} et {{incode|f_cover}} sont des distances de décalage internes pour les éléments d'armature avec respect des faces de la structure. Ce sont respectivement les décalages gauche, droit, haut, bas et avant.
+* {{incode|diameter}} est le diamètre des armatures de renforcement à l'intérieur de la structure.
+* {{incode|rounding}} est le paramètre qui détermine le rayon de courbure des armature lors de la création d'une boucle.
+* {{incode|bentLength}} et {{incode|bentAngle}} définissent la longueur et l'angle de la pointe de la boucle de l'armature.
+* {{incode|amount_spacing_check}} si {{incode|True}}, cela créera autant de boucles d'armature que celles données par {{incode|amount_spacing_spue}}. Si {{incode|False}}, cela créera des boucles d'armature séparées par la valeur numérique de {{incode|amount_spacing_value}}.
+* {{incode|amount_spacing_value}} spécifie le nombre de boucles d'armature ou la valeur de la séparation entre elles, en fonction de {{incode|amount_spacing_check}}.
+
+<span id="Example"></span>
+=== Exemple ===
+
+{{Code|code=
+import Draft, Arch, Stirrup
+
+# It doesn't work if the structure is not based on a face
+# Structure = Arch.makeStructure(length=1000, width=400, height=400)
+
+Rect = Draft.makeRectangle(400, 400)
+Structure = Arch.makeStructure(Rect, height=1600)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = Stirrup.makeStirrup(20, 20, 20, 20, 20,
+                            115, 4, 8, 2, True, 10, Structure, "Face6")
+}}
+
+<span id="Edition_of_the_rebar"></span>
+=== Éditer l'armature ===
+
+Vous pouvez changer les propriétés de l’armature avec la fonction suivante :
+
+{{Code|code=
+editStirrup(Rebar, l_cover, r_cover, t_cover, b_cover, f_cover,
+            bentAngle, bentFactor, diameter, rounding, amount_spacing_check, amount_spacing_value,
+            structure=None, facename=None)
+}}
+
+* {{incode|Rebar}} est un objet {{incode|StirrupRebar}} créé précédemment.
+* Les autres paramètres sont les mêmes que ceux requis par la fonction {{incode|makeStirrup()}}.
+* {{incode|structure}} et {{incode|facename}} peuvent être omis afin que l'armature reste dans la structure d'origine.
+
+{{Code|code=
+import Stirrup
+
+Stirrup.editStirrup(Rebar, 20, 20, 20, 20, 50,
+                    100, 4, 14, 8, True, 8)
+}}
+
+
+{{Docnav/fr
+|[[Reinforcement_LShapeRebar/fr|Armature en L]]
+|[[Reinforcement_BentShapeRebar/fr|Armature cintrée]]
+|[[Reinforcement_Workbench/fr|Atelier Reinforcement]]
+|IconL=Reinforcement_LShapeRebar.svg
+|IconR=Reinforcement_BentShapeRebar.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

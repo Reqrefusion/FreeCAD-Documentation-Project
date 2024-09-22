@@ -1,0 +1,135 @@
+<languages/>
+
+{{Docnav
+|[[FEM_SolverZ88/pl|Solver Z88]]
+|[[FEM_EquationDeformation/pl|Równanie deformacji]]
+|[[FEM_Workbench/pl|środowisko pracy MES]]
+|IconL=FEM_SolverZ88.svg
+|IconR=FEM_EquationDeformation.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommand/pl
+|Name=FEM EquationElasticity
+|Name/pl=Równanie elastyczności
+|MenuLocation=Rozwiąż → Równania mechaniczne → Równanie elastyczności
+|Workbenches=[[FEM_Workbench/pl|MES]]
+|Version=0.17
+|SeeAlso=[[FEM_EquationDeformation/pl|Równanie deformacji]], [[FEM_tutorial/pl|Poradnik MES]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+To równanie opisuje właściwości mechaniczne ciał stałych.
+
+Informacje o teorii stojącej za tym równaniem można znaleźć w dokumencie [http://www.elmerfem.org/blog/documentation/ Elmer models manual], w sekcji '''Linear Elasticity''' ''(liniowa sprężystość)''.
+
+<span id="Usage"></span>
+==Użycie==
+
+# Po dodaniu solvera ELmer zgodnie z [[FEM_SolverElmer/pl#Równania|opisem na stronie solvera]], zaznacz go w [[Tree_view/pl|widoku drzewa]].
+# Teraz wciśnij przycisk [[Image:FEM_EquationElasticity.svg|24px]] lub wybierz opcję {{MenuCommand|Rozwiąż → Równania mechaniczne → Równanie elastyczności}} z menu.
+# Zmień [[#Ustawienia_solvera|ustawienia solvera dla równania]] lub [[FEM_SolverElmer_SolverSettings/pl|ogólne ustawienia solvera]] jeśli to konieczne.
+
+'''Uwaga''': Do analiz z nieliniową sprężystością musisz skorzystać z [[Image:FEM_EquationDeformation.svg|32px]] [[FEM_EquationDeformation/pl|równania deformacji]]  ''({{Version/pl|0.21}})''. Równanie elastyczności służy tylko do liniowej sprężystości.
+
+'''Uwaga''': Jeśli używasz więcej niż jednego rdzenia procesora dla solvera ''({{Version/pl|0.21}})'', nie możesz korzystać z domyślnych ustawień solvera. Używanie tylko jednego rdzenia i domyślnych ustawień solvera jest często szybsze niż używanie wielu rdzeni, ponieważ solver elastyczności jest szybki tylko gdy właściwość {{PropertyData|Linear Solver Type}} jest ustawiona na ''Direct'' ''(domyślne ustawienie, opisane [[FEM_SolverElmer_SolverSettings/pl#Układ_liniowy|tutaj]])''. Do obliczeń na wielu rdzeniach można używać tylko właściwości {{PropertyData|Linear Direct Method}} ustawionej na ''MUMPS''. Jednak MUMPS nie jest dostępne za darmo do bezpośredniego pobrania.
+
+<span id="Solver_Settings"></span>
+==Ustawienia solvera==
+
+Dla ogólnych ustawień solvera zobacz [[FEM_SolverElmer_SolverSettings/pl|konfigurację solvera Elmer]].
+
+Równanie elastyczności posiada następujące specjalne ustawienia:
+* {{PropertyData|Calculate Pangle}}: Czy kąty główne mają być wyznaczone.
+* {{PropertyData|Calculate Principal}}: Czy wszystkie naprężenia mają być wyznaczone.
+* {{PropertyData|Calculate Strains}}: Czy odkształcenia mają być wyznaczone. Wyznaczy też naprężenia, nawet jeśli {{PropertyData|Calculate Principal}} lub {{PropertyData|Calculate Stresses}} jest ustawione na {{false/pl}}.
+* {{PropertyData|Calculate Stresses}}: Czy naprężenia mają być wyznaczone. W porównaniu z {{PropertyData|Calculate Principal}}, naprężenia zredukowane wg kryterium Tresci i naprężenia główne nie zostaną wyznaczone.
+* {{PropertyData|Constant Bulk System}}: Zobacz instrukcję Elmera aby uzyskać więcej informacji.
+* {{PropertyData|Displace Mesh}}: Czy siatka może być zdeformowana. Domyślnie jest to ustawione na {{true/pl}} i musi być zmienione na {{false/pl}} do analiz częstotliwości drgań własnych.
+* {{PropertyData|Fix Displacement}}: Czy przemieszczenia lub siły są ustawione. Tym samym {{PropertyData|Model Lumping}} jest automatycznie używane.
+* {{PropertyData|Geometric Stiffness}}: Uwzględnia sztywność geometryczną ciała.
+* {{PropertyData|Incompressible}}: Obliczanie materiału nieściśliwego w połączeniu z modelem lepkosprężystym Maxwella i niestandardową wartością {{PropertyData|Variable}}.
+* {{PropertyData|Maxwell Material}}: Oblicza lepkosprężysty model materiału.
+* {{PropertyData|Model Lumping}}: Korzysta z [https://en.wikipedia.org/wiki/Lumped-element_model modelu jednowymiarowego].
+* {{PropertyData|Model Lumping Filename}}: Plik do zapisu wyników z modelu jednowymiarowego.
+* {{PropertyData|Stability Analysis}}: Jeśli ta właściwość ma wartość {{true/pl}} to {{PropertyData|Eigen Analysis}} staje się analizą stateczności (wyboczenia). W innym wypadku przeprowadzana jest analiza modalna (częstotliwości drgań własnych).
+* {{PropertyData|Update Transient System}}: Zobacz instrukcję solvera Elmer aby uzyskać więcej informacji.
+* {{PropertyData|Variable}}: Zmienna dla równania elastyczności. Należy to zmieniać tylko jeśli właściwość {{PropertyData|Incompressible}} jest ustawiona na {{true/pl}} zgodnie z dokumentacją Elmera.
+
+Wartości własne:
+* {{PropertyData|Eigen Analysis}}: Czy analiza problemu własnego ma być przeprowadzona (wyznaczanie postaci i częstotliwości drgań własnych).
+* {{PropertyData|Eigen System Complex}}: Ta właściwość powinna być ustawiona na {{true/pl}} jeśli układ własny jest zespolony. Musi być ustawiona na {{false/pl}} dla analiz drgań własnych z tłumieniem.
+* {{PropertyData|Eigen System Compute Residuals}}: Oblicza residua układu wartości własnych.
+* {{PropertyData|Eigen System Damped}}: Ustawia tłumioną analizę drgań własnych. Może być używane tylko gdy właściwość {{PropertyData|[[FEM_SolverElmer_SolverSettings/pl#Układ_liniowy|Linear Solver Type]]}} jest ustawiona na ''Iterative''.
+* {{PropertyData|Eigen System Select}}: Wybór które wartości własne mają być wyznaczone. Zauważ, że wybór ''Largest*'' ''(najwyższe)'' powoduje, że analiza trwa w nieskończoność ''(aktualne w sierpniu 2022 r.)''.
+* {{PropertyData|Eigen System Tolerance}}: Tolerancja zbieżności dla solvera iteracyjnego układu własnego. Domyślna wartość to 100 razy {{PropertyData|[[FEM_SolverElmer_SolverSettings/pl#Układ_liniowy|Linear Tolerance]]}}.
+* {{PropertyData|Eigen System Values}}: Numer najwyższej postaci drgań własnych jaka ma być wyznaczona.
+
+Równanie:
+* {{PropertyData|Plane Stress}}: Wyznacza rozwiązanie zgodnie z teorią płaskiego stanu naprężeń. Stosowane tylko do geometrii 2D.
+
+<span id="Analysis_Feature_Information"></span>
+==Informacje o cechach analizy==
+
+Równanie elastyczności uwzględnia następujące cechy analizy jeśli są zdefiniowane:
+
+* [[Image:FEM_ConstraintFixed.svg|32px]] [[FEM_ConstraintFixed/pl|Warunek brzegowy utwierdzenia]]
+* [[Image:FEM_ConstraintDisplacement.svg|32px]] [[FEM_ConstraintDisplacement/pl|Warunek brzegowy przemieszczenia]]
+* [[Image:FEM_ConstraintForce.svg|32px]] [[FEM_ConstraintForce/pl|Obciążenie siłą]]
+* [[Image:FEM_ConstraintInitialTemperature.svg|32px]] [[FEM_ConstraintInitialTemperature/pl|Warunek początkowy temperatury]]
+* [[Image:FEM_ConstraintPressure.svg|32px]] [[FEM_ConstraintPressure/pl|Obciążenie ciśnieniem]]
+* [[Image:FEM_ConstraintSelfWeight.svg|32px]] [[FEM_ConstraintSelfWeight/pl|Obciążenie grawitacją]]
+* [[Image:FEM_ConstraintSpring.svg|32px]] [[FEM_ConstraintSpring/pl|Sprężyna]]
+
+<span id="Note"></span>
+===Uwaga===
+
+* Oprócz analiz 2D, dla wszystkich cech analizy istotne jest żeby były zdefiniowane dla ścian. Cechy w 3D przypisane do linii i wierzchołków nie są rozpoznawane przez solver Elmer.
+
+<span id="Eigenmode_Analysis"></span>
+==Analiza drgań własnych==
+
+Aby przeprowadzić analizę drgań własnych ''(wyznaczanie postaci i częstotliwości drgań własnych)'' należy:
+# Ustawić {{PropertyData|Eigen Analysis}} na {{true/pl}}.
+# Ustawić {{PropertyData|Displace Mesh}} na {{false/pl}}.
+# Ustawić {{PropertyData|Eigen System Values}} na najwyższy numer postaci drgań własnych jaką chcesz uzyskać. Im mniejsza ta liczba, tym szybsze obliczenia, ponieważ wyższe postaci drgań własnych mogą być pominięte.
+# Dodać [[FEM_ConstraintFixed/pl|warunek brzegowy utwierdzenia]] i ustawić przynajmniej jedną ścianę ciała jako utwierdzoną.
+# Uruchomić solver.
+
+Wysoce zalecane jest ustawianie {{PropertyData|Linear Solver Type}} na ''Direct'' ''(domyślne)'', ponieważ przyspiesza to znacząco obliczenia i zwiększa dokładność wyników.
+
+<span id="Buckling_Analysis"></span>
+==Analiza wyboczenia==
+
+Aby przeprowadzić liniową analizę wyboczeniową należy zrobić to samo co w przypadku [[#Analiza_drgań_własnych|Analizy drgań własnych]] i dodatkowo:
+* Ustawić {{PropertyData|Stability Analysis}} na {{true/pl}}
+
+<span id="Results"></span>
+==Wyniki==
+
+Dostępne wyniki zależą od [[#Ustawienia_solvera|ustawień solvera]]. Jeśli żadna z właściwości {{PropertyData|Calculate *}} nie została ustawiona na {{true/pl}} to obliczone zostaną tylko przemieszczenia. W przeciwnym wypadku dostępne będą też odpowiednie dodatkowe wyniki. Jeśli właściwość {{PropertyData|Eigen Analysis}} została ustawiona na {{true/pl}} to wszystkie wyniki będą dostępne dla każdej obliczonej postaci drgań własnych.
+
+Jeśli właściwość {{PropertyData|Eigen Analysis}} została ustawiona na {{true/pl}} to częstotliwości drgań własnych będą zapisane na końcu dziennika solvera w jego oknie dialogowym i w dokumencie '''SolverElmerOutput''', który zostanie utworzony w widoku drzewa po zakończeniu pracy solvera.
+
+'''Uwaga:''' Wektor przemieszczenia postaci własnej <math>\vec{d}</math> ma niefizyczną wartość, ponieważ wynik jest
+
+<math>\quad
+\vec{d} = c\cdot\vec{u}
+</math>
+
+podczas gdy <math>\vec{u}</math> jest wektorem własnym zaś <math>c</math> jest liczbą zespoloną.
+
+
+{{Docnav
+|[[FEM_SolverZ88/pl|Solver Z88]]
+|[[FEM_EquationDeformation/pl|Równanie deformacji]]
+|[[FEM_Workbench/pl|środowisko pracy MES]]
+|IconL=FEM_SolverZ88.svg
+|IconR=FEM_EquationDeformation.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
