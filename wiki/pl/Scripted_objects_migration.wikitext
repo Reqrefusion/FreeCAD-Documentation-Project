@@ -1,5 +1,6 @@
 <languages/>
 
+<span id="Introduction"></span>
 ==Wprowadzenie==
 
 [[Scripted_objects/pl|Obiekty tworzone skryptami]] są odbudowywane przy każdym otwarciu dokumentu [[File_Format_FCStd/pl|FCStd]]. W tym celu dokument przechowuje referencję do modułu i klasy Pythona, które zostały użyte do stworzenia obiektu, wraz z jego właściwościami.
@@ -28,7 +29,7 @@
 </Document>
 }}
 
-Particularly focus on this part:
+Szczególnie skup się na tej części:
 {{Code|lang=xml|code=
                 ...
                 <Property name="Proxy" type="App::PropertyPythonObject" status="1">
@@ -37,15 +38,17 @@ Particularly focus on this part:
                 ...
 }}
 
-If the value of <code>module=</code> or <code>class=</code> is not found on the installed system, the object will fail to load correctly. This means that once an object is created using a particular class, the module should no longer be moved or renamed because if this is done, previously saved objects will break.
+Jeśli wartość <code>module=</code> lub <code>class=</code> nie zostanie znaleziona w zainstalowanym systemie, obiekt nie zostanie poprawnie załadowany. Oznacza to, że po utworzeniu obiektu przy użyciu określonej klasy, moduł nie powinien być już przenoszony ani zmieniany, ponieważ jeśli to nastąpi, wcześniej zapisane obiekty ulegną uszkodzeniu.
 
-However, a valid reason for moving or renaming the module or class is to improve the structure and maintainability of the original code, for example, when restructuring an entire workbench. In this case there are various strategies to migrate old objects to using a new class. This is done in order to retain backwards compatibility, when outright breaking of old documents must be avoided.
+Jednak ważnym powodem przeniesienia lub zmiany nazwy modułu lub klasy jest poprawa struktury i łatwości konserwacji oryginalnego kodu, na przykład podczas restrukturyzacji całego środowiska pracy. W takim przypadku istnieją różne strategie migracji starych obiektów do nowej klasy. Odbywa się to w celu zachowania kompatybilności wstecznej, gdy należy unikać jawnego zrywania funkcjonalności starych dokumentów.
 
-== Old object and new object ==
+<span id="Old_object_and_new_object"></span>
+==Stary i nowy obiekt==
 
-=== Old object ===
+<span id="Old_object"></span>
+===Stary obiekt===
 
-An old object is defined in a module which is at the root of the workbench.
+Stary obiekt jest zdefiniowany w module, który znajduje się w katalogu głównym środowiska pracy.
 {{Code|code=
 # old_module.py
 class OldObject:
@@ -61,7 +64,7 @@ class OldObject:
         pass
 }}
 
-An object can be created using this class, and it can be saved to {{FileName|my_document.FCstd}}. If no particular [[viewprovider|viewprovider]] is assigned to the new object, its proxy class is simply set to a value different from {{incode|None}}, in this case, to {{incode|1}}.
+Obiekt może zostać utworzony przy użyciu tej klasy i zapisany do pliku {{FileName|my_document.FCstd}}. Jeśli żaden konkretny [[Viewprovider/pl|dostawca widoku]] nie jest przypisany do nowego obiektu, jego klasa proxy jest po prostu ustawiana na wartość inną niż {{incode|None}}, w tym przypadku na {{incode|1}}.
 {{Code|code=
 import FreeCAD as App
 import old_module
@@ -79,7 +82,7 @@ doc.recompute()
 doc.save()
 }}
 
-[[Python_console|Python console]] session with the basic properties omitted.
+Sesja [[Python_console/pl|konsoli Python]] z pominiętymi podstawowymi właściwościami.
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -88,9 +91,10 @@ doc.save()
 <old_module.OldObject object at 0x7efc3c51c390>
 }}
 
-=== New object ===
+<span id="New_object"></span>
+===Nowy obiekt===
 
-Now we consider that the workbench is restructured, so that classes aren't just at the root directory, but instead are inside an {{FileName|objects}} directory. Complex workbenches that have many different types of objects should be structured in directories including objects, [[Viewprovider|viewproviders]], [[Command|Gui Commands]], [[task_panel|task panel]] interfaces, etc.
+Weźmy teraz pod uwagę, że środowisko pracy jest zrestrukturyzowane tak, że klasy nie znajdują się tylko w katalogu głównym, ale zamiast tego znajdują się wewnątrz katalogu {{FileName|objects}}. Złożone środowiska pracy, które mają wiele różnych typów obiektów, powinny być zorganizowane w katalogach zawierających obiekty, [[Viewprovider/pl|dostawcy widoku]], [[Command/pl|polecenia Gui]], interfejsy [[Task_panel/pl|panela zadań]] itd.
 {{Code|code=
 # objects/new_module.py
 class NewObject:
@@ -108,9 +112,9 @@ class NewObject:
         pass
 }}
 
-This new class will refer to the same type of object, but both the module name as well as the class name have been renamed. Moreover, the properties also have changed; one property has been renamed, and a completely new property has been added.
+Ta nowa klasa będzie odnosić się do tego samego typu obiektu, ale zarówno nazwa modułu, jak i nazwa klasy zostały zmienione. Co więcej, właściwości również uległy zmianie. Zmieniono nazwę jednej właściwości i dodano zupełnie nową właściwość.
 
-If we create a new object with this new module we will have the following console session.
+Jeśli utworzymy nowy obiekt z tym nowym modułem, otrzymamy następującą sesję konsoli.
 {{Code|code=
 >>> obj2 = App.ActiveDocument.Custom2
 >>> print(obj2.PropertiesList)
@@ -119,9 +123,10 @@ If we create a new object with this new module we will have the following consol
 <objects.new_module.NewObject object at 0x7efc1cf68c50>
 }}
 
-== Method 1. Migration by redirecting the class ==
+<span id="Method_1._Migration_by_redirecting_the_class"></span>
+==Metoda 1. Migracja poprzez przekierowanie klasy==
 
-We will migrate the older object by redirecting the old class. The original class is deleted, and the name of the class is simply redirected to point to the new class.
+Zmigrujemy starszy obiekt poprzez przekierowanie starej klasy. Oryginalna klasa jest usuwana, a nazwa klasy jest po prostu przekierowywana, aby wskazywała na nową klasę.
 
 {{Code|code=
 # old_module.py
@@ -130,9 +135,9 @@ import objects.new_module as new_module
 OldObject = new_module.NewObject
 }}
 
-Any document that tries to load {{incode|old_module.OldObject}} will be redirected to load {{incode|objects.new_module.NewObject}} instead.
+Każdy dokument, który spróbuje załadować {{incode|old_module.OldObject}} zostanie przekierowany do załadowania {{incode|objects.new_module.NewObject}} zamiast niego.
 
-If we open the document, and inspect the properties of the object in the [[Python_console|Python console]] we will see that the older properties are conserved, but the object has a new Proxy class.
+Jeśli otworzymy dokument i sprawdzimy właściwości obiektu w [[Python_console/pl|konsoli Python]], zobaczymy, że starsze właściwości zostały zachowane, ale obiekt ma nową klasę Proxy.
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -141,25 +146,26 @@ If we open the document, and inspect the properties of the object in the [[Pytho
 <objects.new_module.NewObject object at 0x7f099700b2b0>
 }}
 
-However, in this case we don't see the new properties of the new class. The reason is simply that the older object didn't have these properties. When {{incode|old_module.OldObject}} was redirected to {{incode|objects.new_module.NewObject}}, only the proxy class changed, but previous information was retained.
+Jednak w tym przypadku nie widzimy nowych właściwości nowej klasy. Powodem jest po prostu to, że starszy obiekt nie miał tych właściwości. Kiedy {{incode|old_module.OldObject}} został przekierowany do {{incode|objects.new_module.NewObject}}, zmieniła się tylko klasa proxy, ale poprzednie informacje zostały zachowane.
 
-Now, if the document is saved and opened again, it will automatically look for {{incode|objects.new_module.NewObject}}, and it will not require {{incode|old_module.OldObject}} any more. The {{FileName|old_module.py}} file may be removed permanently from the system as long as all older objects have been migrated to the new module. If the old module is removed but an object hasn't been migrated, the [[report_view|report view]] will show a message like this when opening a document containing such object.
+Teraz, jeśli dokument zostanie zapisany i otwarty ponownie, będzie automatycznie szukał {{incode|objects.new_module.NewObject}} i nie będzie już wymagał {{incode|old_module.OldObject}}. Plik {{FileName|old_module.py}} może zostać trwale usunięty z systemu, o ile wszystkie starsze obiekty zostały zmigrowane do nowego modułu. Jeśli stary moduł zostanie usunięty, ale obiekt nie został zmigrowany, [[Report_view/pl|widok raportu]] wyświetli taki komunikat podczas otwierania dokumentu zawierającego taki obiekt.
 
 {{Code|lang=bash|code=
 <class 'ModuleNotFoundError'>: No module named 'old_module'
 }}
 
-If it is not realistically possible to migrate all older objects, say, because the old module was used in a workbench for many years, then {{FileName|old_module.py}} must be kept as long as it's deemed necessary to give users the opportunity to migrate their objects.
+Jeśli migracja wszystkich starszych obiektów nie jest realistycznie możliwa, na przykład dlatego, że stary moduł był używany w środowisku pracy przez wiele lat, {{FileName|old_module.py}} musi zostać zachowany tak długo, jak jest to konieczne, aby dać użytkownikom możliwość migracji ich obiektów.
 
-=== Advantages and disadvantages ===
+<span id="Advantages_and_disadvantages"></span>
+===Zalety i wady===
 
-'''Advantages'''
+'''Zalety'''
 
-* [[File:Edit_OK.svg|24px]] This is the simplest method that just requires redirecting an old class to a new class.
-* [[File:Edit_OK.svg|24px]] Old properties are conserved as long as the new class doesn't override them.
-* [[File:Edit_OK.svg|24px]] This is good if the old class and the new class have the same properties (handle the same type of data) but only their module or class name is different.
+* [[Plik:Edit_OK.svg|24px]] Jest to najprostsza metoda, która wymaga jedynie przekierowania starej klasy do nowej.
+* [[File:Edit_OK.svg|24px]] Stare właściwości są zachowywane, o ile nowa klasa ich nie nadpisuje.
+* [[File:Edit_OK.svg|24px]] Jest to dobre rozwiązanie, jeśli stara i nowa klasa mają te same właściwości ''(obsługują ten sam typ danych)'', ale różnią się tylko nazwą modułu lub klasy.
 
-'''Disadvantages'''
+'''Wady'''
 
 * [[File:Edit_Cancel.svg|24px]] The new class keeps the old properties of the object, which is not always desired.
 * [[File:Edit_Cancel.svg|24px]] New properties or renamed properties aren't handled, so the object will load but it may not show the correct behavior of the new class.

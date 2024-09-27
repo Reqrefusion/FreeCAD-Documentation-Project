@@ -1,248 +1,242 @@
 <languages/>
 <translate>
 
-<!--T:1-->
-{{Macro
-|Name=Macro Recompute Profiler
-|icone=Macro_Recompute_Profiler.png
-|Description=This macro is to help you find, what features cause long delays in updates to the project. It performs a recompute, measuring the time it takes to recompute each feature.
-|Author=DeepSOIC
-|Version=0.1
-|Date=2017-04-03
-|FCVersion=0.17.10644 and above
-|Download=[https://www.freecadweb.org/wiki/images/c/ca/Macro_Recompute_Profiler.png ToolBar Icon]
+<!--T:40-->
+{{Docnav
+|[[CAM_ToolBitDock|ToolBitDock]]
+|[[CAM_Pocket_Shape|PocketShape]]
+|[[CAM_Workbench|CAM]]
+|IconL=CAM_ToolBitDock.svg
+|IconR=CAM_Pocket_Shape.svg
+|IconC=Workbench_CAM.svg
 }}
 
-==Description== <!--T:2-->
+<!--T:44-->
+{{GuiCommand
+|Name=CAM Profile
+|MenuLocation=CAM → Profile
+|Workbenches=[[CAM_Workbench|CAM]]
+|Version=0.19
+}}
 
-<!--T:3-->
-This macro is to help you find, what features cause long delays in updates to the project. It performs a recompute, measuring the time it takes to recompute each feature.
+==Description== <!--T:45-->
 
-==Usage== <!--T:4-->
+<!--T:46-->
+The [[Image:CAM_Profile.svg|16px]] [[CAM_Profile|Profile]] tool creates a contour operation based on selected features of the model. The tool was introduced in version 0.19. It offers three operations that were handled by separate tools in previous versions.
 
-<!--T:5-->
-This macro requires FreeCAD no less than 0.17.10644
+<!--T:69-->
+All operations create objects that are made to be part of a {{KEY|[[Image:CAM_Job.svg|24px]] [[CAM_Job|CAM Job]]}}.
 
-<!--T:6-->
-Save the macro to a file.
+<!--T:70-->
+These are the available operations:
 
-<!--T:7-->
-1. Open your project
+===Contour operation=== <!--T:71-->
 
-<!--T:8-->
-2. Right-click an object in model tree, pick "Mark to recompute"
+<!--T:72-->
+A {{KEY|Contour}} operation is the default. It creates a simple external contour cut of complex 3D [[Image:Workbench_Part.svg|24px]] [[Part_Workbench|Part]]-based objects. The entire Job Model serves as the input for the Operation, regardless of whether any Body Geometry is selected when the Contour command is invoked.
 
-<!--T:9-->
-3. Run this macro.
+===Profile Face operation=== <!--T:73-->
 
-<!--T:10-->
-A progress bar will appear. As each object is recomputed, a line is printed to Report View, containing the time and the label of the object. If any object fails to recompute, the macro will display an error message and terminate the process.
+<!--T:74-->
+A {{KEY|Profile Face}} operation creates a simple contour path from one or more selected faces of an object.
 
-==Macro== <!--T:15-->
+===Profile Edges operation=== <!--T:75-->
+
+<!--T:76-->
+A {{KEY|Profile Edges}} operation creates a simple contour path from selected edges.
+
+</translate>
+[[Image:Path_profile_example.jpg|600px]]
+<translate>
+
+==Usage== <!--T:48-->
+
+<!--T:49-->
+# There are several ways to invoke the command: 
+#* Press the {{Button|[[Image:CAM_Profile.svg|16px]] [[CAM_Profile|CAM Profile]]}} button.
+#* Select the {{MenuCommand|CAM → [[Image:CAM_Profile.svg|16px]] Profile}} option from the menu.
+# Activate the Base Geometry section by clicking its tab, and select features from the Job model. 
+#* If no features are selected, the command defaults to a {{MenuCommand|Contour}} operation, contouring the entire model.
+#* If faces are selected, then the result is a {{MenuCommand|Profile Face}} operation.
+#* If edges are selected, then the result is a {{MenuCommand|Profile Edges}} operation.<br>'''NOTE''': This operation has received improvements to allow functionality on some open-edge (non-loop) selections.  See the [[#Usage_Notes|Usage Notes]] section below for additional information on best practice for profiling open-edges.
+# Activate the Operation section by clicking on its tab, and adjust the operation's settings as desired.
+# Optionally press the {{Button|Apply}} button to preview the operation with the current settings.
+# Click the {{Button|OK}} button or the {{Button|Cancel}} button to create or cancel the operation.
+
+<!--T:77-->
+'''Important Note: CAM Profile doesn't take care of other details of the object. You have to adjust the properties, especially the final depth, carefully, a mistake might destroy your work piece'''
+
+<!--T:50-->
+A Start point can be enabled from the Operation tab in the Tasks Window editor, using a location defined in the {{MenuCommand|Property View → Data → Start Point}}.
+
+<!--T:51-->
+Make additional adjustments to the operation by modifying the operation's properties in the Data tab of the Property View. Advanced properties will be located here, if any.
+
+==Usage Notes== <!--T:78-->
+
+<!--T:68-->
+* The {{KEY|[[Image:CAM_Profile.svg|16px]] [[CAM_Profile|Profile]]}} operation is capable of profiling '''open-edges''' (one or more continuous edges that do not form a loop as seen from the ''Top View'')
+** It is best to select the top edges (highest edges) for the selection. After doing so, you will need to manually set the Final Depth for the operation. Selection of bottom edges only is unpredictable and will likely return undesirable paths in many situations; however, it will return correct paths in some situations.
+** Selected edges must form a continual edge ''as viewed from the Top View''.  Selected top edges may have differing heights, so long as they connect at a common (X, Y) coordinate - differing Z-heights are acceptable in ''some'''**''''' cases.  <BR />'''**'''In certain cases, the user will need to include in their selection the straight vertical connecting edge between two adjacent edges of different heights that share a common (X, Y) coordinate.
+**Because top edges are selected, the Final Depth for the operation will need to be set manually.
+** When profiling open-edges, the `Side` or `Cut Side` property is disabled internally even though it will likely be visible within the Task editor window and the Properties list within the Data tab.
+* When profiling the entire model (a complete contour of the model) the `Side` or `Cut Side` property is set to `Outside` by default. User can adjust it depending on the configuration of the part.
+
+==Properties== <!--T:9-->
 
 <!--T:21-->
-ToolBar Icon
+''' ''Note'' ''': Not all of these Properties are available in the Task Window Editor. Some are only accessible in the Data tab of the Properties View panel for this Operation.
+
+<!--T:52-->
+{{TitleProperty|Base}} 
+
+<!--T:22-->
+Note: It is suggested that you do not edit the Placement property of path operations. Rather, move or rotate the CAM Job model as needed.
+
+<!--T:23-->
+* {{PropertyData|Placement}}: Overall placement[position and rotation] of the object - with respect to the origin (or origin of parent object container)
+** {{PropertyData|Angle}}: Angle in degrees applied to rotation of the object around Axis property value
+** {{PropertyData|Axis}}:  Axis(one or multiple) around which to rotate the object, set in sub-properties: x, y, z
+*** {{PropertyData|X}}: x axis value
+*** {{PropertyData|Y}}: y axis value
+*** {{PropertyData|Z}}: z axis value
+** {{PropertyData|Position}}: Position of the object, set in sub-properties: x, y, z - with respect to the origin (or origin of parent object container)
+*** {{PropertyData|X}}: x distance value
+*** {{PropertyData|Y}}: y distance value
+*** {{PropertyData|Z}}: z distance value
+* {{PropertyData|Label}}: User-provided name of the object (UTF-8)
+
+<!--T:53-->
+{{TitleProperty|Depth}}
+
+<!--T:54-->
+* {{PropertyData|Clearance Height}}: The height needed to clear clamps and obstructions
+* {{PropertyData|Final Depth}}: Final Depth of Tool- lowest value in Z. User must define it.
+* {{PropertyData|Finish Depth}}: Maximum material removed on final pass. The height (thickness) of the last cutting level - ''set for a better finish''.
+* {{PropertyData|Safe Height}}: The height above which Rapid motions are allowed. (Rapid safety height between locations)
+* {{PropertyData|Start Depth}}: Starting depth of Tool - ''first cut depth in Z''. User must define it.
+* {{PropertyData|Step Down}}: Incremental step down of Tool during operation
+
 </translate>
-[[Image:Macro_Recompute_Profiler.png]]
-
-'''RecomputeProfiler.FCMacro'''
-
-{{MacroCode|code=
-__Title__="Macro Recompute Profiler"
-__Author__ = "DeepSOIC"
-__Version__ = "0.1"
-__Date__    = "03.04.2017"
-
-__Comment__ = "Measures time it takes to recmpute features in a project"
-__Wiki__ = "https://www.freecadweb.org/wiki/index.php?title=Macro_Recompute_Profiler"
-__Help__ = "Right-click an object, and pick 'Mark to recompute', then run this macro. This will only profile recomputing the subgraph. To profile the whole project, right-click the project in tree view, and pick 'Mark to recompute', then run this macro. Results will be printed to report view."
-__Status__ = "experimental"
-__Requires__ = "freecad 0.17.10644"
-__Communication__ = "https://forum.freecadweb.org/memberlist.php?mode=viewprofile&u=3888" 
-
-import FreeCAD as App
-
-import FreeCADGui as Gui
-
-class ExecutionError(Exception):
-    pass
-
-class CancelError(Exception):
-    pass
-
-def execute(feature):
-    feature.recompute()
-    if 'Invalid' in feature.State:
-        raise ExecutionError("Feature '{label}' failed to recompute".format(label= feature.Label))
-
-def msgbox(title, text):
-    from PySide import QtGui
-    mb = QtGui.QMessageBox()
-    mb.setIcon(mb.Icon.Information)
-    mb.setText(text)
-    mb.setWindowTitle(title)
-    mb.exec_()
-
-def log(string):
-    App.Console.PrintWarning(string+"\n")
-
-def getAllDependent(feat_list):
-    '''getAllDependent(feat_list): gets all features that depend on features in feat_list, directly or indirectly.
-    Returns a set. Features from feat_list are not included, unless there are interdependencies between them.'''
-
-    list_traversing_now = feat_list
-    set_of_deps = set()
-    list_of_deps = []
-
-    while len(list_traversing_now) > 0:
-        list_to_be_traversed_next = []
-        for feat in list_traversing_now:
-            for dep in feat.InList:
-                if not (dep in set_of_deps):
-                    set_of_deps.add(dep)
-                    list_of_deps.append(dep)
-                    list_to_be_traversed_next.append(dep)
-
-        list_traversing_now = list_to_be_traversed_next
-
-    return set_of_deps
-
-
-def run():
-    touched = [obj for obj in App.ActiveDocument.Objects if 'Touched' in obj.State]
-
-    if len(touched) == 0:
-        App.ActiveDocument.RecomputesFrozen = True
-        msgbox("Macro Recompute Profiler", "Project was switched to suspend recomputes. Please modify an object that triggers a recompute, and run this macro again. The macro will perform a step-by-step recompute, and measure the time it takes to recompute features.")
-        return
-
-    log("{n} features are touched".format(n= len(touched)))
-
-    log("Generating execution order...")
-
-    to_be_executed = set.union(getAllDependent(touched), set(touched))
-    log("Number of features to execute: {n}".format(n= len(to_be_executed)))
-
-    exec_list = []
-    for obj in App.ActiveDocument.TopologicalSortedObjects[::-1]:
-        if obj in to_be_executed:
-            exec_list.append(obj)
-    assert(len(exec_list) == len(to_be_executed))
-    n = len(exec_list)
-
-    log("Execution order:")
-    for obj in exec_list:
-        log("    "+obj.Label)
-
-
-    import PySide
-    progress = PySide.QtGui.QProgressDialog(u"Preparing to recompute....", u"Abort", 0, n+1)
-    progress.setModal(True)
-    progress.show()
-    
-    try:
-        log("Recomputing... (time in seconds, label)")
-        import time
-        for obj in exec_list:
-            progress.setValue(progress.value()+1)
-            progress.setLabelText("Recomputing {feature}...".format(feature= obj.Label))
-            if progress.wasCanceled():
-                raise CancelError()
-
-            time_start = time.time()
-            try:
-                execute(obj)
-            finally:
-                exec_time = time.time()-time_start
-                log("\t{time}\t{label}".format(time= exec_time, label= obj.Label))
-
-        progress.setValue(n+1)
-        msgbox("Macro Recompute Profiler", "Recompute completed. Results are in report view.")
-
-        for obj in exec_list:
-            obj.purgeTouched()
-
-    except Exception as err:
-        msgbox("Macro Recompute Profiler", "An error occured: {err}".format(err= str(err)))
-    finally:
-        progress.hide()
-        App.ActiveDocument.RecomputesFrozen = False
-
-run()
-}}
+[[File:Path-DepthsAndHeights.gif|300px|center]]
 <translate>
+<!--T:55-->
+{{Caption|Visual reference for Depth properties (settings)}}
 
-==Post-processing results== <!--T:18-->
+<!--T:56-->
+{{TitleProperty|Path}}
+
+<!--T:57-->
+* {{PropertyData|Active}}: make False, to prevent operation from generating code
+* {{PropertyData|Base}}: The base geometry for this operation
+* {{PropertyData|Comment}}: An optional comment for this Operation
+* {{PropertyData|Coolant Mode}}: The coolant mode for this operation.
+* {{PropertyData|Cycle Time}}: The cycle time estimation for this operation.
+* {{PropertyData|Tool Controller}}: Defines the Tool controller used in the Operation
+* {{PropertyData|User Label}}: User assigned label
 
 <!--T:19-->
-The output of the macro will be interleaved with general messages produced by recomputing features. It generally looks like this:
+{{TitleProperty|Profile}}
 
-</translate>
-{{code|code=
-Recomputing... (time in seconds, label)
-Sketcher::setUpSketch()-T:0
-Sketcher::Solve()-DogLeg-T:0
-	0.00999999046326	Sketch - master section
-	0.0199999809265	Clone of Sketch - master section (2D)001
-Sketcher::setUpSketch()-T:0
-Sketcher::Solve()-DogLeg-T:0
-	0.00999999046326	Sketch013
-Sketcher::setUpSketch()-T:0
-Sketcher::Solve()-DogLeg-T:0
-	0.00999999046326	Sketch011
-	0.0	Clone of Sketch - master section (2D)
-Sketcher::setUpSketch()-T:0
-Sketcher::Solve()-DogLeg-T:0
-	0.0	Sketch008
-	0.130000114441	LinearArray
-Sketcher::setUpSketch()-T:0
-Sketcher::Solve()-DogLeg-T:0
-...
-}}
-<translate>
+<!--T:58-->
+* {{PropertyData|Direction}}: The direction that the tool path should go around the part: Clockwise[CW] or Counterclockwise[CCW]
+* {{PropertyData|Expand Profile}}: Extend the profile clearing beyond the Extra Offset.
+* {{PropertyData|Expand Profile Step Over}}: Set the stepover percentage, based on the tool's diameter.
+* {{PropertyData|Handle Multiple Features}}: Choose how to process multiple Base Geometry features.
+* {{PropertyData|OffsetExtra}}: Extra value to stay away from final profile- good for roughing toolpath
+* {{PropertyData|Process Circles}}: Check if you want this Profile Operation to also be applied to cylindrical holes, ''which normally get drilled''.
+* {{PropertyData|Process Holes}}: Check if this Profile Operation should also process holes in the base geometry. '''Note''' that this does not include cylindrical holes.
+* {{PropertyData|Process Perimeter}}: Check if this Profile Operation should also process the outside perimeter of the base geometry shapes
+* {{PropertyData|Side}}: (Cut Side) Side of edge that tool should cut. This only matters if `Use Compensation` is True(checked).
+* {{PropertyData|Use Compensation}}: If checked, the Profile Operation is offset by the tool radius. The offset direction is determined by the Cut Side.
 
-<!--T:20-->
-The result lines have an easy signature to separate them off: they start with a tab. So, if you copy-paste the whole chunk to a spreadsheet program, generic messages will end up in column 1, while the results are in columns 2 and 3. So, you can sort by column 2, to get a nice table like that:
+<!--T:28-->
+{{TitleProperty|Rotation}}
 
-</translate>
-{{code|code=
-0.59100008	Slice
-0.352999926	Populate LinearArray with Compound
-0.160000086	CompoundFilter
-0.138999939	Cut
-0.130000114	LinearArray
-0.108999968	Fusion
-0.069999933	Moved CompoundFilter
-0.067000151	Module - spokes
-0.029999971	Sweep
-0.019999981	Clone of Sketch - master section (2D)001
-0.010999918	ArrayFilter003
-...
-}}
-<translate>
+<!--T:59-->
+* {{PropertyData|Attempt Inverse Angle}}: Automatically attempt Inverse Angle if initial rotation is incorrect.
+* {{PropertyData|Enable Rotation}}: Enable rotation to gain access to pockets or areas not normal to Z axis.
+* {{PropertyData|Inverse Angle}}: Inverse the angle of the rotation.   '' '''Example:''' change a rotation from -22.5 to 22.5 degrees.''
+* {{PropertyData|Limit Depth To Face}}: Enforce the Z-depth of the selected face as the lowest value for final depth. Higher user values for final depth will be observed.
+* {{PropertyData|Reverse Direction}}: Reverse orientation of Operation by 180 degrees.
 
-<!--T:14-->
-(For MS-Excel, pasting right after copying text from report view doesn't split it into columns, don't know why... pasting the text to Notepad and re-copying it from Notepad and pasting to excel helps.)
+<!--T:60-->
+{{TitleProperty|Start Point}}
 
-==FreeCAD version== <!--T:22--> 
+<!--T:61-->
+* {{PropertyData|Start Point}}: The custom start point for the path of this operation.
+** {{PropertyData|X}}: x distance value
+** {{PropertyData|Y}}: y distance value
+** {{PropertyData|Z}}: z distance value
+* {{PropertyData|Use Start Point}}: Make True, if manually specifying a Start Point. Set the start point in the property data Start Point field.
 
-<!--T:16-->
-This macro requires FreeCAD no less than 0.17.10644, which was the version where App.ActiveDocument.RecomputesFrozen became available. It might be functional with a bit older FreeCAD, but certainly won't work with v0.16.
+==Tasks Window Editor Layout== <!--T:62--> 
 
-<!--T:17-->
-This macro was created using this version of FreeCAD:
+<!--T:31-->
+''Descriptions for the settings are provided in the Properties list above.''
+This section is simply a layout map of the settings in the window editor for the Operation.
+
+===Base Geometry=== <!--T:32-->
+
+<!--T:33-->
+* '''Add''': Adds selected element(s) which should be the base(s) for the path(s)
+* '''Delete''': Delete the selected item(s) in the Base Geometry list
+* '''Clear''': Clear all items in the Base Geometry list
+
+===Depths=== <!--T:34-->
+
+<!--T:35-->
+* {{PropertyData|Start Depth}}
+* {{PropertyData|Final Depth}}
+* {{PropertyData|Step Down}}
+
+===Heights=== <!--T:36-->
+
+<!--T:37-->
+* {{PropertyData|Safe Height}}
+* {{PropertyData|Clearance Height}}
+
+===Operation=== <!--T:38-->
+
+<!--T:63-->
+* {{PropertyData|Tool Controller}}
+* {{PropertyData|Coolant Mode}}
+* {{PropertyData|Cut Side **}}
+* {{PropertyData|Direction}}
+* {{PropertyData|Extra Offset}}
+* {{PropertyData|Enable Rotation}}
+* {{PropertyData|Use Start Point}}
+* {{PropertyData|Use Compensation}}
+* {{PropertyData|Process Holes **}}
+* {{PropertyData|Process Circles **}}
+* {{PropertyData|Process Perimeter **}}
+'''<nowiki>**</nowiki>''' Availability changes based on selections in Base Geometry section.
+
+==Scripting== <!--T:64-->
+
+<!--T:65-->
+{{Emphasis|See also:}} [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+<!--T:66-->
+Example:
 
 </translate>
 {{Code|code=
-OS: Windows 10
-Word size of OS: 64-bit
-Word size of FreeCAD: 64-bit
-Version: 0.17.10665 (Git)
-Build type: Release
-Branch: master
-Hash: 47847513a85ff6615774ef628230f79e37471daf
-Python version: 2.7.8
-Qt version: 4.8.7
-Coin version: 4.0.0a
-OCC version: 7.0.0
+#Place code example here.
 }}
+<translate>
+
+
+<!--T:41-->
+{{Docnav
+|[[CAM_ToolBitDock|ToolBitDock]]
+|[[CAM_Pocket_Shape|PocketShape]]
+|[[CAM_Workbench|CAM]]
+|IconL=CAM_ToolBitDock.svg
+|IconR=CAM_Pocket_Shape.svg
+|IconC=Workbench_CAM.svg
+}}
+
+</translate>
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
