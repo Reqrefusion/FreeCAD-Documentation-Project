@@ -3,80 +3,89 @@
 
 <!--T:1-->
 {{Docnav
-|[[TechDraw_View|View]]
 |[[TechDraw_SectionView|SectionView]]
+|[[TechDraw_DetailView|DetailView]]
 |[[TechDraw_Workbench|TechDraw]]
-|IconL=TechDraw_View.svg
-|IconR=TechDraw_SectionView.svg
+|IconL=TechDraw_SectionView.svg
+|IconR=TechDraw_DetailView.svg
 |IconC=Workbench_TechDraw.svg
 }}
 
 <!--T:2-->
 {{GuiCommand
-|Name=TechDraw BrokenView
-|MenuLocation=TechDraw → TechDraw Views → Insert Broken View
+|Name=TechDraw ComplexSection
+|MenuLocation=TechDraw → TechDraw Views → Insert Complex Section
 |Workbenches=[[TechDraw_Workbench|TechDraw]]
-|Version=1.0
-|SeeAlso=[[TechDraw_View|TechDraw View]]
+|Version=0.21
+|SeeAlso=[[TechDraw_SectionView|TechDraw Section]], [[TechDraw_View|TechDraw View]]
 }}
 
 == Description == <!--T:3-->
 
 <!--T:4-->
-The '''TechDraw BrokenView''' tool inserts a "broken view" that is either based on an existing [[TechDraw_View|part view]], or one or more objects, such as [[PartDesign Body|Bodies]] or [[Std_Part|Parts]]. The broken view also requires one or more [[Sketcher_NewSketch|sketches]] that define the location and size of the areas to be removed. The BrokenView behaves similarly to other Views. The projection direction is taken from the existing part view, the 3D camera direction or the normal of a selected face.
+The '''TechDraw ComplexSection''' tool inserts a cross-section view based on an existing part view and a profile. 
 
 </translate>
-[[Image:TechDraw_BrokenView_example3d.png|350px]]
+[[Image:TechDraw_QuarterSection_example.png|350px]]
 <translate>
 <!--T:5-->
-{{Caption|A shape to be broken and the sketches defining the breaks}}
+{{Caption|A Quarter section view created with the Complex Section tool}}
 
 </translate>
-[[Image:TechDraw_BrokenView_example2d.png|350px]]
+[[Image:TechDraw_AlignedSection_example.png|350px]]
 <translate>
 <!--T:6-->
-{{Caption|The result}}
+{{Caption|An Aligned section view created with the Complex Section tool}}
 
-== Usage == <!--T:7-->
+</translate>
+[[Image:TechDraw_OffsetSection_example.png|350px]]
+<translate>
+<!--T:7-->
+{{Caption|An Offset section view created with the Complex Section tool}}
 
-<!--T:8-->
-# Optionally rotate the [[3D_view|3D view]]. The 3D view determines the initial values of the {{PropertyData|Direction}} and {{PropertyData|XDirection}} properties of the broken view.
-# Select the object you want to create a broken view of, or select an existing TechDraw view that contains this object.
-# Add one or more break sketches to the selection by selecting them in the [[Tree_view|Tree view]]. Each sketch should only contain two parallel lines. You can also use other objects with two parallel edges.
+== Usage == <!--T:8-->
+
+<!--T:9-->
+# Select a part view and a profile object in the [[3D_view|3D view]] or [[Tree_view|Tree view]]. Profiles are typically Sketches, but any object whose shape can be made into a wire will work.
 # There are several ways to invoke the tool:
-#* Press the {{Button|[[Image:TechDraw_BrokenView.svg|16px]] [[TechDraw_BrokenView|Insert Broken View]]}} button.
-#* Select the {{MenuCommand|TechDraw → TechDraw Views → [[Image:TechDraw_BrokenView.svg|16px]] Insert Broken View}} option from the menu.
+#* Press the {{Button|[[Image:TechDraw_ComplexSection.svg|16px]] [[TechDraw_ComplexSection|Insert Complex Section]]}} button.
+#* Select the {{MenuCommand|TechDraw → TechDraw Views → [[Image:TechDraw_ComplexSection.svg|16px]] Insert Complex Section}} option from the menu.
+# A task panel opens which will help calculate the various properties. Reasonable values for the view Direction are calculated, but these can be changed.
 
-== Properties == <!--T:9-->
+</translate>
+[[Image:TechDraw_ComplexSection_Taskview1.png|x380px]]
+[[Image:TechDraw_ComplexSection_Taskview2.png|x380px]]
+<translate>
+
+== Properties == <!--T:23-->
 
 <!--T:24-->
-See also: [[Property_editor|Property editor]].
+A Complex Section, formally a {{Incode|TechDraw::DrawComplexSection}} object, is derived from a [[TechDraw_SectionView#Properties|Section View]], formally a {{Incode|TechDraw::DrawViewSection}} object, and inherits all its properties. It also has the following additional properties:
 
-<!--T:25-->
-A Broken View, formally a {{Incode|TechDraw::DrawBrokenView}} object, is derived from a [[TechDraw_View#Properties_Part_View|Part View]], formally a {{Incode|TechDraw::DrawViewPart}} object, and inherits all its properties. It also has the following additional properties:
+=== Data === <!--T:12-->
 
-=== Data === <!--T:10-->
+<!--T:13-->
+{{TitleProperty|Cutting Tool}}
 
-<!--T:11-->
-{{TitleProperty|Broken View}}
+<!--T:14-->
+* {{PropertyData|Cutting Tool Wire Object}}: The document object whose shape will be used to generate the cutting profile.
+* {{PropertyData|Projection Strategy}}: Controls how the cut is performed and how the result is projected on the page:
+** {{Value|Offset}}: Performs a simple cut of the Source shape and projects the result.
+** {{Value|Aligned}}: Cuts the Source shape using a tool created from each segment (edge) of the cutting profile. The results of each cut are projected in a vertical or horizontal array, depending on the orientation of the cutting profile.
+** {{Value|NoParallel}}: As Aligned, but profile segments which are parallel to the view direction are skipped.
 
-<!--T:12-->
-* {{PropertyData|Breaks|LinkList}}: Objects in the 3d view that define the start/end points and direction of breaks in this view.
-* {{PropertyData|Gap|Length}}: The separation distance for breaks in this view (unscaled 3d length).
+== Notes == <!--T:15-->
 
-== Notes == <!--T:13-->
+<!--T:16-->
+See [[TechDraw_SectionView#Notes|TechDraw SectionView]]
 
-<!--T:15-->
-* Breaks must be vertical or horizontal. Oblique breaks are not supported.
-* See also [[TechDraw_View|TechDraw View]].
-
-== Scripting == <!--T:16-->
-
-<!--T:17-->
-See also: [https://freecad.github.io/SourceDoc/ Autogenerated API documentation] and [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+== Scripting == <!--T:17-->
 
 <!--T:18-->
-A BrokenView can be created with [[Macros|macros]] and from the [[Python|Python]] console by using the following functions:
+See also: [https://freecad.github.io/SourceDoc/ Autogenerated API documentation] and [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+<!--T:19-->
+A Complex Section can be created with [[Macros|macros]] and from the [[Python|Python]] console by using the following functions:
 
 </translate>
 {{Code|code=
@@ -85,24 +94,45 @@ box = doc.Box
 profile = doc.Sketch
 page = doc.Page
 
-brokenView = doc.addObject("TechDraw::DrawBrokenView", "BrokenView")
-page.addView(brokenView)
-brokenView.Source= box
-brokenView.Breaks = [doc.Sketch]
+view = doc.addObject("TechDraw::DrawViewPart", "View")
+page.addView(view)
+view.Source = box
+view.Direction = (0, 0, 1)
+
+section = doc.addObject("TechDraw::DrawComplexSection", "ComplexSection")
+page.addView(section)
+section.BaseView = view
+section.CuttingToolWireObject = profile
+section.Direction = (0, 1, 0)
+section.SectionNormal = (-1, 0, 0)
 }}
 <translate>
 
+==Examples== <!--T:21-->
 
-<!--T:19-->
+<!--T:22-->
+For some more information about section views and some use cases, have a look at: [[TechDraw_Section_Examples|TechDraw section examples]].
+
+</translate>
+[[Image:TechDraw_ExampleSection-10.png|80px|link=]]
+[[Image:TechDraw_ExampleSection-13.png|80px|link=]]
+[[Image:TechDraw_ExampleSection-15.png|80px|link=]]
+[[Image:TechDraw_ExampleSection-17.png|80px|link=]]
+[[Image:TechDraw_ExampleSection-34.png|80px|link=]]
+[[Image:TechDraw_ExampleSection-35.png|80px|link=]]
+<translate> 
+
+
+<!--T:20-->
 {{Docnav
-|[[TechDraw_View|View]]
 |[[TechDraw_SectionView|SectionView]]
+|[[TechDraw_DetailView|DetailView]]
 |[[TechDraw_Workbench|TechDraw]]
-|IconL=TechDraw_View.svg
-|IconR=TechDraw_SectionView.svg
+|IconL=TechDraw_SectionView.svg
+|IconR=TechDraw_DetailView.svg
 |IconC=Workbench_TechDraw.svg
 }}
 
 </translate>
-{{TechDraw_Tools_navi{{#translation:}}}}
+{{TechDraw Tools navi{{#translation:}}}}
 {{Userdocnavi{{#translation:}}}}
