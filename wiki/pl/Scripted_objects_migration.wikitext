@@ -462,14 +462,14 @@ class OldObject:
         pass
 }}
 
-This attribute is inspected by looking at the {{incode|Proxy}} attribute.
+Atrybut ten jest kontrolowany poprzez przeglądanie atrybutu {{incode|Proxy}}.
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.Proxy.ver)
 0.18
 }}
 
-Then the file is modified to migrate the object.
+Następnie plik jest modyfikowany w celu migracji obiektu.
 {{Code|code=
 # old_module.py
 import FreeCAD as App
@@ -496,11 +496,12 @@ def _migrate_from_018(obj):
     _wrn("New proxy class used; properties migrated\n")
 }}
 
-When we install the new class, this new class should set the new value of the version attribute, for example, <code>self.ver = "0.20"</code>.
+Kiedy zainstalujemy nową klasę, ta nowa klasa powinna ustawić nową wartość atrybutu version, na przykład <code>self.ver = "0.20"</code>.
 
-== Addendum C. Method 3 without removing old properties that are named the same ==
+<span id="Addendum_C._Method_3_without_removing_old_properties_that_are_named_the_same"></span>
+==Uzupełnienie C. Metoda 3 bez usuwania starych właściwości o tej samej nazwie==
 
-Like in Addendum A, we can write the new class to create properties only if they aren't already present. Using method 3, we save the values of the older properties, and subsequently delete the older properties. However, if the new properties are named the same as the older ones, we don't need to delete the older ones, we can just reuse the same property, as we know the property won't be duplicated. If we are using Addendum B, we have a way to query the version as well.
+Podobnie jak w Uzupełnieniu A, możemy napisać nową klasę, aby tworzyła właściwości tylko wtedy, gdy jeszcze ich nie ma. Korzystając z metody 3, zapisujemy wartości starszych właściwości, a następnie usuwamy starsze właściwości. Jeśli jednak nowe właściwości nazywają się tak samo jak starsze, nie musimy usuwać starszych, możemy po prostu ponownie użyć tej samej właściwości, ponieważ wiemy, że właściwość nie zostanie zduplikowana. Jeśli korzystamy z Uzupełnienia B, mamy również sposób na zapytanie o wersję.
 
 {{Code|code=
 # old_module.py
@@ -526,9 +527,9 @@ def _migrate_from_018(obj):
     _wrn("New proxy class used; properties migrated\n")
 }}
 
-As we see in the example, the old {{incode|Area}} property is deleted and migrated to the new {{incode|GeneralArea}} property as usual. We do not need to delete {{incode|Length}} nor {{incode|Version}} because in the new class they are still used with the same name, and they won't be created again (addendum A). As we don't want to modify {{incode|Length}}, this property is not touched at all; it is migrated to the new class silently. However, we do update {{incode|Version}} to the new value. We omit the migration of the [[viewprovider|viewprovider]] properties but it follows the same pattern.
+Jak widzimy w przykładzie, stara właściwość {{incode|Area}} jest usuwana i migrowana do nowej właściwości {{incode|GeneralArea}} jak zwykle. Nie musimy usuwać {{incode|Length}} ani {{incode|Version}}, ponieważ w nowej klasie są one nadal używane z tą samą nazwą i nie zostaną ponownie utworzone ( uzupełnienie A). Ponieważ nie chcemy modyfikować {{incode|Length}}, ta właściwość nie jest w ogóle dotykana; jest migrowana do nowej klasy po cichu. Aktualizujemy jednak {{incode|Version}} do nowej wartości. Pomijamy migrację właściwości [[viewprovider/pl|dostawcy widoku]], ale przebiega ona według tego samego schematu.
 
-This should work like method 3, meaning that the old properties are removed and only the new properties remain in the new object. The only difference is that we omit removing and recreating the properties that are named the same. This process should work as long as the old [[property|property]] and the new [[property|property]] have the same type (for example, {{incode|App::PropertyLength}} or {{incode|App::PropertyArea}}), so the old property can pass its value directly. However, if the new property has a different type than the old property, then the old property should be removed, otherwise the old property will completely overwrite the new property, which is probably not what we want because the new class will be expecting the new type and not the old type.
+Powinno to działać jak metoda 3, co oznacza, że stare właściwości są usuwane i tylko nowe właściwości pozostają w nowym obiekcie. Jedyną różnicą jest to, że pomijamy usuwanie i ponowne tworzenie właściwości, które nazywają się tak samo. Proces ten powinien działać tak długo, jak długo stara [[Property/pl|właściwość]] i nowa [[Property/pl|właściwość]] mają ten sam typ ''(na przykład {{incode|App::PropertyLength}} lub {{incode|App::PropertyArea}})'', więc stara właściwość może przekazać swoją wartość bezpośrednio. Jeśli jednak nowa właściwość ma inny typ niż stara właściwość, wówczas stara właściwość powinna zostać usunięta, w przeciwnym razie stara właściwość całkowicie nadpisze nową właściwość, co prawdopodobnie nie jest tym, czego chcemy, ponieważ nowa klasa będzie oczekiwać nowego typu, a nie starego.
 
 <span id="Advantages_and_disadvantages"></span>
 ===Zalety i wady===
