@@ -167,15 +167,16 @@ Jeśli migracja wszystkich starszych obiektów nie jest realistycznie możliwa, 
 
 '''Wady'''
 
-* [[File:Edit_Cancel.svg|24px]] The new class keeps the old properties of the object, which is not always desired.
-* [[File:Edit_Cancel.svg|24px]] New properties or renamed properties aren't handled, so the object will load but it may not show the correct behavior of the new class.
-* [[File:Edit_Cancel.svg|24px]] The old module may have to be kept indefinitely to migrate all old objects created in the past.
+* [[File:Edit_Cancel.svg|24px]] Nowa klasa zachowuje stare właściwości obiektu, co nie zawsze jest pożądane.
+* [[File:Edit_Cancel.svg|24px]] Nowe właściwości lub zmienione właściwości nie są obsługiwane, więc obiekt zostanie załadowany, ale może nie pokazywać prawidłowego zachowania nowej klasy.
+* [[File:Edit_Cancel.svg|24px]] Stary moduł może być przechowywany w nieskończoność, aby zmigrować wszystkie stare obiekty utworzone w przeszłości.
 
-== Method 2. Migration when restoring the document ==
+<span id="Method_2._Migration_when_restoring_the_document"></span>
+==Metoda 2. Migracja podczas przywracania dokumentu==
 
-We will migrate the older object by modifying the old class. The majority of the original class is deleted, and instead the {{incode|onDocumentRestored}} method is implemented. When this method exists, it will run when the document tries to restore an object that uses the class, so this is the opportunity that we have to assign a new class, manipulate the information, or print messages.
+Zmigrujemy starszy obiekt, modyfikując starą klasę. Większość oryginalnej klasy zostanie usunięta, a zamiast tego zaimplementowana zostanie metoda {{incode|onDocumentRestored}}. Gdy ta metoda istnieje, zostanie uruchomiona, gdy dokument spróbuje przywrócić obiekt korzystający z tej klasy, więc jest to okazja, aby przypisać nową klasę, manipulować informacjami lub drukować komunikaty.
 
-In this case, we assume that we have also defined a new [[viewprovider|viewprovider]] in the module {{FileName|viewp/new_view.py}}. If we don't want to migrate this class, we may omit everything after the {{incode|App.GuiUp}} check.
+W tym przypadku zakładamy, że zdefiniowaliśmy również nowego [[Viewprovider/pl|dostawcę widoku]] w module {{FileName|viewp/new_view.py}}. Jeśli nie chcemy migrować tej klasy, możemy pominąć wszystko po sprawdzeniu {{incode|App.GuiUp}}.
 {{Code|code=
 # old_module.py
 import FreeCAD as App
@@ -193,7 +194,7 @@ class OldObject:
             _wrn("New viewprovider class used\n")
 }}
 
-A more complex example checks first that the proxy class is of the type that we are looking for, and only proceeds with the migration if it's the right type.
+Bardziej złożony przykład sprawdza najpierw, czy klasa proxy jest typu, którego szukamy, i kontynuuje migrację tylko wtedy, gdy jest to właściwy typ.
 {{Code|code=
 class OldObject:
     def onDocumentRestored(self, obj):
@@ -213,9 +214,9 @@ class OldObject:
             _wrn("New viewprovider class used\n")
 }}
 
-Assuming that we already changed the old module in this way, if we open a document with an old object, we will see the messages mentioning the use of the new classes.
+Zakładając, że zmieniliśmy już w ten sposób stary moduł, jeśli otworzymy dokument ze starym obiektem, zobaczymy komunikaty wspominające o użyciu nowych klas.
 
-Inspecting the object from the [[Python_console|Python console]] we will see that the older properties are conserved, and in addition, new properties were added together with the new Proxy class.
+Sprawdzając obiekt z [[Python_console|konsoli Python]] zobaczymy, że starsze właściwości zostały zachowane, a dodatkowo nowe właściwości zostały dodane wraz z nową klasą Proxy.
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -224,25 +225,27 @@ Inspecting the object from the [[Python_console|Python console]] we will see tha
 <objects.new_module.NewObject object at 0x7fecb0ebd7b8>
 }}
 
-The old properties were {{incode|Area}} and {{incode|Length}}; the new properties are {{incode|Divisions}}, {{incode|GeneralArea}}, and {{incode|Length}}. The migrated object retains the original two properties, and gains three new properties. However, since the new {{incode|Length}} has the same name as the older property, the new property is renamed with an incremental number. Presumably this is not what we want. We can improve the situation by following the addendum 2.1 below.
+Stare właściwości to {{incode|Area}} i {{incode|Length}}; nowe właściwości to {{incode|Divisions}}, {{incode|GeneralArea}} i {{incode|Length}}. Migrowany obiekt zachowuje oryginalne dwie właściwości i zyskuje trzy nowe właściwości. Ponieważ jednak nowa właściwość {{incode|Length}} ma taką samą nazwę jak starsza właściwość, nazwa nowej właściwości jest zmieniana na numer przyrostowy. Przypuszczalnie nie tego chcemy. Możemy poprawić sytuację, postępując zgodnie z uzupełnieniem 2.1 poniżej.
 
-Given that the classes are meant to handle the same type of object, we would like a migration in which {{incode|Area}} transforms into {{incode|GeneralArea}}, and {{incode|Length}} is simply assigned to the new {{incode|Length}}, and there are no duplicate properties.
+Biorąc pod uwagę, że klasy mają obsługiwać ten sam typ obiektu, chcielibyśmy migracji, w której {{incode|Area}} przekształca się w {{incode|GeneralArea}}, a {{incode|Length}} jest po prostu przypisywany do nowego {{incode|Length}} i nie ma duplikatów właściwości.
 
-=== Advantages and disadvantages ===
+<span id="Advantages_and_disadvantages"></span>
+===Zalety i wady==
 
-'''Advantages'''
+'''Zalety'''
 
-* [[File:Edit_OK.svg|24px]] This method allows us to check that the class that we are migrating is the right class, instead of simply redirecting to a newer class.
-* [[File:Edit_OK.svg|24px]] Similar to method 1, old properties are kept as long as the new class doesn't override them.
-* [[File:Edit_OK.svg|24px]] Unlike method 1, new properties are always added, however if they have the same name, they will be renamed.
-* [[File:Edit_OK.svg|24px]] The migration is not immediate, we can still manipulate the information, or print messages while the object loads.
+* [[File:Edit_OK.svg|24px]] Ta metoda pozwala nam sprawdzić, czy klasa, którą migrujemy, jest właściwą klasą, zamiast po prostu przekierowywać do nowszej klasy.
+* [[File:Edit_OK.svg|24px]] Podobnie jak w metodzie 1, stare właściwości są zachowywane, o ile nowa klasa ich nie nadpisuje.
+* [[File:Edit_OK.svg|24px]] W przeciwieństwie do metody 1, nowe właściwości są zawsze dodawane, jednak jeśli mają tę samą nazwę, ich nazwy zostaną zmienione.
+* [[Plik:Edit_OK.svg|24px]] Migracja nie jest natychmiastowa, nadal możemy manipulować informacjami lub drukować komunikaty podczas ładowania obiektu.
 
-'''Disadvantages'''
+'''Wady'''
 
-* [[File:Edit_Cancel.svg|24px]] It is more verbose than method 1 because we need to implement the {{incode|onDocumentRestored}} method to migrate the object.
-* [[File:Edit_Cancel.svg|24px]] It always adds the new properties, so it may create duplicated properties in case the new properties have the same name as the old properties. This has to be handled manually.
+* [[Plik:Edit_Cancel.svg|24px]] Jest bardziej rozwlekła niż metoda 1, ponieważ musimy zaimplementować metodę {{incode|onDocumentRestored}}, aby zmigrować obiekt.
+* [[File:Edit_Cancel.svg|24px]] Zawsze dodaje nowe właściwości, więc może tworzyć zduplikowane właściwości w przypadku, gdy nowe właściwości mają taką samą nazwę jak stare. To musi być obsługiwane ręcznie.
 
-== Method 3. Migration when restoring the document, manually handling the properties ==
+<span id="Method_3._Migration_when_restoring_the_document,_manually_handling_the_properties"></span>
+==Metoda 3. Migracja podczas przywracania dokumentu, ręczna obsługa właściwości==
 
 This is an extension of method 2. In the {{incode|onDocumentRestored}} method we need to save the values of the properties that we want, and then we can remove these original properties. This is done so that when the new class is used, it will assign the new properties without risking name collisions with the older properties.
 
