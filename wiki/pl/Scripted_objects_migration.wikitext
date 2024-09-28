@@ -167,15 +167,16 @@ Jeśli migracja wszystkich starszych obiektów nie jest realistycznie możliwa, 
 
 '''Wady'''
 
-* [[File:Edit_Cancel.svg|24px]] The new class keeps the old properties of the object, which is not always desired.
-* [[File:Edit_Cancel.svg|24px]] New properties or renamed properties aren't handled, so the object will load but it may not show the correct behavior of the new class.
-* [[File:Edit_Cancel.svg|24px]] The old module may have to be kept indefinitely to migrate all old objects created in the past.
+* [[File:Edit_Cancel.svg|24px]] Nowa klasa zachowuje stare właściwości obiektu, co nie zawsze jest pożądane.
+* [[File:Edit_Cancel.svg|24px]] Nowe właściwości lub zmienione właściwości nie są obsługiwane, więc obiekt zostanie załadowany, ale może nie pokazywać prawidłowego zachowania nowej klasy.
+* [[File:Edit_Cancel.svg|24px]] Stary moduł może być przechowywany w nieskończoność, aby zmigrować wszystkie stare obiekty utworzone w przeszłości.
 
-== Method 2. Migration when restoring the document ==
+<span id="Method_2._Migration_when_restoring_the_document"></span>
+==Metoda 2. Migracja podczas przywracania dokumentu==
 
-We will migrate the older object by modifying the old class. The majority of the original class is deleted, and instead the {{incode|onDocumentRestored}} method is implemented. When this method exists, it will run when the document tries to restore an object that uses the class, so this is the opportunity that we have to assign a new class, manipulate the information, or print messages.
+Zmigrujemy starszy obiekt, modyfikując starą klasę. Większość oryginalnej klasy zostanie usunięta, a zamiast tego zaimplementowana zostanie metoda {{incode|onDocumentRestored}}. Gdy ta metoda istnieje, zostanie uruchomiona, gdy dokument spróbuje przywrócić obiekt korzystający z tej klasy, więc jest to okazja, aby przypisać nową klasę, manipulować informacjami lub drukować komunikaty.
 
-In this case, we assume that we have also defined a new [[viewprovider|viewprovider]] in the module {{FileName|viewp/new_view.py}}. If we don't want to migrate this class, we may omit everything after the {{incode|App.GuiUp}} check.
+W tym przypadku zakładamy, że zdefiniowaliśmy również nowego [[Viewprovider/pl|dostawcę widoku]] w module {{FileName|viewp/new_view.py}}. Jeśli nie chcemy migrować tej klasy, możemy pominąć wszystko po sprawdzeniu {{incode|App.GuiUp}}.
 {{Code|code=
 # old_module.py
 import FreeCAD as App
@@ -193,7 +194,7 @@ class OldObject:
             _wrn("New viewprovider class used\n")
 }}
 
-A more complex example checks first that the proxy class is of the type that we are looking for, and only proceeds with the migration if it's the right type.
+Bardziej złożony przykład sprawdza najpierw, czy klasa proxy jest typu, którego szukamy, i kontynuuje migrację tylko wtedy, gdy jest to właściwy typ.
 {{Code|code=
 class OldObject:
     def onDocumentRestored(self, obj):
@@ -213,9 +214,9 @@ class OldObject:
             _wrn("New viewprovider class used\n")
 }}
 
-Assuming that we already changed the old module in this way, if we open a document with an old object, we will see the messages mentioning the use of the new classes.
+Zakładając, że zmieniliśmy już w ten sposób stary moduł, jeśli otworzymy dokument ze starym obiektem, zobaczymy komunikaty wspominające o użyciu nowych klas.
 
-Inspecting the object from the [[Python_console|Python console]] we will see that the older properties are conserved, and in addition, new properties were added together with the new Proxy class.
+Sprawdzając obiekt z [[Python_console|konsoli Python]] zobaczymy, że starsze właściwości zostały zachowane, a dodatkowo nowe właściwości zostały dodane wraz z nową klasą Proxy.
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -224,29 +225,31 @@ Inspecting the object from the [[Python_console|Python console]] we will see tha
 <objects.new_module.NewObject object at 0x7fecb0ebd7b8>
 }}
 
-The old properties were {{incode|Area}} and {{incode|Length}}; the new properties are {{incode|Divisions}}, {{incode|GeneralArea}}, and {{incode|Length}}. The migrated object retains the original two properties, and gains three new properties. However, since the new {{incode|Length}} has the same name as the older property, the new property is renamed with an incremental number. Presumably this is not what we want. We can improve the situation by following the addendum 2.1 below.
+Stare właściwości to {{incode|Area}} i {{incode|Length}}; nowe właściwości to {{incode|Divisions}}, {{incode|GeneralArea}} i {{incode|Length}}. Migrowany obiekt zachowuje oryginalne dwie właściwości i zyskuje trzy nowe właściwości. Ponieważ jednak nowa właściwość {{incode|Length}} ma taką samą nazwę jak starsza właściwość, nazwa nowej właściwości jest zmieniana na numer przyrostowy. Przypuszczalnie nie tego chcemy. Możemy poprawić sytuację, postępując zgodnie z uzupełnieniem 2.1 poniżej.
 
-Given that the classes are meant to handle the same type of object, we would like a migration in which {{incode|Area}} transforms into {{incode|GeneralArea}}, and {{incode|Length}} is simply assigned to the new {{incode|Length}}, and there are no duplicate properties.
+Biorąc pod uwagę, że klasy mają obsługiwać ten sam typ obiektu, chcielibyśmy migracji, w której {{incode|Area}} przekształca się w {{incode|GeneralArea}}, a {{incode|Length}} jest po prostu przypisywany do nowego {{incode|Length}} i nie ma duplikatów właściwości.
 
-=== Advantages and disadvantages ===
+<span id="Advantages_and_disadvantages"></span>
+===Zalety i wady==
 
-'''Advantages'''
+'''Zalety'''
 
-* [[File:Edit_OK.svg|24px]] This method allows us to check that the class that we are migrating is the right class, instead of simply redirecting to a newer class.
-* [[File:Edit_OK.svg|24px]] Similar to method 1, old properties are kept as long as the new class doesn't override them.
-* [[File:Edit_OK.svg|24px]] Unlike method 1, new properties are always added, however if they have the same name, they will be renamed.
-* [[File:Edit_OK.svg|24px]] The migration is not immediate, we can still manipulate the information, or print messages while the object loads.
+* [[File:Edit_OK.svg|24px]] Ta metoda pozwala nam sprawdzić, czy klasa, którą migrujemy, jest właściwą klasą, zamiast po prostu przekierowywać do nowszej klasy.
+* [[File:Edit_OK.svg|24px]] Podobnie jak w metodzie 1, stare właściwości są zachowywane, o ile nowa klasa ich nie nadpisuje.
+* [[File:Edit_OK.svg|24px]] W przeciwieństwie do metody 1, nowe właściwości są zawsze dodawane, jednak jeśli mają tę samą nazwę, ich nazwy zostaną zmienione.
+* [[Plik:Edit_OK.svg|24px]] Migracja nie jest natychmiastowa, nadal możemy manipulować informacjami lub drukować komunikaty podczas ładowania obiektu.
 
-'''Disadvantages'''
+'''Wady'''
 
-* [[File:Edit_Cancel.svg|24px]] It is more verbose than method 1 because we need to implement the {{incode|onDocumentRestored}} method to migrate the object.
-* [[File:Edit_Cancel.svg|24px]] It always adds the new properties, so it may create duplicated properties in case the new properties have the same name as the old properties. This has to be handled manually.
+* [[Plik:Edit_Cancel.svg|24px]] Jest bardziej rozwlekła niż metoda 1, ponieważ musimy zaimplementować metodę {{incode|onDocumentRestored}}, aby zmigrować obiekt.
+* [[File:Edit_Cancel.svg|24px]] Zawsze dodaje nowe właściwości, więc może tworzyć zduplikowane właściwości w przypadku, gdy nowe właściwości mają taką samą nazwę jak stare. To musi być obsługiwane ręcznie.
 
-== Method 3. Migration when restoring the document, manually handling the properties ==
+<span id="Method_3._Migration_when_restoring_the_document,_manually_handling_the_properties"></span>
+==Metoda 3. Migracja podczas przywracania dokumentu, ręczna obsługa właściwości==
 
-This is an extension of method 2. In the {{incode|onDocumentRestored}} method we need to save the values of the properties that we want, and then we can remove these original properties. This is done so that when the new class is used, it will assign the new properties without risking name collisions with the older properties.
+Jest to rozszerzenie metody 2. W metodzie {{incode|onDocumentRestored}} musimy zapisać wartości właściwości, które chcemy, a następnie możemy usunąć te oryginalne właściwości. Odbywa się to tak, że gdy nowa klasa jest używana, przypisuje nowe właściwości bez ryzyka kolizji nazw ze starszymi właściwościami.
 
-Like in method 2, if we want we can also add the piece of code that checks that the Proxy class is the right one. In this example once more we assume that we are using a custom [[Viewprovider|viewprovider]], with at least one custom property.
+Podobnie jak w metodzie 2, jeśli chcemy, możemy również dodać fragment kodu, który sprawdza, czy klasa Proxy jest właściwa. W tym przykładzie ponownie zakładamy, że używamy niestandardowego [[Viewprovider/pl|dostawcy widoku]], z co najmniej jedną niestandardową właściwością.
 {{Code|code=
 # old_module.py
 import FreeCAD as App
@@ -281,15 +284,15 @@ class OldObject:
             _wrn("New viewprovider class used; view properties migrated\n")
 }}
 
-We can see that the old values are stored in an auxiliary dictionary, then the old properties are removed, then we add the new class, and finally we assign the previously saved values to the new properties. In this moment we can transform the saved values as necessary for the new class. For example, the {{incode|GeneralArea}} is set to 3 times the old {{incode|Area}}, and the new {{incode|Length}} simply receives the value of the old {{incode|Length}}. As we know how the old and new classes are supposed to behave, we have the liberty of manipulating the data to migrate the object as we want.
+Widzimy, że stare wartości są przechowywane w słowniku pomocniczym, następnie stare właściwości są usuwane, następnie dodajemy nową klasę, a na koniec przypisujemy wcześniej zapisane wartości do nowych właściwości. W tym momencie możemy przekształcić zapisane wartości zgodnie z potrzebami nowej klasy. Na przykład, {{incode|GeneralArea}} jest ustawiony na 3-krotność starego {{incode|Area}}, a nowy {{incode|Length}} po prostu otrzymuje wartość starego {{incode|Length}}. Ponieważ wiemy, jak powinny zachowywać się stare i nowe klasy, możemy swobodnie manipulować danymi, aby zmigrować obiekt tak, jak chcemy.
 
-We can only remove properties that were added by [[Python|Python]] classes when we built the [[scripted_objects|scripted object]]. Other attributes belong to the base C++ object and can't be removed.
+Możemy usunąć tylko te właściwości, które zostały dodane przez klasy [[Python/pl|Python]] podczas tworzenia [[scripted_objects/pl|obiektów generowanych skryptami]]. Inne atrybuty należą do bazowego obiektu C++ i nie mogą być usunięte.
 {{Code|code=
 >>> obj.removeProperty("Visibility")
 False
 }}
 
-Assuming that we already changed the old module in this way, if we open a document with an old object, we will see the messages mentioning the use of the new classes. Inspecting the object from the [[Python_console|Python console]] we see that the older properties are removed, and only the new properties exist.
+Zakładając, że zmieniliśmy już stary moduł w ten sposób, jeśli otworzymy dokument ze starym obiektem, zobaczymy komunikaty wspominające o użyciu nowych klas. Sprawdzając obiekt z [[Python_console/pl|konsoli Python]] widzimy, że starsze właściwości zostały usunięte i istnieją tylko nowe.
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -298,25 +301,27 @@ Assuming that we already changed the old module in this way, if we open a docume
 <objects.new_module.NewObject object at 0x7efd456c9b00>
 }}
 
-Since in the old class the {{incode|Divisions}} property didn't exist, nothing was done with it. It simply was created by the new {{incode|objects.new_module.NewObject}} class.
+Ponieważ w starej klasie właściwość {{incode|Divisions}} nie istniała, nic nie zostało z nią zrobione. Została ona po prostu utworzona przez nową klasę {{incode|objects.new_module.NewObject}}.
 
-=== Advantages and disadvantages ===
+<span id="Advantages_and_disadvantages"></span>
+===Zalety i wady===
 
-'''Advantages'''
+'''Zalety'''
 
-* [[File:Edit_OK.svg|24px]] Similar to method 2, this method allows us to check that the class that we are migrating is the right class.
-* [[File:Edit_OK.svg|24px]] We have complete control of what to do with the old properties. Typically they will be removed so that there is no name collision with new properties added. Thus we avoid duplicated properties.
-* [[File:Edit_OK.svg|24px]] By saving the older values, we can manipulate the information in the restoring step as we want, and assign the corresponding values to the new properties.
+* [[File:Edit_OK.svg|24px]] Podobnie jak metoda 2, ta metoda pozwala nam sprawdzić, czy klasa, którą migrujemy, jest właściwą klasą.
+* [[File:Edit_OK.svg|24px]] Mamy pełną kontrolę nad tym, co zrobić ze starymi właściwościami. Zazwyczaj zostaną one usunięte, aby nie było kolizji nazw z nowo dodanymi właściwościami. W ten sposób unikamy zduplikowanych właściwości.
+* [[File:Edit_OK.svg|24px]] Zapisując starsze wartości, możemy dowolnie manipulować informacjami w kroku przywracania i przypisać odpowiednie wartości do nowych właściwości.
 
-'''Disadvantages'''
+'''Wady'''
 
-* [[File:Edit_Cancel.svg|24px]] This method is very verbose compared to the previous ones, because we must implement the {{incode|onDocumentRestored}} method, and handle each of the properties individually (save value, delete property, re-assign value). This is problematic if the object that we want to migrate has many properties, or their values need to be transformed in very special ways.
+* [[File:Edit_Cancel.svg|24px]] Ta metoda jest bardzo rozwlekła w porównaniu do poprzednich, ponieważ musimy zaimplementować metodę {{incode|onDocumentRestored}} i obsłużyć każdą z właściwości indywidualnie (zapisać wartość, usunąć właściwość, ponownie przypisać wartość). Jest to problematyczne, jeśli obiekt, który chcemy migrować, ma wiele właściwości lub ich wartości muszą być przekształcane w bardzo szczególny sposób.
 
-== Addendum A. Creating the properties only if they do not already exist ==
+<span id="Addendum_A._Creating_the_properties_only_if_they_do_not_already_exist"></span>
+==Addendum A. Creating the properties only if they do not already exist==
 
-One of the disadvantages of method 2 is that it will always try to add the new properties. If the older properties have the same name as the new properties, they will be duplicated with an incremental number, so {{incode|Length}} will result in {{incode|Length1}}, then {{incode|Length2}}, and so on. This makes method 2 an unrealistic option in most cases, because the new class will only use one property anyway.
+Jedną z wad metody 2 jest to, że zawsze będzie ona próbowała dodać nowe właściwości. Jeśli starsze właściwości mają taką samą nazwę jak nowe, zostaną zduplikowane z przyrostową liczbą, więc {{incode|Length}} spowoduje {{incode|Length1}}, a następnie {{incode|Length2}} i tak dalej. To sprawia, że metoda 2 jest nierealistyczną opcją w większości przypadków, ponieważ nowa klasa i tak będzie używać tylko jednej właściwości.
 
-To improve this method, the new class can also be modified to only add the properties if they don't already exist by the same name.
+Aby ulepszyć tę metodę, nową klasę można również zmodyfikować tak, aby dodawała właściwości tylko wtedy, gdy nie istnieją jeszcze pod tą samą nazwą.
 {{Code|code=
 # objects/new_module.py
 class NewObject:
@@ -338,7 +343,7 @@ class NewObject:
         pass
 }}
 
-In this case, since {{incode|Length}} already exists, it won't be added again; {{incode|GeneralArea}} and {{incode|Divisions}} don't exist, so these will be added. And just like before, {{incode|Area}} will be retained because it is not explicitly removed, although possibly it is no longer used in the new class.
+W tym przypadku, ponieważ {{incode|Length}} już istnieje, nie zostanie ponownie dodany; {{incode|GeneralArea}} i {{incode|Divisions}} nie istnieją, więc zostaną dodane. I tak jak poprzednio, {{incode|Area}} zostanie zachowany, ponieważ nie został wyraźnie usunięty, chociaż prawdopodobnie nie jest już używany w nowej klasie.
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -347,27 +352,29 @@ In this case, since {{incode|Length}} already exists, it won't be added again; {
 <objects.new_module.NewObject object at 0x7f036bd4c6a0>
 }}
 
-The same can be done for the class of the [[viewprovider|viewprovider]].
+To samo można zrobić dla klasy [[Viewprovider/pl|dostawcy widoku]].
 
-By using this method 2 + A, the result is similar to method 1 in that the object will retain all previous properties, but in addition it will gain the new properties provided by the new class.
+Używając tej metody 2 + A, wynik jest podobny do metody 1, ponieważ obiekt zachowa wszystkie poprzednie właściwości, ale dodatkowo zyska nowe właściwości dostarczone przez nową klasę.
 
-Method 3 does not need this addendum to the new class because the older properties are explicitly removed, so there won't be any conflicts when installing the new properties. Nevertheless, it is still a good practice that every class adds its required properties only if these don't already exist. This is helpful both in the case of creating new [[scripted_objects|scripted objects]] or in migrating them.
+Metoda 3 nie potrzebuje tego dodatku do nowej klasy, ponieważ starsze właściwości są wyraźnie usuwane, więc nie będzie żadnych konfliktów podczas instalowania nowych właściwości. Niemniej jednak, nadal dobrą praktyką jest, aby każda klasa dodawała swoje wymagane właściwości tylko wtedy, gdy jeszcze nie istnieją. Jest to pomocne zarówno w przypadku tworzenia nowych [[Scripted_objects/pl|obiektów generowanych skryptami]], jak i ich migracji.
 
-=== Advantages and disadvantages ===
+<span id="Advantages_and_disadvantages"></span>
+===Zalety i wady===
 
-'''Advantages'''
+'''Zalety'''
 
-* [[File:Edit_OK.svg|24px]] The object will retain all previous properties, but in addition it will gain new properties without repetition.
+* [[Plik:Edit_OK.svg|24px]] Obiekt zachowa wszystkie poprzednie właściwości, ale dodatkowo zyska nowe właściwości bez powtórzeń.
 
-'''Disadvantages'''
+'''Wady'''
 
-* [[File:Edit_Cancel.svg|24px]] Like method 2, it still doesn't deal with renamed properties. The old properties should be manually removed.
+* [[File:Edit_Cancel.svg|24px]] Podobnie jak metoda 2, nadal nie radzi sobie ze zmienionymi nazwami właściwości. Stare właściwości powinny zostać usunięte ręcznie.
 
-== Addendum B. Migrating different versions of the old object ==
+<span id="Addendum_B._Migrating_different_versions_of_the_old_object"></span>
+==Dodatek B. Migracja różnych wersji starego obiektu==
 
-Method 3 is the most complex method because the properties are handled individually. However, in this method we also have full flexibility in how we manipulate the data, and this is an advantage if we want to do complex operations.
+Metoda 3 jest najbardziej złożoną metodą, ponieważ właściwości są obsługiwane indywidualnie. Jednak w tej metodzie mamy również pełną elastyczność w sposobie manipulowania danymi, co jest zaletą, jeśli chcemy wykonywać złożone operacje.
 
-If from the beginning we create a property that holds the version number of our object, we can use this number in the future to perform specific migration from that version to any other. We set the property to be read-only, so that we cannot overwrite it in the [[property_editor|property editor]], although it is still accessible from the [[Python_console|Python console]].
+Jeśli od początku utworzymy właściwość, która przechowuje numer wersji naszego obiektu, możemy użyć tego numeru w przyszłości, aby wykonać określoną migrację z tej wersji do dowolnej innej. Ustawiamy właściwość jako tylko do odczytu, więc nie możemy jej nadpisać w [[Property_editor/pl|edytorze właściwości]], chociaż jest ona nadal dostępna z [[Python_console/pl|konsoli Python]].
 {{Code|code=
 # old_module.py
 class OldObject:
@@ -386,7 +393,7 @@ class OldObject:
         pass
 }}
 
-Then, when we want to migrate the object, we implement the {{incode|onDocumentRestored}} method, and test for this version.
+Następnie, gdy chcemy zmigrować obiekt, implementujemy metodę {{incode|onDocumentRestored}} i testujemy tę wersję.
 {{Code|code=
 # old_module.py
 import FreeCAD as App
@@ -420,22 +427,24 @@ def _migrate_from_019(obj):
     ...
 }}
 
-We don't save the {{incode|Version}} value as we will set a new {{incode|Version}} number when doing the migration. As shown in the example, we can implement various functions for each corresponding version of the object that we intend to migrate. We omit the migration of the [[viewprovider|viewprovider]] properties but it follows the same pattern.
+Nie zapisujemy wartości {{incode|Version}}, ponieważ podczas migracji ustawimy nowy numer {{incode|Version}}. Jak pokazano w przykładzie, możemy zaimplementować różne funkcje dla każdej odpowiedniej wersji obiektu, który zamierzamy zmigrować. Pomijamy migrację właściwości [[Viewprovider/pl|dostawcy widoku]], ale przebiega ona według tego samego schematu.
 
-=== Advantages and disadvantages ===
+<span id="Advantages_and_disadvantages"></span>
+===Zalety i wady===
 
-'''Advantages'''
+'''Zalety'''
 
-* [[File:Edit_OK.svg|24px]] We have complete control of what to do with the old properties, and how to perform the migration.
-* [[File:Edit_OK.svg|24px]] We can implement a particular method to migrate a particular version of the old object.
+* [[File:Edit_OK.svg|24px]] Mamy pełną kontrolę nad tym, co zrobić ze starymi właściwościami i jak przeprowadzić migrację.
+* [[File:Edit_OK.svg|24px]] Możemy zaimplementować konkretną metodę do migracji konkretnej wersji starego obiektu.
 
-'''Disadvantages'''
+'''Wady'''
 
-* [[File:Edit_Cancel.svg|24px]] This method is very verbose because we must have a clear idea on how to handle each of the properties of each "version" that we want to migrate. If our object has many different versions created over the years, we may have to prepare a long list of methods to migrate them to the newest object.
+* [[File:Edit_Cancel.svg|24px]] Ta metoda jest bardzo gadatliwa, ponieważ musimy mieć jasny pomysł na to, jak obsługiwać każdą z właściwości każdej "wersji", którą chcemy zmigrować. Jeśli nasz obiekt ma wiele różnych wersji utworzonych na przestrzeni lat, być może będziemy musieli przygotować długą listę metod, aby zmigrować je do najnowszego obiektu.
 
-== Addendum B2. Using internal class attributes instead of properties ==
+<span id="Addendum_B2._Using_internal_class_attributes_instead_of_properties"></span>
+==Uzupełnienie B2. Używanie wewnętrznych atrybutów klasy zamiast właściwości==
 
-Instead of using a [[property|property]] of the object to hold the version information, we can use an attribute of the class. In this way we "hide" the version information, because properties are normally public, and visible in the [[property_editor|property editor]], while class attributes can only be manipulated from the [[Python_console|Python console]]. Class attributes can be saved and restored as explained in [[Scripted_objects_saving_attributes|Scripted objects saving attributes]].
+Zamiast używać [[Property/pl|właściwości]] obiektu do przechowywania informacji o wersji, możemy użyć atrybutu klasy. W ten sposób "ukrywamy" informacje o wersji, ponieważ właściwości są zwykle publiczne i widoczne w [[Property_editor/pl|edytorze właściwości]], podczas gdy atrybutami klasy można manipulować tylko z [[Python_console/pl|konsoli Python]]. Atrybuty klas mogą być zapisywane i przywracane, jak wyjaśniono w [[Scripted_objects_saving_attributes/pl|Obiektchy generowanych skryptami]].
 {{Code|code=
 # old_module.py
 class OldObject:
@@ -521,33 +530,36 @@ As we see in the example, the old {{incode|Area}} property is deleted and migrat
 
 This should work like method 3, meaning that the old properties are removed and only the new properties remain in the new object. The only difference is that we omit removing and recreating the properties that are named the same. This process should work as long as the old [[property|property]] and the new [[property|property]] have the same type (for example, {{incode|App::PropertyLength}} or {{incode|App::PropertyArea}}), so the old property can pass its value directly. However, if the new property has a different type than the old property, then the old property should be removed, otherwise the old property will completely overwrite the new property, which is probably not what we want because the new class will be expecting the new type and not the old type.
 
-=== Advantages and disadvantages ===
+<span id="Advantages_and_disadvantages"></span>
+===Zalety i wady===
 
-'''Advantages'''
+'''Zalety'''
 
-* [[File:Edit_OK.svg|24px]] Like method 3, this method allows us complete control of the migration of the old information.
-* [[File:Edit_OK.svg|24px]] We avoid writing code that removes and recreates properties that are named the same.
+* [[File:Edit_OK.svg|24px]] Podobnie jak metoda 3, ta metoda pozwala nam na pełną kontrolę migracji starych informacji.
+* [[File:Edit_OK.svg|24px]] Unikamy pisania kodu, który usuwa i odtwarza właściwości, które nazywają się tak samo.
 
-'''Disadvantages'''
+'''Wady'''
 
-* [[File:Edit_Cancel.svg|24px]] Like method 3, this method is still very verbose because we have to handle the properties carefully.
-* [[File:Edit_Cancel.svg|24px]] If a new [[property|property]] and an old [[property|property]] share the same name, the new property will be overwritten, which may be undesired behavior, especially if the two properties have different types. In this case, removing the old property, and migrating its value manually is still necessary.
+* [[File:Edit_Cancel.svg|24px]] Podobnie jak metoda 3, ta metoda jest nadal bardzo gadatliwa, ponieważ musimy ostrożnie obchodzić się z właściwościami.
+* [[File:Edit_Cancel.svg|24px]] Jeśli nowa [[Property/pl|właściwość]] i stara [[Property/pl|właściwość]] mają tę samą nazwę, nowa właściwość zostanie nadpisana, co może być niepożądanym zachowaniem, zwłaszcza jeśli obie właściwości mają różne typy. W takim przypadku konieczne jest usunięcie starej właściwości i ręczna migracja jej wartości.
 
-== Summary ==
+<span id="Summary"></span>
+== Podsumowanie ==
 
-Each of the methods has a recommended use:
-* Method 1. The module is moved or renamed but the properties are the same. Simple redirection of classes because the properties don't need to be modified at all.
-* Method 2+A. Simple migration scenarios. Display a message when the object is migrated from one class to another. The properties are of the same type and don't need to be modified at all.
-* Method 3, 3+A, or 3+B. Complex migration scenarios. Full control of the properties, deleting the old properties, and adding new properties. An identifier to know the version of the object is useful to choose the right function to perform the migration (Addendum B or B2).
+Każda z metod ma zalecane zastosowanie:
+* Metoda 1. Moduł jest przenoszony lub zmieniana jest jego nazwa, ale właściwości pozostają takie same. Proste przekierowanie klas, ponieważ właściwości nie muszą być w ogóle modyfikowane.
+* Metoda 2+A. Proste scenariusze migracji. Wyświetla komunikat, gdy obiekt jest migrowany z jednej klasy do drugiej. Właściwości są tego samego typu i nie muszą być w ogóle modyfikowane.
+* Metoda 3, 3+A lub 3+B. Złożone scenariusze migracji. Pełna kontrola nad właściwościami, usuwanie starych i dodawanie nowych właściwości. Identyfikator umożliwiający poznanie wersji obiektu jest przydatny do wybrania odpowiedniej funkcji do przeprowadzenia migracji ''(dodatek B lub B2)''.
 
-Preferably avoid the following:
-* Method 2. The properties will be duplicated if the new class doesn't check for existing properties (Addendum A).
-* Method 3+C. Use only when the old properties and the new properties are of the same type. Otherwise use method 3 or 3+B to remove older properties, and handle them exactly as needed.
+Najlepiej unikać następujących metod:
+* Metoda 2. Właściwości zostaną zduplikowane, jeśli nowa klasa nie sprawdzi istniejących właściwości ''(Dodatek A)''.
+* Metoda 3+C. Używaj tylko wtedy, gdy stare i nowe właściwości są tego samego typu. W przeciwnym razie użyj metody 3 lub 3+B, aby usunąć starsze właściwości i obsłużyć je dokładnie tak, jak trzeba.
 
-== Links ==
+<span id="Links"></span>
+==Odnośniki internetowe==
 
-* [https://forum.freecadweb.org/viewtopic.php?t=42948 Migrating and upgrading old scripted objects]
-* [https://forum.freecadweb.org/viewtopic.php?f=18&t=46218 Migrate old scripted objects]
+* [https://forum.freecadweb.org/viewtopic.php?t=42948 Migracja i aktualizacja starych obiektów skryptowych]
+* [https://forum.freecadweb.org/viewtopic.php?f=18&t=46218 Migracja starych obiektów skryptowych]
 
 {{Powerdocnavi{{#translation:}}}}
 [[Category:Developer Documentation{{#translation:}}]]
