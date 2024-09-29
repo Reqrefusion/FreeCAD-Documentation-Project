@@ -1,0 +1,123 @@
+<languages/>
+
+{{TutorialInfo
+|Topic=Finite Element Analysis
+|Level=Beginner
+|Time=30 min
+|Author=[https://wiki.freecadweb.org/User:Sudhanshu_Dubey Sudhanshu Dubey]
+|FCVersion=0.19 or above
+|Files=Created programmatically
+}}
+
+== Introduction == 
+
+This example is meant to show how to simulate the 6th example of [https://www.nic.funet.fi/pub/sci/physics/elmer/doc/ElmerTutorials.pdf Elmer GUI Tutorials], '''Electrostatic equation – Capacitance of two balls''', using the new [[FEM_Examples|FEM Examples]]. It illustrates how to setup the example, study it's various parts, solve it using the [[FEM_SolverElmer|Elmer Solver]] and visualize the results using [[FEM_PostFilterClipRegion|Clip Filter]].
+
+[[File:Two_balls_result_2.png|1000px]]
+{{Caption|The final result of this tutorial}}
+
+== Requirements == 
+
+* A compatible version of FreeCAD designated in the tutorial overview. 
+*: Use the {{MenuCommand|Help → About FreeCAD}} to see the version of FreeCAD installed
+* No external software is needed for loading the example, viewing the mesh and geometry as well as for visualizing the results.
+* For solving the finite element analysis (FEA), the solver software Elmer must be installed on your computer. See [[FEM_SolverElmer#Installation|this page]] for how to install Elmer.
+
+== Set up the example == 
+
+=== Load FEM Workbench ===
+
+* Start FreeCAD, the Start Workbench should be loaded
+* Switch to [[Image:Workbench_FEM.svg|32px]] [[FEM_Workbench|FEM workbench]].
+
+=== Load the example === 
+
+* Go to {{MenuCommand|Utilities → [[File:FEM_Examples.svg|24px]] Open FEM examples}}.
+* When the GUI opens, find and open "Electrostatics Capacitance Two Balls". You can easily find the example in {{MenuCommand|All}} or in {{MenuCommand|Solvers → Elmer}}. For opening the example, either double click on it or select it and click {{Button|Setup}}.
+
+[[File:Two_balls_selection.png|300px]]
+
+== Understanding the Simulation Case ==
+
+This case presents the solution of the capacitance of perfectly conducting balls in free space. A voltage difference between the balls results to electric charge being introduced to the system. The balls have also self-capacitance that comes from the voltage difference with the far field. Therefore a symmetric capacitance matrix with of size 2 × 2 needs to be solved. The capacitances may be computed from two different voltage configurations.
+
+== Understanding the Model ==
+
+* The model contains three spheres.
+# The two smaller ones are the perfectly conducting balls.
+# The bigger one is to simulate the surrounding air.
+* The two smaller spheres are fused together and then that fusion is is cut from the bigger sphere.
+
+[[File:Two_balls_model_full.png|1000px]]
+{{Caption|The initial model}}
+
+== Analysis container and its objects ==
+
+The objects used in this electrostatic analysis:
+# [[Image:FEM_Analysis.svg|24px]] Analysis container
+# [[Image:FEM_SolverElmer.svg|24px]] SolverElmer
+# [[Image:FEM_EquationElectrostatic.svg|24px]] Electrostatic, the electrostatics equation
+# [[Image:FEM_MaterialFluid.svg|24px]] FemMaterial, a fluid material to represent the surrounding air
+# [[Image:FEM_ConstraintElectrostaticPotential.svg|24px]] ElectrostaticPotential, constraints (3 of them)
+# [[Image:FEM_ConstantVacuumPermittivity.svg|24px]] ConstantVaccumPermittivity, optional
+# [[Image:FEM_MeshGmshFromShape.svg|24px]] Mesh, a [[FEM_MeshGmshFromShape|Gmsh]] mesh
+# [[Image:FEM_MeshRegion.svg|24px]] MeshRegion, a mesh region for the smaller spheres
+
+[[File:Two_balls_analysis.png]]
+{{Caption|The objects as they appear in the [[Tree_view|Tree view]]}}
+
+== Running the FEA ==
+
+* In [[Tree_view|Tree view]] double click on the solver object [[Image:FEM_SolverElmer.svg|24px]].
+* Click on {{Button|Write}} file in the same task panel. Watch the log window until it prints "write completed." You can ignore the warning about the vacuum permittivity that might appear.
+* Click on {{Button|Run}}. Since this is a small analysis it should take a few seconds to run so wait till you see "ELMER SOLVER FINISHED AT" in the output. 
+* Click on {{Button|Close}} in the task panel after the run is finished.
+* Two new result objects should be created in the tree view, [[Image:FEM_PostPipelineFromResult.svg|24px]] SolverElmerResult and [[Image:TextDocument.svg|24px]] SolverElmerOutput.
+
+If you get an error message on solver binary or similar when triggering the analysis, check [[FEM_SolverElmer#Installation|the installation]] of Elmer.
+
+== Visualizing Results ==
+
+* Make sure the mesh is invisible. If not, select the [[Image:FEM_MeshGmshFromShape.svg|24px]] Mesh object and press {{KEY|Space}} to toggle the visibility.
+* Also make sure the Cut object is invisible.
+* Double click on the [[Image:FEM_PostPipelineFromResult.svg|24px]] SolverElmerResult object to open its task dialog.
+* Change the "Field" to "potential" and press {{Button|OK}}.
+* You will notice that the color of the sphere has changed to blue and that the gradient on the right is showing values from 0 to 1. It should look something like this:
+
+[[File:Two_balls_potential.png|1000px]]
+
+== Post Processing the Result ==
+
+* While we have successfully visualised the potential result, currently we are only seeing the zero potential in the air surrounding the two balls. To view the potential on the balls we need to apply a [[FEM_PostFilterClipRegion|clip filter]].
+* In the tree view select the [[Image:FEM_PostPipelineFromResult.svg|24px]] SolverElmerResult object and then from the tool bar click on the button {{Button|[[Image:FEM_PostFilterClipRegion.svg|20px]] Region Clip Filter}}.
+* This will open a dialog with the filter configurations. Click there on the button {{Button|[[Image:list-add.svg|16px]] Create}} and choose [[Image:FEM_PostCreateFunctionPlane.svg|24px]] Plane. This adds a plane through the center of the sphere at which the result mesh is cut. To smooth the cut face, check the option '''Cut Cells'''. Eventually click {{Button|Apply}}.
+
+[[File:Two_balls_postcreate.png|300px]]
+
+* In the tree view there is a new entry called Functions. It contains the created [[Image:FEM_PostCreateFunctionPlane.svg|24px]] Plane. Make it invisible using {{KEY|Space}}.
+* Double-click on the [[Image:FEM_PostFilterClipRegion.svg|24px]] Clip object in the tree view.
+* Change the "Field" to "potential" and press {{Button|OK}}.
+* Toggle the visibility of the [[Image:FEM_PostPipelineFromResult.svg|24px]] SolverElmerResult object using {{KEY|Space}} and you should see something like this:
+
+[[File:Two_balls_result.png|1000px]]
+
+Now we can clearly see that potential distribution in and around the balls.
+
+Note that when [[Image:FEM_PostApplyChanges.svg|24px]] [[FEM_PostApplyChanges|Apply Changes]] is on, you would have been able to select the "Field" in the clip dialog directly and not to reopen it after the plane was created.
+
+== Finding the Capacitance ==
+
+* Our actual focus is to find the capacitance which is contained in the [[Image:TextDocument.svg|24px]] SolverElmerOutput.
+* Double click on [[Image:TextDocument.svg|32px]] SolverElmerOutput to open it. Scroll down till you find:
+
+<pre>
+StatElecSolve: Capacitance matrix computation performed (i,j,C_ij)
+StatElecSolve:   1  1    5.07016E+00
+StatElecSolve:   1  2    1.69328E+00
+StatElecSolve:   2  2    5.07201E+00
+</pre>
+
+* Here, our desired result is <code>C<sub>12</sub> = 1.69328</code>. This value is close to the {{incode|1.691}} given in the [https://www.nic.funet.fi/pub/sci/physics/elmer/doc/ElmerTutorials.pdf Elmer GUI Tutorials]. We can get an even closer value by making a finer [[FEM_MeshRegion|Mesh Region]] but this activity is left for the user. Also, the user is advised to play with the [[FEM_PostFilterClipRegion|Clip Filter]] to get a visual result similar to the first picture of this tutorial.
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
