@@ -39,80 +39,81 @@ getEditableTextsFromTemplate() per recuperare testo che può essere modificato d
 Appiattisce l'oggetto su un'immagine 2D?
 
 === FeatureView.cpp ===
-Defines the properties for views.
+Definisce le proprietà per le visualizzazioni.
 
 === FeatureViewAnnotation.cpp ===
-Defines properties for annotations (right now just text), has an execute method to update the text if changed/moved.
+Definisce le proprietà per le annotazioni (per ora solo testo), ha un metodo di esecuzione per aggiornare il testo se modificato/spostato.
 
 === FeatureViewPart.cpp ===
-Constructor to add properties. Gets appearance stuff for projected parts.
+Costruttore per aggiungere proprietà. Ottiene elementi di aspetto per le parti proiettate.
 
 === PageGroup.cpp ===
-Just adds a property for a list of pages, does not much else.
+Aggiunge solo una proprietà per un elenco di pagine, non fa molto altro.
 
 === Precompiled.cppp ===
-Just #include "PreCompiled.h"
+Solamente #include "PreCompiled.h"
 
 === ProjectionAlgos.cpp ===
-The constructor just runs the execute() method to update it's stuff
+Il costruttore esegue semplicemente il metodoexecute() per aggiornare le sue cose
 
-invertY: since SVG does its y-axis backwards to every other coordinate system in the world, we must invert it when converting from a FreeCAD part to an SVG projection for the Drawing view.
+invertY: poiché SVG utilizza il suo asse y al contrario rispetto a ogni altro sistema di coordinate nel mondo, è necessario invertirlo quando si converte da una parte di FreeCAD a una proiezione SVG per la vista del disegno.
 
-getSVG: fetches the SVG code from the DrawingExport stuff. Formats depending on type of line (hidden or not and some other stuff I need to figure out).
+getSVG: recupera il codice SVG da DrawingExport. Formati a seconda del tipo di linea (nascosta o meno e alcune altre cose che devo capire).
 
-getDXF: same as getSVG except for DXF format.
+getDXF: uguale a getSVG tranne che per il formato DXF.
 
 
 == Gui ==
 
 === AppDrawingGui.cpp ===
-Initializes the drawing gui.
+Inizializza la GUI di disegno.
 
 === AppDrawingGuiPy.cpp ===
-Provides opening, importing, and exporting interfaces? Looks like it is python accessible.
+Fornisce interfacce di apertura, importazione ed esportazione? Sembra che sia accessibile da Python.
 
 === Command.cpp ===
-Handles commands (from the toolbar?) such as creating new drawings and stuff. It looks like this handles QT calls from clicking the button to whatever command it needs to go to e.g. clicking the CmdDrawingOrthoViews button will show the Ortho views gui in the task dialog spot.
+Gestisce i comandi (dalla barra degli strumenti?) come la creazione di nuovi disegni e altro. Sembra che questo gestisca le chiamate QT dal clic sul pulsante a qualsiasi comando a cui deve andare, ad es. facendo clic sul pulsante CmdDrawingOrthoViews verrà visualizzata la GUI delle viste ortografiche nella finestra di dialogo delle attività.
 
 === DrawingView.cpp ===
-Does a bunch of qt gui stuff, need to read more on it.
+Fa un sacco di cose sulla GUI QT, ho bisogno di leggere di più al riguardo.
 
 === TaskDialog.cpp ===
-Creates the task dialog thing on the side and probably switches to it from the tree view, as appropriate.
+Crea la finestra di dialogo delle attività sul lato e probabilmente passa ad essa dalla visualizzazione ad albero, a seconda dei casi.
 
 === TaskOrthoViews.cpp ===
-Creates the task dialog for placing the orthographic views!
+Crea la finestra di dialogo delle attività per posizionare le viste ortografiche!!
 
-Does a lot of the calculations for where to position stuff (automatic calculations as well, it seems).
+Fa molti calcoli su dove posizionare le cose (anche calcoli automatici, a quanto pare).
 
-Takes the input from the TaskOrthoViews gui and does stuff with it. Uses the single inheritance method talked about [http://doc.qt.digia.com/qt/designer-using-a-ui-file.html on the qt website].
+Prende l'input dalla GUI TaskOrthoViews e fa alcune cose con esso. Utilizza il metodo di ereditarietà singola di cui si parla [http://doc.qt.digia.com/qt/designer-using-a-ui-file.html sul sito Web qt].
 
 === ViewProviderPage.cpp ===
-Constructor adds some properties for the view stuff.
-Destructor does nothing.
-Attaches something (attaches what? attaches the view to the page?) sets and gets display modes (what are display modes? what do they do and what are possible options?)
-Does something about updating some kind of data has a context menu that says "Show drawing", figure out what this means
-Has a thing for double clicking to select the view (I think?)
+Il costruttore aggiunge alcune proprietà per gli elementi di visualizzazione.
+Il distruttore non fa nulla.
+Associa qualcosa (associa cosa? associa la vista alla pagina?) imposta e ottiene le modalità di visualizzazione (cosa sono le modalità di visualizzazione? cosa fanno e quali sono le opzioni possibili?)
+Fa qualcosa sull'aggiornamento di alcuni tipi di dati ha un menu contestuale che dice "Mostra disegno", scoprire cosa significa
+Ha una funzione per fare doppio clic per selezionare la vista (credo?)
 
-showDrawingView seems to do some work on settings things up: gets the current document, sets the window icon and title, adds it to the main window (of FreeCAD?)
+showDrawingView sembra fare un po' di lavoro sulle impostazioni: ottiene il documento corrente, imposta l'icona e il titolo della finestra, lo aggiunge alla finestra principale (di FreeCAD?)
 
 === ViewProviderView.cpp ===
-Doesn't seem to do much, though I am sure it is important.
+Non sembra fare molto, anche se sono sicuro che sia importante.
 
 === Workbench.cpp ===
-Adds the icons to the toolbars and stuff.
+Aggiunge le icone alle barre degli strumenti e cose del genere.
 
-= Workflow =
+<span id="Workflow"></span>
+==Flusso di lavoro==
 
-== Program Flow ==
-CanvasView is the actual QGraphicsScene object and DrawingView processes a list of FeatureView that are linked by reference in /App/FeatureViewPage. DrawingView then chooses the appropriate QGraphicsItem class (QGraphicsItemViewPart or QGraphicsItemViewDimension) and then calls a function in CanvasView to create this and add it to the scene.
+== Flusso del programma ==
+CanvasView è l'oggetto QGraphicsScene effettivo e DrawingView elabora un elenco di FeatureView collegati per riferimento in /App/FeatureViewPage. DrawingView sceglie quindi la classe QGraphicsItem appropriata (QGraphicsItemViewPart o QGraphicsItemViewDimension) e quindi chiama una funzione in CanvasView per crearla e aggiungerla alla scena.
 
-== Adding commands to the Drawing Workbench ==
-4 simple steps:
-# Add a class to Command.cpp. Follow the others for an example of the formatting.
-# Add a title, icon, tooltip, etc., again, follow the existing classes in command.cpp
-# Add your class to the bottom of Command.cpp
-# Add your information to Workbench.cpp, this will tell FreeCAD/Drawing module where to place the icons defined in command.cpp  in the actual freecad interface (the toolbars, dropdowns, etc.)
+== Aggiunta di comandi all'ambiente Disegno ==
+4 semplici passaggi:
+# Aggiungere una classe a Command.cpp. Seguire gli altri per un esempio della formattazione.
+# Aggiungere un titolo, un'icona, un tooltip, ecc., ancora una volta, seguire le classi esistenti in command.cpp
+# Aggiungere la propria classe alla fine di Command.cpp
+# Aggiungere le proprie informazioni a Workbench.cpp, questo dirà al modulo FreeCAD/Drawing dove posizionare le icone definite in command.cpp nell'effettiva interfaccia di Freecad (le barre degli strumenti, i menu a discesa, ecc.)
 
 [[Category:Developer_Documentation{{#translation:}}]]
 {{Drawing Tools navi{{#translation:}}}}
