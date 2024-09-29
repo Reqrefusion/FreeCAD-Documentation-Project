@@ -5,12 +5,12 @@
 <span id="Introduction"></span>
 ==Wprowadzenie==
 
-[[Scripted_objects|Scripted objects]] are rebuilt every time a [[File_Format_FCStd|FCStd document]] is opened. To do this the document keeps a reference to the module and Python class that were used to create the object, along with its properties.
+[[Scripted_objects/pl|Obiekty tworzone skryptami]] są odbudowywane przy każdym otwarciu dokumentu [[File_Format_FCStd/pl|FCStd]]. W tym celu dokument przechowuje referencję do modułu i klasy Python, które zostały użyte do stworzenia obiektu, wraz z jego właściwościami.
 
-Attributes of the class used to create the object can also be saved, that is, "serialized". This can be further controlled by the {{incode|dumps}} and {{incode|loads}} methods of the class.
+Atrybuty klasy użytej do utworzenia obiektu mogą być również zapisywane, czyli "serializowane". Może to być dalej kontrolowane przez metody klasy {{incode|dumps}} i {{incode|loads}}.
 
 <span id="Saving_all_attributes"></span>
-==Zapis wszystkich atrybutów==
+==Zapisywanie wszystkich atrybutów==
 
 Domyślnie, atrybuty zapisane w klasie obiektu są atrybutami ze słownika {{incode|__dict__}} klasy.
 
@@ -37,7 +37,7 @@ class VariousStates:
         pass
 }}
 
-An object can be created using this class, and it can be saved to {{FileName|my_document.FCstd}}. If no particular [[viewprovider|viewprovider]] is assigned to the new object, its proxy class is simply set to a value different from {{incode|None}}, in this case, to {{incode|1}}.
+Obiekt może zostać utworzony przy użyciu tej klasy i zapisany do pliku {{FileName|my_document.FCstd}}. Jeśli żaden konkretny [[Viewprovider/pl|dostawca widoku]] nie jest przypisany do nowego obiektu, jego klasa proxy jest po prostu ustawiana na wartość inną niż {{incode|None}}, w tym przypadku na {{incode|1}}.
 {{Code|code=
 import FreeCAD as App
 import various_states
@@ -55,7 +55,7 @@ doc.recompute()
 doc.save()
 }}
 
-When we re-open the file we can inspect the dictionary of the object's class.
+Po ponownym otwarciu pliku możemy sprawdzić słownik klasy obiektu.
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.Proxy)
@@ -64,11 +64,12 @@ When we re-open the file we can inspect the dictionary of the object's class.
 {'Type': {'Version': 'Custom', 'Release': 'production'}, 'ver': '0.18', 'color': [0, 0, 1], 'width': 2.5}
 }}
 
-We see that all attributes that start with {{incode|self}} in the class were saved. These can be of different types, including string, list, float, and dictionary. The original tuple for {{incode|self.color}} was converted to a list, but otherwise all attributes were loaded the same.
+Widzimy, że wszystkie atrybuty zaczynające się od {{incode|self}} w klasie zostały zapisane. Mogą one być różnych typów, w tym string, list, float i dictionary. Oryginalna krotka dla {{incode|self.color}} została przekonwertowana na listę, ale poza tym wszystkie atrybuty zostały załadowane tak samo.
 
-== Saving specific attributes ==
+<span id="Saving_specific_attributes"></span>
+==Zapisywanie określonych atrybutów==
 
-We can define a class similar to the first one, that implements specific attributes to save.
+Możemy zdefiniować klasę podobną do pierwszej, która implementuje określone atrybuty do zapisania.
 {{Code|code=
 # various_states.py
 class CustomStates:
@@ -98,13 +99,13 @@ class CustomStates:
         self.width = state[1]
 }}
 
-The return value of {{incode|dumps}} is the object that will be serialized. This can be a single value, or a tuple of values. When the object is restored, the class calls the {{incode|loads}} method, passing the {{incode|state}} variable with the serialized content. In this case {{incode|state}} is a tuple that is unpacked into the respective variables to reconstruct the "state" that original existed.
+Wartością zwrotną {{incode|dumps}} jest obiekt, który zostanie zserializowany. Może to być pojedyncza wartość lub krotka wartości. Po przywróceniu obiektu klasa wywołuje metodę {{incode|loads}}, przekazując zmienną {{incode|state}} z serializowaną zawartością. W tym przypadku {{incode|state}} jest krotką, która jest rozpakowywana do odpowiednich zmiennych, aby zrekonstruować "stan", który istniał pierwotnie.
 {{Code|code=
 state = (self.color, self.width)
 state = ((0, 0, 1), 2.5)
 }}
 
-We can create an object with this class, and save the document, just like in the previous example. When we re-open the file we can inspect the dictionary of the object's class.
+Możemy utworzyć obiekt z tą klasą i zapisać dokument, tak jak w poprzednim przykładzie. Po ponownym otwarciu pliku możemy sprawdzić słownik klasy obiektu.
 {{Code|code=
 >>> obj2 = App.ActiveDocument.Custom2
 >>> print(obj2.Proxy)
@@ -113,17 +114,19 @@ We can create an object with this class, and save the document, just like in the
 {'color': [0, 0, 1], 'width': 2.5}
 }}
 
-The original tuple for {{incode|self.color}} was converted to a list, but otherwise the information was recovered fine. Instead of restoring all attributes like in the previous case, only the attributes that we specified in {{incode|dumps}} and {{incode|loads}} were restored.
+Oryginalna krotka dla {{incode|self.color}} została przekonwertowana na listę, ale poza tym informacje zostały odzyskane prawidłowo. Zamiast przywracania wszystkich atrybutów, jak w poprzednim przypadku, przywrócone zostały tylko atrybuty określone w {{incode|dumps}} i {{incode|loads}}.
 
-== Usage ==
+<span id="Usage"></span>
+==Użycie==
 
-=== Identifying the type ===
+<span id="Identifying_the_type"></span>
+===Identyfikacja typu===
 
-Normally, [[scripted_objects|scripted objects]] should use [[property|properties]] to store information, as these are automatically restored when the document is opened.
+Zwykle [[Scripted_objects/pl|obiekty tworzone skryptami]] powinny używać [[Property/pl|właściwości]] do przechowywania informacji, ponieważ są one automatycznie przywracane po otwarciu dokumentu.
 
-However, sometimes the class restore internal information which is not intended to be modified, but which is helpful to inspect.
+Czasami jednak klasa przechowuje wewnętrzne informacje, które nie są przeznaczone do modyfikacji, ale które są pomocne w inspekcji.
 
-For example, most objects of the [[Draft_Workbench|Draft Workbench]] set up a {{incode|Type}} attribute that can be used to determine the type of object that is under use.
+Na przykład, większość obiektów środowiska pracy [[Draft_Workbench/pl|Rysunek Roboczy]] ustawia atrybut {{incode|Type}}, który może być użyty do określenia typu używanego obiektu.
 
 {{Code|code=
 class DraftObject:
@@ -138,11 +141,12 @@ class DraftObject:
             self.Type = state
 }}
 
-All objects have a {{incode|TypeId}} property, but for [[scripted_objects|scripted objects]] this property is not useful, as it always refers to the parent C++ class, for example, [[Part_Part2DObject|{{incode|Part::Part2DObjectPython}}]] or [[Part_Feature|{{incode|Part::FeaturePython}}]]. Therefore, having this additional {{incode|Proxy.Type}} attribute in the class is useful to treat each object in a particular way.
+Wszystkie obiekty mają właściwość {{incode|TypeId}}, ale dla [[scripted_objects|obiektów tworzonych skryptami]] ta właściwość nie jest użyteczna, ponieważ zawsze odnosi się do nadrzędnej klasy C++, na przykład [[Part_Part2DObject/pl|{{incode|Part::Part2DObjectPython}}]] lub [[Part_Feature/pl|{{incode|Part::FeaturePython}}]]. Dlatego posiadanie tego dodatkowego atrybutu {{incode|Proxy.Type}} w klasie jest przydatne do traktowania każdego obiektu w określony sposób.
 
-=== Migrating the object ===
+<span id="Migrating_the_object"></span>
+===Migracja obiektu===
 
-Version information can be stored inside the class in order to verify the origin of an object.
+Informacje o wersji mogą być przechowywane wewnątrz klasy w celu weryfikacji pochodzenia obiektu.
 
 {{Code|code=
 class CustomObject:
@@ -159,7 +163,7 @@ class CustomObject:
             self.version = state[1]
 }}
 
-If the structure of the class changes, that is, if its properties or methods change, are renamed, or are removed, we could test the version attribute in order to migrate the older object to a new set of properties or to a new class. This can be done by implementing the {{incode|onDocumentRestored}} method, as explained in [[Scripted_objects_migration|Scripted objects migration]].
+Jeśli struktura klasy ulegnie zmianie, tzn. zmienią się jej właściwości lub metody, zostanie zmieniona ich nazwa lub zostaną usunięte, możemy przetestować atrybut version w celu migracji starszego obiektu do nowego zestawu właściwości lub do nowej klasy. Można to zrobić implementując metodę {{incode|onDocumentRestored}}, jak wyjaśniono na stronie [[Scripted_objects_migration/pl|Obiekty tworzone skryptami, migracja]].
 
 {{Code|code=
 class CustomObject:
@@ -172,14 +176,15 @@ class CustomObject:
         ...
 }}
 
-== Links ==
+<span id="Links"></span>
+==Odnośniki internetowe==
 
-* [[Scripted_objects|Scripted objects]]
-* [[Scripted_objects_migration|Scripted objects migration]]
-* [https://forum.freecadweb.org/viewtopic.php?f=10&t=49120 FreeCAD Forum Discussion: Scripted Object Serialization: json or pickle?]
+* [[Scripted_objects|Obiekty tworzone skryptami]]
+* [[Scripted_objects_migration|Migracja obiektów  tworzonych skryptami]]
+* [https://forum.freecadweb.org/viewtopic.php?f=10&t=49120 Dyskusja na forum FreeCAD: Serializacja obiektów tworzonych skryptami: json czy pickle?]
 
-* [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009 obj.Proxy.Type is a dict, not a string], explanation of {{incode|dumps}} and {{incode|loads}} in the forum.
-* [https://docs.python.org/3/library/pickle.html#object.__getstate__ The Pickle module] in the Python documentation.
+* [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009 obj.Proxy.Type jest typu dict, a nie string], wyjaśnienie {{incode|dumps}} i {{incode|loads}} na forum.
+* [https://docs.python.org/3/library/pickle.html#object.__getstate__ Moduł Pickle] w dokumentacji Python.
 
 {{Powerdocnavi{{#translation:}}}}
 [[Category:Developer Documentation{{#translation:}}]]
