@@ -7,4 +7,4 @@ With the current system, this repo is updated every 15 minutes and changes in th
 
 Being constantly updated: Done with cronjop
 
-Media: The first launcher has been made and the relevant system is constantly being worked on to keep it up to date.
+Media: The first launcher has been made and the relevant system is constantly being worked on to keep it up to date. The system that keeps the files up to date is currently being tested. First, the relevant code will be added and then merged with the existing code. It has successfully shown that it is not working when it should not be working for now :D
