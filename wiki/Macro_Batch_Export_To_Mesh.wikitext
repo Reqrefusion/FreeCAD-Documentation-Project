@@ -5,12 +5,37 @@
 	|Version=2.14
 	|Date=2024-10-10
 }}
+
+==Description==
+This macro helps Bath converting to mesh and exporting STL and OBJ files. It adds a GUI for speeding up the conversion and file saving of the selected objects.
+
+[[File:Screenshot1.png|560px|frameless|center|alt=Macro Batch Export To Mesh - general|general]]
+<br>
+[[File:Screenshot2.png|560px|frameless|center|alt=Macro Batch Export To Mesh - presets|presets]]
+
+==Features==
+* FreeCAD "standard" meshing option
+* Custom names (object, project or custom)
+* Converts/exports one or several objects at once
+* Convert objects into the active FreeCAD project or
+* Export objects to .STL or .OBJ files
+* Absolute or relative paths are allowed
+* Select local or global coordinates (useful for 3D print design)
+* Creates folders if needed
+* Opens folder in file explorer
+* Preset loading/saving
+
+==Licence==
+Copyright 2024 Pablo Gil Fernández
+This work is licensed under GNU Lesser General Public License (LGPL). To view a copy of this license, visit:<br>
+https://www.gnu.org/licenses/lgpl-3.0.html
+
 ==Script==
 {{MacroCode|code=
 <nowiki>
-__Title__   = "Batch_Export_To_Mesh"
+__Title__   = "Batch export to mesh"
 __Author__  = "Pablo Gil Fernández"
-__Version__ = "2.14"
+__Version__ = "2.15"
 __Date__    = "2024-10-10"
 __Comment__ = "This macro helps batch converting to mesh and exporting STL and OBJ files"
 __Web__ = "https://forum.freecad.org/viewtopic.php?f=22&t=41219"
@@ -208,18 +233,18 @@ class BatchExportToMesh(QtGui.QDockWidget):
             ".  c #e6e6e6",
             "                ",
             "                ",
-            "   .        .   ",
-            "  ...      ...  ",
-            "   ...    ...   ",
-            "    ...  ...    ",
-            "     ......     ",
-            "      ....      ",
-            "      ....      ",
-            "     ......     ",
-            "    ...  ...    ",
-            "   ...    ...   ",
-            "  ...      ...  ",
-            "   .        .   ",
+            "                ",
+            "                ",
+            "                ",
+            "                ",
+            "                ",
+            "  ............  ",
+            "  ............  ",
+            "                ",
+            "                ",
+            "                ",
+            "                ",
+            "                ",
             "                ",
             "                "
         ]
@@ -349,21 +374,29 @@ class BatchExportToMesh(QtGui.QDockWidget):
         self.configDropdown.currentIndexChanged.connect(self.onConfigSelected)
 
         self.deleteConfigButton = QtGui.QPushButton() # "Delete" button
-        # self.deleteConfigButton.setIcon(QtGui.QIcon(QtGui.QPixmap(deleteIcon)))
-        self.deleteConfigButton.setIcon(QtGui.QIcon(':/icons/list-remove.svg'))
+        deleteSVG = QtGui.QIcon(':/icons/list-remove.svg')
+        if not deleteSVG.isNull():
+            self.deleteConfigButton.setIcon(deleteSVG)
+        else:
+            self.deleteConfigButton.setIcon(QtGui.QIcon(QtGui.QPixmap(deleteIcon)))
         self.deleteConfigButton.setToolTip("Delete active preset.")
         self.deleteConfigButton.clicked.connect(self.onDeleteConfig)
         
         self.savePresetButton = QtGui.QPushButton() # "New..." button
-        # self.savePresetButton.setIcon(QtGui.QIcon(QtGui.QPixmap(addIcon)))
-        self.savePresetButton.setIcon(QtGui.QIcon(':/icons/list-add.svg'))
+        addSVG = QtGui.QIcon(':/icons/list-add.svg')
+        if not addSVG.isNull():
+            self.savePresetButton.setIcon(addSVG)
+        else:
+            self.savePresetButton.setIcon(QtGui.QIcon(QtGui.QPixmap(addIcon)))
         self.savePresetButton.setToolTip("Save parameters into a new preset.")
         self.savePresetButton.clicked.connect(self.openSavePresetDialog)
 
         self.SavePath = QtGui.QPushButton()
-        # self.SavePath.setIcon(QtGui.QIcon(QtGui.QPixmap(folderIcon)))
-        self.SavePath.setIcon(QtGui.QIcon(':/icons/folder.svg'))
-        self.SavePath.setFixedWidth(40)
+        folderSVG = QtGui.QIcon(':/icons/folder.svg')
+        if not folderSVG.isNull():
+            self.SavePath.setIcon(folderSVG)
+        else:
+            self.SavePath.setIcon(QtGui.QIcon(QtGui.QPixmap(folderIcon)))
         self.SavePath.setObjectName("save_path")
         self.SavePath.setToolTip("Sets a directory to save the converted files. By default it saves the files in the same directory as the FreeCAD project is placed")
         self.SavePath.clicked.connect(self.onSavePath)
@@ -390,8 +423,11 @@ class BatchExportToMesh(QtGui.QDockWidget):
         self.saveStl.clicked.connect(self.onSaveMesh)
 
         self.help = QtGui.QPushButton()
-        # self.help.setIcon(QtGui.QIcon(QtGui.QPixmap(infoIcon)))
-        self.help.setIcon(QtGui.QIcon(':/icons/info.svg'))
+        infoSVG = QtGui.QIcon(':/icons/info.svg')
+        if not infoSVG.isNull():
+            self.help.setIcon(infoSVG)
+        else:
+            self.help.setIcon(QtGui.QIcon(QtGui.QPixmap(infoIcon)))
         self.help.setFixedWidth(40)
         self.help.setObjectName("help")
         self.help.setToolTip("More information aboout the macro.")
@@ -640,10 +676,12 @@ class BatchExportToMesh(QtGui.QDockWidget):
         res = QtGui.QMessageBox()
         res.setWindowTitle("Information")
         res.setText(msg)
-        # res.setIcon(QtGui.QMessageBox.Information)  # Set a predefined icon: NoIcon, Information, Warning, Critical, Question
-        res.setIconPixmap(QtGui.QPixmap(":/icons/info.svg")) # custom icon
         
-        res.setWindowIcon(QtGui.QIcon(":/icons/info.svg"))
+        infoSVG = QtGui.QPixmap(":/icons/info.svg")
+        if not infoSVG.isNull():
+            res.setIconPixmap(infoSVG)
+        else:
+            res.setIcon(QtGui.QMessageBox.Information)  # Set a predefined icon: NoIcon, Information, Warning, Critical, Question
 
         # Show the message box
         res.exec_()
