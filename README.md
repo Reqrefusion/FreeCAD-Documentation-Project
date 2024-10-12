@@ -2,7 +2,7 @@
 
 While I was thinking about what the project did, I thought it would be nice to name it Gordian Knot. Because in my opinion, APIs are a thread and this project connects these APIs together. Unlike other projects, it does it without separating it into threads. Actually, this idiom is about using brute force, but since it's the most famous knot in history, it's probably okay.
 
-Some experiment
+Check the github wiki for more information. Any contribution is welcomed with great pleasure.
 
 ":" to ";"
 
