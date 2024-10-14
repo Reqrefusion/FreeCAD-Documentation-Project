@@ -1,5 +1,7 @@
 <languages/>
+<translate>
 
+<!--T:34-->
 {{Docnav
 |[[Manual:Using_spreadsheets|Using spreadsheets]]
 |[[Manual:Creating_renderings|Creating renderings]]
@@ -7,88 +9,132 @@
 |IconC=Crystal_Clear_manual.png
 }}
 
+</translate>
 {{Manual:TOC}}
+<translate>
 
-FEM stands for [https://en.wikipedia.org/wiki/Finite_element_method Finite Element Method]. It is a vast mathematical subject, but in FreeCAD we can think of it as a way to calculate propagations inside a 3D object, by cutting it into small pieces, and analyzing the impact of each small piece on its neighbours. This has several uses in the engineering and electromagnetism fields, but we will focus on one use that is already well developed in FreeCAD, which is simulating deformations in objects which are submitted to forces and weights.
+<!--T:2-->
+Finite Element Method ([https://en.wikipedia.org/wiki/Finite_element_method Finite Element Method]) is a powerful computational technique used to solve complex problems in engineering, physics, and applied mathematics. It works by breaking down a large, complex object or structure into smaller, simpler parts called finite elements. These elements are analyzed individually, and their behavior is combined to predict how the entire structure will respond to external influences, such as forces, heat, or vibrations.
 
-Obtaining such simulation is done in FreeCAD with the [[FEM_Workbench|FEM Workbench]]. There are a number of steps: Preparing the geometry, setting its material, performing the meshing, division into smaller parts, like we did in the [[Manual:Preparing models for 3D printing|Preparing objects for 3D printing]] chapter, and finally calculating the simulation.
+<!--T:3-->
+FEM is widely used in fields like structural engineering, mechanical design, aerodynamics, and electromagnetism to simulate how objects deform under stress, how heat flows through materials, and how electromagnetic fields interact with different objects. By providing detailed insights into these interactions, FEM allows engineers and designers to optimize their products for performance, safety, and efficiency without needing physical prototypes.
 
-[[Image:Exercise_fem_01.jpg|600px]]
+<!--T:4-->
+Obtaining such simulations in FreeCAD is done using the [[Image:Workbench_FEM.svg|16px]] [[FEM_Workbench|FEM]] Workbench, which is specifically designed for performing finite element analysis (FEA). It provides a comprehensive set of tools for preparing the model, assigning material properties, meshing, and running simulations. The FEM Workbench is versatile, supporting a wide range of simulations such as structural, thermal, and dynamic analyses, with solvers like [https://www.calculix.de/ CalculiX] and others available.
 
-=== Preparing FreeCAD ===
+<!--T:5-->
+This workbench allows for the integration of other FreeCAD workbenches, enabling seamless model preparation and analysis. It also provides powerful post-processing tools to visualize and interpret simulation results, such as stress, deformation, and thermal distributions. The workflow follows these steps:
 
-The simulation itself is done by another piece of software, that is used by FreeCAD to obtain the results. As there are several interesting open source FEM simulation applications available, the [[FEM_Workbench|FEM Workbench]] allows you to choose between them. However, currently only [http://www.calculix.de/ CalculiX] is fully implemented. Another piece of software, called [https://sourceforge.net/projects/netgen-mesher/ NetGen], which is responsible for generating the subdivision mesh, is also required. Detailed instructions to install these two components are provided [[FEM_Install|in the FreeCAD documentation]].
+<!--T:6-->
+# Preparing the Geometry: The model must be simplified or optimized for FEM analysis. This often includes removing unnecessary details or features that don't contribute to the simulation but could make it computationally expensive. You can use tools from other workbenches, like [[Image:Workbench_PartDesign.svg|16px]] [[PartDesign_Workbench|PartDesign]] or [[Image:Workbench_Part.svg|16px]] [[Part_Workbench|Part]], to prepare your 3D geometry.
 
-=== Preparing the geometry ===
+*  '''Assigning Material Properties''' :Material definitions are critical for accurate simulations. Properties such as Young's modulus, Poisson’s ratio, and density are assigned for structural simulations, or thermal conductivity and specific heat capacity for thermal analysis. Materials can be selected from FreeCAD’s material library or customized as needed.
 
-We will start with the house we modeled in the [[Manual:BIM modeling|BIM modeling]] chapter. However, some changes have to be made to make the model suitable for FEM calculations. This involves, basically, discarding the objects that we don't want to include in the calculation, such as the door and window, and joining all the remaining objects into one.
+* '''Meshing''': Meshing divides the geometry into finite elements, allowing the solver to analyze the object. Mesh quality is crucial, as finer meshes result in more accurate simulations but require more computational power. Tools are available to refine the mesh locally, focusing on areas where stress or deformation is expected to be higher.
 
-* Load the [https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/house.FCStd house model] we modeled earlier
-* Delete or hide the page object, the section planes and the dimensions, leaving only our model
-* Hide the window, the door and the ground slab
-* Also hide the metal beams on the roof. They are very different objects from the rest of the house so we will simplify our calculation by not including them. Instead, we will assume that the roof slab is placed directly on top of the wall.
-* Now move the roof slab down so it rests on top of the wall: Edit the '''Rectangle''' object that we used as a base of the roof slab, and change its '''Placement->Position->X''' value from 3.18m to 3.00m
-* Our model is now clean:
+*  '''Applying Loads and Constraints''': In this step, physical conditions such as forces, pressures, moments, or thermal loads are applied to the model. Boundary conditions are also defined, such as fixing points, applying symmetry constraints, or restricting movement, depending on the scenario being simulated.
 
-:[[Image:Exercise_fem_02.jpg|600px]]
+*  '''Running the Solver''': Once the setup is complete, the solver calculates the model's response to the applied conditions. Solvers like CalculiX compute displacements, stresses, and other quantities, depending on the type of analysis performed. The process can take varying amounts of time depending on the mesh density and model complexity.
 
-* The FEM Workbench can currently only calculate deformations on a single object. Therefore, we need to join our two objects (the wall and the slab). Switch to the [[Part_Workbench|Part Workbench]], select the two objects, and press the {{Button|[[Image:Part_Fuse.svg|16px]] [[Part_Fuse|Union]]}} button. We have now obtained a fused object:
+*  '''Post-Processing''': After the simulation, results are visualized using tools in the FEM Workbench. Stress, strain, and displacement fields are represented as color maps, and deformation plots can be generated. These visualizations allow for thorough analysis of the model's performance, highlighting areas of high stress or deformation.
 
-:[[Image:Exercise_fem_03.jpg|600px]]
 
-=== Creating the analysis ===
+<!--T:7-->
+[[File:FreeCAD FEMBeam.png|600px]]
 
-* We are now ready to start a FEM analysis. Let's switch to the [[FEM_Workbench|FEM Workbench]]
-* Select the fused object
-* Press the {{Button|[[Image:FEM_Analysis.svg|16px]] [[FEM_Analysis|New Analysis]]}} button
-* A new analysis will be created and a settings panels opened. Here you can define the meshing parameters to be used to produce the FEM mesh. The main setting to edit is the '''Max Size''' which defines the maximum size (in millimeters) of each piece of the mesh. For now, we can leave the default value of 1000:
+=== Preparing FreeCAD === <!--T:5-->
 
-:[[Image:Exercise_fem_04.jpg|600px]]
+<!--T:6-->
+In this section, we will demonstrate the general FEM analysis procedure through a simple example. While the topic of FEM is vast, we will focus on a straightforward geometry: a cantilever beam. Our objective is to determine the maximum vertical displacement of this beam under an applied load, and we will compare the numerical results with the analytical solution. In computational mechanics, verifying numerical results against experimental data or analytical solutions is essential to ensure the accuracy and reliability of the simulation. Additionally, we will be using packages that are already included in the FreeCAD installation, so no additional installations will be required for this analysis
 
-* After pressing the {{Button|OK}} button and a few seconds of calculation, our FEM mesh is now ready:
+=== Preparing the geometry === <!--T:7-->
 
-:[[Image:Exercise_fem_05.jpg|600px]]
+<!--T:8-->
+First we will create our simple geometry. For this we will using the [[Image:Workbench_PartDesign.svg|16px]] [[PartDesign_Workbench|PartDesign]] workbench.
 
-* We can now define the material to be applied to our mesh. This is important because depending on the material strength, our object will react differently to forces applied to it. Select the analysis object, and press the {{Button|[[Image:FEM_MaterialSolid.svg|16px]] [[FEM_MaterialSolid|New Material]]}} button.
-* A task panel will open to allow us to choose a material. In the Material drop-down list, choose the '''Concrete-generic''' material, and press the {{Button|OK}} button.
+<!--T:9-->
+* Create a new document and go to the [[Image:Workbench_PartDesign.svg|16px]] [[PartDesign_Workbench|PartDesign]] workbench.
+* Press on [[Image:Sketcher_NewSketch.svg|16px]] [[Sketcher_NewSketch|NewSketch]] to create a new sketch on the YZ plane.
+* Create a [[Image:Sketcher_CreateRectangle_Center.svg|16px]] [[Sketcher_CreateRectangle_Center| centered rectangle]] around the origin point. 
+** Using the  [[Image:Sketcher_Dimension.svg|16px]] [[Sketcher_Dimension|Sketcher Dimension]] set the vertical dimension to '''20 mm''' and the horizontal to '''10 mm'''
+* Exit the sketch mode. 
+* By having selected our newly created sketch apply a [[Image:PartDesign_Pad.svg|16px]] [[PartDesign_Pad|padding]] operation with a length of '''1000 mm'''.
+* Our geometry is now read.In this example, we’ve made the height (h) and width (b) of the beam much smaller than the length (L) to focus on how it bends. By doing this, we can make sure the beam behaves like a typical long, thin object where bending is the main effect when a force is applied. This setup also makes it easier to compare our results with simple formulas we can calculate by hand.
 
-:[[Image:Exercise_fem_06.jpg|600px]]
+<!--T:10-->
+[[File:FreeCAD FEM BeamGeometry.png|600px]]
 
-* We are now ready to apply forces. Let's start by specifying which faces are fixed into the ground and can therefore not move. Press the {{Button|[[Image:FEM_ConstraintFixed.svg|16px]] [[FEM_ConstraintFixed|Constraint fixed]]}} button.
-* Click on the bottom face of our building and press the {{Button|OK}} button. The bottom face is designated as unmovable:
+=== Creating the analysis === <!--T:13-->
 
-:[[Image:Exercise_fem_07.jpg|600px]]
+<!--T:14-->
+* We are now ready to start a FEM analysis. Let's switch to the [[Image:Workbench_FEM.svg|16px]] [[FEM_Workbench|FEM workbench]] 
+* Press the [[Image:FEM_Analysis.svg|16px]] [[FEM_Analysis|New Analysis]]
+* A new analysis will be created and a settings panels opened. The '''Create Analysis''' button in sets up the framework for running a finite element analysis. It creates an analysis container that organizes key elements such as the geometry, material properties, constraints (e.g., fixed points), applied loads, and the solver. This button essentially prepares everything needed for the simulation, allowing for further steps like meshing and running the solver to analyze how the object behaves under the defined conditions.
 
-* We will now add a load on the top face, that could represent, for example, a massive weight being placed on the roof. For this we will use a pressure constraint. Press the {{Button|[[Image:FEM_ConstraintPressure.svg|16px]] [[FEM_ConstraintPressure|Constraint pressure]]}} button.
-* Click the top face of the roof, set the pressure to '''10MPa''' (the pressure is applied by square millimeter) and press the {{Button|OK}} button. Our force is now applied:
+<!--T:16-->
+* We will start by creating the '''Mesh'''. For this reason, having selected our body, press on the [[Image:FEM_MeshNetgenFromShape.svg|16px]] [[FEM_MeshNetgenFromShape|FEM mesh from shape by Netgen]]. This tool uses the Netgen mesher to generate 3D meshes. This option uses the Netgen mesher, an open-source tool used for creating high-quality tetrahedral meshes, particularly suited for complex geometries in finite element analysis.
+* In the mesher parameters window we will keep thing simple and only change the maximum cell size. The ''''Max Size''' option defines the largest allowable size for the individual mesh elements. It controls how coarse or fine the mesh will be. A larger Max Size will result in a coarser mesh with fewer elements, which can speed up computations but may reduce accuracy. A smaller Max Size creates a finer mesh with more elements, increasing accuracy but also requiring more computational resources. Set this value to ''' 10 ''' and press '''apply'''. 
 
-:[[Image:Exercise_fem_08.jpg|600px]]
+<!--T:17-->
+[[File:FreeCAD FEM MesherParameters.png]]
 
-* We are now ready to start the calculation. Select the '''CalculiX''' object in the tree view, and press the {{Button|[[Image:FEM_SolverControl.svg|16px]] [[FEM_SolverControl|Start Calculation]]}} button.
-* In the task panel that will open, click first the {{Button|Write .inp file}} button to create the input file for CalculiX, then the {{Button|Run CalculiX}} button. A few moments later, the calculation will be done:
+* Our mesh is ready.
 
-:[[Image:Exercise_fem_09.jpg|600px]]
+<!--T:18-->
+[[File:FreeCAD FEM Mesh.png|600px]]
 
-* We can now look at the results. Close the task panel, and see that a new '''Results''' object has been added to our analysis.
-* Double-click the Results object
-* Set the type of result that you want to see on the mesh, for example "absolute displacement", tick the '''show''' checkbox under '''Displacement''', and move the slider next to it. You will be able to see the deformation growing as you apply more force:
+<!--T:19-->
+* We can now define the material to be applied to our mesh. by and pressing on the [[Image:FEM_MaterialSolid.svg|16px]] [[FEM_MaterialSolid|New Material]] option. The choice of material is crucial in any analysis, as different materials with varying properties will behave differently under the same conditions. Factors like strength, elasticity, and density play a significant role in how a material responds to forces, pressures, or temperatures. Selecting the appropriate material ensures accurate simulation results, reflecting how the object would react in real-world scenarios. 
+* A task panel will open to allow us to choose a material. In the Material drop-down list, choose the '''Steel-1C22''' material, and press the '''OK'''.
 
-:[[Image:Exercise_fem_10.jpg|600px]]
+<!--T:19-->
+[[File:FreeCAD FEM material.png|600px]]
 
+<!--T:20-->
+* The final step is to apply forces and constraints, translating the physical conditions into the FEM analysis. In this simple case, we have a beam that is fixed on one side (representing attachment to a wall), while the other side is free to move. A distributed force is applied along the entire length of the beam, simulating the load it experiences in real-world conditions. Let's start by specifying the face fixed into the wall and can therefore not move. Press the [[Image:FEM_ConstraintFixed.svg|16px]] [[FEM_ConstraintFixed|Constraint fixed]] button.
+* Press on the '''add''' button and select the left face of our beam (the one at theorigin). Click '''apply'''. This face is now designated as unmovable:
+
+<!--T:21-->
+[[File:FreeCAD FEM Beam FC.png|600px]]
+
+<!--T:22-->
+* We will now add a distributed load on the top face, that could represent, for example, a massive weight being placed on the beam. For this we will use a press on the[[Image:FEM_ConstraintForce.svg|16px]] [[FEM ConstraintForce|Force load]] option.
+* Click the top face of the beam, set the force to '''1000 N''' and click on the '''reverse direction''' option. Then press the '''OK'''. Our force is now applied:
+
+<!--T:23-->
+[[File: FreeCAD_FEM_Beam_force.png|600px]]
+
+<!--T:24-->
+* We are now ready to start the calculation. Select the [[Image:FEM_SolverCalculixCxxtools.svg|16px]] [[FEM_SolverCalculixCxxtools | Calculix solver]].
+* Select '''Static''' analysis and press on the '''Write .inp file'''to create the input file for CalculiX. Then press on the '''Run CalculiX'''. The simulation will now run.
+
+
+<!--T:25-->
+[[File:FreeCAD FEM Calculix.png|600px]]
+
+<!--T:26-->
+* We can now look at the results. Click on the [[Image:FEM_ResultShow.svg|16px]] [[FEM_ResultShow | show results]]option.
+* Tick the '''Displacement Z''' option, which is the vertical coordinate for our case.
+* You can see the minimum and maximum values for the vertical displacement. Based on the analysis the maximum vertical displacement is ''' -356.30 mm'''. This matches well with our analytical solution of '''-357.14 mm'''.
+* You can move the slider next to it. You will be able to see the deformation growing as you apply more force:
+
+<!--T:27-->
+:[[File:FreeCAD FEM Results.png|800px]]
+
+<!--T:28-->
 The results displayed by the FEM workbench are of course currently not enough to perform real-life decisions about structures dimensioning and materials. However, they can already give precious information about how the forces flow through a structure, and which are the weak areas that will feel the most stress.
 
-'''Downloads'''
-
-* The file created during this exercise: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/fem.FCStd
-
+<!--T:31-->
 '''Read more'''
 
+<!--T:32-->
 * [[FEM_Workbench|The FEM Workbench]]
 * [[FEM_Install|Installing required FEM components]]
 * [http://www.calculix.de CalculiX]
 * [https://sourceforge.net/projects/netgen-mesher NetGen] 
 
 
+<!--T:35-->
 {{Docnav
 |[[Manual:Using_spreadsheets|Using spreadsheets]]
 |[[Manual:Creating_renderings|Creating renderings]]
@@ -96,4 +142,5 @@ The results displayed by the FEM workbench are of course currently not enough to
 |IconC=Crystal_Clear_manual.png
 }}
 
+</translate>
 [[Category:Tutorials{{#translation:}}]]
