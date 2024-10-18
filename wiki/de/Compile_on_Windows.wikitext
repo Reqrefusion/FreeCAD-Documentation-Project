@@ -150,33 +150,67 @@ Das CMake Bau System gibt dir die Kontrolle über einige Aspekte des Bauprozesse
 
 Hier ist eine Beschreibung einiger dieser Variablen:
 
-<div class="mw-translate-fuzzy">
 {| class="wikitable" style="text-align:left"
 |-
 ! Variablenname       !! Beschreibung  !! Vorgabewert
+|-
+| BUILD_XXX
+|| FreeCAD mit der Komponente XXX erstellt. Falls z.B. der Arbeitsbereich ''OpenSCAD'' nicht gebraucht wird, kann man die Variable ''BUILD_OPENSCAD'' deaktivieren. FreeCAD wird diesen Arbeitsbereich dann nicht enthalten.
+'''Hinweis:''' Einige Komponenten werden für andere Komponenten benötigt. Ist z.B. ''BUILD_ROBOT'' deaktiviert, wird CMake darüber informieren, dass die Komponente ''Path'' nicht korrekt kompiliert werden kann. Daher sollte die Ausgabe von CMake nach dem Ändern einer BUILD_XXX-Option geprüft werden!
+|| Auswahlabhängig
 |-               
-| BUILD_XXX || Erstelle FreeCAD mit der Komponente XXX. Falls du bspw. den Arbeitsbereich ''OpenSCAD'' nicht willst/brauchst, deaktiviere die Variable ''BUILD_OPENSCAD''. FreeCAD wird diesen Arbeitsbereich dann nicht enthalten.
-'''Hinweis:''' Einige Komponenten werden für andere Komponenten benötigt. Wenn du bspw. ''BUILD_ROBOT'' deaktivierst, wird CMake dich darüber informieren, dass die Komponente ''Path'' nicht korrekt kompiliert werden kann. Prüfe daher die CMake-Ausgaben nach dem Ändern einer BUILD_XXX-Option!
-|| hängt davon ab
+| BUILD_ENABLE_CXX_STD
+|| Die Version des C++-Sprachstandards. '''C++14''' ist der höchstmögliche für FreeCAD 0.19, während wenigstens '''C++17''' für FreeCAD 0.20 erforderlich ist. Siehe auch den Hinweis im Abschnitt [[#Bau mit Visual Studio 15 (2017) oder neuer]]
+|| Auswahlabhängig
+|-
+| BUILD_DESIGNER_PLUGIN
+|| Zum Bau des Qt Designer-Plugins, siehe [[#Qt_Designer_Zusatzprogramm|diesen folgenden Abschnitt]]
+|| OFF
+|-
+| BUILD_FLAT_MESH
+|| Wird benötigt für einen Bau, der die Funktion [[MeshPart_CreateFlatMesh/de|EbenesNetzErstellen]] enthält
+|| OFF
+|-             
+| CMAKE_INSTALL_PREFIX
+|| Das Ausgabeverzeichnis bei der Erstellung des Ziels ''INSTALL'', siehe auch den Abschnitt [[#Ausführen_und_Installieren_von_FreeCAD]]
+|| Windows Standard-Programminstallationsverzeichnis
 |-               
-| BUILD_ENABLE_CXX_STD || Die Version des C++-Sprachstandards. '''C++14''' ist der höchstmögliche für FreeCAD 0.19, während wenigstens '''C++17''' für FreeCAD 0.20 erforderlich ist. Siehe auch den Hinweis im Abschnitt [[#Bau_mit_Visual_Studio_15_(2017)_und_16_(2019)]]
-|| hängt davon ab
+| FREECAD_COPY_DEPEND_DIRS_TO_BUILD
+|| Kopiert abhängige Bibliotheken in den Build-Ordner, die zur Ausführung von FreeCAD.exe benötigt werden. Siehe auch den Abschnitt [[#Ausführen_und_Installieren_von_FreeCAD]].</br> '''Hinweis:''' Die Optionen FREECAD_COPY_XXX erscheinen nur, falls die Bibliotheken nicht bereits kopiert wurden. Wird nur ein Upgrade bzw. Wechsel auf eine andere LibPack-Version benötigt,  siehe den Abschnitt[[#LibPack aktualisieren|LibPack aktualisieren]]. Soll zu den Optionen zurückgekehrt werden, müssen alle Verzeichnisse im Build-Ordner gelöscht werden, außer dem LibPack-Verzeichnis. In CMake den Cache löschen und so starten, als würde man zum ersten Mal kompilieren.
+|| OFF
 |-               
-| CMAKE_INSTALL_PREFIX || Das Ausgabeverzeichnis bei der Erstellung des Ziels ''INSTALL'', siehe auch Abschnitt [[#Ausführen_und_Installieren_von_FreeCAD]] || Windows Standard-Programminstallationsverzeichnis
+| FREECAD_COPY_LIBPACK_BIN_TO_BUILD
+|| Kopiert LibPack-Binaries in den Build-Ordner, die zur Ausführung von FreeCAD.exe benötigt werden. Siehe auch Abschnitt [[#Ausführen_und_Installieren_von_FreeCAD]]
+|| OFF
 |-               
-| FREECAD_COPY_DEPEND_DIRS_TO_BUILD || Kopiert abhängige Bibliotheken in den Build-Ordner, die zur Ausführung von FreeCAD.exe benötigt werden. Siehe auch Abschnitt [[#Ausführen_und_Installieren_von_FreeCAD]].</br> '''Hinweis:''' Die Optionen FREECAD_COPY_XXX erscheinen nur, falls die Bibliotheken nicht bereits kopiert wurden. Falls du also zu einer LibPack-Version wechselst, ist es wichtig, alle Verzeichnisse in deinem Build-Ordner zu löschen AUSSER dem LibPack-Verzeichnis. Lösche in CMake den Cache und starte, als ob du das erste Mal kompilierst und du wirst die FREECAD_COPY_XXX-Optionen sehen. || OFF
+| FREECAD_COPY_PLUGINS_BIN_TO_BUILD
+|| Kopiert Qt-Plugin-Dateien in den Build-Ordner, die zur Ausführung von FreeCAD.exe benötigt werden. Siehe auch Abschnitt [[#Ausführen_und_Installieren_von_FreeCAD]]
+|| OFF
 |-               
-| FREECAD_COPY_LIBPACK_BIN_TO_BUILD || Kopiert LibPack-Binaries in den Build-Ordner, die zur Ausführung von FreeCAD.exe benötigt werden. Siehe auch Abschnitt [[#Ausführen_und_Installieren_von_FreeCAD]] || OFF
+| FREECAD_LIBPACK_USE
+|| Schaltet die Verwendung von FreeCAD LibPack ein bzw. aus (ON/OFF)
+|| ON
 |-               
-| FREECAD_COPY_PLUGINS_BIN_TO_BUILD|| Kopiert Qt-Plugin-Dateien in den Build-Ordner, die zur Ausführung von FreeCAD.exe benötigt werden. Siehe auch Abschnitt [[#Ausführen_und_Installieren_von_FreeCAD]] || OFF
+| FREECAD_LIBPACK_DIR
+|| Verzeichnis, in dem sich LibPack befindet
+|| FreeCADs Quellcodeverzeichnis
 |-               
-| FREECAD_LIBPACK_USE || Schaltet die Verwendung von FreeCAD LibPack ein/aus (ON/OFF)  || ON
-|-               
-| FREECAD_LIBPACK_DIR || Verzeichnis, in dem sich LibPack befindet || FreeCAD's Quell-Code-Verzeichnis
-|-               
-| FREECAD_RELEASE_PDB || Erstelle Debug-Bibliotheken auch für Freigabe-Versionen || ON
+| FREECAD_RELEASE_PDB 
+|| Debug-Bibliotheken auch für Freigabe-Versionen erstellen. Dies hat keinen Einfluss auf die Geschwindigkeit (wie es ein echter Debug-Build hätte) und kann sehr nützlich sein, bei der Ermittlung von Absturzstellen im FreeCAD-Code. Sollte FreeCAD abstürzen, wird eine Datei ''crash.dmp'' erstellt, die mit MSVC geladen werden kann und wenn die zugehörigen PDB-Dateien vorhanden sind sowie der Quellcode jener Version, kann man mit diesem Code debuggen. Ohne diese PDB-Dateien ist es nicht möglich den Code zu debuggen und alles was der Debugger anzeigt, ist der Name der DLL in der der Absturz auftrat.
+|| ON
+|-
+| FREECAD_USE_MP_COMPILE_FLAG
+|| Fügt die /MP-Opzion (Multiprocessor-Option) zu Visual Studio-Projekten hinzu, und ermöglicht so eine Beschleunigung auf Mehr-Kern-CPUs. Dies kann den Bau auf modernen Prozessoren wesentlich beschleunigen.</br>'''Hinweis:''' Wird '''FREECAD_USE_PCH''' ausgeschaltet, kann das Kompilieren schnell den Zusatzdatenspeicher überladen, auch wenn 16 GB RAM vorhanden sind.
+|| ON
+|-
+| FREECAD_USE_PCH
+|| Header vorkompilieren (siehe [https://en.wikipedia.org/wiki/Precompiled_header Precompiles the headers] (engl.)), um Kompilierungszeit zu sparen.
+|| ON
+|-
+| FREECAD_USE_PYBIND11
+|| Schließt die Bibliothek [https://github.com/pybind/pybind11 PyBind11] ein. Wird benötigt für einen Build, der die Funktion [[MeshPart_CreateFlatMesh/de|CreateFlatMesh feature]] enthält zu erhalten.</br>'''Hinweis:''' Nach dem Aktivieren kann man eine Konfigurationsfehlermeldung erhalten. Eifach erneut konfigurieren, und das Problem sollte gelöst sein.
+|| OFF
 |}
-</div>
 
 <span id="Building_FreeCAD"></span>
 == FreeCAD bauen ==
@@ -512,7 +546,8 @@ To build FreeCAD using the self-compiled Open Cascade, you must do the following
 * Search there for absolute paths to your LibPack folder and remove them. So e.g. the absolute path</br>''D:/FreeCADLibs_12.5.4_x64_VC17/lib/freetype.lib''</br>becomes just </br>''freetype.lib''</br>
 * Do the same for the file ''OpenCASCADEVisualizationTargets.cmake''
 
-== Compiling Netgen==
+<span id="Compiling_Netgen"></span>
+==Netgen kompilieren==
 
 The LibPack comes with a version of [https://ngsolve.org Netgen] that will was tested to be build with the Open Cascade version of the LibPack. The problem is that every new release of Netgen changes the API. Also every new release of Open Cascade does the same. Therefore one cannot just easily change the Netgen version.
 
