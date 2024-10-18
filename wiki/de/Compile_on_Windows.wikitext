@@ -506,11 +506,59 @@ When compiling Open Cascade for FreeCAD note that there is no guarantee that Fre
 Zum Kompilieren:
 * Zuerst den Open Cascade-Quellcode beschaffen, entweder direkt von [https://github.com/Open-Cascade-SAS/OCCT Open Cascade's git repository] oder durch klonen des Zweiges eines dritten, wie z.B. [https://gitlab.com/blobfish/occt der "blobfish"-Zweig], der von dem Mitglied des  FreeCAD-Forums [https://forum.freecad.org/memberlist.php?mode=viewprofile&u=208 tanderson69] gepflegt wird.
 
-<div class="mw-translate-fuzzy">
-Als nächstes benutze CMake zum konfigurieren des Build-Systems in einer ähnlichen Weise wie bei der Erstellung von FreeCAD. Bemerkenswerte CMake-Options für OpenCASCADE sind:
-* '''3RDPARTY_DIR''' - Der Ablageort deiner Drittanbieter-Bibliotheken, typischerweise auf dein FreeCAD-Libpack-Verzeichnis eingestellt
-* '''INSTALL_DIR''' - Wohin die fertigen Bibliotheken installiert werden sollen. Eine gute Praxis ist es, ein isoliertes (eigenes) Verzeichnis auf deinem System zu benutzen, anstatt "global" zu installieren oder die Libpack-Version zu überschreiben.
-</div>
+* Dann die CMake-GUI öffnen, um das Build-System in einer ähnlichen Weise zu konfigurieren, wie den FreeCAD-Bau. Diese CMake-Optionen müssen gesetzt werden (oder explizit nicht gesetzt werden):
+{| class="wikitable" style="text-align:left"
+|-
+! Variablenname       !! Beschreibung  !! Vorgabewert
+|-
+| 3RDPARTY_DIR
+|| Der Pfad zu Drittanbieterkomponenten. Es wird empfohlen, den Ordner als Quellordner zu verwenden, der das LibPack enthält. Daher dieses Feld leer lassen.
+|| leer
+|-
+| 3RDPARTY_DOXYGEN_EXECUTABLE
+|| Der Pfad zu der ausführbaren Datei der Drittanbieterkomponente [https://en.wikipedia.org/wiki/Doxygen Doxygen]. Es wird empfohlen Doxygen zu installieren. CMake findet es dann automatisch.
+|| leer
+|-
+| 3RDPARTY_FREETYPE_DIR
+|| Der Pfad zu der benötigten Drittanbieterkomponente [https://en.wikipedia.org/wiki/FreeType Freetype]. Es wird empfohlen, den Ordner als Quellordner zu verwenden, der das LibPack enthält.
+|| leer
+|-
+| 3RDPARTY_RAPIDJSON_DIR
+|| Only available if '''USE_RAPIDJSON''' is used. Der Pfad zu der Drittanbieterkomponente [https://rapidjson.org/ RapidJSON]. Es wird empfohlen, den Ordner, der das LibPack enthält, NICHT als Quellordner zu verwenden. Man kann den RapidJSOn-Ordner eines LibPacks verwenden, aber er sollte in einen neuen Ordner kopiert werden und dieser als Quellordner verwendet werden.
+|| leer
+|-
+| 3RDPARTY_TCL_DIR
+|| Der Pfad zu der benötigten Drittanbieterkomponente [https://en.wikipedia.org/wiki/Tcl TCL]. Es wird empfohlen, den Ordner, der das LibPack enthält, NICHT als Quellordner zu verwenden. Man nimmt beispielsweise  eine [https://github.com/teclab-at/tcltk/releases dieser Veröffentlichungen], extrahiert sie und verwendet sie als Quellordner für CMake.
+|| leer
+|-
+| 3RDPARTY_TK_DIR
+|| Der Pfad zu der benötigten Drittanbieterkomponente [https://en.wikipedia.org/wiki/Tk_(software) TK]. Es wird empfohlen, den Ordner, der das LibPack enthält, NICHT als Quellordner zu verwenden. Man nimmt beispielsweise  eine [https://github.com/teclab-at/tcltk/releases dieser Veröffentlichungen], extrahiert sie und verwendet sie als Quellordner für CMake.
+|| leer
+|-
+| 3RDPARTY_VTK_DIR|| Only available if '''USE_VTK''' is used. Der Pfad zu der necessary 3rdparty component [https://en.wikipedia.org/wiki/VTK VTK]. Es wird empfohlen, den Ordner als Quellordner zu verwenden, der das LibPack enthält. Wird ein anderer Ordner verwendet, sollte sichergestellt sein, dass nicht VTK 9.x oder neuer verwendet wird.
+|| leer
+|-
+| BUILD_RELEASE_DISABLE_EXCEPTIONS
+|| Deaktiviert das Error-Handling für Release-Builds. Fur FreeCAD muss es auf '''OFF''' gesetzt werden.
+|| ON
+|-
+| INSTALL_DIR
+|| Der Ausgabeordner, wenn das Ziel ''INSTALL'' erstellt wird. War die Erstellung erfolgreich, können Dateien aus diesem Ordner zum Aktualisieren des LibPacks verwendet werden.
+|| Windows standardmäßiger Ordner zur Installation von Programmen
+|-
+| INSTALL_DIR_BIN
+|| Der Ausgabe-Unterordner für die DLLs, wenn das Ziel ''INSTALL''' erstellt wird. Er muss zu '''bin''' geändert werden.
+|| win64/vc14/bin
+|-
+| INSTALL_DIR_LIB|| Der Ausgabe-Unterordner für die .lib-Dateien, wenn  das Ziel ''INSTALL''' erstellt wird. Er muss zu '''lib''' geändert werden.
+|| win64/vc14/lib
+|-
+| USE_RAPIDJSON|| Zum Kompilieren von Open Cascade mit Unterstützung für RapidJSON. Dies ist zwingend zu aktivieren, um Unterstützung für das Dateiformat [https://en.wikipedia.org/wiki/Gltf glTF] zu erhalten.
+|| OFF
+|-
+| USE_VTK|| Zum Kompilieren von Open Cascade mit Unterstützung für VTK. Dies zu aktivieren ist optimal (optional?). Es kann zum Bau von Open Cascades VTK-Bridge verwendet werden.
+|| OFF
+|}
 
 * Open the project in Visual Studio and first build the ALL_BUILD and then INSTALL targets in the '''Release''' mode.
 * Repeat building the two targets in the '''Debug''' mode.
