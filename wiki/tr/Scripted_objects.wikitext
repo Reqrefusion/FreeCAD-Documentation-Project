@@ -159,7 +159,7 @@ If your object relies on being recomputed as soon as it is created, you must do 
 
 This example produces a number of exception stack traces in the report view window.  This is because the {{incode|onChanged}} method of the {{incode|Box}} class is called each time a property is added in {{incode|__init__}}.  When the first one is added, the Width and Height properties don't exist yet and so the attempt to access them fails.
 
-An explanation of {{incode|__getstate__}} and {{incode|__setstate__}} which have been replaced by {{incode|dumps}} and {{incode|loads}} is in the forum thread [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009&start=10#p377892 obj.Proxy.Type is a dict, not a string].
+An explanation of {{incode|__getstate__}} and {{incode|__setstate__}} which have been replaced by {{incode|dumps}} and {{incode|loads}} is in the forum thread [https://forum.freecad.org/viewtopic.php?f=18&t=44009&start=10#p377892 obj.Proxy.Type is a dict, not a string].
 
 {{incode|obj.addProperty(...)}} returns {{incode|obj}}, so that the value of the property can be set on the same line:
 
@@ -967,33 +967,34 @@ When adding properties to your custom objects, take care of this:
 
 The properties are defined in the [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyStandard.h PropertyStandard C++ header file].
 
-=== Property types ===
+=== Property attributes ===
 
-By default properties can be updated, but it is possible to make properties read-only, for instance if one wants to show the result of a method. It is also possible to hide a property. The property type can be set using:
+By default properties can be changed by the user, but it is possible to make properties read-only, for instance if one wants to show the result of a method. It is also possible to hide a property. These attributes can be set using:
 
 {{Code|code=
 obj.setEditorMode("MyPropertyName", mode)
 }}
 
-where mode is a short int that can be set to:
+Where mode can have these values:
   0 -- default mode, read and write
   1 -- read-only
   2 -- hidden
+  3 -- read-only and hidden
 
-The mode can also be set using a list of strings, e.g. {{incode|obj.setEditorMode("Placement", ["ReadOnly", "Hidden"])}}.
+The attributes can also be set using a list of strings, e.g. {{incode|obj.setEditorMode("Placement", ["ReadOnly", "Hidden"])}}.
 
-The EditorModes are not set at FreeCAD file reload. This could to be done by the {{Incode|loads}} function. See http://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=10#p108072. By using the {{Incode|setEditorMode}} the properties are only read-only in the [[Property_editor|Property editor]]. They can still be changed from Python. To really make them read-only the setting has to be passed directly inside the {{Incode|addProperty}} function. See http://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=20#p109709 for an example.
+Attributes set using {{Incode|setEditorMode}} can be removed by the user. See [[Property_editor#Context_menu|Property editor]]. Note that read-only properties can still be changed from Python.
 
-Using the direct setting in the {{Incode|addProperty}} function, you also have more possibilities. In particular, an interesting one is mark a property as an output property. This way FreeCAD won't mark the feature as touched when changing it (so no need to recompute).
+You can also set these, and more, attributes directly with the {{Incode|addProperty}} function. Attributes set with that function cannot be changed by the user. An interesting possibility is to mark a property as an output property. This way FreeCAD won't mark the object as touched when changing it (so no need to recompute).
 
-Example of output property (see also https://forum.freecadweb.org/viewtopic.php?t=24928):
+Example of output property (see also https://forum.freecad.org/viewtopic.php?t=24928):
 
 {{Code|code=
 obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 8)
 }}
 
-The property types that can be set at last parameter of the addProperty function are:
-   0 -- Prop_None, No special property type
+The attributes that can be set with {{Incode|addProperty}} are listed below. Multiple attributes can be set by adding values.
+   0 -- Prop_None, No special property attribute
    1 -- Prop_ReadOnly, Property is read-only in the editor
    2 -- Prop_Transient, Property won't be saved to file
    4 -- Prop_Hidden, Property won't appear in the editor
@@ -1001,7 +1002,34 @@ The property types that can be set at last parameter of the addProperty function
   16 -- Prop_NoRecompute, Modified property doesn't touch its container for recompute
   32 -- Prop_NoPersist, Property won't be saved to file at all
 
-The property types are defined in the [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyContainer.h PropertyContainer C++ header file].
+The property attributes are defined in the [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyContainer.h PropertyContainer C++ header file].
+
+For {{Incode|Prop_ReadOnly}} and {{Incode|Prop_Hidden}} the {{Incode|addProperty}} function has boolean arguments as well:
+
+{{Code|code=
+obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 0, True, True)
+}}
+
+Which is equivalent to:
+
+{{Code|code=
+obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 1+4)
+}}
+
+{{Version|1.0}}: The full signature of the function is:
+
+{{Code|code=
+obj.addProperty(type: string, name: string, group="", doc="", attr=0, read_only=False, hidden=False, enum_vals=[])
+}}
+
+* {{Incode|type}}: Property type.
+* {{Incode|name}}: Property name.
+* {{Incode|group}}: Property subsection (used in the [[Property_editor|Property editor]]).
+* {{Incode|doc}}: Tooltip (idem).
+* {{Incode|attr}}: Attribute, see above.
+* {{Incode|read_only}}: See above.
+* {{Incode|hidden}}: See above.
+* {{Incode|enum_vals}}: Enumeration values (list of string), only relevant if type is {{Incode|"App::PropertyEnumeration"}}.
 
 == Available extensions ==
 
