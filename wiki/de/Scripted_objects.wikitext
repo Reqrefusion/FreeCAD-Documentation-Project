@@ -162,7 +162,9 @@ Wenn sich dein Objekt darauf verläßt, das es sobald es erzeugt wird neu berech
 
 Dieses Beispiel erzeugt einige Fehlermeldungen im report view Fenster. Dies erfolgt weil die Methode {{incode|onChanged}} der Klasse {{incode|Box}} jedes mal aufgerufen wird, wenn eine property in der Methode {{incode|__init__}} hinzugefügt wird. Wenn die Erste hinzugefügt wird gibt es die properties Width und Height noch nicht, deshalb schlägt der Versuch auf diese zuzugreifen fehl.
 
+<div class="mw-translate-fuzzy">
 Eine Erklärung zu {{incode|__getstate__}} und {{incode|__setstate__}}, die durch {{incode|dumps}} und {{incode|loads}} ersetzt wurden, befindet sich im Forumsbeitrag [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009&start=10#p377892 obj.Proxy.Type is a dict, not a string].
+</div>
 
 {{incode|obj.addProperty(...)}} gibt {{incode|obj}}, zurück, sodass der Wert der property in der gleichen Zeile gesetzt werden kann:
 
@@ -978,34 +980,45 @@ Beim Hinzufügen von Eigenschaften zu benutzerdefinierten Objekten bitte folgend
 
 Die Eigenschaften sind in der C++ header-Datei [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyStandard.h PropertyStandard.h] festgelegt.
 
-<span id="Property_types"></span>
-===Arten von Eigenschaften===
+=== Property attributes ===
 
+<div class="mw-translate-fuzzy">
 Standardmäßig können Eigenschaften aktualisiert werden, aber es ist möglich, die Eigenschaften auf schreibgeschützt zu setzen, wenn man zum Beispiel das Ergebnis einer Methode anzeigen möchte. Es ist auch möglich, eine Eigenschaft auszublenden. Die Art der Eigenschaft kann festgelegt werden mit:
+</div>
 
 {{Code|code=
 obj.setEditorMode("MyPropertyName", mode)
 }}
 
+<div class="mw-translate-fuzzy">
 wobei mode ein kurzer int ist, der gesetzt werden kann auf:
  0 -- Standardmodus, Lesen und Schreiben
  1 -- Nur-Lesen
  2 -- Versteckt
+</div>
 
+<div class="mw-translate-fuzzy">
 Der Modus kann durch Verwenden einer Liste mit Strings festgelegt werden, z.B. {{incode|obj.setEditorMode("Placement", ["ReadOnly", "Hidden"])}}.
+</div>
 
+<div class="mw-translate-fuzzy">
 Die Editormodi werden beim neu Laden einer Datei nicht festgelegt. Das kann mit der {{Incode|loads}} Funktion gemacht werden. Siehe http://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=10#p108072. Wenn man {{Incode|setEditorMode}} verwendet werden die Properties nur im [[Property_editor|Property editor]] read-only. Sie könne aus Python weiterhin geändert werden. Um sie wirklich read-only zu machen muss die Einstellung direkt in der {{Incode|addProperty}} Funktion übergeben werden. Siehe http://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=20#p109709 als ein Beispiel.
+</div>
 
+<div class="mw-translate-fuzzy">
 Wenn man die Einstellungen direkt in der Funktion {{Incode|addProperty}} verwendet gibt es mehr Möglichkeiten. Speziell ist es interessant eine Property als Ausgabe Property festzulegen. Auf diese Art markiert FreeCAD die Feature wenn sie verändert wird nicht als touched (somit gibt es keine Notwendigkeit einer neuerlichen Berechnung).
+</div>
 
+<div class="mw-translate-fuzzy">
 Beispiel einer Ausgabe Property (siehe auch https://forum.freecadweb.org/viewtopic.php?t=24928):
+</div>
 
 {{Code|code=
 obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 8)
 }}
 
-The property types that can be set at last parameter of the addProperty function are:
-   0 -- Prop_None, No special property type
+The attributes that can be set with {{Incode|addProperty}} are listed below. Multiple attributes can be set by adding values.
+   0 -- Prop_None, No special property attribute
    1 -- Prop_ReadOnly, Property is read-only in the editor
    2 -- Prop_Transient, Property won't be saved to file
    4 -- Prop_Hidden, Property won't appear in the editor
@@ -1013,7 +1026,36 @@ The property types that can be set at last parameter of the addProperty function
   16 -- Prop_NoRecompute, Modified property doesn't touch its container for recompute
   32 -- Prop_NoPersist, Property won't be saved to file at all
 
+<div class="mw-translate-fuzzy">
 Die Property Typen sind in [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyContainer.h PropertyContainer C++ header file] definiert.
+</div>
+
+For {{Incode|Prop_ReadOnly}} and {{Incode|Prop_Hidden}} the {{Incode|addProperty}} function has boolean arguments as well:
+
+{{Code|code=
+obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 0, True, True)
+}}
+
+Which is equivalent to:
+
+{{Code|code=
+obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 1+4)
+}}
+
+{{Version|1.0}}: The full signature of the function is:
+
+{{Code|code=
+obj.addProperty(type: string, name: string, group="", doc="", attr=0, read_only=False, hidden=False, enum_vals=[])
+}}
+
+* {{Incode|type}}: Property type.
+* {{Incode|name}}: Property name.
+* {{Incode|group}}: Property subsection (used in the [[Property_editor|Property editor]]).
+* {{Incode|doc}}: Tooltip (idem).
+* {{Incode|attr}}: Attribute, see above.
+* {{Incode|read_only}}: See above.
+* {{Incode|hidden}}: See above.
+* {{Incode|enum_vals}}: Enumeration values (list of string), only relevant if type is {{Incode|"App::PropertyEnumeration"}}.
 
 <span id="Available_extensions"></span>
 == Vorhandene Erweiterungen ==
