@@ -987,10 +987,7 @@ obj.supportedProperties()
 
 The properties are defined in the [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyStandard.h PropertyStandard C++ header file].
 
-<span id="Property_types"></span>
-<div class="mw-translate-fuzzy">
-==Типы свойств==
-</div>
+=== Property attributes ===
 
 <div class="mw-translate-fuzzy">
 По умолчанию свойства могут быть обновлены. Имеется возможность сделать свойство только для чтения (read-only), например, в случае если требуется отображать только результат выполнения метода. Также возможно создать скрытое (hidden) свойство. Сам же тип свойства можно задать с помощью:
@@ -1000,25 +997,27 @@ The properties are defined in the [https://github.com/FreeCAD/FreeCAD/blob/maste
 obj.setEditorMode("MyPropertyName", mode)
 }}
 
+<div class="mw-translate-fuzzy">
 где переменная mode (short int типа) - может иметь следующие значения:
   0 -- значение по умолчанию, допускает как чтение, так и запись
   1 -- свойство только для чтения (read-only)
   2 -- скрытое свойство (hidden)
+</div>
 
-The mode can also be set using a list of strings, e.g. {{incode|obj.setEditorMode("Placement", ["ReadOnly", "Hidden"])}}.
+The attributes can also be set using a list of strings, e.g. {{incode|obj.setEditorMode("Placement", ["ReadOnly", "Hidden"])}}.
 
-The EditorModes are not set at FreeCAD file reload. This could to be done by the {{Incode|loads}} function. See http://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=10#p108072. By using the {{Incode|setEditorMode}} the properties are only read-only in the [[Property_editor|Property editor]]. They can still be changed from Python. To really make them read-only the setting has to be passed directly inside the {{Incode|addProperty}} function. See http://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=20#p109709 for an example.
+Attributes set using {{Incode|setEditorMode}} can be removed by the user. See [[Property_editor#Context_menu|Property editor]]. Note that read-only properties can still be changed from Python.
 
-Using the direct setting in the {{Incode|addProperty}} function, you also have more possibilities. In particular, an interesting one is mark a property as an output property. This way FreeCAD won't mark the feature as touched when changing it (so no need to recompute).
+You can also set these, and more, attributes directly with the {{Incode|addProperty}} function. Attributes set with that function cannot be changed by the user. An interesting possibility is to mark a property as an output property. This way FreeCAD won't mark the object as touched when changing it (so no need to recompute).
 
-Example of output property (see also https://forum.freecadweb.org/viewtopic.php?t=24928):
+Example of output property (see also https://forum.freecad.org/viewtopic.php?t=24928):
 
 {{Code|code=
 obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 8)
 }}
 
-The property types that can be set at last parameter of the addProperty function are:
-   0 -- Prop_None, No special property type
+The attributes that can be set with {{Incode|addProperty}} are listed below. Multiple attributes can be set by adding values.
+   0 -- Prop_None, No special property attribute
    1 -- Prop_ReadOnly, Property is read-only in the editor
    2 -- Prop_Transient, Property won't be saved to file
    4 -- Prop_Hidden, Property won't appear in the editor
@@ -1029,6 +1028,33 @@ The property types that can be set at last parameter of the addProperty function
 <div class="mw-translate-fuzzy">
 Вы можете найти эти различные типы свойств, определённые в [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyContainer.h заголовочном файле PropertyContainer исходного кода C++].
 </div>
+
+For {{Incode|Prop_ReadOnly}} and {{Incode|Prop_Hidden}} the {{Incode|addProperty}} function has boolean arguments as well:
+
+{{Code|code=
+obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 0, True, True)
+}}
+
+Which is equivalent to:
+
+{{Code|code=
+obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 1+4)
+}}
+
+{{Version|1.0}}: The full signature of the function is:
+
+{{Code|code=
+obj.addProperty(type: string, name: string, group="", doc="", attr=0, read_only=False, hidden=False, enum_vals=[])
+}}
+
+* {{Incode|type}}: Property type.
+* {{Incode|name}}: Property name.
+* {{Incode|group}}: Property subsection (used in the [[Property_editor|Property editor]]).
+* {{Incode|doc}}: Tooltip (idem).
+* {{Incode|attr}}: Attribute, see above.
+* {{Incode|read_only}}: See above.
+* {{Incode|hidden}}: See above.
+* {{Incode|enum_vals}}: Enumeration values (list of string), only relevant if type is {{Incode|"App::PropertyEnumeration"}}.
 
 == Available extensions ==
 
