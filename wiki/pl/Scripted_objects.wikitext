@@ -162,9 +162,7 @@ Jeśli twój obiekt wymaga ponownego obliczenia zaraz po utworzeniu, musisz to z
 
 Ten przykład powoduje powstanie wielu śladów stosu wyjątków w oknie widoku raportu.  Dzieje się tak, ponieważ metoda {{incode|onChanged}} klasy {{incode|Box}} jest wywoływana za każdym razem, gdy w {{incode|__init__}} dodawana jest jakaś właściwość.  Gdy dodawana jest pierwsza właściwość, właściwości Width i Height jeszcze nie istnieją, więc próba uzyskania do nich dostępu kończy się niepowodzeniem.
 
-<div class="mw-translate-fuzzy">
-Wyjaśnienie działania funkcji {{incode|__getstate__}} i {{incode|__setstate__}} które zostały zastąpione przez {{incode|dumps}} i {{incode|loads}} znajduje się w wątku na forum [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009&start=10#p377892 obj.Proxy.Type jest wartością typu dict, a nie string].
-</div>
+Wyjaśnienie działania funkcji {{incode|__getstate__}} i {{incode|__setstate__}} które zostały zastąpione przez {{incode|dumps}} i {{incode|loads}} znajduje się w wątku na forum [https://forum.freecad.org/viewtopic.php?f=18&t=44009&start=10#p377892 obj.Proxy.Type jest wartością typu dict, a nie string].
 
 {{incode|obj.addProperty(...)}} zwraca {{incode|obj}}, dzięki czemu wartość właściwości może być ustawiona w tej samej linii:
 
@@ -980,84 +978,70 @@ Podczas dodawania właściwości do obiektów niestandardowych należy zwrócić
 
 Typy właściwości są zdefiniowane w [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyStandard.h kodzie źródłowym nagłówka C++ dla PropertyStandard].
 
-=== Property attributes ===
+<span id="Property_attributes"></span>
+=== Atrybuty właściwości ===
 
-<div class="mw-translate-fuzzy">
-Domyślnie właściwości mogą być aktualizowane. Możliwe jest nadanie właściwościom statusu tylko do odczytu, na przykład w sytuacji, gdy chcemy pokazać wynik działania metody. Możliwe jest także ukrycie właściwości. Typ właściwości można ustawić za pomocą:
-</div>
+Domyślnie właściwości mogą być zmienione przez użytkownika, ale możliwe jest nadanie właściwościom statusu tylko do odczytu, na przykład w sytuacji, gdy chcemy pokazać wynik działania metody. Możliwe jest także ukrycie właściwości. Te atrybuty można ustawić za pomocą:
 
 {{Code|code=
 obj.setEditorMode("MyPropertyName", mode)
 }}
 
-<div class="mw-translate-fuzzy">
-gdzie ''mode'' jest krótką liczbą całkowitą, której można nadać następujące wartości:
+Gdzie ''mode'' może mieć następujące wartości:
   0 -- tryb domyślny, odczyt i zapis
   1 -- tylko do odczytu
   2 -- ukryty
-</div>
+  3 -- tylko do odczytu i ukryty
 
-<div class="mw-translate-fuzzy">
-Tryb można również ustawić za pomocą listy ciągów znaków, np. {{incode|obj.setEditorMode("Placement", ["ReadOnly", "Hidden"])}}.
-</div>
+Atrybuty można również ustawić za pomocą listy ciągów znaków, np. {{incode|obj.setEditorMode("Placement", ["ReadOnly", "Hidden"])}}.
 
-<div class="mw-translate-fuzzy">
-Tryby edytora nie są ustawiane przy ponownym wczytywaniu pliku FreeCAD. Można to zrobić za pomocą funkcji {{Incode|loads}}. Zobacz http://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=10#p108072. Dzięki użyciu {{Incode|setEditorMode}} właściwości są tylko do odczytu w [[Property_editor/pl|Edytorze właściwości]]. Nadal można je zmieniać z poziomu Pythona. Aby naprawdę uczynić je tylko do odczytu, ustawienie musi być przekazane bezpośrednio wewnątrz funkcji {{Incode|addProperty}}. Przykład można znaleźć na stronie http://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=20#p109709.
-</div>
+Atrybuty ustawiane przy pomocy {{Incode|setEditorMode}} mogą zostać usunięte przez użytkownika. Zobacz [[Property_editor/pl#Menu_kontekstowe|Edytor właściwości]]. Zauważ, że właściwości tylko do odczytu mogą być nadal zmienione z poziomu Pythona.
 
-<div class="mw-translate-fuzzy">
-Korzystając z bezpośredniego ustawienia w funkcji {{Incode|addProperty}}, masz też więcej możliwości. W szczególności interesującą możliwością jest oznaczenie właściwości jako właściwości wyjściowej. W ten sposób FreeCAD nie będzie oznaczał właściwości jako dotkniętej podczas jej zmiany ''(nie ma więc potrzeby ponownego obliczania)''.
-</div>
+Możesz również ustawić te i inne atrybuty bezpośrednio przy pomocy funkcji {{Incode|addProperty}}. Atrybuty ustawione przy pomocy tej funkcji nie mogą być zmienione przez użytkownika. Ciekawą możliwością jest oznaczanie właściwości jako wyjściowej. W ten sposób FreeCAD nie będzie oznaczał właściwości jako zmienionej podczas jej zmiany ''(nie ma więc potrzeby ponownego obliczania)''.
 
-<div class="mw-translate-fuzzy">
-Przykład właściwości wyjściowej ''(zob. też https://forum.freecadweb.org/viewtopic.php?t=24928)'':
-</div>
+Przykład właściwości wyjściowej ''(zob. też https://forum.freecad.org/viewtopic.php?t=24928)'':
 
 {{Code|code=
 obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 8)
 }}
 
-<div class="mw-translate-fuzzy">
-Typy właściwości, które można ustawić w ostatnim parametrze funkcji addProperty, są następujące:
-   0 -- Prop_None, brak specjalnego typu właściwości
+Atrybuty, które można ustawić przy pomocy {{Incode|addProperty}} są wymienione poniżej. Wiele atrybutów można ustawić poprzez dodanie wartości.
+   0 -- Prop_None, brak specjalnego atrybutu właściwości
    1 -- Prop_ReadOnly, właściwość jest tylko do odczytu w edytorze
    2 -- Prop_Transient, właściwość nie zostanie zapisana do pliku
    4 -- Prop_Hidden, właściwość nie będzie widoczna w edytorze
    8 -- Prop_Output, Zmodyfikowana właściwość nie dotyka swojego kontenera nadrzędnego
    16 -- Prop_NoRecompute, Zmodyfikowana właściwość nie dotyka swojego kontenera do rekompilacji
    32 -- Prop_NoPersist, właściwość nie zostanie zapisana do pliku
-</div>
 
-<div class="mw-translate-fuzzy">
-Typy właściwości są zdefiniowane w [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyContainer.h kodzie źródłowym nagłówka C++ dla PropertyContainer].
-</div>
+Atrybuty właściwości są zdefiniowane w [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyContainer.h kodzie źródłowym nagłówka C++ dla PropertyContainer].
 
-For {{Incode|Prop_ReadOnly}} and {{Incode|Prop_Hidden}} the {{Incode|addProperty}} function has boolean arguments as well:
+Dla {{Incode|Prop_ReadOnly}} i {{Incode|Prop_Hidden}} funkcja {{Incode|addProperty}} ma też argumenty logiczne:
 
 {{Code|code=
 obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 0, True, True)
 }}
 
-Which is equivalent to:
+Co jest równoważne z:
 
 {{Code|code=
 obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 1+4)
 }}
 
-{{Version|1.0}}: The full signature of the function is:
+{{Version/pl|1.0}}: Pełna sygnatura tej funkcji to:
 
 {{Code|code=
 obj.addProperty(type: string, name: string, group="", doc="", attr=0, read_only=False, hidden=False, enum_vals=[])
 }}
 
-* {{Incode|type}}: Property type.
-* {{Incode|name}}: Property name.
-* {{Incode|group}}: Property subsection (used in the [[Property_editor|Property editor]]).
-* {{Incode|doc}}: Tooltip (idem).
-* {{Incode|attr}}: Attribute, see above.
-* {{Incode|read_only}}: See above.
-* {{Incode|hidden}}: See above.
-* {{Incode|enum_vals}}: Enumeration values (list of string), only relevant if type is {{Incode|"App::PropertyEnumeration"}}.
+* {{Incode|type}}: Typ właściwości.
+* {{Incode|name}}: Nazwa właściwości.
+* {{Incode|group}}: Subsekcja właściwości (używane w [[Property_editor/pl|Edytorze właściwości]]).
+* {{Incode|doc}}: Podpowiedź narzędzia (to samo).
+* {{Incode|attr}}: Atrybut, zobacz wyżej.
+* {{Incode|read_only}}: Zobacz wyżej.
+* {{Incode|hidden}}: Zobacz wyżej.
+* {{Incode|enum_vals}}: Wartości wyliczenia (lista ciągów znaków), ma znaczenie tylko jeśli typ to {{Incode|"App::PropertyEnumeration"}}.
 
 <span id="Available_extensions"></span>
 ==Dostępne rozszerzenia==
