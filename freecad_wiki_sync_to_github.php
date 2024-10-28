@@ -241,7 +241,7 @@ if (isset($recentChanges['query']['recentchanges'])) {
         $existingContent = getGithubFileContent($filePath);
         
         // Skip if the content is already up-to-date
-        if ($existingContent['content'] !== null && $wikiText === $existingContent['content']) {
+        if ($existingContent['content'] !== null && trim($wikiText) === trim($existingContent['content'])) {
             echo "INFO: '$filePath' is already up-to-date.<br>";
             continue; // If content is the same, skip
         }
