@@ -6,6 +6,8 @@ Check the github wiki for more information. Any contribution is welcomed with gr
 
 ":" to ";"
 
+Changes made here are now instantly reflected on the wiki. This is done instantly thanks to webhooks. If you want to try it, please create a PR.
+
 With the current system, this repo is updated every 15 minutes and changes in the wiki are received. So, technically, it is an up-to-date copy of the wiki that can be stored as a file. The relevant PHP script added.
 
 Being constantly updated: Done with cronjop
