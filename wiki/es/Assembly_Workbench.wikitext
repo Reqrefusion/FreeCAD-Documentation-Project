@@ -140,7 +140,6 @@ The [[File:Workbench_Assembly.svg|24px]] [[Assembly_Workbench|Assembly Workbench
 <div lang="en" dir="ltr" class="mw-content-ltr">
 <div class="mw-collapsible mw-collapsed toccolours">
 [[Image:Assembly3_KinematicExample-01.png|80px]] This example is temporary and may be removed once proper descriptions/tutorials are available.
-: (It is based on an earlier version of the Assembly workbench of v0.22 dev builds and is a bit outdated in several cases regarding v1.0 builds)
 <div class="mw-collapsible-content">
 </div>
 
@@ -149,13 +148,13 @@ The [[File:Workbench_Assembly.svg|24px]] [[Assembly_Workbench|Assembly Workbench
 </div> 
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-The kinematic assembly to be created consists of four parts: a Base, a Slider, a Crank, and a connecting Rod. They are connected with four joints.
+The kinematic assembly to be created consists of four parts: a Base, a Slider Rod, a Crank, and a Connecting Rod. They are connected with four joints.
 </div>
 
 [[Image:Assembly3_KinematicExample-01.png|300px]]
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Assembled parts: Base (amber), Slider (light blue), Crank (red), connecting Rod (green)}}
+{{Caption|Assembled parts: Base (amber), Slider Rod (light blue), Crank (red), Connecting Rod (green)}}
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -166,31 +165,89 @@ The kinematic assembly to be created consists of four parts: a Base, a Slider, a
 In this example all parts and the assembly are created in one document.
 </div>
 
-[[Image:Assembly3_KinematicExample-02.png|200px]] 
-[[Image:Assembly3_KinematicExample-03.png|200px]] 
-[[Image:Assembly3_KinematicExample-04.png|200px]] 
-[[Image:Assembly3_KinematicExample-05.png|200px]] 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The  cylindrical geometries of the objects are either parallel or perpendicular, the rest of the shapes is not relevant for this example unless there are clashes. With this in mind you can model your own objects or create them with the Python code below. The code will create a new document with the four objects (simpler than in the images). Just copy-paste the following lines in the [[Python_console|Python console]]:
+</div>
+
+{{Code|code=
+import FreeCAD as App
+import FreeCADGui as Gui
+import Part
+
+doc = App.newDocument()
+
+box1 = Part.makeBox(140, 40, 7, App.Vector(0, -20, 0))
+cyl1 = Part.makeCylinder(4, 8, App.Vector(120, 0, 7))
+box2 = Part.makeBox(20, 12, 10, App.Vector(5, -6, 7))
+cyl2 = Part.makeCylinder(6, 20, App.Vector(25, 0, 17), App.Vector(-1, 0, 0))
+cyl3 = Part.makeCylinder(4, 20, App.Vector(25, 0, 17), App.Vector(-1, 0, 0))
+shape = box1.fuse([cyl1, box2, cyl2]).removeSplitter().cut(cyl3)
+base = doc.addObject("Part::Feature", "Base")
+base.Shape = shape
+
+box1 = Part.makeBox(4, 12, 12, App.Vector(-12, -6, 0))
+box2 = Part.makeBox(14, 12, 4, App.Vector(-8, -6, 0))
+cyl1 = Part.makeCylinder(4, 8, App.Vector(0, 0, 4))
+cyl2 = Part.makeCylinder(4, 88, App.Vector(-12, 0, 6),App.Vector(-1, 0, 0))
+shape = box1.fuse([box2, cyl1, cyl2]).removeSplitter()
+slider_rod = doc.addObject("Part::Feature", "SliderRod")
+slider_rod.Shape = shape
+slider_rod.Placement.Base = App.Vector(100, -40, 0)
+
+cyl1 = Part.makeCylinder(7.5, 4)
+box1 = Part.makeBox(15, 30, 4, App.Vector(-7.5, 0, 0))
+cyl2 = Part.makeCylinder(7.5, 4, App.Vector(0, 30, 0))
+cyl3 = Part.makeCylinder(4, 6, App.Vector(0, 30, 4))
+cyl4 = Part.makeCylinder(4, 4)
+shape = cyl1.fuse([box1, cyl2]).removeSplitter().fuse(cyl3).cut(cyl4)
+crank = doc.addObject("Part::Feature", "Crank")
+crank.Shape = shape
+crank.Placement.Base = App.Vector(125, -70, 0)
+
+cyl1 = Part.makeCylinder(6, 4)
+box1 = Part.makeBox(50, 12, 4, App.Vector(0, -6, 0))
+cyl2 = Part.makeCylinder(6, 4, App.Vector(50, 0, 0))
+cyl3 = Part.makeCylinder(4, 4)
+cyl4 = Part.makeCylinder(4, 4, App.Vector(50, 0, 0))
+shape = cyl1.fuse([box1, cyl2]).removeSplitter().cut(cyl3.fuse(cyl4))
+connecting_rod = doc.addObject("Part::Feature", "ConnectingRod")
+connecting_rod.Shape = shape
+connecting_rod.Placement.Base = App.Vector(25, -70, 0)
+
+mat = base.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.80, 0.60, 0.15, 0.0)
+base.ViewObject.ShapeAppearance = (mat,)
+
+mat = slider_rod.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.55, 0.70, 0.70, 0.0)
+slider_rod.ViewObject.ShapeAppearance = (mat,)
+
+mat = crank.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.70, 0.30, 0.20, 0.0)
+crank.ViewObject.ShapeAppearance = (mat,)
+
+mat = connecting_rod.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.55, 0.70, 0.0, 0.0)
+connecting_rod.ViewObject.ShapeAppearance = (mat,)
+
+doc.recompute()
+view = Gui.ActiveDocument.ActiveView
+view.viewIsometric()
+view.fitAll()
+}}
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|From left to right: Base, Slider, Crank, connecting Rod}}
+====Add an assembly====
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-Cylindrical geometries are either parallel or perpendicular, the rest of the shapes is not relevant for this example unless it causes clashes. With this in mind model your own shapes.
-</div>
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-====Add a root assembly====
-</div>
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-[[Image:Assembly_CreateAssembly.svg|16px]] [[Assembly_CreateAssembly|Create Assembly]] adds a root assembly to a document. (this tool can also add a sub-assembly to an existing selected assembly)
+With the [[Image:Assembly_CreateAssembly.svg|16px]] [[Assembly_CreateAssembly|Create Assembly]] command add an assembly to the document.
 </div>
 
 [[Image:Assembly_KinematicExample-01.png|200px]]
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Tree view of Parts and Assembly in a document}}
+{{Caption|Tree view of Parts and Assembly}}
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -198,7 +255,7 @@ Cylindrical geometries are either parallel or perpendicular, the rest of the sha
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-In the [[Tree_view|Tree view]] drag and drop the parts on the Assembly object. Now they can be handled by the Assembly's solver.
+In the [[Tree_view|Tree view]] drag and drop the parts on the Assembly object. They can now be handled by the Assembly's solver.
 </div>
 
 [[Image:Assembly_KinematicExample-02.png|200px]]
@@ -212,7 +269,7 @@ In the [[Tree_view|Tree view]] drag and drop the parts on the Assembly object. N
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-To keep the assembly at the desired position, the base part should be locked, or grounded as it is called here. Select the Base in the [[Tree_view|Tree view]] or in the [[3D_view|3D view]] and use the [[Image:Assembly_ToggleGrounded.svg|16px]] [[Assembly_ToggleGrounded|Toggle grounded]] command. This fixes the position of the Base in relation to the local coordinate system (LCS) of the Assembly container. This (also suffixes a lock icon to the label of the Base object and (before weekly build 0.22 - 37213)) adds a GroundedJoint object in the Joints container.
+To keep the assembly at the desired position, the base part should be locked, or grounded as it is called here. Select the Base in the [[Tree_view|Tree view]] or in the [[3D_view|3D view]] and use the [[Image:Assembly_ToggleGrounded.svg|16px]] [[Assembly_ToggleGrounded|Toggle grounded]] command. This fixes the position of the Base in relation to the local coordinate system (LCS) of the Assembly container. A GroundedJoint object is added to the Joints container.
 </div>
 
 [[Image:Assembly_KinematicExample-03.png|200px]]
@@ -224,7 +281,11 @@ To keep the assembly at the desired position, the base part should be locked, or
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-(The GroundedJoint object cannot be unhidden and has no representation in the 3D view  (before weekly build 0.22 - 37213))
+====Alternative: Insert Link====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Instead of the two steps mentioned above it is also possible to use the [[Image:Assembly_InsertLink.svg|16px]] [[Assembly_InsertLink|Insert Link]] command to place objects inside an assembly. The first object automatically becomes the grounded part. So you need to start with the Base object. The command creates inks and the original object remain outside the assembly. To avoid confusion it is advisable to make them invisible.
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -232,7 +293,7 @@ To keep the assembly at the desired position, the base part should be locked, or
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-A joint connects exactly two elements of different parts. They can optionally be selected before the desired joint tool is invoked (any number of selected elements other than two results in an empty selection).<br>The elements define the position and orientation of a LCS represented by a filled circle on the local XY plane and three lines along the local X (red), Y (green), and Z (blue) axes.
+A joint connects exactly two elements of different parts. They can optionally be selected before the desired joint command is invoked (any number of selected elements other than two results in an empty selection).<br>The elements define the position and orientation of a LCS represented by a filled circle on the local XY plane and three lines along the local X (red), Y (green), and Z (blue) axes.
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -248,7 +309,11 @@ A joint connects exactly two elements of different parts. They can optionally be
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-* A Cylindrical joint between Base and Slider
+Move the '''Crank''' using the left mouse button. Only a rotation around the pivot should be possible.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* A Slider joint between Base and Slider Rod
 </div>
 
 [[Image:Assembly_KinematicExample-07.png|200px]]
@@ -256,11 +321,15 @@ A joint connects exactly two elements of different parts. They can optionally be
 [[Image:Assembly_KinematicExample-08.png|200px]]
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Selected elements +[[Image:Assembly_CreateJointCylindrical.svg|16px]] [[Assembly_CreateJointCylindrical|Create Cylindrical Joint]] → rearranged Slider}}
+{{Caption|Selected elements + [[Image:Assembly_CreateJointSlider.svg|16px]] [[Assembly_CreateJointSlider|Create Slider Joint]] → rearranged Slider Rod}}
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-* A Revolute joint between Crank and Rod
+Move the '''SliderRod''' using the left mouse button. Only a displacement along its centerline should be possible.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* A Revolute joint between Crank and Connecting Rod
 </div>
 
 [[Image:Assembly_KinematicExample-09.png|200px]]
@@ -268,7 +337,11 @@ A joint connects exactly two elements of different parts. They can optionally be
 [[Image:Assembly_KinematicExample-10.png|200px]]
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Selected elements + [[Image:Assembly_CreateJointRevolute.svg|16px]] [[Assembly_CreateJointRevolute|Create Revolute Joint]] → rearranged Rod}}
+{{Caption|Selected elements + [[Image:Assembly_CreateJointRevolute.svg|16px]] [[Assembly_CreateJointRevolute|Create Revolute Joint]] → rearranged Connecting Rod}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Move the '''ConnectingRod''' using the left mouse button. Only a rotation around the pivot should be possible.
 </div>
 
 [[Image:Assembly_KinematicExample-11.png|200px]]
@@ -276,11 +349,11 @@ A joint connects exactly two elements of different parts. They can optionally be
 [[Image:Assembly_KinematicExample-12.png|200px]]
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Now there are several joints in a line and we have to help the solver to find a sensible solution.<br>Click and drag the parts →  into an easier to compute position.}}
+{{Caption|If there are several joints in a line we have to help the solver find a sensible solution.<br>If required, click and drag the parts into an easier to compute position.}}
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-* A Cylindrical joint between Rod and Slider
+* A Cylindrical joint between Connecting Rod and Slider Rod
 </div>
 
 [[Image:Assembly_KinematicExample-13.png|200px]]
@@ -300,45 +373,35 @@ In the finished assembly use the mouse pointer to drag the parts according to th
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-'''This doesn't work for v1.0 since the property angle was removed and the rotation was integrated in the offset1 and offset2 properties.'''<br>
 To control the layout of the assembly by the angle between the Base and the Crank we have to change the Revolute joint to a Fixed joint.<br>
 To do so double-click on the Revolute object in the Tree view. In the dialog change Revolute to Fixed and change the Rotation value as desired (the movement should follow the mouse wheel action).
-</div> 
+</div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-Now only the Label of the joint was changed but not its Name! (Each change of the joint type will also change the Label)
-</div> 
+Note that a joint type change will change the joint's Label, but not its Name. In this case the Label is changed to "Fixed".
+</div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-The Rotation property of the Fixed joint can be controlled via macro or from the Python console (just copy and paste the following lines):
+To animate the assembly we can change the Rotation (Offset1.Angle) of the Fixed joint with Python code. Just-copy the following lines in the Python console:
 </div>
 
 {{Code|code=
-actuator = FreeCAD.ActiveDocument.getObject('Revolute')
+import math
+import FreeCAD as App
+import FreeCADGui as Gui
 
-for angle in range(0,361,10):
+actuator = App.ActiveDocument.getObjectsByLabel("Fixed")[0]
+
+for angle in range(0, 361, 10):
     # A full rotation of the Crank in steps of 10°
-    actuator.Rotation = angle
-    App.activeDocument().recompute(None,True,True)
+    actuator.Offset1.Rotation.Angle = math.radians(angle)
+    App.ActiveDocument.recompute()
+    Gui.updateGui()
 }}
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-Or alternatively:
+The end of the range must be greater than 360 to also include this angle as a valid result.
 </div>
-
-{{Code|code=
-actuator = FreeCAD.ActiveDocument.getObject('Revolute')
-
-for angle in range(0,361,10):
-    # A full rotation of the Crank in steps of 10°
-    actuator.Rotation = angle
-    Gui.runCommand('Assembly_SolveAssembly',0)
-}}
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-(The Name of the joint is still Revolute while its Label has changed to Fixed, and the end of the range must be greater than 360 to also include this angle as a valid result.)
-</div>
-
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 </div> <!-- End of collapsible element for ... section. Do not remove! -->
