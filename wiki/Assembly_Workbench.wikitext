@@ -113,14 +113,14 @@ The [[File:Workbench_Assembly.svg|24px]] [[Assembly_Workbench|Assembly Workbench
 ===A kinematic assembly=== <!--T:34--> 
 
 <!--T:35-->
-The kinematic assembly to be created consists of four parts: a Base, a Slider, a Crank, and a connecting Rod. They are connected with four joints.
+The kinematic assembly to be created consists of four parts: a Base, a Slider Rod, a Crank, and a Connecting Rod. They are connected with four joints.
 
 </translate>
 [[Image:Assembly3_KinematicExample-01.png|300px]]
 <translate>
 
 <!--T:36-->
-{{Caption|Assembled parts: Base (amber), Slider (light blue), Crank (red), connecting Rod (green)}}
+{{Caption|Assembled parts: Base (amber), Slider Rod (light blue), Crank (red), Connecting Rod (green)}}
 
 ====Prepare parts==== <!--T:37-->
 
@@ -135,7 +135,7 @@ In this example all parts and the assembly are created in one document.
 <translate>
 
 <!--T:39-->
-{{Caption|From left to right: Base, Slider, Crank, connecting Rod}}
+{{Caption|From left to right: Base, Slider Rod, Crank, Connecting Rod}}
 
 <!--T:40-->
 Cylindrical geometries are either parallel or perpendicular, the rest of the shapes is not relevant for this example unless it causes clashes. With this in mind model your own shapes.
@@ -145,6 +145,7 @@ The shapes can be created via macro or from the Python console. A new document c
 </translate>
 {{Code|code=
 import FreeCAD as App
+import FreeCADGui as Gui
 import Part
 
 doc = App.newDocument()
@@ -161,11 +162,11 @@ base.Shape = shape
 box1 = Part.makeBox(4, 12, 12, App.Vector(-12, -6, 0))
 box2 = Part.makeBox(14, 12, 4, App.Vector(-8, -6, 0))
 cyl1 = Part.makeCylinder(4, 8, App.Vector(0, 0, 4))
-cyl2 = Part.makeCylinder(4, 90, App.Vector(-12, 0, 6),App.Vector(-1, 0, 0))
+cyl2 = Part.makeCylinder(4, 88, App.Vector(-12, 0, 6),App.Vector(-1, 0, 0))
 shape = box1.fuse([box2, cyl1, cyl2]).removeSplitter()
 slider_rod = doc.addObject("Part::Feature", "SliderRod")
 slider_rod.Shape = shape
-slider_rod.Placement.Base = App.Vector(260, 0, 0)
+slider_rod.Placement.Base = App.Vector(100, -40, 0)
 
 cyl1 = Part.makeCylinder(7.5, 4)
 box1 = Part.makeBox(15, 30, 4, App.Vector(-7.5, 0, 0))
@@ -175,7 +176,7 @@ cyl4 = Part.makeCylinder(4, 4)
 shape = cyl1.fuse([box1, cyl2]).removeSplitter().fuse(cyl3).cut(cyl4)
 crank = doc.addObject("Part::Feature", "Crank")
 crank.Shape = shape
-crank.Placement.Base = App.Vector(320, 0, 0)
+crank.Placement.Base = App.Vector(125, -70, 0)
 
 cyl1 = Part.makeCylinder(6, 4)
 box1 = Part.makeBox(50, 12, 4, App.Vector(0, -6, 0))
@@ -183,27 +184,30 @@ cyl2 = Part.makeCylinder(6, 4, App.Vector(50, 0, 0))
 cyl3 = Part.makeCylinder(4, 4)
 cyl4 = Part.makeCylinder(4, 4, App.Vector(50, 0, 0))
 shape = cyl1.fuse([box1, cyl2]).removeSplitter().cut(cyl3.fuse(cyl4))
-rod = doc.addObject("Part::Feature", "Rod")
-rod.Shape = shape
-rod.Placement.Base = App.Vector(380, 0, 0)
+connecting_rod = doc.addObject("Part::Feature", "ConnectingRod")
+connecting_rod.Shape = shape
+connecting_rod.Placement.Base = App.Vector(25, -70, 0)
 
 mat = base.ViewObject.ShapeAppearance[0]
 mat.DiffuseColor = (0.80, 0.60, 0.15, 0.0)
 base.ViewObject.ShapeAppearance = (mat,)
 
-mat = slider.ViewObject.ShapeAppearance[0]
+mat = slider_rod.ViewObject.ShapeAppearance[0]
 mat.DiffuseColor = (0.55, 0.70, 0.70, 0.0)
-slider.ViewObject.ShapeAppearance = (mat,)
+slider_rod.ViewObject.ShapeAppearance = (mat,)
 
 mat = crank.ViewObject.ShapeAppearance[0]
 mat.DiffuseColor = (0.70, 0.30, 0.20, 0.0)
 crank.ViewObject.ShapeAppearance = (mat,)
 
-mat = rod.ViewObject.ShapeAppearance[0]
+mat = connecting_rod.ViewObject.ShapeAppearance[0]
 mat.DiffuseColor = (0.55, 0.70, 0.0, 0.0)
-rod.ViewObject.ShapeAppearance = (mat,)
+connecting_rod.ViewObject.ShapeAppearance = (mat,)
 
 doc.recompute()
+view = Gui.ActiveDocument.ActiveView
+view.viewIsometric()
+view.fitAll()
 }}
 <translate>
 
