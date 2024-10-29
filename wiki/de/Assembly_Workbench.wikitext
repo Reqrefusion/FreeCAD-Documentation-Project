@@ -79,47 +79,123 @@ Der Arbeitsbereich [[File:Workbench_Assembly.svg|24px]] [[Assembly_Workbench/de|
 <span id="Example"></span>
 ==Beispiel==
 
+<div class="mw-translate-fuzzy">
 <div class="mw-collapsible mw-collapsed toccolours">
 [[Image:Assembly3_KinematicExample-01.png|80px]] Dieses ist ein temporäres Beispiel und kann entfernt werden, sobald richtige Beschreibungen bzw. Anleitungen zur Verfügung stehen.
 : (Es basiert auf einer früheren Version des Arbeitsbereichs Assembly aus den v0.22 Entwicklungsversionen und ist in einigen Bereichen im Bezug auf die Versionen der v1.0 etwas veraltet)
 <div class="mw-collapsible-content">
+</div>
 
 <span id="A_kinematic_assembly"></span>
 ===Ein kinematischer Zusammenbau=== 
 
+<div class="mw-translate-fuzzy">
 Der kinematische Zusammenbau (die Kinematik), die erstellt wird, besteht aus vier Bauteilen: Eine Basis, ein Schieber, eine Kurbel und ein Pleuel (Verbindungsstange). Sie sind mit vier Gelenken verbunden.
+</div>
 
 [[Image:Assembly3_KinematicExample-01.png|300px]]
 
+<div class="mw-translate-fuzzy">
 {{Caption|Die zusammengebauten Bauteile: Basis (bernsteinfarben), Schieber (hellblau), Kurbel (rot), Pleuel (grün)}}
+</div>
 
 <span id="Prepare_parts"></span>
 ====Bauteile vorbereiten====
 
 In diesem Beispiel werden alle Bauteile und der Zusammenbau in einem Dokument erstellt.
 
-[[Image:Assembly3_KinematicExample-02.png|200px]] 
-[[Image:Assembly3_KinematicExample-03.png|200px]] 
-[[Image:Assembly3_KinematicExample-04.png|200px]] 
-[[Image:Assembly3_KinematicExample-05.png|200px]] 
-
-{{Caption|Von links nach rechts: Basis, Schieber, Kurbel, Pleuel}}
-
+<div class="mw-translate-fuzzy">
 Zylindrische Geometrien sind entweder parallel oder rechtwinklig, der Rest ist für dieses Beispiel nicht von Bedeutung, solange es keine Kollision verursacht. Mit dieser Info im Hinterkopf modelliert man seine eigene Formen.
+</div>
 
-<span id="Add_a_root_assembly"></span>
+{{Code|code=
+import FreeCAD as App
+import FreeCADGui as Gui
+import Part
+
+doc = App.newDocument()
+
+box1 = Part.makeBox(140, 40, 7, App.Vector(0, -20, 0))
+cyl1 = Part.makeCylinder(4, 8, App.Vector(120, 0, 7))
+box2 = Part.makeBox(20, 12, 10, App.Vector(5, -6, 7))
+cyl2 = Part.makeCylinder(6, 20, App.Vector(25, 0, 17), App.Vector(-1, 0, 0))
+cyl3 = Part.makeCylinder(4, 20, App.Vector(25, 0, 17), App.Vector(-1, 0, 0))
+shape = box1.fuse([cyl1, box2, cyl2]).removeSplitter().cut(cyl3)
+base = doc.addObject("Part::Feature", "Base")
+base.Shape = shape
+
+box1 = Part.makeBox(4, 12, 12, App.Vector(-12, -6, 0))
+box2 = Part.makeBox(14, 12, 4, App.Vector(-8, -6, 0))
+cyl1 = Part.makeCylinder(4, 8, App.Vector(0, 0, 4))
+cyl2 = Part.makeCylinder(4, 88, App.Vector(-12, 0, 6),App.Vector(-1, 0, 0))
+shape = box1.fuse([box2, cyl1, cyl2]).removeSplitter()
+slider_rod = doc.addObject("Part::Feature", "SliderRod")
+slider_rod.Shape = shape
+slider_rod.Placement.Base = App.Vector(100, -40, 0)
+
+cyl1 = Part.makeCylinder(7.5, 4)
+box1 = Part.makeBox(15, 30, 4, App.Vector(-7.5, 0, 0))
+cyl2 = Part.makeCylinder(7.5, 4, App.Vector(0, 30, 0))
+cyl3 = Part.makeCylinder(4, 6, App.Vector(0, 30, 4))
+cyl4 = Part.makeCylinder(4, 4)
+shape = cyl1.fuse([box1, cyl2]).removeSplitter().fuse(cyl3).cut(cyl4)
+crank = doc.addObject("Part::Feature", "Crank")
+crank.Shape = shape
+crank.Placement.Base = App.Vector(125, -70, 0)
+
+cyl1 = Part.makeCylinder(6, 4)
+box1 = Part.makeBox(50, 12, 4, App.Vector(0, -6, 0))
+cyl2 = Part.makeCylinder(6, 4, App.Vector(50, 0, 0))
+cyl3 = Part.makeCylinder(4, 4)
+cyl4 = Part.makeCylinder(4, 4, App.Vector(50, 0, 0))
+shape = cyl1.fuse([box1, cyl2]).removeSplitter().cut(cyl3.fuse(cyl4))
+connecting_rod = doc.addObject("Part::Feature", "ConnectingRod")
+connecting_rod.Shape = shape
+connecting_rod.Placement.Base = App.Vector(25, -70, 0)
+
+mat = base.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.80, 0.60, 0.15, 0.0)
+base.ViewObject.ShapeAppearance = (mat,)
+
+mat = slider_rod.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.55, 0.70, 0.70, 0.0)
+slider_rod.ViewObject.ShapeAppearance = (mat,)
+
+mat = crank.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.70, 0.30, 0.20, 0.0)
+crank.ViewObject.ShapeAppearance = (mat,)
+
+mat = connecting_rod.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.55, 0.70, 0.0, 0.0)
+connecting_rod.ViewObject.ShapeAppearance = (mat,)
+
+doc.recompute()
+view = Gui.ActiveDocument.ActiveView
+view.viewIsometric()
+view.fitAll()
+}}
+
+<span id="Add_an_assembly"></span>
+<div class="mw-translate-fuzzy">
 ====Eine Hauptbaugruppe hinzufügen====
+</div>
 
+<div class="mw-translate-fuzzy">
 [[Image:Assembly_CreateAssembly.svg|16px]] [[Assembly_CreateAssembly/de|Baugruppe erstellen]] fügt einem Dokument eine Hauptbaugruppe hinzu. (dieses Werkzeug kann auch Unterbaugruppen zu ausgewählten vorhandenen Baugruppen hinzufügen)
+</div>
 
 [[Image:Assembly_KinematicExample-01.png|200px]]
 
+<div class="mw-translate-fuzzy">
 {{Caption|Baumansicht von Bauteilen (Parts) und Baugruppe (Assembly) in einem Dokument}}
+</div>
 
 <span id="Move_the_parts_into_the_assembly_container"></span>
 ====Die Bauteile in den Baugruppenbehälter verschieben====
 
+<div class="mw-translate-fuzzy">
 Die Bauteile in der [[Tree_view/de|Baumansicht]] auf das Baugruppenobjekt (Assembly object) ziehen und ablegen. Jetzt können sie vom Assembly-Gleichungslöser verarbeitet werden.
+</div>
 
 [[Image:Assembly_KinematicExample-02.png|200px]]
 
@@ -128,7 +204,9 @@ Die Bauteile in der [[Tree_view/de|Baumansicht]] auf das Baugruppenobjekt (Assem
 <span id="Ground_a_part"></span>
 ====Ein Bauteil verankern====
 
+<div class="mw-translate-fuzzy">
 Um eine Baugruppe an der gewünschten Stelle zu behalten, sollte das Bauteil Basis festgesetzt werden, oder verankert, wie es hier genannt wird. Ein Bauteil in der [[Tree_view/de|Baumansicht]] oder in der [[3D_view/de|3D-Ansicht]] auswählen und den Befehl [[Image:Assembly_ToggleGrounded.svg|16px]] [[Assembly_ToggleGrounded/de|Festsetzen umschalten]] aufrufen. Dies legt die Position der Basis im Bezug auf das lokale Koordinatensystem (LKS) des Assembly-Behälters fest. Dies fügt ein GroundedJoint-Objekt in den Joints-Behälter ein (und hängt am Ende der Benennung des Basis-Objekts ein Schlosssymbol an (vor Weekly-Build 0.22 - 37213)).
+</div>
 
 [[Image:Assembly_KinematicExample-03.png|200px]]
 [[Image:Button_right.svg|16px|link=]]
@@ -136,12 +214,20 @@ Um eine Baugruppe an der gewünschten Stelle zu behalten, sollte das Bauteil Bas
 
 {{Caption|Den Joints-Behälter erweitern, um das GroundedJoint-Objekt zu finden}}
 
-(Das GroundedJoint-Objekt kann nicht ausgeblendet werden und hat keine Repräsentanz in der 3D-Ansicht (vor Weekly-Build 0.22 - 37213))
+<div lang="en" dir="ltr" class="mw-content-ltr">
+====Alternative: Insert Link====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Instead of the two steps mentioned above it is also possible to use the [[Image:Assembly_InsertLink.svg|16px]] [[Assembly_InsertLink|Insert Link]] command to place objects inside an assembly. The first object automatically becomes the grounded part. So you need to start with the Base object. The command creates inks and the original object remain outside the assembly. To avoid confusion it is advisable to make them invisible.
+</div>
 
 <span id="Apply_joints"></span>
 ====Verbindungen hinzufügen====
 
+<div class="mw-translate-fuzzy">
 Eine Verbindung (ein Gelenk) verbindet genau zwei Elemente unterschiedlicher Bauteile. Sie können wahlweise ausgewählt werden, bevor das Werkzeug für die gewünschte Verbindung aufgerufen wird (jede Anzahl ausgewählter Elemente außer zwei ergibt eine leere Auswahl).<br>Die Elemente legen die Position und Ausrichtung eines LKS fest, das durch einen gefüllten Kreis auf der lokalen XY-Ebene und drei Linien entlang der lokalen X- (rot), Y- (grün) und Z-Achse (blau) dargestellt wird.
+</div>
 
 * Ein Drehgelenk (Scharnier) zwischen Basis und Kurbel
 
@@ -151,29 +237,53 @@ Eine Verbindung (ein Gelenk) verbindet genau zwei Elemente unterschiedlicher Bau
 
 {{Caption|Ausgewählte Elemente + [[Image:Assembly_CreateJointRevolute.svg|16px]] [[Assembly_CreateJointRevolute/de|Drehverbindung erstellen]] → neu angeordnete Kurbel}}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Move the '''Crank''' using the left mouse button. Only a rotation around the pivot should be possible.
+</div>
+
+<div class="mw-translate-fuzzy">
 * Eine zylindrische Führung zwischen Basis und Schieber
+</div>
 
 [[Image:Assembly_KinematicExample-07.png|200px]]
 [[Image:Button_right.svg|16px|link=]]
 [[Image:Assembly_KinematicExample-08.png|200px]]
 
+<div class="mw-translate-fuzzy">
 {{Caption|Ausgewählte Elemente +[[Image:Assembly_CreateJointCylindrical.svg|16px]] [[Assembly_CreateJointCylindrical/de|Zylindrische Verbindung erstellen]] → neu angeordneter Schieber}}
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Move the '''SliderRod''' using the left mouse button. Only a displacement along its centerline should be possible.
+</div>
+
+<div class="mw-translate-fuzzy">
 * Ein Drehgelenk (Scharnier) zwischen Kurbel und Pleuel
+</div>
 
 [[Image:Assembly_KinematicExample-09.png|200px]]
 [[Image:Button_right.svg|16px|link=]]
 [[Image:Assembly_KinematicExample-10.png|200px]]
 
+<div class="mw-translate-fuzzy">
 {{Caption|Ausgewählte Elemente + [[Image:Assembly_CreateJointRevolute.svg|16px]] [[Assembly_CreateJointRevolute/de|Drehverbindung erstellen]] → neu angeordnetes Pleuel}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Move the '''ConnectingRod''' using the left mouse button. Only a rotation around the pivot should be possible.
+</div>
 
 [[Image:Assembly_KinematicExample-11.png|200px]]
 [[Image:Button_right.svg|16px|link=]]
 [[Image:Assembly_KinematicExample-12.png|200px]]
 
+<div class="mw-translate-fuzzy">
 {{Caption|Nun haben sich mehrere Gelenke in einer Reihe ergeben und wir müssen dem Gleichungslöser helfen eine sinnvolle Lösung zu finden.<br>Bauteile anklicken und  →  auf eine einfacher zu berechnende Position ziehen.}}
+</div>
 
+<div class="mw-translate-fuzzy">
 * Eine zylindrische Führung zwischen Pleuel und Schieber
+</div>
 
 [[Image:Assembly_KinematicExample-13.png|200px]]
 [[Image:Button_right.svg|16px|link=]]
@@ -186,34 +296,35 @@ Im fertiggestellten Zusammenbau können die Bauteile entsprechend den verwendete
 <span id="Drive_the_crank"></span>
 ====Die Kurbel antreiben====
 
-'''Dies funktioniert nicht für v1.0, da die Eigenschaft angle entfernt wurde und die Rotation in die Eigenschaften offset1 und offset2 integriert wurde.'''<br>Um die Lage aller Bauteile der Baugruppe zueinander durch den Winkel zwischen der Basis und der Kurbel zu steuern, muss deren Drehgelenk in eine starre Verbindung umgewandelt werden.<br>Dafür klickt man das Revolte-Objekt in der Baumansicht doppelt an. Im Dialog ändert man Revolute zu Fixed und passt den Wert des Drehwinkels nach Wunsch an (die Bewegung sollte der Drehung des Mausrades folgen). 
+<div class="mw-translate-fuzzy">
+'''Dies funktioniert nicht für v1.0, da die Eigenschaft angle entfernt wurde und die Rotation in die Eigenschaften offset1 und offset2 integriert wurde.'''<br>Um die Lage aller Bauteile der Baugruppe zueinander durch den Winkel zwischen der Basis und der Kurbel zu steuern, muss deren Drehgelenk in eine starre Verbindung umgewandelt werden.<br>Dafür klickt man das Revolte-Objekt in der Baumansicht doppelt an. Im Dialog ändert man Revolute zu Fixed und passt den Wert des Drehwinkels nach Wunsch an (die Bewegung sollte der Drehung des Mausrades folgen).
+</div>
 
-Hier wurde nur die Benennung (Label) der Verbindung geändert, aber nicht ihr Name! (Jede Änderung der Art der Verbindung ändert auch die Benennung) 
+<div class="mw-translate-fuzzy">
+Hier wurde nur die Benennung (Label) der Verbindung geändert, aber nicht ihr Name! (Jede Änderung der Art der Verbindung ändert auch die Benennung)
+</div>
 
+<div class="mw-translate-fuzzy">
 Die Eigenschaft Rotation der starren Verbindung kann durch ein Makro gesteuert werden oder von der Python-Konsole aus (einfach die folgenden Zeilen kopieren und einfügen):
+</div>
 
 {{Code|code=
-actuator = FreeCAD.ActiveDocument.getObject('Revolute')
+import math
+import FreeCAD as App
+import FreeCADGui as Gui
 
-for angle in range(0,361,10):
+actuator = App.ActiveDocument.getObjectsByLabel("Fixed")[0]
+
+for angle in range(0, 361, 10):
     # A full rotation of the Crank in steps of 10°
-    actuator.Rotation = angle
-    App.activeDocument().recompute(None,True,True)
+    actuator.Offset1.Rotation.Angle = math.radians(angle)
+    App.ActiveDocument.recompute()
+    Gui.updateGui()
 }}
 
-Oder alternativ:
-
-{{Code|code=
-actuator = FreeCAD.ActiveDocument.getObject('Revolute')
-
-for angle in range(0,361,10):
-    # A full rotation of the Crank in steps of 10°
-    actuator.Rotation = angle
-    Gui.runCommand('Assembly_SolveAssembly',0)
-}}
-
+<div class="mw-translate-fuzzy">
 (Der Name der Verbindung ist och immer Revolute, während seine Benennung zu Fixed geändert wurde; und schließlich muss der Bereich größer als 360° sein, damit auch dieser Winkel noch als gültiges Ergebnis anerkannt wird.)
-
+</div>
 
 </div> <!-- End of collapsible element for ... section. Do not remove! -->
 </div> <!-- End of collapsible element for ... section. Do not remove! -->
