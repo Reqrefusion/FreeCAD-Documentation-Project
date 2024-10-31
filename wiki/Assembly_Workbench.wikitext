@@ -102,17 +102,17 @@ The [[File:Workbench_Assembly.svg|24px]] [[Assembly_Workbench|Assembly Workbench
 <!--T:75-->
 * [[Image:Preferences-assembly.svg|32px]] [[Assembly_Preferences|Preferences]]: preferences for the Assembly workbench.
 
-==Example== <!--T:32-->
+==Example crank and slider== <!--T:32-->
 
 <!--T:33-->
 <div class="mw-collapsible mw-collapsed toccolours">
 [[Image:Assembly3_KinematicExample-01.png|80px]] This example is temporary and may be removed once proper descriptions/tutorials are available.
 <div class="mw-collapsible-content">
 
-===A kinematic assembly=== <!--T:34--> 
+===Crank and slider assembly=== <!--T:34--> 
 
 <!--T:35-->
-The kinematic assembly to be created consists of four parts: a Base, a Slider Rod, a Crank, and a Connecting Rod. They are connected with four joints.
+The assembly to be created consists of four parts: a Base, a Slider Rod, a Crank, and a Connecting Rod. They are connected with four joints.
 
 </translate>
 [[Image:Assembly3_KinematicExample-01.png|300px]]
@@ -356,51 +356,57 @@ The end of the range must be greater than 360 to also include this angle as a va
 [[Image:Assembly3_UniversalJointExample-01.png|80px]] This example is temporary and may be removed once proper descriptions/tutorials are available.
 <div class="mw-collapsible-content">
 
-===Assembly of a universal joint===
+===Universal joint assembly===
 
+</translate>
 [[Image:Assembly3_UniversalJointExample-01.png|300px]]
+<translate>
 
-In this example an universal joint is created. Its operating mode is explained here: https://en.wikipedia.org/wiki/Universal_joint
+In this example a [https://en.wikipedia.org/wiki/Universal_joint universal joint] is created.
 
-The kinematic assembly to be created consists of two parts: '''fork''' and '''cross''', but two specimen of the part cross are needed. Additional two non solid elements, '''Axle1''' and '''Axle2''' representing the inclined axles are needed. The axles and the solid parts are connected with several joints.
+The assembly consists of three solid parts: two identical Forks and a Cross. Two additional non solid elements, Axle1 and Axle2, representing the angled axles, are are also needed. The axles and the solid parts are connected with several joints.
 
 ===Prepare parts===
 
 In this example all parts and the assembly are created in one document. 
 
-The shapes can be created via macro or from the Python console. A new document containing the shapes becomes created. Just copy-paste the following lines in the [[Python_console|Python console]]:
+The Python code below will create a new document with four objects (only 1 Fork). Just copy-paste the following lines in the [[Python_console|Python console]]:
 
 </translate>
 {{Code|code=
-import Part,math
+import math
+import FreeCAD as App
+import FreeCADGui as Gui
+import Part
+
 doc = App.newDocument()
 
-axle1 = doc.addObject("Part::Line","Axle1")
+axle1 = doc.addObject("Part::Line", "Axle1")
 axle1.X2 = -80
 
-axle2 = doc.addObject("Part::Line","Axle2")
+axle2 = doc.addObject("Part::Line", "Axle2")
 axle2.X2 = 80
 axle2.Placement.Rotation.Angle = math.radians(20)
 
-sph1 = Part.makeSphere(50,App.Vector(0,0,0),App.Vector(-1,0,0),0,90,360)
-box1 = Part.makeBox(50,40,80,App.Vector(-50,-20,-40))
-cyl1 = Part.makeCylinder(20,80,App.Vector(0,0,-40))
-cyl2 = Part.makeCylinder(20,80,App.Vector(0,0,0),App.Vector(-1,0,0))
-cyl3 = Part.makeCylinder(30,60,App.Vector(0,-30,0),App.Vector(0,1,0))
-box2 = Part.makeBox(30,60,60,App.Vector(0,-30,-30))
-cyl4 = Part.makeCylinder(15,80,App.Vector(0,0,-40)) # senkrecht
-cyl5 = Part.makeCylinder(15,80,App.Vector(0,0,0),App.Vector(-1,0,0)) # Hauptbohrung
-shape = sph1.common(box1).fuse([cyl1,cyl2]).cut(cyl3.fuse([box2,cyl4,cyl5]))
+sph1 = Part.makeSphere(50, App.Vector(0, 0, 0), App.Vector(-1, 0, 0), 0, 90, 360)
+box1 = Part.makeBox(50, 40, 80, App.Vector(-50, -20, -40))
+cyl1 = Part.makeCylinder(20, 80, App.Vector(0, 0, -40))
+cyl2 = Part.makeCylinder(20, 80, App.Vector(0, 0, 0), App.Vector(-1, 0, 0))
+cyl3 = Part.makeCylinder(30, 60, App.Vector(0, -30, 0), App.Vector(0, 1, 0))
+box2 = Part.makeBox(30, 60, 60, App.Vector(0, -30, -30))
+cyl4 = Part.makeCylinder(15, 80, App.Vector(0, 0, -40))
+cyl5 = Part.makeCylinder(15, 80, App.Vector(0, 0, 0), App.Vector(-1, 0, 0))
+shape = sph1.common(box1).fuse([cyl1, cyl2]).cut(cyl3.fuse([box2, cyl4, cyl5]))
 fork = doc.addObject("Part::Feature", "Fork")
 fork.Shape = shape.removeSplitter()
-fork.Placement.Base = App.Vector(0,100,0)
+fork.Placement.Base = App.Vector(0, 100, 0)
 
-cyl1 = Part.makeCylinder(15,80,App.Vector(0,0,-40))
-cyl2 = Part.makeCylinder(15,80,App.Vector(0,-40,0),App.Vector(0,1,0))
+cyl1 = Part.makeCylinder(15, 80, App.Vector(0, 0, -40))
+cyl2 = Part.makeCylinder(15, 80, App.Vector(0, -40, 0), App.Vector(0, 1, 0))
 shape = cyl1.fuse([cyl2])
 cross = doc.addObject("Part::Feature", "Cross")
 cross.Shape = shape.removeSplitter()
-cross.Placement.Base = App.Vector(70,100,0)
+cross.Placement.Base = App.Vector(70, 100, 0)
 
 mat = fork.ViewObject.ShapeAppearance[0]
 mat.DiffuseColor = (0.80, 0.60, 0.15, 0.0)
@@ -411,30 +417,41 @@ mat.DiffuseColor = (0.55, 0.70, 0.70, 0.0)
 cross.ViewObject.ShapeAppearance = (mat,)
 
 doc.recompute()
+view = Gui.ActiveDocument.ActiveView
+view.viewIsometric()
+view.fitAll()
 }}
 <translate>
 
 ===Prepare inclination of axles===
 
-The inclination of the axles is defaulted by 20 degrees. If you want to change this value select '''Axle2''' and set another value in the Placement.Angle property. This property must be changed before moving '''Axle2''' into the assembly.
+The angle between the axles is set to 20 degrees. If you want to change this value select Axle2 and change the Placement.Angle property. This property must be changed before moving Axle2 into the assembly.
 
-Warning: too large angles will result in a collision of parts.
+Warning: a too large angle will result in the collision of parts.
 
-===Move the parts into the assembly container===
+===Add an assembly===
 
 With the [[Image:Assembly_CreateAssembly.svg|24px]] [[Assembly_CreateAssembly|Create Assembly]] command add an assembly to the document.
 
-In the assembly we need two specimen of the part '''Fork'''. First insert a copy using the [[Image:Assembly_InsertLink.svg|32px]] [[Assembly_InsertLink|Insert Component]] command. Inside the assembly the copy is named '''Fork001'''.
+===Move the parts into the assembly===
 
-In the [[Tree_view|Tree view]] drag and drop the parts on the Assembly object. They can now be handled by the Assembly's solver.
+In the [[Tree_view|Tree view]] drag and drop the axles on the Assembly object.
 
-===Ground the two line elements representing the axles===
+For the other objects we will use the [[Image:Assembly_InsertLink.svg|24px]] [[Assembly_InsertLink|Insert Component]] command:
+# Invoke the command.
+# In the dialog that opens click the Cross object once, and the Fork object twice.
+# Press the {{Button|OK}} button.
+# Expand the Joints container in the Tree view and delete the automatically created GroundedJoint.
+# Make the objects outside the assembly invisible.
+# If the objects inside the container overlap too much you can drag them to a new position.
 
-Select the two axles in the [[Tree_view|Tree view]] and use the [[Image:Assembly_ToggleGrounded.svg|24px]] [[Assembly_ToggleGrounded|Toggle grounded]] command.
+===Ground the two axles===
+
+Select the two axles in the Tree view and use the [[Image:Assembly_ToggleGrounded.svg|24px]] [[Assembly_ToggleGrounded|Toggle grounded]] command.
 
 ===Apply joints===
 
-* A Revolute joint between Axle1 and Fork
+* A Revolute joint between Axle1 and Fork001
 
 </translate>
 [[Image:Assembly3_UniversalJointExample-02.png|200px]]
@@ -442,9 +459,11 @@ Select the two axles in the [[Tree_view|Tree view]] and use the [[Image:Assembly
 [[Image:Assembly3_UniversalJointExample-03.png|200px]]
 <translate>
 
-{{Caption|Selected elements + [[Image:Assembly_CreateJointRevolute.svg|24px]] [[Assembly_CreateJointRevolute|Create Revolute Joint]] → rearranged Fork}}
+{{Caption|Selected elements + [[Image:Assembly_CreateJointRevolute.svg|24px]] [[Assembly_CreateJointRevolute|Create Revolute Joint]] + Offset of 40mm → rearranged Fork001}}
 
-* A Cylindrical joint between Fork and Cross
+If you invoke the command first and then select the elements, you can click near the correct endpoint of the Axle1 to avoid having to enter an offset.
+
+* A Cylindrical joint between Fork001 and Cross001
 
 </translate>
 [[Image:Assembly3_UniversalJointExample-04.png|200px]]
@@ -452,9 +471,9 @@ Select the two axles in the [[Tree_view|Tree view]] and use the [[Image:Assembly
 [[Image:Assembly3_UniversalJointExample-05.png|200px]]
 <translate>
 
-{{Caption|Selected elements + [[Image:Assembly_CreateJointCylindrical.svg|24px]] [[Assembly_CreateJointCylindrical|Create Cylindrical Joint]] → rearranged Cross}}
+{{Caption|Selected elements + [[Image:Assembly_CreateJointCylindrical.svg|24px]] [[Assembly_CreateJointCylindrical|Create Cylindrical Joint]] → rearranged Cross001}}
 
-* A Cylindrical joint between Axle2 and Fork001
+* A Cylindrical joint between Axle2 and Fork002
 
 </translate>
 [[Image:Assembly3_UniversalJointExample-06.png|200px]]
@@ -462,11 +481,11 @@ Select the two axles in the [[Tree_view|Tree view]] and use the [[Image:Assembly
 [[Image:Assembly3_UniversalJointExample-07.png|200px]]
 <translate>
 
-{{Caption|Selected elements + [[Image:Assembly_CreateJointCylindrical.svg|24px]] [[Assembly_CreateJointCylindrical|Create Cylindrical Joint]] → rearranged Fork001}}
+{{Caption|Selected elements + [[Image:Assembly_CreateJointCylindrical.svg|24px]] [[Assembly_CreateJointCylindrical|Create Cylindrical Joint]] → rearranged Fork002}}
 
 If needed reverse the direction of the joint using the '''Reverse''' button in the task panel.
 
-* A Cylindrical joint between Cross and Fork001
+* A Cylindrical joint between Cross001 and Fork002
 
 </translate>
 [[Image:Assembly3_UniversalJointExample-08.png|200px]]
@@ -474,15 +493,15 @@ If needed reverse the direction of the joint using the '''Reverse''' button in t
 [[Image:Assembly3_UniversalJointExample-09.png|200px]]
 <translate>
 
-{{Caption|Selected elements + [[Image:Assembly_CreateJointCylindrical.svg|24px]] [[Assembly_CreateJointCylindrical|Create Cylindrical Joint]] → rearranged Cross and Fork001}}
+{{Caption|Selected elements + [[Image:Assembly_CreateJointCylindrical.svg|24px]] [[Assembly_CreateJointCylindrical|Create Cylindrical Joint]] → rearranged Cross001 and Fork002}}
 
 ===Drive the universal joint===
 
-The universal joint can be driven by moving '''Fork''' with the left mouse.
+The universal joint can be driven by moving '''Fork001''' with the left mouse.
 
 If you want to check the situation at distinct rotation angles do the following:
 
-Change the Cylindrical joint between '''Axle1''' and '''Fork''' to a  Fixed joint. Select the Offset1.Angle property of the Fixed joint and roll the mouse wheel. The universal joint may be positioned to any angle.
+Change the Cylindrical joint between '''Axle1''' and '''Fork001''' to a  Fixed joint. Select the Offset1.Angle property of the Fixed joint and roll the mouse wheel. The universal joint may be positioned to any angle.
 
 </div> <!-- End of collapsible element for ... section. Do not remove! -->
 </div> <!-- End of collapsible element for ... section. Do not remove! -->
