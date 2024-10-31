@@ -76,17 +76,27 @@
 
 * [[Image:Preferences-assembly.svg|32px]] [[Assembly_Preferences/pl|Ustawienia]]: preferencje dla środowiska pracy Złożenie.
 
-<span id="Example"></span>
+<span id="Example_crank_and_slider"></span>
+<div class="mw-translate-fuzzy">
 ==Przykład==
+</div>
 
 <div class="mw-collapsible mw-collapsed toccolours">
-[[Image:Assembly3_KinematicExample-01.png|80px]] Ten przykład jest tymczasowy i może zostać usunięty, gdy dostępne będą odpowiednie opisy / poradniki.
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[Image:Assembly3_KinematicExample-01.png|80px]] This example is temporary and may be removed once proper descriptions/tutorials are available.
+</div>
+
 <div class="mw-collapsible-content">
 
-<span id="A_kinematic_assembly"></span>
-===Złożenie kinematyczne=== 
+<span id="Crank_and_slider_assembly"></span>
+<div class="mw-translate-fuzzy">
+===Złożenie kinematyczne===
+</div> 
 
+<div class="mw-translate-fuzzy">
 Zespół kinematyczny, który ma zostać utworzony, składa się z czterech części: podstawy, suwaka, korby i korbowodu. Są one połączone czterema przegubami.
+</div>
 
 [[Image:Assembly3_KinematicExample-01.png|300px]]
 
@@ -252,6 +262,14 @@ Jeśli to konieczne, kliknij i przeciągnij części do łatwiejszej do obliczen
 
 W gotowym złożeniu użyj kursora myszki, aby przeciągnąć części zgodnie z użytymi połączeniami.
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+====Note====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The pin of the Slider Rod is redundantly orientated. Its centerline is parallel to the pin of the Base through the kinematic chain from Base via Crank and Connecting Rod, i.e. its local Z axis cannot rotate around any X or Y axis. The Slider joint also prevents the rotation of its Z axis around two local axes and so results in two redundantly constrained degrees of freedom. A Cylindrical joint instead of the Slider joint would only lock one rotation resulting in only a single redundantly constrained degree of freedom.
+</div>
+
 <span id="Drive_the_crank"></span>
 ===Napęd korby===
 
@@ -277,9 +295,222 @@ for angle in range(0, 361, 10):
 
 Koniec zakresu musi być większy niż 360, aby uwzględnić ten kąt jako prawidłowy wynik.
 
-</div> <!-- Koniec elementu zwijanego dla sekcji treści. Nie usuwaj! -->
-</div> <!-- Koniec elementu zwijanego dla ... sekcji. Nie usuwaj! -->
+</div> <!-- End of collapsible element for ... section. Do not remove! -->
+</div> <!-- End of collapsible element for ... section. Do not remove! -->
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Example universal joint==
+</div>
+
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[Image:Assembly3_UniversalJointExample-01.png|80px]] This example is temporary and may be removed once proper descriptions/tutorials are available.
+</div>
+
+<div class="mw-collapsible-content">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Universal joint assembly===
+</div>
+
+[[Image:Assembly3_UniversalJointExample-01.png|300px]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In this example a [https://en.wikipedia.org/wiki/Universal_joint universal joint] is created.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The assembly consists of three solid parts: two identical Forks and a Cross. Two additional non solid elements, Axle1 and Axle2, representing the angled axles, are also needed. The axles and the solid parts are connected with several joints.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Prepare parts===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In this example all parts and the assembly are created in one document.
+</div> 
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The Python code below will create a new document with four objects (only 1 Fork). Just copy-paste the following lines in the [[Python_console|Python console]]:
+</div>
+
+{{Code|code=
+import math
+import FreeCAD as App
+import FreeCADGui as Gui
+import Part
+
+doc = App.newDocument()
+
+axle1 = doc.addObject("Part::Line", "Axle1")
+axle1.X2 = -80
+
+axle2 = doc.addObject("Part::Line", "Axle2")
+axle2.X2 = 80
+axle2.Placement.Rotation.Angle = math.radians(20)
+
+sph1 = Part.makeSphere(50, App.Vector(0, 0, 0), App.Vector(-1, 0, 0), 0, 90, 360)
+box1 = Part.makeBox(50, 40, 80, App.Vector(-50, -20, -40))
+cyl1 = Part.makeCylinder(20, 80, App.Vector(0, 0, -40))
+cyl2 = Part.makeCylinder(20, 80, App.Vector(0, 0, 0), App.Vector(-1, 0, 0))
+cyl3 = Part.makeCylinder(30, 60, App.Vector(0, -30, 0), App.Vector(0, 1, 0))
+box2 = Part.makeBox(30, 60, 60, App.Vector(0, -30, -30))
+cyl4 = Part.makeCylinder(15, 80, App.Vector(0, 0, -40))
+cyl5 = Part.makeCylinder(15, 80, App.Vector(0, 0, 0), App.Vector(-1, 0, 0))
+shape = sph1.common(box1).fuse([cyl1, cyl2]).cut(cyl3.fuse([box2, cyl4, cyl5]))
+fork = doc.addObject("Part::Feature", "Fork")
+fork.Shape = shape.removeSplitter()
+fork.Placement.Base = App.Vector(0, 100, 0)
+
+cyl1 = Part.makeCylinder(15, 80, App.Vector(0, 0, -40))
+cyl2 = Part.makeCylinder(15, 80, App.Vector(0, -40, 0), App.Vector(0, 1, 0))
+shape = cyl1.fuse([cyl2])
+cross = doc.addObject("Part::Feature", "Cross")
+cross.Shape = shape.removeSplitter()
+cross.Placement.Base = App.Vector(70, 100, 0)
+
+mat = fork.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.80, 0.60, 0.15, 0.0)
+fork.ViewObject.ShapeAppearance = (mat,)
+
+mat = cross.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.55, 0.70, 0.70, 0.0)
+cross.ViewObject.ShapeAppearance = (mat,)
+
+doc.recompute()
+view = Gui.ActiveDocument.ActiveView
+view.viewIsometric()
+view.fitAll()
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Change angle of axles===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The angle between the axles is set to 20 degrees. If you want to change this value select Axle2 and change the Placement.Angle property. This property must be changed before moving Axle2 into the assembly.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Warning: parts may collide if the angle is too large.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Add an assembly===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+With the [[Image:Assembly_CreateAssembly.svg|24px]] [[Assembly_CreateAssembly|Create Assembly]] command add an assembly to the document.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Move the axles into the assembly===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the [[Tree_view|Tree view]] drag and drop the axles on the Assembly object.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Ground the axles===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Select the two axles in the Tree view and use the [[Image:Assembly_ToggleGrounded.svg|24px]] [[Assembly_ToggleGrounded|Toggle grounded]] command.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Move the solids into the assembly===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+For the other objects we will use the [[Image:Assembly_InsertLink.svg|24px]] [[Assembly_InsertLink|Insert Component]] command:
+# Invoke the command.
+# In the dialog that opens click the Cross object once, and the Fork object twice.
+# Press the {{Button|OK}} button.
+# Make the objects outside the assembly invisible.
+# If the objects inside the assembly overlap too much you can drag them to a new position.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Apply joints===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* A Revolute joint between Axle1 and Fork001
+</div>
+
+[[Image:Assembly3_UniversalJointExample-02.png|200px]]
+[[Image:Button_right.svg|16px|link=]]
+[[Image:Assembly3_UniversalJointExample-03.png|200px]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|Selected elements + [[Image:Assembly_CreateJointRevolute.svg|24px]] [[Assembly_CreateJointRevolute|Create Revolute Joint]] + Offset of +40mm or -40mm → rearranged Fork001}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you invoke the command first and then select the elements, you can click near the correct endpoint of Axle1 to avoid having to enter an offset.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* A Cylindrical joint between Fork001 and Cross001
+</div>
+
+[[Image:Assembly3_UniversalJointExample-04.png|200px]]
+[[Image:Button_right.svg|16px|link=]]
+[[Image:Assembly3_UniversalJointExample-05.png|200px]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|Selected elements + [[Image:Assembly_CreateJointCylindrical.svg|24px]] [[Assembly_CreateJointCylindrical|Create Cylindrical Joint]] → rearranged Cross001}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* A Cylindrical joint between Axle2 and Fork002
+</div>
+
+[[Image:Assembly3_UniversalJointExample-06.png|200px]]
+[[Image:Button_right.svg|16px|link=]]
+[[Image:Assembly3_UniversalJointExample-07.png|200px]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|Selected elements + [[Image:Assembly_CreateJointCylindrical.svg|24px]] [[Assembly_CreateJointCylindrical|Create Cylindrical Joint]] → rearranged Fork002}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If required reverse the direction of the joint using the {{Button|[[Image:Button_sort.svg|16px]]}} button in the task panel.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* A Cylindrical joint between Cross001 and Fork002
+</div>
+
+[[Image:Assembly3_UniversalJointExample-08.png|200px]]
+[[Image:Button_right.svg|16px|link=]]
+[[Image:Assembly3_UniversalJointExample-09.png|200px]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|Selected elements + [[Image:Assembly_CreateJointCylindrical.svg|24px]] [[Assembly_CreateJointCylindrical|Create Cylindrical Joint]] → rearranged Cross001 and Fork002}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Drive the universal joint===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The universal joint can be driven by moving Fork001 with the left mouse.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you want to check the situation at distinct rotation angles do the following:
+# Change the Cylindrical joint between Axle1 and Fork001 to a  Fixed joint.
+# Select the Offset1.Angle property of the Fixed joint and roll the mouse wheel.
+# The universal joint may be positioned to any angle.
+</div>
+
+</div> <!-- End of collapsible element for ... section. Do not remove! -->
+</div> <!-- End of collapsible element for ... section. Do not remove! -->
 
 {{Docnav/pl
 |[[Std_Base/pl|Strona Startowa]]
