@@ -4,8 +4,8 @@
 |Name=Macro Align Object BoundBox Center
 |Description=Aligns 2 (or more) objects by the center of their bounding boxes.
 |Author=heda
-|Version=0.1
-|Date=2024-10-23
+|Version=0.2
+|Date=2024-11-10
 |FCVersion=
 }}
 
@@ -26,6 +26,7 @@ Through the [[Std_AddonMgr|Addon manager]].
 
 ==Version==
 
+v0.2 2024-11-10: Now handles draft/text as well.
 v0.1 2024-10-23: First release.
 
 ==Code==
@@ -63,8 +64,8 @@ v0.1 2024-10-23: First release.
 __Name__ = 'Macro_Align_Object_BoundBox_Center'
 __Comment__ = 'Aligns 2 (or more) objects by bounding box'
 __Author__ = 'heda @ fc-forum'
-__Version__ = '0.1'
-__Date__ = '2024-10-23'
+__Version__ = '0.2'
+__Date__ = '2024-11-10'
 __License__ = 'LGPL-2.0-or-later'
 __Web__ = ''
 __Wiki__ = 'https://wiki.freecad.org/Macro_Align_Object_BoundBox_Center'
@@ -93,15 +94,37 @@ import FreeCADGui as Gui
 doc = App.ActiveDocument
 sel = Gui.Selection.getSelection()
 
+def getBBox(obj):
+    if hasattr(obj, 'Shape'):
+        return obj.Shape.BoundBox
+    elif hasattr(obj.'ViewObject'):
+        return obj.ViewObject.getBoundingBox()
+    else:
+        return None
+
 if len(sel) > 1:
 
     ref, *moves = sel
-    # doc.openTransaction('BoundBox align objects')
-    for move in moves:
-        vec = ref.Shape.BoundBox.Center - move.Shape.BoundBox.Center
-        move.Placement.Base = move.Placement.Base + vec
-    # doc.commitTransaction()
-    doc.recompute()
-    txt = [obj.Label for obj in moves]
-    print('moved {} to {}'.format(', '.join(txt), ref.Label))
+    refbb = getBBox(ref)
+    msg_skip = 'could not find bbox for {}, skipping...)'
+    if refbb:
+        # doc.openTransaction('Bbox align objects')
+        moved = list()
+        for move in moves:
+            movebb = getBBox(move)
+            if movebb:
+                vec = refbb.Center - movebb.Center
+                move.Placement.Base = move.Placement.Base + vec
+                moved.append(move)
+            else:
+                print(msg_skip.format(move.Label))
+        doc.recompute()
+        # doc.commitTransaction()
+        if moved:
+            txt = [obj.Label for obj in moved]
+            print('moved {} to {}'.format(', '.join(txt), ref.Label))
+        else:
+            print('could not move any objects')
+    else:
+        print('could not find bbox for ref-obj, bailing...') 
 }}
