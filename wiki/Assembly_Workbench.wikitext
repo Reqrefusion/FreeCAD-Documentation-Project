@@ -795,7 +795,7 @@ The vise can be driven by moving Crank or MovableJaw with the left mouse.
 
 [[Image:Assembly3_ShockAbsorberExample.gif|300px]]
 
-In this example a shock absorber is created.
+In this example a [https://en.wikipedia.org/wiki/Shock_absorber shock absorber] is created.
 
 The assembly consists of three solid parts: piston, cylinder and spring. Three additional non solid elements, two axles and a rod are also needed. All parts are connected with several joints.
 
@@ -807,7 +807,97 @@ The Python code below will create a new document with 6 objects. Create a new [h
 
 During the movement of the mechanism the spring changes its height. Hence the spring needs a property '''Height''' which is connected to the distance of its supporting faces. The spring must be created as a [https://wiki.freecad.org/App_FeaturePython/en Part::FeaturePython] which requires the definition of a class having the call back functions execute() and onChanged(). Therefore the code below cannot run in the python console. 
 
-[Einfügen Macro]
+</translate>
+{{Code|code=
+import math
+import FreeCAD as App
+import FreeCADGui as Gui
+import Part
+
+doc = App.newDocument()
+
+class Spring():
+    def __init__(self,spring):
+        spring.addProperty("App::PropertyLength", "Height", "Spring", "Height of the helix").Height = 200.0
+        spring.Proxy = self
+        spring.ViewObject.Proxy = 0
+        
+    def execute(self,spring):
+        helix = Part.makeHelix(spring.Height/8.5,spring.Height, 35)
+        startPnt = helix.Edges[0].Curve.value(0)
+        section = Part.Wire([Part.Circle(startPnt,App.Vector(0,1,0),5).toShape()])
+        hel1 = helix.makePipeShell([section], True, True)
+        box1 = Part.makeBox(80, 80, 10,App.Vector(-40, -40, -10))
+        box2 = Part.makeBox(80, 80, 10,App.Vector(-40, -40, spring.Height))
+        shape = hel1.cut(box1).cut(box2)
+        spring.Shape = shape
+        
+    def onChanged(self, spring, prop):
+        if prop == "Height":
+            self.execute(spring) 
+            
+spring = doc.addObject("Part::FeaturePython", "Spring")
+Spring(spring)
+spring.Placement.Base = App.Vector(0, 100, 0)
+
+axle1 = doc.addObject("Part::Line","Axle1")
+axle1.Y2 = 80
+
+axle2 = doc.addObject("Part::Line","Axle2")
+axle2.Y2 = 80
+axle2.Placement.Base = App.Vector(120, 0, -250)
+
+rod = doc.addObject("Part::Line","Rod")
+rod.X2 = 100
+rod.Placement.Base = App.Vector(0, -50, 0)
+
+cyl1 = Part.makeCylinder(40, 10,App.Vector(0, 0, -5))
+tor1 = Part.makeTorus(40, 5)
+cyl2 = Part.makeCylinder(45, 5)
+box1 = Part.makeBox(30, 10, 30,App.Vector(-15, -5, -35))
+cyl3 = Part.makeCylinder(15, 10, App.Vector(0, -5, -35),App.Vector(0, 1, 0))
+cyl4 = Part.makeCylinder(40, 5)
+cyl5 = Part.makeCylinder(5, 10,App.Vector(0, -5, -35),App.Vector(0, 1, 0))
+cyl6 = Part.makeCylinder(5, 130)
+cyl7 = Part.makeCylinder(20, 5,App.Vector(0, 0, 130))
+shape = cyl1.fuse([tor1,cyl2,box1,cyl3]).cut(cyl4.fuse([cyl5])).fuse([cyl6,cyl7])
+piston = doc.addObject("Part::Feature", "Piston")
+piston.Shape = shape
+piston.Placement.Base = App.Vector(200, 100, -200)
+
+cyl1 = Part.makeCylinder(40, 10,App.Vector(0, 0, -5))
+tor1 = Part.makeTorus(40, 5)
+cyl2 = Part.makeCylinder(45, 5)
+box1 = Part.makeBox(30, 10, 30,App.Vector(-15, -5, -35))
+cyl3 = Part.makeCylinder(15, 10,App.Vector(0, -5, -35),App.Vector(0, 1, 0))
+cyl4 = Part.makeCylinder(40, 5)
+cyl5 = Part.makeCylinder(5, 10,App.Vector(0, -5, -35),App.Vector(0, 1, 0))
+cyl6 = Part.makeCylinder(25, 130)
+tor2 = Part.makeTorus(20, 5,App.Vector(0, 0, 130))
+cyl7 = Part.makeCylinder(20, 135)
+cyl8 = Part.makeCylinder(20, 130)
+cyl9 = Part.makeCylinder(5, 135)
+shape = cyl1.fuse([tor1,cyl2,box1,cyl3]).cut(cyl4.fuse([cyl5])).fuse([cyl6,tor2,cyl7]).cut(cyl8.fuse([cyl9]))
+cylinder = doc.addObject("Part::Feature", "Cylinder")
+cylinder.Shape = shape
+cylinder.Placement.Rotation.Axis = App.Vector(0, 1, 0)
+cylinder.Placement.Rotation.Angle = math.pi
+cylinder.Placement.Base = App.Vector(100, 100, 0)
+
+mat = piston.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.80, 0.60, 0.15, 0.0)
+piston.ViewObject.ShapeAppearance = (mat,)
+
+mat = cylinder.ViewObject.ShapeAppearance[0]
+mat.DiffuseColor = (0.55, 0.70, 0.70, 0.0)
+cylinder.ViewObject.ShapeAppearance = (mat,)
+
+doc.recompute()
+view = Gui.ActiveDocument.ActiveView
+view.viewIsometric()
+view.fitAll()
+}}
+<translate>
 
 ===Add an assembly===
 
@@ -911,7 +1001,7 @@ Select the center of the support face on the Piston and the center of the bottom
 [[Image:Assembly3_ShockAbsorberExample-15.png|200px]]
 <translate>
 
-{{Caption|Selected elements + [[Image:Assembly_CreateJointScrew.svg|24px]] [[Assembly_CreateJointScrew|Create Screw Joint]] → rearranged Spring}}
+{{Caption|Selected elements + [[Image:Assembly_CreateJointFixed.svg|24px]] [[Assembly_CreateJointFixed|Create Fixed Joint]] → rearranged Spring}}
 
 Select the bottom vertex of the cylinder's seam in the Piston and the corner vertex in the Spring.
 
@@ -919,7 +1009,7 @@ Connect the distance property of the '''Distance''' joint to the Spring's '''Hei
 
 # Select the Spring in the [[Tree_view|Tree view]].
 # Select the blue icon [[Image:Bound-expression.svg|16px]] in the Height property field.
-# Type: {{incode|Distance.Distance}}
+# Enter in the expression editor: {{incode|Distance.Distance}}
 
 ===Drive the shock absorber=== 
 
