@@ -14,7 +14,6 @@ $wikiPassword = 'XXX';
 
 $apiUrl = 'https://wiki.freecad.org/api.php';
 
-
 $webhookSecret = "XXX";
 
 $languageCodes = array(
@@ -63,7 +62,7 @@ function reverseFilePath($filePath) {
     $filePath = str_replace('wiki/', '', $filePath);
     $parts = explode('/', $filePath);
 
-    // Check for language code in path
+    // Check for language code in the path
     $languageCode = null;
     if (in_array($parts[0], $languageCodes)) {
         $languageCode = array_shift($parts);  // Remove and save language code
@@ -100,7 +99,7 @@ $data = json_decode($payload, true);
 if (!empty($data['commits'])) {
     foreach ($data['commits'] as $commit) {
 
-
+        // Check if the author email is valid
         if (!str_ends_with($commit['author']['email'], '@users.noreply.github.com')) {
             echo "No action taken: Author email is invalid ({$commit['author']['email']}).\n";
             continue;
@@ -108,17 +107,18 @@ if (!empty($data['commits'])) {
 
         $authorUserName = $commit['author']['username'];
         $commitMessage = $commit['message'];
+        $shortCommitId = substr($commit['id'], 0, 7);
 
-        // Eklenen ve değiştirilen dosyaları birlikte işleme al
+        // Process both added and modified files together
         $filesToProcess = array_merge($commit['added'], $commit['modified']);
 
         foreach ($filesToProcess as $filePath) {
-            // Skip files outside 'wiki/' directory
+            // Skip files outside the 'wiki/' directory
             if (strpos($filePath, "wiki/") !== 0) {
                 continue;
             }
 
-            // GitHub dosya içeriğini al
+            // Retrieve the file content from GitHub
             $githubFile = getGithubFileContent($filePath);
 
             if ($githubFile) {
@@ -132,11 +132,13 @@ if (!empty($data['commits'])) {
                     echo "Successfully logged in.\n";
                     $wikiContent = $bot->getpage($wikiTitle);
 
+                    // Skip files that start with "wiki/File/"
                     if (strpos($filePath, "wiki/File/") === 0) {
                         echo "Changes to files are currently not supported.\n";
                         continue;
                     }
 					
+                    // Check if the content has changed
                     if (trim($wikiContent) != trim($githubFile['content'])) {
                         $editToken = $bot->getedittoken($wikiTitle);
                         if (!$editToken) {
@@ -144,7 +146,7 @@ if (!empty($data['commits'])) {
                             continue;
                         }
 
-                        $summary = "$commitMessage (Author: $authorUserName)";
+                        $summary = "$shortCommitId $commitMessage (Author: $authorUserName)";
                         $editResult = $bot->edit($wikiTitle, $githubFile['content'], $summary, $editToken);
 
                         if ($editResult['edit']['result'] === 'Success') {
