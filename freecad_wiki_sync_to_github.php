@@ -211,6 +211,12 @@ if (isset($recentChanges['query']['recentchanges'])) {
                 echo "INFO: '$filePath' is already up-to-date.<br>";
                 continue;  // If the GitHub file is up-to-date, skip
             }
+            
+            // Check if the first 7 characters of the commit ID and the comment match
+            if (isset($existingFileData['sha']) && substr($existingFileData['sha'], 0, 7) === substr($comment, 0, 7)) {
+                echo "INFO: Skipping '$filePath' as the commit ID matches the Wiki comment.<br>";
+                continue; // Skip this iteration
+            }
 
             // Download the file from the Wiki
             $fileContent = downloadWikiFile($pageTitle);
