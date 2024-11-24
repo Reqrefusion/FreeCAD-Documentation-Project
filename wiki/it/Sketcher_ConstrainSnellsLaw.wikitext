@@ -2,7 +2,7 @@
 
 {{Docnav/it
 |[[Sketcher_ConstrainBlock/it|Blocco]]
-|[[Sketcher_ToggleDrivingConstraint/it|Vincoli guida]]
+|[[Sketcher_ToggleDrivingConstraint/it|Vincolo guida/riferimento]]
 |[[Sketcher_Workbench/it|Sketcher]]
 |IconL=Sketcher_ConstrainBlock.svg
 |IconR=Sketcher_ToggleDrivingConstraint.svg
@@ -32,7 +32,7 @@ Lo strumento [[Image:Sketcher_ConstrainSnellsLaw.svg|24px]] [[Sketcher_Constrain
 [[Image:Sketcher_SnellsLaw_Example1.png|500px]]
 {{Caption|La sequenza dei clic è indicata da frecce gialle con numeri, n1 e n2 mostrano dove sono gli indici di rifrazione}}
 
-# Prepara due linee per rappresentare un raggio di luce e un bordo che funga da interfaccia. Le linee dovrebbero trovarsi su lati diversi dell'interfaccia. L'interfaccia può essere una [[Sketcher_CreateLine/it|linea]], un [[Sketcher_CreateArc/it|arco]], una [[Sketcher_CreateCircle/it|circonferenza]] o una [[Sketcher_CompCreateConic/it|conica]].
+# Preparare due linee per rappresentare un raggio di luce e un bordo che funga da interfaccia. Le linee dovrebbero trovarsi su lati diversi dell'interfaccia. L'interfaccia può essere una [[Sketcher_CreateLine/it|linea]], un [[Sketcher_CreateArc/it|arco]], una [[Sketcher_CreateCircle/it|circonferenza]] o una [[Sketcher_CompCreateConic/it|conica]].
 # Selezionare un punto finale della prima linea, un punto finale della seconda linea e il bordo dell'interfaccia. Prendere nota dell'ordine di selezione dei punti finali.
 # Esistono diversi modi per richiamare lo strumento:
 #* Selezionare l'opzione {{MenuCommand|Schizzo → Vincoli Sketcher → [[Image:Sketcher_ConstrainSnellsLaw.svg|16px]] Vincolo di rifrazione (legge di Snell)}} dal menu.
@@ -44,36 +44,30 @@ Lo strumento [[Image:Sketcher_ConstrainSnellsLaw.svg|24px]] [[Sketcher_Constrain
 <span id="Notes"></span>
 ==Note==
 
-<div class="mw-translate-fuzzy">
-==Osservazioni==
-* L'attuale vincolo Legge di Snell usa l'equazione per un piano n1*sin(theta1) = n2*sin(theta2). I punti terminali devono essere resi coincidenti e posizionati sul'interfaccia usando altri vincoli. I vincoli di supporto necessari vengono aggiunti automaticamente in base alle correnti coordinate degli elementi.
-* Python non aggiunge automaticamente i vincoli di supporto. Essi devono essere aggiunti manualmente con lo script (vedere l'esempio nella sezione Scripting).
+* L'attuale vincolo Legge di Snell usa l'equazione per un piano n1*sin(theta1) = n2*sin(theta2). I punti terminali devono essere resi coincidenti e posizionati sul'interfaccia usando altri vincoli, altrimenti il comportamento sarà indefinito. I vincoli di supporto necessari vengono aggiunti automaticamente in base alle correnti coordinate degli elementi.
+* In Python i vincoli di supporto devono essere aggiunti manualmente (vedere [[#Script|Script]]).
 * I vincoli di supporto possono essere eliminati temporaneamente per consentire di spostare i punti finali, questo può essere utile nel caso in cui si voglia realizzare un raggio riflesso o dei raggi birifrangenza.
 * Diversamente dalla realtà, gli indici di rifrazione sono associati ai raggi di luce, ma non ai lati del contorno. Ciò è utile per emulare birifrangenza, costruire percorsi di diverse lunghezze d'onda dovuti alla rifrazione, e costruire facilmente l'angolo di insorgenza della riflessione interna totale.
 * Entrambi i raggi possono essere sullo stesso lato dell'interfaccia, e soddisfare comunque l'equazione del vincolo. Questo è un non senso fisico, a meno che il rapporto n2 / n1 sia 1.0, nel qual caso il vincolo emula un riflesso.
-* Come raggi sono accettati anche gli archi di cerchio e di ellisse (non senso fisico).
-</div>
+* Come raggi sono accettati anche gli archi di cerchio e di ellisse. Ma questo è da considerarsi un non senso fisico.
 
-==Scripting==
+<span id="Scripting"></span>
+==Script==
 
-<div class="mw-translate-fuzzy">
-==Scripting==
-I vincoli possono essere creati con le [[macros/it|macro]] e dalla [[FreeCAD_Scripting_Basics/it|console di Python]] utilizzando la seguente funzione:
-</div>
+Il vincoli possono essere creati da [[Macros/it|macro]] e dalla console [[Python/it|Python]] utilizzando il seguente comando:
 
 {{Code|code=
 Sketch.addConstraint(Sketcher.Constraint('SnellsLaw',line1,pointpos1,line2,pointpos2,interface,n2byn1))
 }}
 
-<div class="mw-translate-fuzzy">
-Dove:
-:* <tt>Sketch</tt> è un oggetto sketch
-:* <tt>line1</tt> e <tt>pointpos1</tt> sono due numeri interi che indicano il punto finale della linea nel mezzo con l'indice di rifrazione ''n1''. <tt>line1</tt> è l'indice della linea nello sketch (il valore, restituito da Sketch.addGeometry), e <tt>pointpos1</tt> dovrebbe essere 1 per il punto iniziale e 2 per il punto finale.
-:* <tt>line2</tt> e <tt>pointpos2</tt> sono gli indici che specificano i punti della seconda linea (nel mezzo ''n2'')
-:* <tt>n2byn1</tt> è un numero a virgola mobile dato dal rapporto tra gli indici di rifrazione ''n2''/''n1''
-</div>
+dove:
+:* {{incode|Sketch}} è un oggetto schizzo
+:* {{incode|line1}} e {{incode|pointpos1}} sono due numeri interi che identificano il punto finale della linea nel mezzo con indice di rifrazione ''n1''. {{incode|line1}} è l'indice della linea nello schizzo (il valore restituito da Sketch.addGeometry) e {{incode|pointpos1}} dovrebbe essere 1 per il punto iniziale e 2 per il punto finale.
+:* {{incode|line2}} e {{incode|pointpos2}} sono gli indici che specificano il punto finale della seconda linea (nel mezzo ''n2'')
+:* {{incode|interface}} è l'indice che specifica la linea che indica la posizione dell'interfaccia tra il mezzo ''n1'' e il mezzo ''n2''
+:* {{incode|n2byn1}} è un numero in virgola mobile uguale al rapporto degli indici di rifrazione ''n2/n1''
 
-The [[Sketcher_scripting|Sketcher scripting]] page explains the values which can be used for {{incode|line1}}, {{incode|pointpos1}}, {{incode|line2}}, {{incode|pointpos2}} and {{incode|interface}} and contains further examples on how to create constraints from Python scripts.
+La pagina [[Sketcher_scripting/it|Sketcher scripting]] spiega i valori che possono essere utilizzati per {{incode|line1}}, {{incode|pointpos1}}, {{incode|line2}}, {{incode|pointpos2}} e {{incode|interface}} e contiene ulteriori esempi su come creare vincoli da script Python.
 
 Esempio:
 
@@ -104,7 +98,7 @@ App.ActiveDocument.recompute()
 
 {{Docnav/it
 |[[Sketcher_ConstrainBlock/it|Blocco]]
-|[[Sketcher_ToggleDrivingConstraint/it|Vincoli guida]]
+|[[Sketcher_ToggleDrivingConstraint/it|Vincolo guida/riferimento]]
 |[[Sketcher_Workbench/it|Sketcher]]
 |IconL=Sketcher_ConstrainBlock.svg
 |IconR=Sketcher_ToggleDrivingConstraint.svg
