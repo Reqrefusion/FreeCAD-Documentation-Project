@@ -86,6 +86,28 @@ function reverseFilePath($filePath) {
     return $fileName;
 }
 
+// Function to upload a file to MediaWiki
+function uploadFileToWiki($filePath, $fileContent, $summary, $bot) {
+    // Save the file locally (temporarily)
+    $tempFilePath = sys_get_temp_dir() . '/' . basename($filePath);
+    file_put_contents($tempFilePath, $fileContent);
+
+    // Extract the file title
+    $fileTitle = basename($filePath);
+    $fileTitle = str_replace('wiki/File/', '', $fileTitle); // Remove 'wiki/File/' prefix
+
+    // Attempt to upload the file
+    $uploadResult = $bot->upload($fileTitle, $tempFilePath, $summary);
+
+    // Delete the temporary file
+    unlink($tempFilePath);
+
+    // Return the upload result
+    return $uploadResult;
+}
+
+
+// Verify webhook signature
 $payload = file_get_contents('php://input');
 $signature = 'sha256=' . hash_hmac('sha256', $payload, $webhookSecret);
 $headers = getallheaders();
@@ -96,9 +118,16 @@ if (!isset($headers['X-Hub-Signature-256']) || !hash_equals($signature, $headers
 
 $data = json_decode($payload, true);
 
+// Initialize bot and login once
+$bot = new wikipedia($apiUrl, $wikiUsername, $wikiPassword);
+if (!$bot->login($wikiUsername, $wikiPassword)) {
+    echo "Login failed.\n";
+    exit;
+}
+echo "Successfully logged in.\n";
+
 if (!empty($data['commits'])) {
     foreach ($data['commits'] as $commit) {
-
         // Check if the author email is valid
         if (!str_ends_with($commit['author']['email'], '@users.noreply.github.com')) {
             echo "No action taken: Author email is invalid ({$commit['author']['email']}).\n";
@@ -108,6 +137,9 @@ if (!empty($data['commits'])) {
         $authorUserName = $commit['author']['username'];
         $commitMessage = $commit['message'];
         $shortCommitId = substr($commit['id'], 0, 7);
+
+        // Prepare the summary string once
+        $summary = "$shortCommitId $commitMessage (Author: $authorUserName)";
 
         // Process both added and modified files together
         $filesToProcess = array_merge($commit['added'], $commit['modified']);
@@ -122,22 +154,27 @@ if (!empty($data['commits'])) {
             $githubFile = getGithubFileContent($filePath);
 
             if ($githubFile) {
-                $wikiTitle = reverseFilePath($filePath);
-                echo "Updated Wiki Title: $wikiTitle\n";
-                echo "Author: $authorUserName\n";
-                echo "Commit Message: $commitMessage\n";
+                if (strpos($filePath, "wiki/File/") === 0) {
+                    // File upload support
+                    echo "Uploading file: $filePath\n";
 
-                $bot = new wikipedia($apiUrl, $wikiUsername, $wikiPassword);
-                if ($bot->login($wikiUsername, $wikiPassword)) {
-                    echo "Successfully logged in.\n";
+                    $uploadResult = uploadFileToWiki($filePath, $githubFile['content'], $summary, $bot);
+
+                    if ($uploadResult['upload']['result'] === 'Success') {
+                        echo "File $filePath successfully uploaded.\n";
+                    } else {
+                        echo "File $filePath upload failed.\n";
+                        print_r($uploadResult);
+                    }
+                } else {
+                    // Process wiki pages
+                    $wikiTitle = reverseFilePath($filePath);
+                    echo "Updated Wiki Title: $wikiTitle\n";
+                    echo "Author: $authorUserName\n";
+                    echo "Commit Message: $commitMessage\n";
+
                     $wikiContent = $bot->getpage($wikiTitle);
 
-                    // Skip files that start with "wiki/File/"
-                    if (strpos($filePath, "wiki/File/") === 0) {
-                        echo "Changes to files are currently not supported.\n";
-                        continue;
-                    }
-					
                     // Check if the content has changed
                     if (trim($wikiContent) != trim($githubFile['content'])) {
                         $editToken = $bot->getedittoken($wikiTitle);
@@ -146,7 +183,6 @@ if (!empty($data['commits'])) {
                             continue;
                         }
 
-                        $summary = "$shortCommitId $commitMessage (Author: $authorUserName)";
                         $editResult = $bot->edit($wikiTitle, $githubFile['content'], $summary, $editToken);
 
                         if ($editResult['edit']['result'] === 'Success') {
@@ -158,8 +194,6 @@ if (!empty($data['commits'])) {
                     } else {
                         echo "$wikiTitle is already up-to-date.\n";
                     }
-                } else {
-                    echo "Login failed.\n";
                 }
             } else {
                 echo "Failed to retrieve GitHub file content: $filePath\n";

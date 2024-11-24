@@ -168,7 +168,7 @@ function sanitize_name($name) {
 // Check for recent changes made in the last 20 minutes
 $currentTime = new DateTime(); // Get the current time
 $timeLimit = clone $currentTime;
-$timeLimit->modify('-20 minutes'); // Go back 20 minutes
+$timeLimit->modify('-35 minutes'); // Go back 20 minutes
 
 // Format the timestamp
 $timestampStart = $timeLimit->format('Y-m-d\TH:i:s\Z'); // 20 minutes ago timestamp
@@ -260,7 +260,7 @@ if (isset($recentChanges['query']['recentchanges'])) {
             echo "INFO: Creating new file '$filePath' on GitHub...<br>";
             updateGithubFile($filePath, $wikiText, null, $pageTitle, $user, $comment);
         }
-		}
+        }
     }
 } else {
     echo "ERROR: Could not fetch recent changes from the wiki.<br>";

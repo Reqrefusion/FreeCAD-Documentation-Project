@@ -924,7 +924,7 @@ class wikipedia {
             'text'            => $desc,
             'token'           => $this->token,
             'ignorewarnings'  => '1',
-            'file'            => '@'.$file
+            'file'            => new CURLFile(realpath($file))
         );
         return $this->query('?action=upload&format=json&assert=user',$params);
      }
