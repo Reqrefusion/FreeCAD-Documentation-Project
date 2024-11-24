@@ -12,8 +12,10 @@ With the current system, this repo is updated every 15 minutes and changes in th
 
 Being constantly updated: Done with cronjop
 
-Media: Done. 
+Media: Done. And now it works both ways.
 
-Considering the slow pace of change of the wiki, this backup is actually quite sufficient. It seems that it is not necessary to update instantly. Because 15 minutes is a very long time for FreeCAD wiki.
+Considering the slow pace of change of the wiki, this backup is actually quite sufficient. It seems that it is not necessary to update instantly. Because 15 minutes is a very long time for FreeCAD wiki. However, this may lead to some errors.
+
+I added a system that checks the first 7 characters of the sha, but it has some problems, maybe I should use the date as some kind of id, not the sha.
 
 Creation of a Github App: Currently, the classic personal token is being used. I think it is still easier and superior to this other ridiculous thing, but it seems necessary to create an app. Work will be done for this.
