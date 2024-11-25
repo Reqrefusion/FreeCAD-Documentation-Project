@@ -15,32 +15,58 @@ $languageCodes = array(
 // Function to get the file content from GitHub
 function getGithubFileContent($filePath) {
     global $githubRepoPath, $githubToken;
-    $githubApiUrl = "https://api.github.com/repos/$githubRepoPath/contents/" . $filePath;
-    $ch = curl_init($githubApiUrl);
 
+    // Base URL for API
+    $baseApiUrl = "https://api.github.com/repos/$githubRepoPath";
+
+    // Set up common headers for cURL
     $headers = array(
         'Authorization: token ' . $githubToken,
         'User-Agent: PHP'
     );
 
+    // Fetch file content
+    $contentUrl = "$baseApiUrl/contents/" . urlencode($filePath);
+    $ch = curl_init($contentUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-    $response = curl_exec($ch);
-    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
+    $contentResponse = curl_exec($ch);
     curl_close($ch);
 
-    if ($httpcode == 200) {
-        $content = json_decode($response, true);
-        return array(
-            'content' => base64_decode($content['content']),  // Decode the Base64 content
-            'sha' => $content['sha'],  // Store the SHA value for updates
-            'lastModified' => new DateTime($content['commit']['committer']['date'])  // Last modified date
-        );
-    } else {
+    if (!$contentResponse) {
         return null;
     }
+
+    $contentData = json_decode($contentResponse, true);
+    if (!isset($contentData['content'], $contentData['sha'])) {
+        return null;
+    }
+
+    $decodedContent = base64_decode($contentData['content']);
+    $sha = $contentData['sha'];
+
+    // Fetch last modification date via commits API
+    $commitsUrl = "$baseApiUrl/commits?path=" . urlencode($filePath);
+    $ch = curl_init($commitsUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    $commitsResponse = curl_exec($ch);
+    curl_close($ch);
+
+    $lastModified = null;
+    if ($commitsResponse) {
+        $commitsData = json_decode($commitsResponse, true);
+        if (isset($commitsData[0]['commit']['committer']['date'])) {
+            $lastModified = new DateTime($commitsData[0]['commit']['committer']['date']);
+        }
+    }
+    print_r($lastModified);
+    // Return combined data
+    return array(
+        'content' => $decodedContent,
+        'sha' => $sha,
+        'lastModified' => $lastModified
+    );
 }
 
 // Function to update or create a file on GitHub
