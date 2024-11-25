@@ -47,7 +47,6 @@ function getGithubFileContent($filePath) {
         return array(
             'content' => base64_decode($content['content']), // Decode base64 content
             'sha' => $content['sha'], // Get file SHA
-            'lastModified' => new DateTime($content['commit']['committer']['date']) // Get last modified date
         );
     } else {
         return null;

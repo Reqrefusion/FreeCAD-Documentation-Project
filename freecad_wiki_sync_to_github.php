@@ -56,16 +56,19 @@ function getGithubFileContent($filePath) {
     $lastModified = null;
     if ($commitsResponse) {
         $commitsData = json_decode($commitsResponse, true);
+        if (isset($commitsData[0]['sha'])) {
+            $lastCommitSha = $commitsData[0]['sha'];
+        }
         if (isset($commitsData[0]['commit']['committer']['date'])) {
             $lastModified = new DateTime($commitsData[0]['commit']['committer']['date']);
         }
     }
-    print_r($lastModified);
     // Return combined data
     return array(
         'content' => $decodedContent,
         'sha' => $sha,
-        'lastModified' => $lastModified
+        'lastModified' => $lastModified,
+        'lastCommitSha' => $lastCommitSha
     );
 }
 
@@ -239,7 +242,7 @@ if (isset($recentChanges['query']['recentchanges'])) {
             }
             
             // Check if the first 7 characters of the commit ID and the comment match
-            if (isset($existingFileData['sha']) && substr($existingFileData['sha'], 0, 7) === substr($comment, 0, 7)) {
+            if (isset($existingFileData['lastCommitSha']) && substr($existingFileData['lastCommitSha'], 0, 7) === substr($comment, 0, 7)) {
                 echo "INFO: Skipping '$filePath' as the commit ID matches the Wiki comment.<br>";
                 continue; // Skip this iteration
             }
