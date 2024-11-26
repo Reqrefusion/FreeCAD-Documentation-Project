@@ -12,7 +12,7 @@ With the current system, this repo is updated every 15 minutes and changes in th
 
 Being constantly updated: Done with cronjop
 
-Media: Done. And now it works both ways.
+Media: Done. And now it works both ways. Carrying out the work on a shared server unfortunately causes some security measures to be blocked. The big change in the technical drawing is probably due to sending too much data and the bot protection cannot be passed by the server. The host was contacted and they whitelisted it, but since github uses variable IP, it was not fully fixed. Frankly, I expected these operations to be done on the cheapest server without requiring anything extra, but this is really sad.
 
 Considering the slow pace of change of the wiki, this backup is actually quite sufficient. It seems that it is not necessary to update instantly. Because 15 minutes is a very long time for FreeCAD wiki. However, this may lead to some errors.
 
