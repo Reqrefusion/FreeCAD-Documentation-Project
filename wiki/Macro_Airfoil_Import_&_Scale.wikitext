@@ -13,7 +13,7 @@
 |Download=[https://www.freecadweb.org/wiki/images/0/0c/Macro_Airfoil_Import_%26_Scale.png ToolBar Icon]
 }}
 
-==Description==
+==Description== <!--T:29-->
 
 <!--T:17-->
 Once selected, a chord length is entered and upon pressing the OK button, a properly scaled airfoil is produced. This Macro, when run, will first provide the user with a file browser to locate and select a .dat airfoil text file. You can also save the airfoil selected
@@ -24,41 +24,50 @@ See also [[Common_Airfoil_Data_Import|Common Airfoil Data Import]]
 <!--T:18-->
 [[File:Macro_Airfoil_Import_&_Scale_00.png|480px]]
 
-===Enter Chord Length===
+===Enter Chord Length=== <!--T:30-->
 
 <!--T:5-->
 Asking for a chord length. Any length may be entered, in millimeters. Once your desired length is entered, the Macro will produce a Draft Wire (DWire) following the points described in the previously selected .dat airfoil file at the scale you entered for the chord length. 
 
+<!--T:31-->
 [[File:Import Airfoil Scale Enter V3.png|Select the type line]]
 
-===Select The File===
+===Select The File=== <!--T:32-->
 
-<!--T:3-->
+<!--T:33-->
 After configuration user with a file browser that will allow you to select the desired airfoil .dat file. Browse to where you have saved the airfoil file, select it and press Open.
 
+<!--T:34-->
 [[File:Import Airfoil Scale Open V3.png|Select the file]]
 
-===Airfoil selected===
-<!--T:8-->
+===Airfoil selected=== <!--T:35-->
 
-If the airfoil has been selected in the 3D view, run the macro and the {{RadioButton|Save}} is available in the dialog
+<!--T:36-->
+If the airfoil has been selected in the 3D view, run the macro and the {{RadioButton|Save}} is available in the dialog.
 
-===Airfold saved===
+===Airfold saved=== <!--T:37-->
 
+<!--T:38-->
 If the {{RadioButton|TRUE|Save}} is checked the file window appear
 
+<!--T:39-->
 [[File:Import Airfoil Scale Save Enter V3.png|Save the file .dat]]
 
-===Save===
+===Save=== <!--T:40-->
 
+<!--T:41-->
 Specify the name of file.
 
+<!--T:42-->
 [[File:Import Airfoil Scale Save V3.png|Give the name of file]]
 
+<!--T:43-->
 The file is saved with 150 points of definition and not verify if the length of the airfoil follow the NACA rulles ''(length 1 mm)''
 
+<!--T:44-->
 for change the definition value go to:
 
+<!--T:45-->
 {{Button|Tools}} → {{Button|Edit parameter...}} "BaseApp/Preferences/Macros/Airfoil_Import_and_Scale" modify the '''numberCut''' value
 
 ==The Macro== <!--T:13-->
@@ -287,14 +296,16 @@ AirfoilImporterAndScaler()
 }}
 <translate>
 
+<!--T:46-->
 <div class="toccolours mw-collapsible mw-collapsed">
-==Old versions , Version 1.5, Version 2, Version 2.1, Version 2.1.2==
+==Old versions==
 
+<!--T:47-->
 <div class="mw-collapsible-content">
 
-==How To Use - Version 1.5== <!--T:2-->
+===How To Use - Version 1.5=== <!--T:2-->
 
-===Select The File===
+====Select The File==== <!--T:48-->
 
 <!--T:3-->
 Running the Macro will first present the user with a file browser that will allow you to select the desired airfoil .dat file. Browse to where you have saved the airfoil file, select it and press Open.
@@ -302,9 +313,9 @@ Running the Macro will first present the user with a file browser that will allo
 <!--T:4-->
 [[File:File browser.png|center|File browser window for importing .dat airfoil files]]
 
-===Enter Chord Length===
+====Enter Chord Length==== <!--T:49-->
 
-<!--T:5-->
+<!--T:50-->
 Once the airfoil file has been selected, a new dialog will appear asking for a chord length. Any length may be entered, in millimeters. Once your desired length is entered, the Macro will produce a Draft Wire (DWire) following the points described in the previously selected .dat airfoil file at the scale you entered for the chord length. 
 
 <!--T:6-->
@@ -313,7 +324,7 @@ Once the airfoil file has been selected, a new dialog will appear asking for a c
 <!--T:7-->
 The Airfoil, properly scaled, should now be ready for use in your project.
 
-==How To Use - Version 2==
+===How To Use - Version 2=== <!--T:51-->
 
 <!--T:8-->
 File selection is the same as version 1.5. With version 2 you now have the choice to either have the resulting airfoil made with a Draft Wire (DWire) or a Basic Spline (BSpline). As with version 1.5, you enter the desired chord length. Additionally you can now select which type of foil you want. Simply click on the BSpline radio button or leave as is for for the default DWire. 
@@ -321,18 +332,331 @@ File selection is the same as version 1.5. With version 2 you now have the choic
 <!--T:9-->
 [[File:V2 scale.png|center|Version 2 Airfoil Import and scale dialog with choice of DWire or BSpline]]
 
-==The Macros== <!--T:13-->
+===The Macros=== <!--T:52-->
 
-===Latest=== <!--T:26-->
-
-<!--T:27-->
-The latest version of the macro is to be found at [https://github.com/FreeCAD/FreeCAD-macros/blob/master/ObjectCreation/AirfoilImportAndScale.FCMacro AirfoilImportAndScale.FCMacro] but the easiest way to install this macro is through the [[Std_AddonMgr|Addon Manager]].
-
-===Version 2.1.2=== <!--T:14-->
+====Version 1.5==== <!--T:25-->
 
 </translate>
+'''Macro_Airfoil_Import_&_Scale.FCMacro'''
+
+{{MacroCode|code=
+# # # #
+#
+# AIRFOIL IMPORT & SCALE v1.5
+# 
+# Imports and scales an Airfoil in the form of a Draft Wire (DWire) 
+#
+# # # #
+
+
+from PySide import QtCore, QtGui
+from PySide.QtGui import QLineEdit
+import FreeCAD, FreeCADGui, Draft
+import importAirfoilDAT
+
+# Select .dat airfoil data file to be imported
+
+filename = QtGui.QFileDialog.getOpenFileName(QtGui.qApp.activeWindow(),'Open An Airfoil File','*.dat')
+
+class p():
+
+    def proceed(self):
+            try:
+                
+                # This produces a scaled Airfoil with a DWire
+
+                scalefactor=float(self.s1.text())
+                f1=str(filename)
+                importAirfoilDAT.insert(f1,"Unnamed")
+                Draft.scale(App.ActiveDocument.ActiveObject,delta=App.Vector(scalefactor,scalefactor,scalefactor),center=App.Vector(0,0,0),legacy=True)
+            
+            except:
+                FreeCAD.Console.PrintError("Error, not a valid .dat file\n")
+
+            self.close()
+
+    def close(self):
+        self.dialog.hide()
+
+    def __init__(self):
+        self.dialog = None
+        self.s1 = None
+
+        # Make dialog box and get the scale size
+
+        self.dialog = QtGui.QDialog()
+        self.dialog.resize(350,100)
+        self.dialog.setWindowTitle("Airfoil Import & Scale")
+        la = QtGui.QVBoxLayout(self.dialog)
+        t1 = QtGui.QLabel("Chord Length")
+        la.addWidget(t1)
+        self.s1 = QtGui.QLineEdit()
+        la.addWidget(self.s1)
+
+        # Add OK / Cancel buttons
+
+#ori        okbox = QtGui.QDialogButtonBox(self.dialog)
+#ori        okbox.setOrientation(QtCore.Qt.Horizontal)
+#ori        okbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel -PIPE- QtGui.QDialogButtonBox.Ok)
+#        modify original code for install with addon-install cause -PIPE- 05-12-2016 FC 0.16
+
+        okbox = QtGui.QDialogButtonBox(self.dialog)
+        okbox.setOrientation(QtCore.Qt.Horizontal)
+        okbox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
+
+        cancelbox = QtGui.QDialogButtonBox(self.dialog)
+        cancelbox.setOrientation(QtCore.Qt.Horizontal)
+        cancelbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel)
+        cancelbox.move(0,62)
+
+        la.addWidget(okbox)
+        QtCore.QObject.connect(okbox, QtCore.SIGNAL("accepted()"), self.proceed)
+        QtCore.QObject.connect(cancelbox, QtCore.SIGNAL("rejected()"), self.close)
+        QtCore.QMetaObject.connectSlotsByName(self.dialog)
+        self.dialog.show()
+        self.dialog.exec_()
+
+p()
+
+}}
+<translate>
+
+====Version 2==== <!--T:15-->
+
+</translate>
+{{MacroCode|code=
+<nowiki>
+# # # #
+#
+# AIRFOIL IMPORT & SCALE v2.
+# 
+# Imports and scales an Airfoil in the form of a Draft Wire (DWire) or Basic Spline (BSpline)
+#
+# For FreeCAD Versions = or > 0.14 Revision 3077
+#
+# Works best with OCC/OCE = or > 6.7
+#
+# # # #
+
+
+from PySide import QtCore, QtGui
+from PySide.QtGui import QLineEdit, QRadioButton
+import FreeCAD, FreeCADGui, Draft
+import importAirfoilDAT
+
+# Select .dat airfoil data file to be imported
+
+filename = QtGui.QFileDialog.getOpenFileName(QtGui.qApp.activeWindow(),'Open An Airfoil File','*.dat')
+
+class p():
+
+    def proceed(self):
+        if self.radio1.isChecked():
+            try:
+                
+                # This produces a scaled Airfoil with a DWire
+
+                scalefactor=float(self.s1.text())
+                f1=str(filename)
+                importAirfoilDAT.insert(f1,"Unnamed")
+                Draft.scale(App.ActiveDocument.ActiveObject,delta=App.Vector(scalefactor,scalefactor,scalefactor),center=App.Vector(0,0,0),legacy=True)
+            
+            except:
+                FreeCAD.Console.PrintError("Error, not a valid .dat file\n")
+
+            self.close()
+
+        if self.radio2.isChecked():
+            try:
+
+                # This produces a scaled Airfoil with a BSpline
+
+                scalefactor=float(self.s1.text())
+                f1=str(filename)
+                importAirfoilDAT.insert(f1,"Unnamed")
+                points = FreeCAD.ActiveDocument.ActiveObject.Points
+                Draft.makeBSpline(points, closed=True)
+                Draft.scale(App.ActiveDocument.ActiveObject,delta=App.Vector(scalefactor,scalefactor,scalefactor),center=App.Vector(0,0,0),legacy=True)
+                App.getDocument("Unnamed").removeObject("DWire")
+
+            except:
+                FreeCAD.Console.PrintError("Error, not a valid .dat file\n")
+
+            self.close()
+
+    def close(self):
+        self.dialog.hide()
+
+
+    def __init__(self):
+        self.dialog = None
+        self.s1 = None
+
+
+        # Make dialog box and get the scale size
+
+        self.dialog = QtGui.QDialog()
+        self.dialog.resize(350,100)
+        self.dialog.setWindowTitle("Airfoil Import & Scale")
+        la = QtGui.QVBoxLayout(self.dialog)
+        t1 = QtGui.QLabel("Chord Length")
+        la.addWidget(t1)
+        self.s1 = QtGui.QLineEdit()
+        la.addWidget(self.s1)
+
+        # Add radio buttons to select between DWire and BSpline
+
+        self.radio1 = QRadioButton("Make DWire")
+        self.radio2 = QRadioButton("Make BSpline")
+
+            # set default to DWire & make radio buttons - Change self.radio1.setChecked(True) to
+            # self.radio2.setChecked(True) to set BSpline as default
+
+        self.radio1.setChecked(True)
+        la.addWidget(self.radio1)
+        la.addWidget(self.radio2)
+
+        # Add OK / Cancel buttons
+
+        okbox = QtGui.QDialogButtonBox(self.dialog)
+        okbox.setOrientation(QtCore.Qt.Horizontal)
+        okbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        la.addWidget(okbox)
+        QtCore.QObject.connect(okbox, QtCore.SIGNAL("accepted()"), self.proceed)
+        QtCore.QObject.connect(okbox, QtCore.SIGNAL("rejected()"), self.close)
+        QtCore.QMetaObject.connectSlotsByName(self.dialog)
+        self.dialog.show()
+        self.dialog.exec_()
+
+p()
+</nowiki>
+}}
+<translate>
+
+====Version 2.1==== <!--T:53-->
+
+<!--T:54-->
+Updated by mangtronix to use PySide instead of PyQt (used in older versions of FreeCAD).
+
+</translate>
+{{MacroCode|code=
+<nowiki>
+# # # #
+#
+# AIRFOIL IMPORT & SCALE v2.1
+# 
+# Imports and scales an Airfoil in the form of a Draft Wire (DWire) or Basic Spline (BSpline)
+#
+# For FreeCAD Versions = or > 0.14 Revision 3703
+#
+# Works best with OCC/OCE = or > 6.7
+#
+# # # #
+ 
+ 
+from PySide import QtCore, QtGui
+from PySide.QtGui import QLineEdit, QRadioButton
+import FreeCAD, FreeCADGui, Draft
+import importAirfoilDAT
+ 
+# Select .dat airfoil data file to be imported
+ 
+# PySide returns a tuple (filename, filter) instead of just a string like in PyQt
+filename, filefilter = QtGui.QFileDialog.getOpenFileName(QtGui.qApp.activeWindow(),'Open An Airfoil File','*.dat')
+
+class p():
+ 
+    def proceed(self):
+        global filename
+        if self.radio1.isChecked():
+            #if True:
+            try:
+ 
+                # This produces a scaled Airfoil with a DWire
+ 
+                scalefactor=float(self.s1.text())
+                f1=str(filename)
+                importAirfoilDAT.insert(f1,"Unnamed")
+                Draft.scale(App.ActiveDocument.ActiveObject,delta=App.Vector(scalefactor,scalefactor,scalefactor),center=App.Vector(0,0,0),legacy=True)
+ 
+            except Exception, e:
+                FreeCAD.Console.PrintError("Error, not a valid .dat file\n")
+ 
+            self.close()
+ 
+        if self.radio2.isChecked():
+            try:
+ 
+                # This produces a scaled Airfoil with a BSpline
+ 
+                scalefactor=float(self.s1.text())
+                f1=str(filename)
+                importAirfoilDAT.insert(f1,"Unnamed")
+                points = FreeCAD.ActiveDocument.ActiveObject.Points
+                Draft.makeBSpline(points, closed=True)
+                Draft.scale(App.ActiveDocument.ActiveObject,delta=App.Vector(scalefactor,scalefactor,scalefactor),center=App.Vector(0,0,0),legacy=True)
+                App.getDocument("Unnamed").removeObject("DWire")
+ 
+            except:
+                FreeCAD.Console.PrintError("Error, not a valid .dat file\n")
+ 
+            self.close()
+ 
+    def close(self):
+        self.dialog.hide()
+ 
+ 
+    def __init__(self):
+        self.dialog = None
+        self.s1 = None
+ 
+ 
+        # Make dialog box and get the scale size
+ 
+        self.dialog = QtGui.QDialog()
+        self.dialog.resize(350,100)
+        self.dialog.setWindowTitle("Airfoil Import & Scale")
+        la = QtGui.QVBoxLayout(self.dialog)
+        t1 = QtGui.QLabel("Chord Length")
+        la.addWidget(t1)
+        self.s1 = QtGui.QLineEdit()
+        la.addWidget(self.s1)
+ 
+        # Add radio buttons to select between DWire and BSpline
+ 
+        self.radio1 = QRadioButton("Make DWire")
+        self.radio2 = QRadioButton("Make BSpline")
+ 
+            # set default to DWire & make radio buttons - Change self.radio1.setChecked(True) to
+            # self.radio2.setChecked(True) to set BSpline as default
+ 
+        self.radio1.setChecked(True)
+        la.addWidget(self.radio1)
+        la.addWidget(self.radio2)
+ 
+        # Add OK / Cancel buttons
+ 
+        okbox = QtGui.QDialogButtonBox(self.dialog)
+        okbox.setOrientation(QtCore.Qt.Horizontal)
+        okbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        la.addWidget(okbox)
+        QtCore.QObject.connect(okbox, QtCore.SIGNAL("accepted()"), self.proceed)
+        QtCore.QObject.connect(okbox, QtCore.SIGNAL("rejected()"), self.close)
+        QtCore.QMetaObject.connectSlotsByName(self.dialog)
+        self.dialog.show()
+        self.dialog.exec_()
+ 
+p()
+</nowiki>
+}}
+<translate>
+
+====Version 2.1.2==== <!--T:14-->
+
+<!--T:55-->
 ToolBar icon [[Image:Macro_Airfoil_Import_&_Scale.png]]
 
+</translate>
 '''Macro_Airfoil_Import_&_Scale.FCMacro'''
 
 {{MacroCode|code=
@@ -482,351 +806,9 @@ class AirfoilImporterAndScaler():
 
 
 AirfoilImporterAndScaler()
-
 </nowiki>
 }}
-<translate>
-
-===Version 1.5=== <!--T:25-->
-
-</translate>
-'''Macro_Airfoil_Import_&_Scale.FCMacro'''
-
-{{MacroCode|code=
-# # # #
-#
-# AIRFOIL IMPORT & SCALE v1.5
-# 
-# Imports and scales an Airfoil in the form of a Draft Wire (DWire) 
-#
-# # # #
-
-
-from PySide import QtCore, QtGui
-from PySide.QtGui import QLineEdit
-import FreeCAD, FreeCADGui, Draft
-import importAirfoilDAT
-
-# Select .dat airfoil data file to be imported
-
-filename = QtGui.QFileDialog.getOpenFileName(QtGui.qApp.activeWindow(),'Open An Airfoil File','*.dat')
-
-class p():
-
-    def proceed(self):
-            try:
-                
-                # This produces a scaled Airfoil with a DWire
-
-                scalefactor=float(self.s1.text())
-                f1=str(filename)
-                importAirfoilDAT.insert(f1,"Unnamed")
-                Draft.scale(App.ActiveDocument.ActiveObject,delta=App.Vector(scalefactor,scalefactor,scalefactor),center=App.Vector(0,0,0),legacy=True)
-            
-            except:
-                FreeCAD.Console.PrintError("Error, not a valid .dat file\n")
-
-            self.close()
-
-    def close(self):
-        self.dialog.hide()
-
-    def __init__(self):
-        self.dialog = None
-        self.s1 = None
-
-        # Make dialog box and get the scale size
-
-        self.dialog = QtGui.QDialog()
-        self.dialog.resize(350,100)
-        self.dialog.setWindowTitle("Airfoil Import & Scale")
-        la = QtGui.QVBoxLayout(self.dialog)
-        t1 = QtGui.QLabel("Chord Length")
-        la.addWidget(t1)
-        self.s1 = QtGui.QLineEdit()
-        la.addWidget(self.s1)
-
-        # Add OK / Cancel buttons
-
-#ori        okbox = QtGui.QDialogButtonBox(self.dialog)
-#ori        okbox.setOrientation(QtCore.Qt.Horizontal)
-#ori        okbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel -PIPE- QtGui.QDialogButtonBox.Ok)
-#        modify original code for install with addon-install cause -PIPE- 05-12-2016 FC 0.16
-
-        okbox = QtGui.QDialogButtonBox(self.dialog)
-        okbox.setOrientation(QtCore.Qt.Horizontal)
-        okbox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
-
-        cancelbox = QtGui.QDialogButtonBox(self.dialog)
-        cancelbox.setOrientation(QtCore.Qt.Horizontal)
-        cancelbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel)
-        cancelbox.move(0,62)
-
-        la.addWidget(okbox)
-        QtCore.QObject.connect(okbox, QtCore.SIGNAL("accepted()"), self.proceed)
-        QtCore.QObject.connect(cancelbox, QtCore.SIGNAL("rejected()"), self.close)
-        QtCore.QMetaObject.connectSlotsByName(self.dialog)
-        self.dialog.show()
-        self.dialog.exec_()
-
-p()
-
-}}
-<translate>
-
-==Editing The Default Selection==
-
-<!--T:10-->
-If you primarily wish to have your imported and scaled airfoils made with BSplines rather than DWires, the Marco may be edited to default to the Bspline. This is done by editing the line -
-
-</translate>
-{{ExampleCode|example=
-self.radio1.setChecked(True)
-}}
-<translate>
-
-<!--T:23-->
-- and changing it to -
-
-</translate>
-{{ExampleCode|example=
-self.radio2.setChecked(True)
-}}
-<translate>
-
-<!--T:24-->
-A note on this is included within the text of the macro.
-
-==Version 2== <!--T:15-->
-
-<!--T:28-->
-{{VeryImportantMessage|'''Warning - Using this Macro with versions of FreeCAD lesser than 0.14, revision 3077 will not produce the expected results when using the BSpline option and can result in FreeCAD crashing and loss of unsaved data!'''}}
-
-</translate>
-{{MacroCode|code=
-<nowiki>
-# # # #
-#
-# AIRFOIL IMPORT & SCALE v2.
-# 
-# Imports and scales an Airfoil in the form of a Draft Wire (DWire) or Basic Spline (BSpline)
-#
-# For FreeCAD Versions = or > 0.14 Revision 3077
-#
-# Works best with OCC/OCE = or > 6.7
-#
-# # # #
-
-
-from PySide import QtCore, QtGui
-from PySide.QtGui import QLineEdit, QRadioButton
-import FreeCAD, FreeCADGui, Draft
-import importAirfoilDAT
-
-# Select .dat airfoil data file to be imported
-
-filename = QtGui.QFileDialog.getOpenFileName(QtGui.qApp.activeWindow(),'Open An Airfoil File','*.dat')
-
-class p():
-
-    def proceed(self):
-        if self.radio1.isChecked():
-            try:
-                
-                # This produces a scaled Airfoil with a DWire
-
-                scalefactor=float(self.s1.text())
-                f1=str(filename)
-                importAirfoilDAT.insert(f1,"Unnamed")
-                Draft.scale(App.ActiveDocument.ActiveObject,delta=App.Vector(scalefactor,scalefactor,scalefactor),center=App.Vector(0,0,0),legacy=True)
-            
-            except:
-                FreeCAD.Console.PrintError("Error, not a valid .dat file\n")
-
-            self.close()
-
-        if self.radio2.isChecked():
-            try:
-
-                # This produces a scaled Airfoil with a BSpline
-
-                scalefactor=float(self.s1.text())
-                f1=str(filename)
-                importAirfoilDAT.insert(f1,"Unnamed")
-                points = FreeCAD.ActiveDocument.ActiveObject.Points
-                Draft.makeBSpline(points, closed=True)
-                Draft.scale(App.ActiveDocument.ActiveObject,delta=App.Vector(scalefactor,scalefactor,scalefactor),center=App.Vector(0,0,0),legacy=True)
-                App.getDocument("Unnamed").removeObject("DWire")
-
-            except:
-                FreeCAD.Console.PrintError("Error, not a valid .dat file\n")
-
-            self.close()
-
-    def close(self):
-        self.dialog.hide()
-
-
-    def __init__(self):
-        self.dialog = None
-        self.s1 = None
-
-
-        # Make dialog box and get the scale size
-
-        self.dialog = QtGui.QDialog()
-        self.dialog.resize(350,100)
-        self.dialog.setWindowTitle("Airfoil Import & Scale")
-        la = QtGui.QVBoxLayout(self.dialog)
-        t1 = QtGui.QLabel("Chord Length")
-        la.addWidget(t1)
-        self.s1 = QtGui.QLineEdit()
-        la.addWidget(self.s1)
-
-        # Add radio buttons to select between DWire and BSpline
-
-        self.radio1 = QRadioButton("Make DWire")
-        self.radio2 = QRadioButton("Make BSpline")
-
-            # set default to DWire & make radio buttons - Change self.radio1.setChecked(True) to
-            # self.radio2.setChecked(True) to set BSpline as default
-
-        self.radio1.setChecked(True)
-        la.addWidget(self.radio1)
-        la.addWidget(self.radio2)
-
-        # Add OK / Cancel buttons
-
-        okbox = QtGui.QDialogButtonBox(self.dialog)
-        okbox.setOrientation(QtCore.Qt.Horizontal)
-        okbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
-        la.addWidget(okbox)
-        QtCore.QObject.connect(okbox, QtCore.SIGNAL("accepted()"), self.proceed)
-        QtCore.QObject.connect(okbox, QtCore.SIGNAL("rejected()"), self.close)
-        QtCore.QMetaObject.connectSlotsByName(self.dialog)
-        self.dialog.show()
-        self.dialog.exec_()
-
-p()
-</nowiki>
-}}
-<translate>
-
-===Version 2.1===
-
-Updated by mangtronix to use PySide instead of PyQt (used in older versions of FreeCAD).
-
-</translate>
-{{MacroCode|code=
-<nowiki>
-# # # #
-#
-# AIRFOIL IMPORT & SCALE v2.1
-# 
-# Imports and scales an Airfoil in the form of a Draft Wire (DWire) or Basic Spline (BSpline)
-#
-# For FreeCAD Versions = or > 0.14 Revision 3703
-#
-# Works best with OCC/OCE = or > 6.7
-#
-# # # #
- 
- 
-from PySide import QtCore, QtGui
-from PySide.QtGui import QLineEdit, QRadioButton
-import FreeCAD, FreeCADGui, Draft
-import importAirfoilDAT
- 
-# Select .dat airfoil data file to be imported
- 
-# PySide returns a tuple (filename, filter) instead of just a string like in PyQt
-filename, filefilter = QtGui.QFileDialog.getOpenFileName(QtGui.qApp.activeWindow(),'Open An Airfoil File','*.dat')
-
-class p():
- 
-    def proceed(self):
-        global filename
-        if self.radio1.isChecked():
-            #if True:
-            try:
- 
-                # This produces a scaled Airfoil with a DWire
- 
-                scalefactor=float(self.s1.text())
-                f1=str(filename)
-                importAirfoilDAT.insert(f1,"Unnamed")
-                Draft.scale(App.ActiveDocument.ActiveObject,delta=App.Vector(scalefactor,scalefactor,scalefactor),center=App.Vector(0,0,0),legacy=True)
- 
-            except Exception, e:
-                FreeCAD.Console.PrintError("Error, not a valid .dat file\n")
- 
-            self.close()
- 
-        if self.radio2.isChecked():
-            try:
- 
-                # This produces a scaled Airfoil with a BSpline
- 
-                scalefactor=float(self.s1.text())
-                f1=str(filename)
-                importAirfoilDAT.insert(f1,"Unnamed")
-                points = FreeCAD.ActiveDocument.ActiveObject.Points
-                Draft.makeBSpline(points, closed=True)
-                Draft.scale(App.ActiveDocument.ActiveObject,delta=App.Vector(scalefactor,scalefactor,scalefactor),center=App.Vector(0,0,0),legacy=True)
-                App.getDocument("Unnamed").removeObject("DWire")
- 
-            except:
-                FreeCAD.Console.PrintError("Error, not a valid .dat file\n")
- 
-            self.close()
- 
-    def close(self):
-        self.dialog.hide()
- 
- 
-    def __init__(self):
-        self.dialog = None
-        self.s1 = None
- 
- 
-        # Make dialog box and get the scale size
- 
-        self.dialog = QtGui.QDialog()
-        self.dialog.resize(350,100)
-        self.dialog.setWindowTitle("Airfoil Import & Scale")
-        la = QtGui.QVBoxLayout(self.dialog)
-        t1 = QtGui.QLabel("Chord Length")
-        la.addWidget(t1)
-        self.s1 = QtGui.QLineEdit()
-        la.addWidget(self.s1)
- 
-        # Add radio buttons to select between DWire and BSpline
- 
-        self.radio1 = QRadioButton("Make DWire")
-        self.radio2 = QRadioButton("Make BSpline")
- 
-            # set default to DWire & make radio buttons - Change self.radio1.setChecked(True) to
-            # self.radio2.setChecked(True) to set BSpline as default
- 
-        self.radio1.setChecked(True)
-        la.addWidget(self.radio1)
-        la.addWidget(self.radio2)
- 
-        # Add OK / Cancel buttons
- 
-        okbox = QtGui.QDialogButtonBox(self.dialog)
-        okbox.setOrientation(QtCore.Qt.Horizontal)
-        okbox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
-        la.addWidget(okbox)
-        QtCore.QObject.connect(okbox, QtCore.SIGNAL("accepted()"), self.proceed)
-        QtCore.QObject.connect(okbox, QtCore.SIGNAL("rejected()"), self.close)
-        QtCore.QMetaObject.connectSlotsByName(self.dialog)
-        self.dialog.show()
-        self.dialog.exec_()
- 
-p()
-</nowiki>
-}}
+</div>
 </div>
 <translate>
 
