@@ -10,7 +10,7 @@ This page explains the way the [[Image:Workbench_PartDesign.svg|32px]] [[PartDes
 == Body == <!--T:9-->
 
 <!--T:10-->
-Working in PartDesign requires first creating a [[File:PartDesign_Body.svg|24px]] '''[[PartDesign Body|Body]]'''. The PartDesign Body is a container intended to hold a single contiguous solid. When a Body is created, an Origin object, a local coordinate system, is automatically added. The solid is then built by adding features. Each [[PartDesign_Feature|feature]] is cumulative and adds to or subtracts from the result of the previous feature.
+Working in PartDesign requires first creating a [[File:PartDesign_Body.svg|24px]] '''[[PartDesign Body|Body]]'''. The PartDesign Body is a container intended to hold a single contiguous solid. When a Body is created, an Origin object, a local coordinate system consisting of reference planes (XY, XZ, YZ) and axes (X, Y, Z), is automatically added. The solid is then built by adding features. Each [[PartDesign_Feature|feature]] is cumulative and adds to or subtracts from the result of the previous feature.
 
 <!--T:13-->
 A document can contain multiple bodies, but only one body can be active. New features are added to the active body. A body can be activated or deactivated by double clicking it in the [[Tree_view|Tree view]]. The activate body is highlighted in the Tree view.
@@ -22,60 +22,44 @@ A document can contain multiple bodies, but only one body can be active. New fea
 <!--T:11-->
 A contiguous solid is an object like a casting or something machined from a single block of metal. If the object involves nails, screws or glue, it is not a contiguous solid. As a practical example, a wooden chair would be made of multiple bodies, with one for each of its sub-components (legs, slats, seat, etc).
 
-In version 1.0 an experimental property was introduced that allows the Body to have non-contiguous solids. This can also be set in Preferences as default for a newly created Body. This is not intended to be used to build, as in the example, a chair in one Body. It is meant to allow features that may produce disconnected solids that will be made contiguous by later features.
+In FreeCAD version 1.0 an experimental property was introduced that allows the Body to have non-contiguous solids. This can also be set in Preferences as default for a newly created Body. This is not intended to be used to build, as in the example, a chair in one Body. It is meant to allow features that may produce disconnected solids that will be made contiguous by later features.
 
 <!--T:14-->
 When a model requires multiple bodies, like the wooden chair, the general purpose [[Image:Std_Part.svg|24px]] [[Std Part|Part container]] can be used to group them and move the whole as a unit.
 
-=== Body Origin === <!--T:18-->
-
-<!--T:19-->
-The body has an Origin which consists of reference planes (XY, XZ, YZ) and axes (X, Y, Z) that can be used by sketches and features. Sketches can be attached to Origin planes or attached to faces for features based on the sketch to be added or subtracted from the model.
-
 === Body visibility management === <!--T:15-->
 
 <!--T:16-->
-By default a body will present its most recent feature to the outside. This feature is the tip of the body. A good analogy is the expression ''the tip of the iceberg'': only the tip is visible above the water, most of the iceberg's mass (the other features) is hidden. As a new feature is added to the body, visibility of the previous feature is turned off, and the new feature becomes the tip.
+By default a body presents its most recent feature to the outside. This feature is the tip of the body. The tip also marks the location where new features are added. It is possible to temporarily redefine the tip to a feature in the middle of the Body to insert new objects (features, sketches or datum geometry) there. As a new feature is added to the body, visibility of the previous feature is turned off, and the new feature becomes the tip.
 
 <!--T:17-->
-There can only be one feature visible at a time. It is possible to [[Std_ToggleVisibility|toggle the visibility]] of any feature in the body, by selecting it in the Tree view and pressing the {{KEY|Spacebar}}, in effect going back in the history of the body.
+There can only be one feature visible at a time. It is possible to [[Std_ToggleVisibility|toggle the visibility]] of any feature in the body, by selecting it in the Tree view and pressing the {{KEY|Spacebar}}, in effect going back in the history of the body. Note that changing the visibility of features does not change the tip of the body.
 
 === Moving and Reordering Objects === <!--T:20-->
 
 <!--T:21-->
-It is possible to temporarily redefine the tip to a feature in the middle of the Body tree to insert new objects (features, sketches or datum geometry). It is also possible to reorder features under a Body, or to move them to a different Body. Select the object and right-click to get a context menu that will offer both options. The operation may be prevented if the object has dependencies in the source Body, such as being attached to a face. To move a sketch to another Body, it should not contain links to external geometry.
+The features of a Body can be reordered, or moved to a different Body. Select the feature and right-click to get a context menu that will offer both options. The operation may be prevented if the object has dependencies in the source Body, such as being attached to a face. To move a sketch to another Body, it should not contain links to external geometry.
 
 == Datum geometry == <!--T:22-->
 
 <!--T:23-->
-Datum geometry consists of custom planes, lines, points or externally linked shapes. They can be created for use as reference by sketches and features. There is a multitude of attachment possibilities for datum objects.
+Datum geometry consists of custom planes, lines, points or externally linked shapes. They can be created for use as reference by sketches and features. There are many [[Part_EditAttachment|attachment]] options for datum objects.
 
 <!--T:43-->
-In FreeCAD, datum planes make sense if you are placing sketches in non-standard orientations, that is, in planes offset or rotated around the three main axes. Since sketches can also be placed in non-standard orientations in the same way as datum planes, often there is no need to use datum planes.
-
-<!--T:63-->
-Datum planes also make sense if there will be more than one sketch in the same non-standard orientation. In this case a datum plane can be used and the orientation only needs to be adjusted for the datum plane to adjust all associated sketches and the features created from the sketches.
+In FreeCAD, datum planes make sense if you are placing sketches in non-standard orientations, that is, on planes offset or rotated around the three main axes. But since sketches can also be placed in non-standard orientations and have the same attachment options as datum planes, there is often no need to use them. Datum planes make the most sense if there is more than one sketch with the same non-standard orientation. Adjusting the orientation of the datum plane will then adjust all associated sketches and the features created from those sketches.
 
 <!--T:64-->
-Both sketches and datum planes should be attached to base planes. Referencing generated geometry (geometry that is the result of a feature creating operation, for example a pad or pocket) should be avoided since faces and edges get renamed and renumbered and the references no longer refer to the same thing. This is called the [[Topological_naming_problem|topological naming problem]] and is due the way FreeCAD uses some external geometric libraries. Hopefully this will be improved in the future. (See Advice for creating stable models below).
+Although FreeCAD version 1.0 has code to mitigate the [Topological_naming_problem|topological naming problem]], it is still best practice to attach both sketches and datum planes to the base planes of the Body's Origin whenever possible. Referencing generated geometry (geometry that is the result of a feature operation, for example a pad or pocket) may yet result in less stable models. See [[#Advice_for_creating_stable models|Advice for creating stable models]] below.
 
 == Cross-referencing == <!--T:24-->
 
 <!--T:25-->
 It is possible to cross-reference elements from a body in another body via datums. For example the datum shape binder allows to copy over faces from a body as reference in another one. This should make it easy to build a box with fitting cover in two different bodies. FreeCAD helps you to avoid accidentally linking to other bodies by asking for confirmation of your intent.
 
-== Attachment == <!--T:26-->
-
-<!--T:27-->
-Object attachment is not a specific PartDesign tool, but rather a Part utility that can be found in the Part menu. It is heavily used in the PartDesign workbench to attach sketches and reference geometry to the standard planes and axes of the Body. Very extensive ways of creating datum points, lines and planes are available. Optional attachment offset parameters make this tool very versatile.
-
-<!--T:28-->
-More info can be found in the [[Part_EditAttachment|Attachment]] page and the [[Basic_Attachment_Tutorial|Basic Attachment Tutorial]].
-
 == Advice for creating stable models == <!--T:29-->
 
 <!--T:30-->
-The idea of parametric modeling implies that you can change the values of certain parameters and subsequent steps are changed according to the new values. However, when severe changes are made, the model can break due to the [[Topological_naming_problem|topological naming problem]] that is still unresolved in FreeCAD. Breakage can be minimized when you respect the following design principles:
+The idea of parametric modeling implies that you can change the values of certain parameters and subsequent steps are changed according to the new values. However, when severe changes are made, the model can break due to the [[Topological_naming_problem|topological naming problem]]. Breakage can be minimized when you respect the following design principles:
 
 <!--T:31-->
 * Avoid attaching sketches and datum objects to generated geometry of the model. (Generated geometry is any face or edge created as a result of a pad, pocket, etc..)
