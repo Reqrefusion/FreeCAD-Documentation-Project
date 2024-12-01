@@ -72,6 +72,7 @@ function getGithubFileContent($filePath) {
     );
 }
 
+
 // Function to update or create a file on GitHub
 function updateGithubFile($filePath, $newContent, $sha, $pageTitle, $user, $comment) {
     global $githubRepoPath, $githubToken;
@@ -150,7 +151,7 @@ function downloadWikiFile($fileTitle) {
 // Function to create a valid file path based on the page title
 function createFilePath($pageTitle, $type = "wikitext") {
     global $languageCodes;
-    if($type=="File"){
+    if(strpos($pageTitle, 'File:') === 0 || strpos($pageTitle, 'Images:') === 0){
         return "wiki/File/" . sanitize_name($pageTitle);
     }
 
@@ -197,7 +198,7 @@ function sanitize_name($name) {
 // Check for recent changes made in the last 20 minutes
 $currentTime = new DateTime(); // Get the current time
 $timeLimit = clone $currentTime;
-$timeLimit->modify('-35 minutes'); // Go back 20 minutes
+$timeLimit->modify('-35 minutes'); // Go back 35 minutes
 
 // Format the timestamp
 $timestampStart = $timeLimit->format('Y-m-d\TH:i:s\Z'); // 20 minutes ago timestamp
@@ -218,6 +219,9 @@ if (isset($recentChanges['query']['recentchanges'])) {
         $user = $page['user'];  // User who made the change
         $comment = $page['comment'];  // Comment on the change
         $timestamp = new DateTime($page['timestamp']);  // Time of the change
+        $filePath = createFilePath($pageTitle);
+        $existingFileData = getGithubFileContent($filePath);
+
 
         // Check if the page title starts with an invalid prefix
         foreach ($invalidPrefixes as $prefix) {
@@ -226,32 +230,28 @@ if (isset($recentChanges['query']['recentchanges'])) {
                 continue 2; // Skip to the next page if invalid
             }
         }
+		
+        // Compare modification times to decide if the file needs to be updated
+        if (isset($existingFileData) && $existingFileData['lastModified'] >= $timestamp) {
+            echo "INFO: '$filePath' is already up-to-date.<br>";
+            continue;  // If the GitHub file is up-to-date, skip
+        }
+		
+        // Check if the first 7 characters of the commit ID and the comment match
+        if (isset($existingFileData['lastCommitSha']) && substr($existingFileData['lastCommitSha'], 0, 7) === substr($comment, 0, 7)) {
+            echo "INFO: Skipping '$filePath' as the commit ID matches the Wiki comment.<br>";
+            continue; // Skip this iteration
+        }			
+					
+		
         if (strpos($pageTitle, 'File:') === 0 || strpos($pageTitle, 'Images:') === 0) {
             echo "Processing file or image: $pageTitle (Modified by: $user, Comment: '$comment')<br>";
-
-            // Generate the GitHub file path
-            $filePath = createFilePath($pageTitle, $type = "File");
-
-            // Get the existing file content and last modified date from GitHub
-            $existingFileData = getGithubFileContent($filePath);
-
-            // Compare modification times to decide if the file needs to be updated
-            if ($existingFileData && $existingFileData['lastModified'] >= $timestamp) {
-                echo "INFO: '$filePath' is already up-to-date.<br>";
-                continue;  // If the GitHub file is up-to-date, skip
-            }
-            
-            // Check if the first 7 characters of the commit ID and the comment match
-            if (isset($existingFileData['lastCommitSha']) && substr($existingFileData['lastCommitSha'], 0, 7) === substr($comment, 0, 7)) {
-                echo "INFO: Skipping '$filePath' as the commit ID matches the Wiki comment.<br>";
-                continue; // Skip this iteration
-            }
 
             // Download the file from the Wiki
             $fileContent = downloadWikiFile($pageTitle);
             if ($fileContent !== null) {
                 // Update the file if it exists, or create a new one
-                if ($existingFileData) {
+                if (isset($existingFileData)) {
                     echo "INFO: Updating existing file '$filePath' on GitHub...<br>";
                     updateGithubFile($filePath, $fileContent, $existingFileData['sha'], $pageTitle, $user, $comment);
                 } else {
@@ -269,27 +269,22 @@ if (isset($recentChanges['query']['recentchanges'])) {
         $pageId = array_key_first($wikiContent['query']['pages']);
         $wikiText = $wikiContent['query']['pages'][$pageId]['revisions'][0]['*'];
 
-        // Generate the GitHub file path
-        $filePath = createFilePath($pageTitle);
-
-        // Get the existing file content from GitHub
-        $existingContent = getGithubFileContent($filePath);
         
         // Skip if the content is already up-to-date
-        if ($existingContent['content'] !== null && trim($wikiText) === trim($existingContent['content'])) {
+        if ($existingFileData['content'] !== null && trim($wikiText) === trim($existingFileData['content'])) {
             echo "INFO: '$filePath' is already up-to-date.<br>";
             continue; // If content is the same, skip
         }
 
         // Update the file if it exists, or create a new one
-        if ($existingContent['content'] !== null) {
+        if ($existingFileData['content'] !== null) {
             echo "INFO: Updating existing file '$filePath' on GitHub...<br>";
-            updateGithubFile($filePath, $wikiText, $existingContent['sha'], $pageTitle, $user, $comment);
+            updateGithubFile($filePath, $wikiText, $existingFileData['sha'], $pageTitle, $user, $comment);
         } else {
             echo "INFO: Creating new file '$filePath' on GitHub...<br>";
             updateGithubFile($filePath, $wikiText, null, $pageTitle, $user, $comment);
         }
-        }
+		}
     }
 } else {
     echo "ERROR: Could not fetch recent changes from the wiki.<br>";
