@@ -9,80 +9,132 @@
 
 {{Manual:TOC}}
 
+<div class="mw-translate-fuzzy">
 FEM, en anglais Finite Element Method, signifie Méthode des éléments finis ([https://fr.wikipedia.org/wiki/M%C3%A9thode_des_%C3%A9l%C3%A9ments_finis Méthode des éléments finis]). Il s'agit d'un vaste sujet mathématique que dans FreeCAD nous pouvons résumer par moyen de calculer les propagations à l'intérieur d'un objet 3D en le coupant en petits morceaux et en analysant l'impact de chaque petit morceau sur ses voisins. Cela a plusieurs utilisations dans les domaines de l'ingénierie et de l'électromagnétisme. Nous examinerons plus en profondeur une seule utilisation déjà développée dans FreeCAD qui simule des déformations dans des objets soumis à des forces et à des poids.
+</div>
 
+<div class="mw-translate-fuzzy">
 L'obtention de cette simulation se fait dans FreeCAD avec l'[[FEM_Workbench/fr|atelier FEM]]. Cela implique différentes étapes : préparer la géométrie, définir son matériau, effectuer le maillage, diviser en parties plus petites, comme nous l'avons fait dans le chapitre  ([[Manual:Preparing models for 3D printing/fr|Préparer les objets pour l’impression 3D]]) et finalement calculer la simulation.
+</div>
 
+<div class="mw-translate-fuzzy">
 [[Image:Exercise_fem_01.jpg|600px]]
+</div>
+
+This workbench allows for the integration of other FreeCAD workbenches, enabling seamless model preparation and analysis. It also provides powerful post-processing tools to visualize and interpret simulation results, such as stress, deformation, and thermal distributions. The workflow follows these steps:
+
+# Preparing the Geometry: The model must be simplified or optimized for FEM analysis. This often includes removing unnecessary details or features that don't contribute to the simulation but could make it computationally expensive. You can use tools from other workbenches, like [[Image:Workbench_PartDesign.svg|16px]] [[PartDesign_Workbench|PartDesign]] or [[Image:Workbench_Part.svg|16px]] [[Part_Workbench|Part]], to prepare your 3D geometry.
+
+*  '''Assigning Material Properties''' :Material definitions are critical for accurate simulations. Properties such as Young's modulus, Poisson’s ratio, and density are assigned for structural simulations, or thermal conductivity and specific heat capacity for thermal analysis. Materials can be selected from FreeCAD’s material library or customized as needed.
+
+* '''Meshing''': Meshing divides the geometry into finite elements, allowing the solver to analyze the object. Mesh quality is crucial, as finer meshes result in more accurate simulations but require more computational power. Tools are available to refine the mesh locally, focusing on areas where stress or deformation is expected to be higher.
+
+*  '''Applying Loads and Constraints''': In this step, physical conditions such as forces, pressures, moments, or thermal loads are applied to the model. Boundary conditions are also defined, such as fixing points, applying symmetry constraints, or restricting movement, depending on the scenario being simulated.
+
+*  '''Running the Solver''': Once the setup is complete, the solver calculates the model's response to the applied conditions. Solvers like CalculiX compute displacements, stresses, and other quantities, depending on the type of analysis performed. The process can take varying amounts of time depending on the mesh density and model complexity.
+
+*  '''Post-Processing''': After the simulation, results are visualized using tools in the FEM Workbench. Stress, strain, and displacement fields are represented as color maps, and deformation plots can be generated. These visualizations allow for thorough analysis of the model's performance, highlighting areas of high stress or deformation.
+
+
+[[File:FreeCAD FEMBeam.png|600px]]
 
 <span id="Preparing_FreeCAD"></span>
 === Préparation de FreeCAD ===
 
+<div class="mw-translate-fuzzy">
 La simulation elle-même est réalisée par un autre logiciel utilisé par FreeCAD pour obtenir les résultats. Il existe plusieurs applications de simulation FEM intéressantes et disponibles. L’[[FEM_Workbench/fr|Atelier FEM]] vous permet de choisir parmi ces applications. Cependant, actuellement, seul [http://www.calculix.de/ CalculiX] est entièrement implémenté. Un autre logiciel, appelé [https://sourceforge.net/projects/netgen-mesher/ NetGen], en charge de la génération du maillage de subdivision est également nécessaire. Des instructions détaillées pour installer ces deux composants sont fournies dans la documentation FreeCAD ([[FEM_Install/fr|Installation de FEM]]).
+</div>
 
 <span id="Preparing_the_geometry"></span>
 === Préparation de la géométrie ===
 
+<div class="mw-translate-fuzzy">
 Nous allons commencer avec la maison que nous avons modélisée dans le chapitre de modélisation BIM ([[Manual:BIM modeling/fr|Modélisation BIM]]). Certains changements doivent néanmoins être apportés pour rendre le modèle adapté aux calculs FEM. Nous écartons les objets que nous ne voulons pas inclure dans le calcul, comme la porte et la fenêtre, et assemblons tous les objets restants en un seul.
+</div>
 
+<div class="mw-translate-fuzzy">
 * Chargez le modèle de maison que nous avons modélisé précédemment ([https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/house.FCStd house model]).
 * Supprimez ou masquez l'objet de la page, les plans de section et les dimensions, de sorte qu’il ne nous reste que notre modèle.
 * Cachez la fenêtre, la porte et la dalle de sol.
 * Masquez également les poutres métalliques du toit. Comme ce sont des objets très différents du reste de la maison, nous simplifierons notre calcul en ne les incluant pas. Au lieu de cela, nous considérons que la dalle du toit est directement placée sur le dessus du mur.
 * Maintenant, déplacez la dalle du toit vers le bas, de sorte qu'elle repose sur le mur : éditez l'objet '''Rectangle''' que nous avons utilisé comme base de la dalle du toit et changez son '''Positionnement-> Position-> Valeur X''' de 3,18 m à 3,00 m.
 * Notre modèle est maintenant propre :
+</div>
 
+<div class="mw-translate-fuzzy">
 :[[Image:Exercise_fem_02.jpg|600px]]
-
-* L’atelier FEM ne peut actuellement calculer des déformations que sur un seul objet. Par conséquent, nous devons fusionner nos deux objets (le mur et la dalle). Passez à l’[[Part_Workbench/fr|Atelier Pièce]], sélectionnez les deux objets et appuyez sur le bouton {{Button|[[Image:Part_Fuse.svg|16px]] [[Part_Fuse/fr|Union]]}}. Nous avons maintenant obtenu un objet fusionné :
-
-:[[Image:Exercise_fem_03.jpg|600px]]
+</div>
 
 <span id="Creating_the_analysis"></span>
 === Création de l'analyse ===
 
+<div class="mw-translate-fuzzy">
 * Nous sommes maintenant prêts à commencer une analyse FEM. Passons à l’[[FEM_Workbench/fr|atelier FEM]].
 * Sélectionnez l'objet résultat de la fusion.
 * Appuyez sur le bouton {{Button|[[Image:FEM_Analysis.svg|16px]] [[FEM_Analysis/fr|Conteneur d'analyse]]}}.
 * Une nouvelle analyse sera créée et des panneaux de configuration seront ouverts. Ici, vous pouvez définir les paramètres de maillage à utiliser pour produire le maillage FEM. Le paramètre principal à éditer est la '''taille maximale''' qui définit la taille maximale (en millimètres) de chaque pièce du maillage. Pour l'instant, nous pouvons laisser la valeur par défaut de 1000 :
+</div>
 
-:[[Image:Exercise_fem_04.jpg|600px]]
-
+<div class="mw-translate-fuzzy">
 * Après avoir appuyé sur {{Button|OK}} et quelques secondes de calcul, notre maillage FEM est maintenant prêt :
+</div> 
 
+<div class="mw-translate-fuzzy">
 :[[Image:Exercise_fem_05.jpg|600px]]
+</div>
 
+* Our mesh is ready.
+
+<div class="mw-translate-fuzzy">
 * Nous pouvons maintenant définir le matériau à appliquer à notre maillage. Ceci est important car, en fonction de la force matérielle, notre objet réagira différemment aux forces qui lui sont appliquées. Sélectionnez l'objet d'analyse et appuyez sur le bouton {{Button|[[Image:FEM_MaterialSolid.svg|16px]] [[FEM_MaterialSolid/fr|Créer un matériau FEM pour le solide]]}}.
 * Un panneau de tâches s'ouvrira pour nous permettre de choisir un matériau. Dans la liste déroulante Matériaux, choisissez le matériau en '''béton générique''' (en anglais Concrete-generic) et appuyez sur le bouton {{Button|OK}}.
+</div>
 
+<div class="mw-translate-fuzzy">
 :[[Image:Exercise_fem_06.jpg|600px]]
+</div>
 
+[[File:FreeCAD FEM material.png|600px]]
+
+<div class="mw-translate-fuzzy">
 * Nous sommes maintenant prêts à appliquer des forces. Commençons par préciser quelles faces sont arrimées au sol et ne peuvent donc pas bouger. Appuyez sur le bouton {{Button|[[Image:FEM_ConstraintFixed.svg|16px]] [[FEM_ConstraintFixed/fr|FEM Condition de limite fixe]]}}.
 * Cliquez sur la face inférieure de notre bâtiment et appuyez sur le bouton {{Button|OK}}. La face inférieure est maintenant indiquée comme inamovible :
+</div>
 
+<div class="mw-translate-fuzzy">
 :[[Image:Exercise_fem_07.jpg|600px]]
+</div>
 
+<div class="mw-translate-fuzzy">
 * Nous allons maintenant ajouter une charge sur la face supérieure, qui pourrait représenter, par exemple, un poids massif sur le toit. Pour cela, nous utiliserons une contrainte de pression. Appuyez sur le bouton  {{Button|[[Image:FEM_ConstraintPressure.svg|16px]] [[FEM_ConstraintPressure/fr|Charge de pression]]}}.
 * Cliquez sur la face supérieure du toit, mettez la pression sur '''10 MPa''' (la pression est appliquée par millimètre carré) et cliquez sur le bouton {{Button|OK}}. Notre force est maintenant appliquée :
+</div>
 
+<div class="mw-translate-fuzzy">
 :[[Image:Exercise_fem_08.jpg|600px]]
+</div>
 
+<div class="mw-translate-fuzzy">
 * Nous sommes maintenant prêts à commencer le calcul. Sélectionnez l'objet '''CalculiX''' dans l'arborescence et appuyez sur le bouton {{Button|[[Image:FEM_SolverControl.svg|16px]] [[FEM_SolverControl/fr|Lancement des calculs]]}}.
 * Dans le panneau de tâches qui s'ouvrira, cliquez d'abord sur le bouton {{Button|Write .inp file}} pour créer le fichier d'entrée pour CalculiX, puis le bouton {{Button|Run CalculiX}}. Quelques instants après, le calcul sera effectué :
+</div>
 
+
+<div class="mw-translate-fuzzy">
 :[[Image:Exercise_fem_09.jpg|600px]]
+</div>
 
+<div class="mw-translate-fuzzy">
 * Nous pouvons maintenant regarder les résultats. Fermez le panneau des tâches et voyez qu'un nouvel objet '''Résultats''' a été ajouté à notre analyse.
 * Double-cliquez sur l'objet '''Résultats'''.
 * Définissez le type de résultat que vous souhaitez voir sur le maillage, par exemple "déplacement absolu", cochez la case à cocher '''affichage''' sous '''Déplacement''' et déplacez le curseur à côté de celui-ci. Vous pourrez voir la déformation augmenter lorsque vous appliquez plus de force :
+</div>
 
+<div class="mw-translate-fuzzy">
 :[[Image:Exercise_fem_10.jpg|600px]]
+</div>
 
 Les résultats affichés par l'atelier FEM ne sont évidemment pas suffisantes pour prendre des décisions dans la vie réelle sur le dimensionnement des structures et les matériaux. Ils peuvent par contre donner déjà des informations intéressantes sur la façon dont les forces s'appliquent sur une structure et quelles sont les zones faibles qui seront le plus stressées.
-
-'''Téléchargements'''
-
-* Le fichier créé lors de cet exercice: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/fem.FCStd
 
 '''Lire plus d'informations'''
 
