@@ -9,13 +9,21 @@
 
 {{Manual:TOC}}
 
+<div class="mw-translate-fuzzy">
 W rozdziale [[Manual:Creating and manipulating geometry/pl|Tworzenie i obróbka geometrii]] widzieliśmy, jak tworzyć geometrię części i jak wyświetlać ją na ekranie, dołączając ją do "pospolitego" ''(nieparametrycznego)'' obiektu dokumentu. Jest to uciążliwe, gdy chcemy zmienić kształt tego obiektu. Musielibyśmy utworzyć nowy kształt, a następnie ponownie przypisać go do naszego obiektu.
+</div>
 
+<div class="mw-translate-fuzzy">
 Jednak we wszystkich poprzednich rozdziałach tego podręcznika widzieliśmy również, jak potężne są obiekty parametryczne. Wystarczy zmienić tylko jedną właściwość, a kształt zostanie przeliczony w locie.
+</div>
 
+<div class="mw-translate-fuzzy">
 Wewnętrznie obiekty parametryczne nie robią nic innego niż przed chwilą: Ponownie obliczają zawartość swojej właściwości Kształt, w kółko, za każdym razem, gdy zmieni się inna właściwość.
+</div>
 
-FreeCAD zapewnia bardzo wygodny system do budowania takich w pełni parametrycznych obiektów w Pythonie. Składają się one z prostej klasy Python, która definiuje wszystkie właściwości potrzebne obiektowi i co się stanie, gdy jedna z tych właściwości ulegnie zmianie. Struktura takiego obiektu parametrycznego jest bardzo prosta:
+* Declares the necessary properties for the object.
+* Defines the behavior when any of these properties are modified.
+The structure of such parametric object is as simple as this:
 
 {{Code|code=
 class myParametricObject:
@@ -32,15 +40,40 @@ class myParametricObject:
         ...
 }}
 
-Wszystkie klasy Pythona zazwyczaj posiadają metodę __init__. To, co znajduje się wewnątrz tej metody, jest wykonywane, gdy klasa jest instancjonowana (co oznacza, w slangu programistycznym, że obiekt Pythona jest tworzony z tej klasy. Potraktuj klasę jako "szablon" do tworzenia jej żywych kopii). W naszej funkcji __init__ robimy dwie ważne rzeczy: <br>1- przechowujemy naszą klasę w atrybucie "Proxy" naszego obiektu dokumentu FreeCAD, co oznacza, że obiekt dokumentu FreeCAD będzie przenosił ten kod wewnątrz siebie, oraz <br>2- tworzymy wszystkie właściwości, których potrzebuje nasz obiekt. Dostępnych jest wiele rodzajów właściwości, pełną listę można uzyskać, wpisując ten kod:
+<div class="mw-translate-fuzzy">
+FreeCAD zapewnia bardzo wygodny system do budowania takich w pełni parametrycznych obiektów w Pythonie. Składają się one z prostej klasy Python, która definiuje wszystkie właściwości potrzebne obiektowi i co się stanie, gdy jedna z tych właściwości ulegnie zmianie. Struktura takiego obiektu parametrycznego jest bardzo prosta:
+</div>
+
+* Store the class itself in the '''Proxy''' attribute of the FreeCAD document object:
+By assigning '''self''' to the '''Proxy''' attribute of the FreeCAD document object, we link the logic of our Python class to the FreeCAD object. This means the document object will "carry" the Python class code inside itself, allowing it to behave according to the logic defined in the class. This connection enables FreeCAD to know how to interact with and recalculate the parametric object.
+
+* Create all the properties the object needs:
+Using the '''addProperty''' method, we define the custom properties required by the object. Properties act as parameters or variables for the object and can be accessed, modified, and displayed in FreeCAD's property editor. In the example, we add a floating-point property named '''MyLength'''. This property will later influence the shape or behavior of the object.
+
+There are many types of properties available in FreeCAD, ranging from floating-point numbers to strings and even specialized types for geometry and materials. To explore the full list of available property types, you can type the following code in the Python console:
 
 {{Code|code=
 FreeCAD.ActiveDocument.addObject("Part::FeaturePython", "dummy").supportedProperties()
 }}
 
-Drugą ważną częścią jest metoda execute. Każdy kod w tej metodzie zostanie wykonany, gdy obiekt zostanie oznaczony do ponownego obliczenia, co nastąpi, gdy właściwość zostanie zmieniona. To już wszystko. Wewnątrz execute musisz zrobić wszystko, co trzeba, czyli obliczyć nowy kształt i przypisać go do samego obiektu za pomocą czegoś takiego jak obj.Shape = myNewShape. Dlatego właśnie metoda execute przyjmuje argument "obj", który będzie samym obiektem dokumentu FreeCAD, dzięki czemu możemy nim manipulować wewnątrz naszego kodu Python.
+<div class="mw-translate-fuzzy">
+Wszystkie klasy Pythona zazwyczaj posiadają metodę __init__. To, co znajduje się wewnątrz tej metody, jest wykonywane, gdy klasa jest instancjonowana (co oznacza, w slangu programistycznym, że obiekt Pythona jest tworzony z tej klasy. Potraktuj klasę jako "szablon" do tworzenia jej żywych kopii). W naszej funkcji __init__ robimy dwie ważne rzeczy: <br>1- przechowujemy naszą klasę w atrybucie "Proxy" naszego obiektu dokumentu FreeCAD, co oznacza, że obiekt dokumentu FreeCAD będzie przenosił ten kod wewnątrz siebie, oraz <br>2- tworzymy wszystkie właściwości, których potrzebuje nasz obiekt. Dostępnych jest wiele rodzajów właściwości, pełną listę można uzyskać, wpisując ten kod:
+</div>
 
+In summary:
+
+* The '''execute''' method is called whenever the object needs to be updated.
+* It is responsible for recalculating the shape and assigning it to the object's '''Shape''' attribute.
+* The '''obj''' argument gives access to the FreeCAD document object, enabling you to make changes programmatically.
+With this system, FreeCAD handles the rest—ensuring that the object is properly updated in the document and displayed correctly in the graphical interface.
+
+<div class="mw-translate-fuzzy">
+Drugą ważną częścią jest metoda execute. Każdy kod w tej metodzie zostanie wykonany, gdy obiekt zostanie oznaczony do ponownego obliczenia, co nastąpi, gdy właściwość zostanie zmieniona. To już wszystko. Wewnątrz execute musisz zrobić wszystko, co trzeba, czyli obliczyć nowy kształt i przypisać go do samego obiektu za pomocą czegoś takiego jak obj.Shape = myNewShape. Dlatego właśnie metoda execute przyjmuje argument "obj", który będzie samym obiektem dokumentu FreeCAD, dzięki czemu możemy nim manipulować wewnątrz naszego kodu Python.
+</div>
+
+<div class="mw-translate-fuzzy">
 Ostatnia rzecz jest ważna do zapamiętania: Podczas tworzenia takich obiektów parametrycznych w dokumencie FreeCAD, po zapisaniu pliku, powyższy kod Python nie jest przechowywany wewnątrz pliku. Wynika to ze względów bezpieczeństwa, gdyby plik FreeCAD zawierał kod, ktoś mógłby rozpowszechniać pliki FreeCAD zawierające złośliwy kod, który mógłby uszkodzić komputery innych osób. Tak więc, jeśli dystrybuujesz plik, który zawiera obiekty wykonane przy użyciu powyższego kodu, taki kod musi być również obecny na komputerze, który otworzy plik. Najłatwiejszym sposobem na osiągnięcie tego jest zazwyczaj zapisanie powyższego kodu w makrze i rozpowszechnianie makra wraz z plikiem FreeCAD lub udostępnienie makra na [[Macros_recipes/pl|Repozytorium makr FreeCAD]], skąd każdy może je pobrać.
+</div>
 
 Poniżej wykonamy małe ćwiczenie, budując obiekt parametryczny, który jest prostą parametryczną prostokątną powierzchnią. Bardziej złożone przykłady są dostępne na stronie [[Scripted_objects/pl|Obiekty tworzone skryptami]] oraz w samym kodzie źródłowym [https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/TemplatePyMod/FeaturePython.py FreeCAD].
 
@@ -92,7 +125,9 @@ class ParametricRectangle:
         obj.Shape = f
 }}
 
+<div class="mw-translate-fuzzy">
 Zamiast wklejać powyższy kod w konsoli Python, lepiej zapiszmy go gdzieś, abyśmy mogli go później ponownie wykorzystać i zmodyfikować. Na przykład w postaci nowej makrodefinicji ''(menu Przybory → Makrodefinicje → Utwórz)''. Nazwij je na przykład "ParamRectangle". Jednak makra FreeCAD są zapisywane z rozszerzeniem .FCMacro, którego Python nie rozpoznaje podczas importowania . Tak więc, przed użyciem powyższego kodu, będziemy musieli zmienić nazwę pliku ParamRectangle.FCMacro na ParamRectangle.py. Można to zrobić z poziomu eksploratora plików, przechodząc do folderu Macros wskazanego w menu Przybory → Makrodefinicje.
+</div>
 
 Gdy to zrobimy, możemy teraz zrobić to w konsoli Python:
 
@@ -102,7 +137,9 @@ import ParamRectangle
 
 Badając zawartość ParamRectangle, możemy sprawdzić, czy zawiera ona naszą klasę ParametricRectangle.
 
+<div class="mw-translate-fuzzy">
 Aby utworzyć nowy obiekt parametryczny przy użyciu naszej klasy ParametricRectangle, użyjemy następującego kodu. Zauważ, że używamy Part::FeaturePython zamiast Part::Feature, którego używaliśmy w poprzednich rozdziałach ''(wersja Python pozwala na zdefiniowanie własnego zachowania parametrycznego)'':
+</div>
 
 {{Code|code=
 myObj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", "Rectangle")
@@ -111,24 +148,44 @@ myObj.ViewObject.Proxy = 0 # This is mandatory unless we code the ViewProvider t
 FreeCAD.ActiveDocument.recompute()
 }}
 
-Nic nie pojawi się jeszcze na ekranie, ponieważ właściwości Długość i Szerokość mają wartość 0, co spowoduje uruchomienie naszego warunku "do-nothing" wewnątrz execute. Musimy tylko zmienić wartości Długość i Szerokość, a nasz obiekt w magiczny sposób pojawi się i zostanie ponownie przeliczony w locie.
+Here is a quick breakdown of the previous commands:
 
+* '''myObj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", "Rectangle")''': Creates a new '''Part::FeaturePython''' object named '''Rectangle''' in the active FreeCAD document. This object is specifically designed for custom parametric behavior, allowing Python-defined logic to manage its properties and behavior.
+
+* '''ParamRectangle.ParametricRectangle(myObj)''': Initializes the object by associating it with the '''ParametricRectangle''' class from the '''ParamRectangle''' module or script. This links the custom Python-defined logic to the object, enabling it to act as a parametric object.
+
+* '''myObj.ViewObject.Proxy = 0''': Resets the '''ViewObject.Proxy''' attribute to 0, ensuring that the object uses FreeCAD’s default view handling. This step is required unless you define a custom ViewProvider to manage the visual representation of the object.
+
+* '''FreeCAD.ActiveDocument.recompute()''': Recomputes the document to update the geometry and reflect changes in the FreeCAD graphical interface, making the new object fully visible and functional
+
+<div class="mw-translate-fuzzy">
+Nic nie pojawi się jeszcze na ekranie, ponieważ właściwości Długość i Szerokość mają wartość 0, co spowoduje uruchomienie naszego warunku "do-nothing" wewnątrz execute. Musimy tylko zmienić wartości Długość i Szerokość, a nasz obiekt w magiczny sposób pojawi się i zostanie ponownie przeliczony w locie.
+</div>
+
+<div class="mw-translate-fuzzy">
 Oczywiście uciążliwe byłoby wpisywanie tych 4 linijek kodu Python za każdym razem, gdy chcemy utworzyć nowy parametryczny prostokąt. Bardzo prostym sposobem na rozwiązanie tego problemu jest umieszczenie powyższych 4 linijek wewnątrz naszego pliku ParamRectangle.py, na końcu, po zakończeniu klasy ParametricRectange ''(możemy to zrobić z poziomu edytora makrodefinicji)''.
+</div>
 
 Teraz, gdy wpiszemy import ParamRectangle , automatycznie zostanie utworzony nowy prostokąt parametryczny.  Co więcej, możemy dodać przycisk na pasku narzędzi, który właśnie to zrobi:
 
+<div class="mw-translate-fuzzy">
 * Otwórz menu '''Przybory → Dostosuj'''
 * W zakładce "Makra" wybierz nasze makro ParamRectangle.py, wypełnij szczegóły według własnego uznania i naciśnij "Dodaj":
  
 [[Image:Exercise_python_04.jpg]]
+</div>
 
 * W zakładce Paski narzędzi utwórz nowy niestandardowy pasek narzędzi w wybranym środowisku pracy ''(lub globalnie)'', wybierz makrodefinicję i dodaj je do paska narzędzi:
 
+<div class="mw-translate-fuzzy">
 [[Image:Exercise_python_05.jpg]]
+</div>
 
 * To wszystko, mamy teraz nowy przycisk paska narzędzi, który po kliknięciu utworzy parametryczny prostokąt.
 
+<div class="mw-translate-fuzzy">
 Pamiętaj, że jeśli chcesz rozpowszechniać pliki utworzone za pomocą tego nowego narzędzia innym osobom, muszą one również mieć zainstalowaną makrodefinicję ParamRectangle.py na swoim komputerze.
+</div>
 
 '''Więcej informacji:'''
 
