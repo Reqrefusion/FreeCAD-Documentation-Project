@@ -9,31 +9,56 @@
 
 {{Manual:TOC}}
 
+<div class="mw-translate-fuzzy">
 In den vorangegangenen Kapiteln haben wir die verschiedenen Arbeitsbereiche von FreeCAD kennengelernt, und wie jeder von ihnen seine eigenen Werkzeuge und Geometrietypen implementiert. Das gleiche Konzept gilt für die Arbeit mit Python-Code.
+</div>
 
+<div class="mw-translate-fuzzy">
 Wir haben auch gesehen, dass die große Mehrheit der FreeCAD-Arbeitsbereiche von einem sehr grundlegenden Arbeitsbereich abhängt: dem Arbeitsbereich [[Part_Workbench/de|Part]]. Tatsächlich tun viele andere Arbeitsbereiche, wie z.B. [[Draft_Workbench/de|Draft]] und [[Arch_Workbench/de|Arch]], genau das, was wir in diesem Kapitel tun werden: Python-Code verwenden, um Part-Geometrie zu erstellen und zu verarbeiten.
+</div>
 
+<div class="mw-translate-fuzzy">
 Das erste, was wir tun müssen, um mit der Part-Geometrie zu arbeiten, ist das Python-Äquivalent des Wechsels zum Arbeitsbereich Part ausführen: Das Part-Modul importieren:
+</div>
 
 {{Code|code=
 import Part 
 }}
 
+Take a moment to explore the Part module by typing '''Part.''' in the Python console and browsing through the available methods and attributes in the autocomplete window. This is a great way to familiarize yourself with the functionality the module offers. You'll find a variety of convenient functions, such as makeBox and makeCircle, which allow you to quickly create geometric shapes and objects with just a single command. Many of these functions also offer optional parameters, giving you precise control over dimensions and placement.
+
+
+<div class="mw-translate-fuzzy">
 Nimm dir eine Minute Zeit, um den Inhalt des Part-Moduls zu erkunden, indem du Part. eingibst und die verschiedenen verfügbaren Methoden durchgehst. Das  Part-Modul bietet mehrere praktische Funktionen wie makeBox, makeCircle usw., die dir sofort ein Objekt erstellen. Probiere zum Beispiel dies aus:
+</div>
 
 {{Code|code=
 Part.makeBox(3,5,7) 
 }}
 
+<div class="mw-translate-fuzzy">
 Wird nach der Eingabe der obigen Zeile die Eingabetaste gedrückt, wird in der 3D-Ansicht nichts angezeigt, aber auf der Python-Konsole wird etwas wie das Folgende ausgegeben:
+</div>
 
 {{Code|code=
 <Solid object at 0x5f43600> 
 }}
 
+<div class="mw-translate-fuzzy">
 An dieser Stelle kommt ein wichtiges Konzept zum Tragen. Was wir hier erstellt haben, ist eine Part-Form. Es handelt sich (noch) nicht um ein FreeCAD-Dokumentobjekt. In FreeCAD sind Objekte und ihre Geometrie unabhängig. Stelle dir ein FreeCAD-Dokumentenobjekt als einen Behälter vor, der eine Form beherbergt. Parametrische Objekte haben auch Eigenschaften wie Länge und Breite und berechnen ihre Form "spontan" neu, wenn sich eine der Eigenschaften ändert. Wir haben hier eine Form manuell berechnet.
+</div>
 
+<div class="mw-translate-fuzzy">
 Wir können nun ganz einfach ein "allgemeines" Dokumentobjekt im aktuellen Dokument erstellen (es sollte mindestens ein neues Dokument geöffnet sein) und ihm eine Quaderform geben, wie die eben erstellte:
+</div>
+
+In this case, we manually created a shape using the '''Part.makeBox()''' function. This shape is a non-parametric object, meaning it won’t update automatically based on any properties—it is static unless we manipulate it programmatically. To make this shape part of the active FreeCAD document, it would need to be assigned to a document object (like a '''Part::Feature'''), which would link it to the graphical interface and make it visible and manageable within the FreeCAD environment.
+
+<div class="mw-translate-fuzzy">
+Beachte, wie wir myObj.Shape verwendet haben, und beachte, dass wir es genauso gemacht haben wie im vorherigen Kapitel, als wir andere Eigenschaften eines Objekts geändert haben, z. B. box.Height = 5 . In der Tat ist '''Form''' ebenfalls eine Eigenschaft, genau wie '''Höhe'''. Nur dass sie eine Part-Form und nicht eine Zahl annimmt. Im nächsten Kapitel werden wir uns genauer ansehen, wie diese parametrischen Objekte aufgebaut sind.
+</div>
+
+We can now easily create a "generic" document object in the current document (make sure you have at least one new document open), and give it a box shape like the one we just made:
 
 {{Code|code=
 boxShape = Part.makeBox(3,5,7)
@@ -42,9 +67,30 @@ myObj.Shape = boxShape
 FreeCAD.ActiveDocument.recompute()
 }}
 
-Beachte, wie wir myObj.Shape verwendet haben, und beachte, dass wir es genauso gemacht haben wie im vorherigen Kapitel, als wir andere Eigenschaften eines Objekts geändert haben, z. B. box.Height = 5 . In der Tat ist '''Form''' ebenfalls eine Eigenschaft, genau wie '''Höhe'''. Nur dass sie eine Part-Form und nicht eine Zahl annimmt. Im nächsten Kapitel werden wir uns genauer ansehen, wie diese parametrischen Objekte aufgebaut sind.
+Here is a breakdown of the previous commands:
 
-Lasse uns nun unsere Part-Formen genauer untersuchen. Am Ende des Kapitels über [[Manual:Traditional modeling, the CSG way/de|Traditionelle Modellierung mit dem Arbeitsbereich Part]] haben wir eine Tabelle gezeigt, die erklärt, wie Part-Formen konstruiert werden und aus welchen Komponenten sie bestehen (Knoten, Kanten, Flächen, usw.). Die gleichen Komponenten sind auch hier vorhanden und können über Python abgerufen werden. Part-Formen haben immer die folgenden Attribute: Knoten, Kanten, Linienzüge, Flächen, Hüllen und Festkörper. Alle sind Listen, die eine beliebige Anzahl von Elementen enthalten oder leer sein können:
+*'''boxShape = Part.makeBox(3,5,7)''': Creates a 3D box with dimensions 3x5x7 (length, width, and height) and stores it as a Part Shape in the variable boxShape. This shape exists only in memory and is not yet part of the FreeCAD document.
+
+* '''myObj = FreeCAD.ActiveDocument.addObject("Part::Feature", "MyNewBox")''': Adds a new Part::Feature object named "MyNewBox" to the active FreeCAD document and assigns it to the variable myObj. The new object will appear in the FreeCAD document tree.
+
+* '''myObj.Shape = boxShape''': Links the boxShape geometry to the Shape property of myObj, integrating the geometry into the FreeCAD document.
+
+* '''FreeCAD.ActiveDocument.recompute()''': Updates the document to reflect the changes, ensuring that the new object and its geometry appear in the graphical interface.
+
+Note how we handled '''myObj.Shape'''. It was done in the same way as in the previous chapter, where we changed other properties of an object, such as '''box.Height = 5'''. In fact, '''Shape''' is also a property, just like '''Height'''. However, instead of taking a number, '''Shape''' requires a Part Shape. In the next chapter, we will take a closer look at how these parametric objects are constructed.
+
+<div class="mw-translate-fuzzy">
+Lasse uns zum Beispiel den Flächeninhalt jeder Fläche unseres obigen boxShape(-Objekts) bestimmen:(Nicht vergessen die zweite Zeile einzurücken, wie unten dargestellt. Nach der letzten Zeile zweimal die Eingabetaste (Enter) drücken, um den Python-Befehl zu starten.)
+</div>
+
+* '''Vertexes''': Points in 3D space that define the corners or endpoints of geometry.
+* '''Edges''': Straight or curved lines connecting two vertexes.
+* '''Wires''': Closed or open loops formed by one or more connected edges.
+* '''Faces''': Surfaces enclosed by one or more wires.
+* '''Shells''': Groups of connected faces, forming a continuous surface.
+* '''Solids''': 3D volumes enclosed by one or more shells.
+
+All of these attributes are represented as lists in Python. Each list can contain any number of elements or be empty, depending on the shape being explored. For example, a box will have eight '''Vertexes''', twelve '''Edges''', six '''Faces''', one '''Shell''', and one '''Solid''', while a line will only have two '''Vertexes''' and one '''Edge''', with all other attributes being empty. These components are fundamental building blocks of Part geometry and can be accessed and manipulated programmatically. Understanding how they interact provides powerful control over the creation and modification of 3D models. We can access those lists as follows:
 
 {{Code|code=
 print(boxShape.Vertexes)
@@ -55,14 +101,16 @@ print(boxShape.Shells)
 print(boxShape.Solids)
 }}
 
-Lasse uns zum Beispiel den Flächeninhalt jeder Fläche unseres obigen boxShape(-Objekts) bestimmen:(Nicht vergessen die zweite Zeile einzurücken, wie unten dargestellt. Nach der letzten Zeile zweimal die Eingabetaste (Enter) drücken, um den Python-Befehl zu starten.)
+<div class="mw-translate-fuzzy">
+Oder für jede Kante ihren Anfangs- und Endpunkt:
+</div>
 
 {{Code|code=
 for f in boxShape.Faces:
    print(f.Area)
 }}
 
-Oder für jede Kante ihren Anfangs- und Endpunkt:
+Or, for each edge, its start point and end point:
 
 {{Code|code=
 for e in boxShape.Edges:
@@ -83,7 +131,16 @@ print(boxShape.Faces[0].ShapeType)
 print(boxShape.Vertexes[2].ShapeType)
 }}
 
+Here is a short explanation of the above commands:
+*'''print(boxShape.ShapeType)''': Displays the type of the top-level shape represented by '''boxShape'''. In this case, since '''boxShape''' was created as a box using '''Part.makeBox''', the output will be "Solid", indicating that the shape is a 3D solid object.
+
+*'''print(boxShape.Faces[0].ShapeType)''': Accesses the first face in the '''Faces''' list of '''boxShape''' (index 0) and prints its shape type. For a box, each face is a flat surface, so the output will be "Face".
+
+*'''print(boxShape.Vertexes[2].ShapeType)''': Accesses the third vertex in the '''Vertexes''' list of '''boxShape''' (index 2) and prints its shape type. Since this is a specific point in 3D space, the output will be "Vertex".
+
+<div class="mw-translate-fuzzy">
 Um das Thema der Part-Formen wieder aufzunehmen: Alles beginnt mit Knoten. Mit einem oder zwei Knoten bildet man eine Kante (Vollkreise haben nur einen Knoten). Mit einer oder mehreren Kanten bildet man einen Linienzug. Mit einem oder mehreren geschlossenen Linienzügen bildet man eine Fläche (die zusätzlichen Linienzüge werden zu "Löchern" in der Fläche). Mit einer oder mehreren Flächen bildet man eine Hülle. Wenn eine Hülle vollständig geschlossen (wasserdicht) ist, kann man daraus einen Festkörper bilden. Und schließlich kann eine beliebige Anzahl von Formen beliebigen Typs miteinander verbunden werden, was dann als Verbund bezeichnet wird.
+</div>
 
 Wir können nun versuchen, komplexe Formen von Grund auf neu zu erstellen, indem wir alle ihre Komponenten nacheinander konstruieren. Versuchen wir zum Beispiel, ein Volumen wie dieses zu erstellen:
 
@@ -111,13 +168,17 @@ L1 = Part.LineSegment(V1,V2)
 L2 = Part.LineSegment(V4,V3)
 }}
 
+<div class="mw-translate-fuzzy">
 Beachte, dass wir keine Knoten erstellen müssen. Wir konnten sofort Part.LineSegments aus FreeCAD-Vektoren erstellen. Das liegt daran, dass wir hier noch keine Kanten erstellt haben. Ein Part.LineSegment (ebenso wie Part.Circle, Part.Arc, Part.Ellipse oder Part.BSpline) erzeugt keine Kante, sondern eine Basisgeometrie, aus der eine Kante erzeugt wird. Kanten werden immer aus einer solchen Basisgeometrie erstellt, die in ihrem Attribut Kurve gespeichert ist. Wenn du also eine Kante hast, tippe ein:
+</div>
 
 {{Code|code=
 print(Edge.Curve) 
 }}
 
+<div class="mw-translate-fuzzy">
 Es zeigt dir, um welche Art von Kante es sich handelt, d. h. ob sie auf einer Linie, einem Bogen usw. basiert. Aber kommen wir zurück zu unserer Übung und bauen wir die Bogensegmente. Dazu benötigen wir einen dritten Punkt, damit wir den praktischen Part.Arc verwenden können, der 3 Punkte benötigt:
+</div>
 
 [[Image:Circel.png]]
 
@@ -137,7 +198,9 @@ E3 = Part.Edge(C1)
 E4 = Part.Edge(C2)
 }}
 
+<div class="mw-translate-fuzzy">
 Alternativ dazu verfügen Basisgeometrien auch über eine Funktion toShape(), die genau das Gleiche bewirkt:
+</div>
 
 {{Code|code=
 E1 = L1.toShape()
@@ -145,19 +208,25 @@ E2 = L2.toShape()
  ...
 }}
 
-Sobald wir eine Reihe von Kanten haben, können wir nun einen Linienzug bilden, indem wir ihm eine Liste von Kanten geben. Dabei müssen wir die Reihenfolge beachten und auch die Klammern. 
+<div class="mw-translate-fuzzy">
+Sobald wir eine Reihe von Kanten haben, können wir nun einen Linienzug bilden, indem wir ihm eine Liste von Kanten geben. Dabei müssen wir die Reihenfolge beachten und auch die Klammern.
+</div> 
 
 {{Code|code=
 W = Part.Wire([E1,E4,E2,E3]) 
 }}
 
+<div class="mw-translate-fuzzy">
 Und wir können überprüfen, ob unser Draht richtig verstanden wurde und ob er richtig geschlossen ist:
+</div>
 
 {{Code|code=
 print( W.isClosed() ) 
 }}
 
+<div class="mw-translate-fuzzy">
 Es wird "True" oder "False" ausgegeben. Um eine Fläche zu erstellen, brauchen wir geschlossene Linienzüge, also ist es immer eine gute Idee, dies zu überprüfen, bevor wir die Fläche erstellen. Jetzt können wir eine Fläche erstellen, indem wir ihr einen einzelnen Linienzug geben (oder eine Liste von Linienzügen, wenn wir Löcher wollen):
+</div>
 
 {{Code|code=
 F = Part.Face(W) 
@@ -169,13 +238,17 @@ Dann wird es extrudiert:
 P = F.extrude(FreeCAD.Vector(0,0,10)) 
 }}
 
+<div class="mw-translate-fuzzy">
 Beachte, dass P bereits ein Festkörper ist:
+</div>
 
 {{Code|code=
 print(P.ShapeType) 
 }}
 
+<div class="mw-translate-fuzzy">
 Das liegt daran, dass wir beim Extrudieren einer einzelnen Fläche immer einen Festkörper erhalten. Dies wäre zum Beispiel nicht der Fall, wenn wir stattdessen den Liienzug extrudieren würden:
+</div>
 
 {{Code|code=
 S = W.extrude(FreeCAD.Vector(0,0,10))
