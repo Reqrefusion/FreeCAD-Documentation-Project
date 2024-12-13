@@ -62,7 +62,7 @@ In this case, we manually created a shape using the '''Part.makeBox()''' functio
 <!--T:13-->
 This separation between shapes and document objects is what makes FreeCAD highly versatile, allowing users to manipulate shapes programmatically and integrate them into a parametric modeling workflow as needed.
 
-<!--T:11-->
+<!--T:64-->
 We can now easily create a "generic" document object in the current document (make sure you have at least one new document open), and give it a box shape like the one we just made:
 
 </translate>
@@ -74,15 +74,19 @@ FreeCAD.ActiveDocument.recompute()
 }}
 <translate>
 
-<!--T:13-->
+<!--T:65-->
 Here is a breakdown of the previous commands:
 
+<!--T:66-->
 *'''boxShape = Part.makeBox(3,5,7)''': Creates a 3D box with dimensions 3x5x7 (length, width, and height) and stores it as a Part Shape in the variable boxShape. This shape exists only in memory and is not yet part of the FreeCAD document.
 
+<!--T:67-->
 * '''myObj = FreeCAD.ActiveDocument.addObject("Part::Feature", "MyNewBox")''': Adds a new Part::Feature object named "MyNewBox" to the active FreeCAD document and assigns it to the variable myObj. The new object will appear in the FreeCAD document tree.
 
+<!--T:68-->
 * '''myObj.Shape = boxShape''': Links the boxShape geometry to the Shape property of myObj, integrating the geometry into the FreeCAD document.
 
+<!--T:69-->
 * '''FreeCAD.ActiveDocument.recompute()''': Updates the document to reflect the changes, ensuring that the new object and its geometry appear in the graphical interface.
 
 <!--T:15-->
@@ -91,6 +95,7 @@ Note how we handled '''myObj.Shape'''. It was done in the same way as in the pre
 <!--T:16-->
 For now, let's explore Part Shapes in more detail. In the chapter on traditional modeling with the Part Workbench, we introduced a table explaining how Part Shapes are constructed and the different components they consist of, such as '''vertexes''', '''edges''', and '''faces'''. These same components are available when working with Part Shapes in Python, allowing for detailed exploration and manipulation of geometry. Part Shapes in FreeCAD always have the following attributes:
 
+<!--T:70-->
 * '''Vertexes''': Points in 3D space that define the corners or endpoints of geometry.
 * '''Edges''': Straight or curved lines connecting two vertexes.
 * '''Wires''': Closed or open loops formed by one or more connected edges.
@@ -154,8 +159,10 @@ print(boxShape.Vertexes[2].ShapeType)
 Here is a short explanation of the above commands:
 *'''print(boxShape.ShapeType)''': Displays the type of the top-level shape represented by '''boxShape'''. In this case, since '''boxShape''' was created as a box using '''Part.makeBox''', the output will be "Solid", indicating that the shape is a 3D solid object.
 
+<!--T:71-->
 *'''print(boxShape.Faces[0].ShapeType)''': Accesses the first face in the '''Faces''' list of '''boxShape''' (index 0) and prints its shape type. For a box, each face is a flat surface, so the output will be "Face".
 
+<!--T:72-->
 *'''print(boxShape.Vertexes[2].ShapeType)''': Accesses the third vertex in the '''Vertexes''' list of '''boxShape''' (index 2) and prints its shape type. Since this is a specific point in 3D space, the output will be "Vertex".
 
 <!--T:23-->
@@ -199,7 +206,7 @@ L2 = Part.LineSegment(V4,V3)
 <translate>
 
 <!--T:33-->
-Note that we didn't need to create Vertices. We could immediately create Part.LineSegments from FreeCAD Vectors. This is because here we haven't created Edges yet. A Part.LineSegment (as well as Part.Circle, Part.Arc, Part.Ellipse or Part.BSpline) does not create an Edge, but rather a base geometry on which an Edge will be created. Edges are always made from such a base geometry, which is stored in its Curve attribute. So if you have an Edge, doing:
+Note that we didn’t need to create '''Vertexes''' explicitly. Instead, we could directly create '''Part.LineSegments''' using '''FreeCAD Vectors'''. This is because at this stage, we are working with base geometry, not actual '''Edges'''. A '''Part.LineSegment''', as well as '''Part.Circle''', '''Part.Arc''', '''Part.Ellipse''', or '''Part.BSpline''', defines the underlying geometry but does not generate an edge by itself. In FreeCAD, edges are always constructed from such base geometry, which is stored in the '''Curve''' attribute of the '''Edge'''. This means that an edge is essentially a wrapper around the base geometry, inheriting its properties. If you have an edge, you can access its underlying geometry by referring to the curve attribute. The following command:
 
 </translate>
 {{Code|code=
@@ -208,7 +215,7 @@ print(Edge.Curve)
 <translate>
 
 <!--T:35-->
-will show you what kind of Edge it is, i.e. if it's based on a line, an arc, etc... But let's come back to our exercise, and build the arc segments. For this, we will need a third point, so we can use the convenient Part.Arc, which takes 3 points:
+allows you to understand the underlying structure of the edge and how it was constructed. Now, let’s return to our exercise and proceed with building the arc segments. To create an arc, we need three points: a start point, an end point, and a midpoint that determines the curvature. For this purpose, we can use the convenient '''Part.Arc''' function, which takes these three points as input and generates the base geometry for an arc.
 
 <!--T:36-->
 [[Image:Circel.png]]
@@ -235,7 +242,7 @@ E4 = Part.Edge(C2)
 <translate>
 
 <!--T:40-->
-Alternatively, base geometries also have a toShape() function that does exactly the same thing:
+Alternatively, base geometries also have a '''toShape()''' function that does exactly the same thing:
 
 </translate>
 {{Code|code=
@@ -246,7 +253,7 @@ E2 = L2.toShape()
 <translate>
 
 <!--T:42-->
-Once we have a series of Edges, we can now form a Wire, by giving it a list of Edges. We do need to pay attention to the order. Also, note the brackets. 
+Once we have a series of edges, we can now form a '''Wire''', by giving it a list of edges. We do need to pay attention to the order. Also, note the brackets. 
 
 </translate>
 {{Code|code=
@@ -255,7 +262,7 @@ W = Part.Wire([E1,E4,E2,E3])
 <translate>
 
 <!--T:44-->
-And we can check if our Wire was correctly understood, and that it is correctly closed:
+And we can check if our wire was correctly understood, and that it is correctly closed:
 
 </translate>
 {{Code|code=
@@ -264,7 +271,7 @@ print( W.isClosed() )
 <translate>
 
 <!--T:46-->
-Which will print "True" or "False". In order to make a Face, we need closed Wires, so it is always a good idea to check that before creating the Face. Now we can create a Face, by giving it a single Wire (or a list of Wires if we want holes):
+Which will print "True" or "False". In order to make a '''Face''', we need '''closed Wires''', so it is always a good idea to check that before creating the face. Now we can create a face, by giving it a single wire (or a list of wires if we want holes):
 
 </translate>
 {{Code|code=
@@ -282,7 +289,7 @@ P = F.extrude(FreeCAD.Vector(0,0,10))
 <translate>
 
 <!--T:50-->
-Note that P is already a Solid:
+Note that P is already a '''Solid''':
 
 </translate>
 {{Code|code=
@@ -291,7 +298,7 @@ print(P.ShapeType)
 <translate>
 
 <!--T:52-->
-This is because when we extrude a single Face, we always get a Solid. This wouldn't be the case, for example, if we had extruded the Wire instead:
+This is because when we extrude a single wace, we always get a solid. This wouldn't be the case, for example, if we had extruded the wire instead:
 
 </translate>
 {{Code|code=
