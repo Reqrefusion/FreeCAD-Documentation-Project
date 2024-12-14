@@ -9,22 +9,30 @@
 
 {{Manual:TOC}}
 
-FreeCAD jest przeznaczony do modelowania parametrycznego. Oznacza to, że tworzona geometria, zamiast być swobodnie rzeźbiona, jest tworzona przez reguły i parametry. Na przykład, walec może być utworzony z promienia i wysokości. Dzięki tym dwóm parametrom program ma wystarczającą ilość informacji do zbudowania walca.
+FreeCAD stosuje podejście modelowania parametrycznego, w którym geometria obiektów jest zdeterminowana przez zasady i parametry, a nie swobodnie rzeźbiona. Oznacza to, że wymiary i cechy każdego komponentu są definiowane przez parametry, które instruują program, jak generować geometrię. Na przykład, aby stworzyć cylinder, określa się parametry takie jak promień i wysokość. Na podstawie tych wartości FreeCAD generuje dokładny kształt geometryczny.
 
-Obiekty parametryczne we FreeCAD są w rzeczywistości małymi fragmentami programu, które są uruchamiane za każdym razem, gdy zmieni się jeden z parametrów. Obiekty mogą mieć wiele różnych rodzajów parametrów: liczby ''(całkowite jak 1, 2, 3 lub zmiennoprzecinkowe jak 3.1416)'', rzeczywiste rozmiary ''(1mm, 2.4m, 4.5ft)'', współrzędne ''(x,y,z)'', ciągi tekstowe ''("hello!")'' lub nawet inny obiekt.
+We FreeCAD obiekty parametryczne są w zasadzie małymi, programowalnymi skryptami, które wykonują się, gdy jakikolwiek parametr zostanie zmieniony. Parametry te mogą się znacznie różnić, obejmując liczby całkowite i zmiennoprzecinkowe, wartości wymiarowe z rzeczywistego świata, takie jak milimetry, metry czy stopy, współrzędne (wyrażone jako x, y, z), ciągi tekstowe, a nawet odniesienia do innych obiektów. Taka wszechstronność parametrów pozwala na tworzenie skomplikowanych modeli poprzez serię powiązanych operacji, gdzie każdy nowy obiekt czerpie swoje cechy od poprzedniego, wprowadzając jednocześnie dodatkowe atrybuty.
 
-Ten ostatni typ pozwala na szybkie budowanie złożonych łańcuchów operacji, w których każdy nowy obiekt bazuje na poprzednim i dodaje do niego nowe funkcje.
+Na przykład, rozważmy tworzenie obiektu sześciennego za pomocą modelowania parametrycznego. Zaczynasz od podstawowego kształtu 2D w postaci prostokąta oznaczonego jako 'płyta' o długości l i szerokości w. Ten szkic definiuje podstawę obiektu sześciennego. Następnie definiujesz operację 'Wyciągnięcie', określając odległość, na jaką należy wypchnąć lub wciągnąć szkic, aby utworzyć obiekt 3D. W rezultacie powstaje bryła sześcienna oparta na kształcie szkicu i określonej odległości wyciągania.
 
-W poniższym przykładzie bryłowy, sześcienny obiekt ''(Pad)'' jest oparty na prostokątnym kształcie 2D ''(Sketch)'' i ma odległość wytłaczania. Dzięki tym dwóm właściwościom tworzy on bryłę poprzez wyciągnięcie kształtu bazowego na podaną odległość. Następnie można użyć tego obiektu jako podstawy do dalszych operacji, takich jak narysowanie nowego kształtu 2D na jednej z jego powierzchni ''(Sketch001)'', a następnie wykonanie odejmowania ''(Pocket)'', aż do uzyskania ostatecznego obiektu. 
+[[Image:FreeCAD_022_PArametricDesignPlate.png]]
 
-Wszystkie operacje pośrednie ''(kształty 2D, pad, kieszeń itp.)'' są nadal dostępne i w każdej chwili można zmienić dowolny z ich parametrów. Cały łańcuch zostanie odbudowany ''(ponownie obliczony)'', gdy zajdzie taka potrzeba.
+Na górnej powierzchni płyty szkicujesz okrąg o określonej średnicy d. Następnie używasz tego okręgu do stworzenia kieszeni (usunięcia materiału) z pierwotnej płyty.
 
-[[Image:Parametric_objects.jpg]]
+[[Image:FreeCAD_022_ParametricDesignPocket.png]]
 
-Należy wiedzieć o dwóch ważnych rzeczach:
+Jeśli zdecydujesz się zmienić dowolny z wymiarów płyty lub okręgu, ostateczny obiekt również zostanie zmodyfikowany. Dzięki zastosowaniu podejścia projektowania parametrycznego, nie ma potrzeby ponownego tworzenia obiektu od początku.
 
 # Przeliczanie nie zawsze odbywa się automatycznie. Ciężkie operacje, które mogą zmodyfikować dużą część dokumentu, a zatem zająć trochę czasu, nie są wykonywane automatycznie. Zamiast tego obiekt ''(i wszystkie obiekty, które od niego zależą)'' zostaną oznaczone do ponownego obliczenia ''(w widoku drzewa pojawi się na nich mała niebieska ikona)''. Następnie należy nacisnąć przycisk ponownego obliczania ''(lub {{MenuCommand|Edycja->Odśwież}})'', aby ponownie przeliczyć wszystkie zaznaczone obiekty.
 # Drzewo zależności musi zawsze płynąć w tym samym kierunku. Pętle są zabronione. ''(Zobacz [[Glossary#Directed_Acyclic_Graph|DAG]] i [[DAG_view/pl|Widok DAG]])'' Możesz mieć obiekt A, który zależy od obiektu B, który zależy od obiektu C. Ale nie możesz mieć obiektu A, który zależy od obiektu B, który zależy od obiektu A. To byłaby zależność kołowa. Można jednak mieć wiele obiektów, które zależą od tego samego obiektu, na przykład obiekty B i C zależą od A. Menu {{MenuCommand|Przybory -> Graf zależności}} pokazuje diagram zależności, jak na powyższym obrazku. Może on być przydatny do wykrywania problemów.
+
+W procesie modelowania parametrycznego we FreeCAD, analiza drzewa zależności obiektu daje wyraźny wgląd w sekwencyjną budowę i zależności w modelu. Na podstawie struktury w powyższym przykładzie znajduje się 'Szkic Płyty', który stanowi podstawę początkowej formy modelu. Następnie stosowana jest operacja 'Wyciągnięcie', która dodaje materiał do tej podstawowej szkicu, skutkując stworzeniem struktury trójwymiarowej na bazie dwuwymiarowego fundamentu.
+
+Następnie na nowo utworzonej powierzchni tworzony jest 'Szkic Okręgu'. To koło stanowi podstawę dla następnej operacji 'Kieszeń'. Operacja Kieszeń strategicznie usuwa materiał ze struktury, zasadniczo wycinając część na podstawie szkicu koła. Proces dodawania, a następnie usuwania materiału umożliwia płynne włączenie złożonych geometrii i cech do podstawowego modelu.
+
+Through this sequence of operations—starting from the base sketch, adding volume with a pad, and creating detailed features with additional sketches and pockets—the final object takes shape. Each step in this chain depends on its predecessor, illustrating the interconnected nature of parametric design in FreeCAD.
+
+[[Image:FreeCAD_022_ParametricDesignDependGraph.png]]
 
 Nie wszystkie obiekty są parametryczne w FreeCAD. Często geometria importowana z innych plików nie zawiera żadnych parametrów i będzie prostymi, nieparametrycznymi obiektami. Jednak często można je wykorzystać jako bazę lub punkt wyjścia dla nowo utworzonych obiektów parametrycznych, w zależności oczywiście od tego, czego wymaga obiekt parametryczny i jakości zaimportowanej geometrii.
 
