@@ -9,17 +9,11 @@
 
 {{Manual:TOC}}
 
-<div class="mw-translate-fuzzy">
-Dans les chapitres précédents, nous avons appris les différents ateliers de FreeCAD et chacun d'entre eux met en œuvre ses propres outils et types de géométrie. Les mêmes concepts s'appliquent lorsque vous travaillez à partir du code Python.
-</div>
+Dans les chapitres précédents, nous avons exploré les différents ateliers de FreeCAD et comment chacun d'entre eux présente son propre ensemble d'outils et de types de géométrie. Les mêmes principes s'appliquent lorsque l'on travaille avec FreeCAD par le biais de scripts Python.
 
-<div class="mw-translate-fuzzy">
-Nous avons également vu que la grande majorité des ateliers de FreeCAD dépendent d'un atelier extrêmement important: l’[[Part_Workbench/fr|atelier Part]]. En fait, d'autres ateliers tels que [[Draft_Workbench/fr|Draft]] ou [[Arch_Workbench/fr|Arch]] font exactement ce que nous allons faire dans ce chapitre: ils utilisent le code Python pour créer et manipuler la géométrie Part.
-</div>
+Nous avons également observé que la plupart des ateliers de FreeCAD s'appuient sur un atelier fondamental : l'[[File:Workbench_Part.svg|16px]] [[Part_Workbench/fr|atelier Part]]. De nombreux autres ateliers, tels que l'[[File:Workbench_Draft.svg|16px]] [[Draft_Workbench/fr|atelier Draft]], utilisent les outils et la géométrie de l'atelier Part, ce qui est exactement ce que nous ferons dans ce chapitre - utiliser Python pour créer et manipuler la géométrie de la pièce.
 
-<div class="mw-translate-fuzzy">
-Donc, la première chose que nous devons faire pour travailler avec la géométrie des pièces, c'est de faire l’équivalent en Python à la connexion vers l’atelier Part: importer le module Part:
-</div>
+Pour commencer à travailler avec la géométrie Part en Python, nous devons effectuer l'équivalent en script du passage à l'atelier Part : importer le module Part.
 
 {{Code|code=
 import Part 
@@ -28,40 +22,30 @@ import Part
 import Part
 
 
-<div class="mw-translate-fuzzy">
-Prenez une minute pour explorer le contenu du module Part en tapant Part. et jouer avec les différentes méthodes disponibles. Le module Part offre plusieurs fonctions telles que makeBox, makeCircle, etc ... qui vont créer instantanément un objet pour vous. Essayez ceci, par exemple :
-</div>
+Passez un peu de temps à parcourir le contenu du module vous aidera non seulement à comprendre quels sont les outils à votre disposition, mais vous donnera également un aperçu du fonctionnement de l'atelier Part sous le capot. Ces connaissances fondamentales s'avéreront précieuses lorsque nous commencerons à créer et à manipuler des géométries par programme. Tapez la commande suivante
 
 {{Code|code=
 Part.makeBox(3,5,7) 
 }}
 
-<div class="mw-translate-fuzzy">
-Lorsque vous appuyez sur Entrée après avoir tapé la ligne ci-dessus, rien n'apparaîtra dans la vue 3D, mais quelque chose comme ça sera imprimé dans la console Python  :
-</div>
+Cette commande crée une boîte 3D, également connue sous le nom de prisme rectangulaire, avec des dimensions spécifiques. Le premier paramètre, 3, définit la longueur de la boîte sur l'axe X. Le deuxième paramètre, 5, définit la largeur sur l'axe Y. Le troisième paramètre, 7, spécifie la hauteur sur l'axe Z. Le deuxième paramètre, 5, définit la largeur le long de l'axe Y et le troisième paramètre, 7, spécifie la hauteur le long de l'axe Z. Bien que cette fonction génère la géométrie de la boîte, elle ne l'ajoute pas automatiquement au document FreeCAD actif. Dans la console Python, vous verrez ce qui suit :
 
 {{Code|code=
 <Solid object at 0x5f43600> 
 }}
 
-<div class="mw-translate-fuzzy">
-C'est là qu'un concept important intervient. Ce que nous avons créé ici est une forme de pièce. Ce n'est pas un document objet de FreeCAD (pas encore). Dans FreeCAD, les objets et leur géométrie sont indépendants. Pensez à un document objet de FreeCAD en tant que conteneur, qui accueillera une forme. Les objets paramétriques auront également des propriétés telles que Longueur et Largeur et '''recalculeront''' leur forme à la volée chaque fois que l'une des propriétés change. Ce que nous avons fait ici est de calculer une forme manuellement.
-</div>
+La sortie '''<Solid object at 0x5f43600>''' indique qu'une Part Shape a été créée en mémoire. Il s'agit d'un objet géométrique stocké à une adresse mémoire spécifique, comme le montre la valeur hexadécimale (0x5f43600). Cependant, il est important de comprendre que ce que nous avons créé ici n'est pas encore un objet document FreeCAD. Il existe seulement en tant que forme géométrique brute dans la mémoire.
 
-<div class="mw-translate-fuzzy">
-Nous pouvons maintenant créer facilement un document objet "générique" dans le document actuel (assurez-vous que vous avez au moins un nouveau document ouvert) et donnez-lui une forme de boîte comme celle que nous venons de faire:
-</div>
+Cette distinction met en évidence un concept fondamental de FreeCAD : les objets et leur géométrie sont indépendants. Un objet document FreeCAD sert de conteneur qui héberge une forme. Ces objets document peuvent avoir des propriétés supplémentaires, telles que la longueur, la largeur et la hauteur, et ils peuvent être paramétriques. Les objets paramétriques recalculent leur géométrie (ou leur forme) de manière dynamique chaque fois qu'une de leurs propriétés est modifiée. Par exemple, la modification de la longueur d'une boîte paramétrique régénérera automatiquement sa forme avec la valeur mise à jour.
 
 boxShape = Part.makeBox(3,5,7)
  myObj = FreeCAD.ActiveDocument.addObject("Part::Feature","MyNewBox")
  myObj.Shape = boxShape
  FreeCAD.ActiveDocument.recompute()
 
-<div class="mw-translate-fuzzy">
-Notez comment nous avons traité myObj.Shape, voyez que cela se fait exactement comme nous l'avons fait dans le chapitre précédent lorsque nous avons changé des propriétés d'un objet, comme par exemple box.Height=5. En réalité, '''Shape''' est également une propriété tout comme Hauteur. Seulement il faut une forme de Part (Part Shape), pas un nombre. Au prochain chapitre, nous examinerons plus en profondeur la façon dont ces objets paramétriques sont construits.
-</div>
+Cette séparation entre les formes et les objets documentaires est ce qui rend FreeCAD très polyvalent, permettant aux utilisateurs de manipuler les formes de manière programmatique et de les intégrer dans un flux de travail de modélisation paramétrique selon les besoins.
 
-We can now easily create a "generic" document object in the current document (make sure you have at least one new document open), and give it a box shape like the one we just made:
+Nous pouvons maintenant créer facilement un document objet "générique" dans le document actuel (assurez-vous que vous avez au moins un nouveau document ouvert) et donnez-lui une forme de boîte comme celle que nous venons de faire :
 
 {{Code|code=
 boxShape = Part.makeBox(3,5,7)
@@ -70,15 +54,15 @@ myObj.Shape = boxShape
 FreeCAD.ActiveDocument.recompute()
 }}
 
-Here is a breakdown of the previous commands:
+Voici le détail des commandes précédentes :
 
-*'''boxShape = Part.makeBox(3,5,7)''': Creates a 3D box with dimensions 3x5x7 (length, width, and height) and stores it as a Part Shape in the variable boxShape. This shape exists only in memory and is not yet part of the FreeCAD document.
+*'''boxShape = Part.makeBox(3,5,7)''' : crée une boîte 3D de dimensions 3x5x7 (longueur, largeur et hauteur) et la stocke en tant que Part Shape dans la variable boxShape. Cette forme n'existe qu'en mémoire et ne fait pas encore partie du document FreeCAD.
 
-* '''myObj = FreeCAD.ActiveDocument.addObject("Part::Feature", "MyNewBox")''': Adds a new Part::Feature object named "MyNewBox" to the active FreeCAD document and assigns it to the variable myObj. The new object will appear in the FreeCAD document tree.
+* '''myObj = FreeCAD.ActiveDocument.addObject("Part::Feature", "MyNewBox")''' : ajoute un nouvel objet Part::Feature nommé "MyNewBox" au document FreeCAD actif et l'affecte à la variable myObj. Le nouvel objet apparaîtra dans l'arborescence du document FreeCAD.
 
-* '''myObj.Shape = boxShape''': Links the boxShape geometry to the Shape property of myObj, integrating the geometry into the FreeCAD document.
+* '''myObj.Shape = boxShape''' : lie la géométrie boxShape à la propriété Shape de myObj, intégrant la géométrie dans le document FreeCAD.
 
-* '''FreeCAD.ActiveDocument.recompute()''': Updates the document to reflect the changes, ensuring that the new object and its geometry appear in the graphical interface.
+* '''FreeCAD.ActiveDocument.recompute()''' : met à jour le document pour refléter les changements, en s'assurant que le nouvel objet et sa géométrie apparaissent dans l'interface graphique.
 
 print(boxShape.Vertexes)
  print(boxShape.Edges)
@@ -87,16 +71,14 @@ print(boxShape.Vertexes)
  print(boxShape.Shells)
  print(boxShape.Solids)
 
-<div class="mw-translate-fuzzy">
-Par exemple, trouvons l'aire de chaque face de notre forme de boîte ci-dessus : (Veillez à indenter la deuxième ligne, comme elle apparaît ci-dessous. Appuyez deux fois sur Entrée après la dernière ligne pour exécuter la commande Python).
-</div>
+Pour l'instant, explorons les formes de pièces plus en détail. Dans le chapitre sur la modélisation traditionnelle avec l'atelier Part, nous avons présenté un tableau expliquant comment les Part Shapes sont construites et les différents composants dont elles sont constituées, tels que les '''sommets''', les '''arêtes''' et les '''faces'''. Ces mêmes composants sont disponibles lorsque l'on travaille avec des formes partielles en Python, ce qui permet une exploration et une manipulation détaillées de la géométrie. Les Part Shapes dans FreeCAD ont toujours les attributs suivants :
 
-* '''Vertexes''': Points in 3D space that define the corners or endpoints of geometry.
-* '''Edges''': Straight or curved lines connecting two vertexes.
-* '''Wires''': Closed or open loops formed by one or more connected edges.
-* '''Faces''': Surfaces enclosed by one or more wires.
-* '''Shells''': Groups of connected faces, forming a continuous surface.
-* '''Solids''': 3D volumes enclosed by one or more shells.
+* '''Vertex''' : points dans l'espace 3D qui définissent les coins ou les extrémités de la géométrie.
+* '''Edges''' : lignes droites ou courbes reliant deux sommets.
+* '''Wires''' : boucles fermées ou ouvertes formées par une ou plusieurs arêtes connectées.
+* '''Faces''' : surfaces entourées par un ou plusieurs polylignes.
+* '''Shells''' : groupes de faces connectées, formant une surface continue.
+* '''Solids''' : volumes 3D entourés d'une ou plusieurs coques.
 
 for f in boxShape.Faces:
    print(f.Area)
@@ -110,9 +92,7 @@ print(boxShape.Shells)
 print(boxShape.Solids)
 }}
 
-<div class="mw-translate-fuzzy">
-Ou pour chaque arête, son point de départ et son point final:
-</div>
+Trouvons l'aire de chaque face de notre boîte ci-dessus : (Veillez à indenter la deuxième ligne, comme elle apparaît ci-dessous. Appuyez deux fois sur Entrée après la dernière ligne pour exécuter la commande Python).
 
 {{Code|code=
 for f in boxShape.Faces:
@@ -135,7 +115,9 @@ for e in boxShape.Edges:
    print(e.Vertexes[1].Point)
 }}
 
+<div class="mw-translate-fuzzy">
 Comme vous le voyez, si notre boxShape a un attribut "Vertexes", chaque Edge de la BoxShape a également un attribut "Vertexes". Comme nous pouvons nous y attendre, le BoxShape aura 8 sommets (Vertexes), tandis que l’arête en aura seulement 2, qui font partie de la liste des 8.
+</div>
 
 Nous pouvons toujours vérifier quel est le type de forme :
 
