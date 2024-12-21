@@ -19,7 +19,7 @@ Pour commencer à travailler avec la géométrie Part en Python, nous devons eff
 import Part 
 }}
 
-import Part
+Prenez le temps d'explorer le module Part en tapant '''Part.''' dans la console Python et en parcourant les méthodes et attributs disponibles dans la fenêtre d'autocomplétion. C'est un excellent moyen de se familiariser avec les fonctionnalités offertes par le module. Vous trouverez une variété de fonctions pratiques, telles que makeBox et makeCircle, qui vous permettent de créer rapidement des formes géométriques et des objets à l'aide d'une seule commande. La plupart de ces fonctions proposent également des paramètres facultatifs, ce qui vous permet de contrôler précisément les dimensions et l'emplacement.
 
 
 Passez un peu de temps à parcourir le contenu du module vous aidera non seulement à comprendre quels sont les outils à votre disposition, mais vous donnera également un aperçu du fonctionnement de l'atelier Part sous le capot. Ces connaissances fondamentales s'avéreront précieuses lorsque nous commencerons à créer et à manipuler des géométries par programme. Tapez la commande suivante
@@ -38,10 +38,7 @@ La sortie '''<Solid object at 0x5f43600>''' indique qu'une Part Shape a été cr
 
 Cette distinction met en évidence un concept fondamental de FreeCAD : les objets et leur géométrie sont indépendants. Un objet document FreeCAD sert de conteneur qui héberge une forme. Ces objets document peuvent avoir des propriétés supplémentaires, telles que la longueur, la largeur et la hauteur, et ils peuvent être paramétriques. Les objets paramétriques recalculent leur géométrie (ou leur forme) de manière dynamique chaque fois qu'une de leurs propriétés est modifiée. Par exemple, la modification de la longueur d'une boîte paramétrique régénérera automatiquement sa forme avec la valeur mise à jour.
 
-boxShape = Part.makeBox(3,5,7)
- myObj = FreeCAD.ActiveDocument.addObject("Part::Feature","MyNewBox")
- myObj.Shape = boxShape
- FreeCAD.ActiveDocument.recompute()
+Dans ce cas, nous avons créé manuellement une forme à l'aide de la fonction '''Part.makeBox()'''. Cette forme est un objet non paramétrique, ce qui signifie qu'elle ne sera pas mise à jour automatiquement en fonction des propriétés - elle est statique à moins que nous ne la manipulions par programme. Pour que cette forme fasse partie du document FreeCAD actif, il faudrait qu'elle soit assignée à un objet document (comme un '''Part::Feature'''), ce qui la relierait à l'interface graphique et la rendrait visible et gérable dans l'environnement FreeCAD.
 
 Cette séparation entre les formes et les objets documentaires est ce qui rend FreeCAD très polyvalent, permettant aux utilisateurs de manipuler les formes de manière programmatique et de les intégrer dans un flux de travail de modélisation paramétrique selon les besoins.
 
@@ -64,12 +61,7 @@ Voici le détail des commandes précédentes :
 
 * '''FreeCAD.ActiveDocument.recompute()''' : met à jour le document pour refléter les changements, en s'assurant que le nouvel objet et sa géométrie apparaissent dans l'interface graphique.
 
-print(boxShape.Vertexes)
- print(boxShape.Edges)
- print(boxShape.Wires)
- print(boxShape.Faces)
- print(boxShape.Shells)
- print(boxShape.Solids)
+Remarquez comment nous avons traité '''myObj.Shape'''. Cela a été fait de la même manière que dans le chapitre précédent, où nous avons modifié d'autres propriétés d'un objet, comme '''box.Height = 5'''. En fait, '''Shape''' est aussi une propriété, tout comme '''Height'''. Cependant, au lieu de prendre un nombre, '''Shape''' nécessite une Part Shape. Dans le prochain chapitre, nous verrons de plus près comment ces objets paramétriques sont construits.
 
 Pour l'instant, explorons les formes de pièces plus en détail. Dans le chapitre sur la modélisation traditionnelle avec l'atelier Part, nous avons présenté un tableau expliquant comment les Part Shapes sont construites et les différents composants dont elles sont constituées, tels que les '''sommets''', les '''arêtes''' et les '''faces'''. Ces mêmes composants sont disponibles lorsque l'on travaille avec des formes partielles en Python, ce qui permet une exploration et une manipulation détaillées de la géométrie. Les Part Shapes dans FreeCAD ont toujours les attributs suivants :
 
@@ -80,8 +72,7 @@ Pour l'instant, explorons les formes de pièces plus en détail. Dans le chapitr
 * '''Shells''' : groupes de faces connectées, formant une surface continue.
 * '''Solids''' : volumes 3D entourés d'une ou plusieurs coques.
 
-for f in boxShape.Faces:
-   print(f.Area)
+Tous ces attributs sont représentés sous forme de listes en Python. Chaque liste peut contenir un nombre quelconque d'éléments ou être vide, en fonction de la forme explorée. Par exemple, une boîte aura huit '''Vertexes''', douze '''Edges''', six '''Faces''', une '''Shell''' et un '''Solid''', tandis qu'une ligne n'aura que deux '''Vertexes'' et une '''Edge''', tous les autres attributs étant vides. Ces composants sont des éléments fondamentaux de la géométrie d'une pièce et sont accessibles et manipulables par programme. Comprendre comment ils interagissent permet d'exercer un contrôle puissant sur la création et la modification des modèles 3D. Nous pouvons accéder à ces listes comme suit :
 
 {{Code|code=
 print(boxShape.Vertexes)
@@ -99,12 +90,7 @@ for f in boxShape.Faces:
    print(f.Area)
 }}
 
-for e in boxShape.Edges:
-   print("New edge")
-   print("Start point:")
-   print(e.Vertexes[0].Point)
-   print("End point:")
-   print(e.Vertexes[1].Point)
+Ou pour chaque arête, son point de départ et son point final:
 
 {{Code|code=
 for e in boxShape.Edges:
@@ -125,23 +111,22 @@ print(boxShape.Faces[0].ShapeType)
 print(boxShape.Vertexes[2].ShapeType)
 }}
 
-print(boxShape.ShapeType)
- print(boxShape.Faces[0].ShapeType)
- print(boxShape.Vertexes[2].ShapeType)
+Voici une brève explication des commandes ci-dessus :
+*'''print(boxShape.ShapeType)''' : affiche le type de la forme de premier niveau représentée par '''boxShape'''. Dans ce cas, puisque '''boxShape''' a été créée comme une boîte à l'aide de '''Part.makeBox''', la sortie sera "Solid", indiquant que la forme est un objet solide en 3D.
 
 *'''print(boxShape.Faces[0].ShapeType)''' : accède à la première face de la liste '''Faces''' de '''boxShape''' (index 0) et affiche son type de forme. Pour une boîte, chaque face est une surface plane, la sortie sera donc "Face".
 
-*''''print(boxShape.Vertexes[2].ShapeType)'' : accède au troisième sommet de la liste '''Vertexes''' de '''boxShape''' (index 2) et affiche son type de forme. Comme il s'agit d'un point spécifique dans l'espace 3D, la sortie sera "Vertex".
+*''''print(boxShape.Vertexes[2].ShapeType)''' : accède au troisième sommet de la liste '''Vertexes''' de '''boxShape''' (index 2) et affiche son type de forme. Comme il s'agit d'un point spécifique dans l'espace 3D, la sortie sera "Vertex".
 
 Pour résumer le concept des Part Shapes : tout commence par des '''Vertex''' (sommet ou point), les éléments les plus basiques de la géométrie. En utilisant un ou deux '''Vertex''', vous pouvez créer un '''Edge''' (arête) (notez que les cercles complets ne nécessitent qu'un seul '''Vertex'''). Une ou plusieurs ''Arêtes'' peuvent alors former une ''Polyligne'', qui peut être ouverte ou fermée. Lorsque vous avez un ou plusieurs '''Polylignes''' fermées, vous pouvez créer une '''Face'''. Les '''Polylignes''' supplémentaires à l'intérieur de la '''Polyligne''' principale agiront comme des '''trous''' dans la '''Face'''. La combinaison d'une ou de plusieurs ''Faces'' permet de construire une ''Coque'', qui est essentiellement une collection de surfaces connectées. Si une ''Coque'' est entièrement fermée et étanche, elle peut alors être utilisée pour former un ''Solide'', un objet 3D avec un volume. Enfin, un nombre quelconque de formes de n'importe quel type, y compris des ''Sommets'', des ''Arêtes'', des ''Polylignes'', des ''Faces'', des ''Coques'' ou des ''Solides'', peuvent être regroupées en un ''Composé'', qui agit comme un conteneur pour de multiples formes.
 
 Nous pouvons maintenant essayer de créer des formes complexes à partir de zéro, en construisant tous leurs composants un par un. Par exemple, essayons de créer un volume comme celui-ci:
 
-[[Image:Exercise_python_03.jpg]]
+[[Image:Exercise_python_03.jpg|600px]]
 
 Nous commencerons par créer une forme planaire comme celle-ci :
 
-[[Image:Wire.png]]
+[[Image:Wire.png|600px]]
 
 D'abord, créons les quatre points de base :
 
@@ -161,7 +146,7 @@ L1 = Part.LineSegment(V1,V2)
 L2 = Part.LineSegment(V4,V3)
 }}
 
-Remarquez que nous n'avons pas besoin de créer des '''Vertexes''' explicitement. Au lieu de cela, nous pouvons directement créer des '''Part.LineSegments''' en utilisant des '''FreeCAD Vectors'''. En effet, à ce stade, nous travaillons avec une géométrie de base, et non avec des '''arêtes''' réelles. Un '''Part.LineSegment''', tout comme '''Part.Circle''', '''Part.Arc''', '''Part.Ellipse'', ou '''Part.BSpline''', définit la géométrie sous-jacente mais ne génère pas d'arête en soi. Dans FreeCAD, les arêtes sont toujours construites à partir d'une telle géométrie de base, qui est stockée dans l'attribut '''Curve''' de l''''Arête'''. Cela signifie qu'une arête est essentiellement une enveloppe autour de la géométrie de base, héritant de ses propriétés. Si vous avez une arête, vous pouvez accéder à sa géométrie sous-jacente en vous référant à l'attribut de la courbe. La commande suivante :
+Remarquez que nous n'avons pas besoin de créer des '''Vertexes''' explicitement. Au lieu de cela, nous pouvons directement créer des '''Part.LineSegments''' en utilisant des '''FreeCAD Vectors'''. En effet, à ce stade, nous travaillons avec une géométrie de base, et non avec des '''arêtes''' réelles. Un '''Part.LineSegment''', tout comme '''Part.Circle''', '''Part.Arc''', '''Part.Ellipse''', ou '''Part.BSpline''', définit la géométrie sous-jacente mais ne génère pas d'arête en soi. Dans FreeCAD, les arêtes sont toujours construites à partir d'une telle géométrie de base, qui est stockée dans l'attribut '''Curve''' de l''''Arête'''. Cela signifie qu'une arête est essentiellement une enveloppe autour de la géométrie de base, héritant de ses propriétés. Si vous avez une arête, vous pouvez accéder à sa géométrie sous-jacente en vous référant à l'attribut de la courbe. La commande suivante :
 
 {{Code|code=
 print(Edge.Curve) 
