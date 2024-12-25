@@ -71,16 +71,17 @@ obj.Shape = Part.makeBox(obj.Length, obj.Width, obj.Height)
 
 [[File:Part_featurepython_no_vp.png|right]]
 
-Save your changes, switch back to FreeCAD, delete any existing objects, reload the box module, and create a new box object. The new result is somewhat disappointing. There no longer is an extra object in the Tree view, and the icon in the Tree view has changed, but our box in the 3D view is also gone (which is why the icon is gray). What happened? Although we've properly created our box shape and assigned it to a {{incode|Part::FeaturePython}} object, to make it actually show up in the 3D view we need to assign a [[Viewprovider|ViewProvider]].
+Speichere deine Änderungen, wechsle zurück zu FreeCAD, lösche alle vorhandenen Objekte, lade das Boxmodul neu und erstelle ein neues Boxobjekt. Das neue Ergebnis ist etwas enttäuschend. Es gibt kein zusätzliches Objekt mehr in der Baumansicht und das Symbol in der Baumansicht hat sich geändert, aber unsere Box in der 3D-Ansicht ist auch verschwunden (weshalb das Symbol grau ist). Was ist passiert? Obwohl wir unsere Boxform ordnungsgemäß erstellt und einem {{incode|Part::FeaturePython}}-Objekt zugewiesen haben, müssen wir einen [[Viewprovider|ViewProvider]] zuweisen, damit sie tatsächlich in der 3D-Ansicht angezeigt wird.
 {{clear}}
 
 [[#top|Anfang]]
 
-==Writing a ViewProvider==
+<span id="Writing_a_ViewProvider"></span>
+==Einen ViewProvider schreiben==
 
-A View Provider is the component of an object which allows it to have a visual representation in the 3D view. FreeCAD uses an application structure which is designed to separate the data (the "model") from it's visual representation (the "view"). If you've spent any time working with FreeCAD in Python, you are likely already aware of this through the use of the two core Python modules: {{incode|FreeCAD}} and {{incode|FreeCADGui}} (often aliased as {{incode|App}} and {{incode|Gui}} repectively).
+Ein Viewprovider ist die Komponente eines Objekts, die eine visuelle Darstellung in der 3D-Ansicht ermöglicht. FreeCAD verwendet eine Anwendungsstruktur, die die Daten (das „Modell“) von ihrer visuellen Darstellung (der „Ansicht“) trennt. Wenn du schon einmal mit FreeCAD in Python gearbeitet hast, bist du dir dessen wahrscheinlich bereits durch die Verwendung der beiden Python-Kernmodule {{incode|FreeCAD}} und {{incode|FreeCADGui}} (oft als {{incode|App}} bzw. {{incode|Gui}} bezeichnet) bewusst.
 
-Our FeaturePython object also requires these elements. Thus far we've focused purely on the "model" portion of the code, now it's time to write the "view" portion. Fortunately most ViewProviders are simple and require little effort to write, at least to get started. Here's an example ViewProvider borrowed and slightly modified from [https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/TemplatePyMod/FeaturePython.py]:
+Unser FeaturePython-Objekt erfordert auch diese Elemente. Bisher haben wir uns ausschließlich auf den „Modell“-Teil des Codes konzentriert, jetzt ist es an der Zeit, den „Ansicht“-Teil zu schreiben. Glücklicherweise sind die meisten ViewProvider einfach und erfordern wenig Schreibaufwand, zumindest für den Anfang. Hier ist ein Beispiel-ViewProvider, der von [https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/TemplatePyMod/FeaturePython.py] übernommen und leicht modifiziert wurde:
 
 {{Code|code=
 class ViewProviderBox:
@@ -177,65 +178,65 @@ class ViewProviderBox:
         return None
 }}
 
-In the code above, we define an XMP icon for this object. Icon design is beyond the scope of this tutorial, but basic design can be managed using open source tools like [https://www.gimp.org GIMP], [https://krita.org/en/ Krita], and [https://inkscape.org/ Inkscape]. The {{incode|getIcon()}} method is optional, FreeCAD will use a default icon if this method is not provided.
+Im obigen Code definieren wir ein XMP-Symbol für dieses Objekt. Die Symbolgestaltung geht über den Rahmen dieses Tutorials hinaus, aber die grundlegende Gestaltung kann mit Open-Source-Tools wie [https://www.gimp.org GIMP], [https://krita.org/en/ Krita] und [https://inkscape.org/ Inkscape] verwaltet werden. Die Methode {{incode|getIcon()}} ist optional. FreeCAD verwendet ein Standardsymbol, wenn diese Methode nicht bereitgestellt wird.
 
-Add the ViewProvider code at the end of {{FileName|box.py}} and in the {{incode|create()}} method insert the following line above the {{incode|recompute()}} statement:
+Fügen Sie den ViewProvider-Code am Ende von {{FileName|box.py}} hinzu und fügen Sie in der Methode {{incode|create()}} die folgende Zeile über der Anweisung {{incode|recompute()}} ein:
 
 {{Code|code=
 ViewProviderBox(obj.ViewObject)
 }}
 
-This instances the custom ViewProvider class and passes the FeaturePython's built-in ViewObject to it. When the ViewProvider class initializes, it saves a reference to itself in the FeaturePython's {{incode|ViewObject.Proxy}} attribute. This way, when FreeCAD needs to render our box visually, it can find the ViewProvider class to do that.
+Dies instanziiert die benutzerdefinierte ViewProvider-Klasse und übergibt ihr das integrierte ViewObject von FeaturePython. Wenn die ViewProvider-Klasse initialisiert wird, speichert sie einen Verweis auf sich selbst im Attribut {{incode|ViewObject.Proxy}} von FeaturePython. Auf diese Weise kann FreeCAD, wenn es unsere Box visuell darstellen muss, die ViewProvider-Klasse finden, um dies zu tun.
 
-Now, save the changes and return to FreeCAD. Import or reload the box module and call {{incode|box.create()}}. You should now see two things:
-*The icon for the box object has changed.
-*And, more importantly, there is a box in the 3D view. If you do not see it press the {{Button|[[Image:Std_ViewFitAll.svg|16px]] [[Std_ViewFitAll|Std ViewFitAll]]}} button. You can even alter the dimensions of the box by changing the values in the [[Property_editor|Property editor]]. Give it a try!
+Speichere nun die Änderungen und kehre zu FreeCAD zurück. Importiere oder lade das Box-Modul neu und rufe  {{incode|box.create()}} auf. Du solltest jetzt zwei Dinge sehen:
+*Das Symbol für das Box-Objekt hat sich geändert.
+*Und, was noch wichtiger ist, es gibt eine Box in der 3D-Ansicht. Wenn du sie nicht sehen kannst, drücke die Schaltfläche {{Button|[[Image:Std_ViewFitAll.svg|16px]] [[Std_ViewFitAll|Std ViewFitAll]]}}. Du kannst sogar die Abmessungen der Box ändern, indem du die Werte im [[Property_editor/de|Eigenschafteneditor]] änderst. Probiere es aus!
 
 [[#top|Anfang]]
 
 <span id="Trapping_events"></span>
 ==Ereignisfallen==
 
-We have already discussed event trapping. Nearly every method of a FeaturePython class serves as a callback accessible to the FeaturePython object (which gets access to our class instance through the {{incode|Proxy}} attribute).
+Wir haben bereits das Event Trapping besprochen. Fast jede Methode einer FeaturePython-Klasse dient als Callback, auf den das FeaturePython-Objekt zugreifen kann (das über das {{incode|Proxy}}-Attribut Zugriff auf unsere Klasseninstanz erhält).
 
-Below is a list of the callbacks that may be implemented in the basic FeaturePython object:
+Unten finden Sie eine Liste der Rückrufe, die im grundlegenden FeaturePython-Objekt implementiert werden können:
 
 {| class="wikitable" cellpadding="5px" width="100%"
-|+ FeaturePython basic callbacks
+|+ FeaturePython-Basisrückrufe
 |style="width:25%" | {{incode|execute(self, obj)}}
-|style="width:25%" | Called during document recomputes
-|style="width:50%" | Do not call {{incode|recompute()}} from this method (or any method called from {{incode|execute()}}) as this causes a nested recompute.
+|style="width:25%" | Wird während der Neuberechnung von Dokumenten aufgerufen
+|style="width:50%" | Rufe {{incode|recompute()}} nicht von dieser Methode aus auf (oder von einer Methode, die von {{incode|execute()}} aufgerufen wird), da dies eine verschachtelte Neuberechnung verursacht.
 |-
 | {{incode|onBeforeChange(self, obj, prop)}}
-| Called before a property value is changed
-| {{incode|prop}} is the name of the property to be changed, not the property object itself. Property changes cannot be cancelled.  Previous / next property values are not simultaneously available for comparison.
+| Wird aufgerufen, bevor ein Eigenschaftswert geändert wird
+| {{incode|prop}} ist der Name der zu ändernden Eigenschaft, nicht das Eigenschaftsobjekt selbst. Eigenschaftsänderungen können nicht abgebrochen werden. Vorherige/nächste Eigenschaftswerte stehen nicht gleichzeitig zum Vergleich zur Verfügung.
 |-
 | {{incode|onChanged(self, obj, prop)}}
-| Called after a property is changed
-| {{incode|prop}} is the name of the property to be changed, not the property object itself.
+| Wird aufgerufen, nachdem eine Eigenschaft geändert wurde
+| {{incode|prop}} ist der Name der zu ändernden Eigenschaft, nicht das Eigenschaftsobjekt selbst.
 |-
 | {{Incode|onDocumentRestored(self, obj)}}
-| Called after a document is restored or a FeaturePython object is copied.
-| Occasionally, references to the FeaturePython object from the class, or the class from the FeaturePython object may be broken, as the class {{incode|__init__()}} method is not called when the object is reconstructed. Adding {{incode|self.Object <nowiki>=</nowiki> obj}} or {{incode|obj.Proxy <nowiki>=</nowiki> self}} often solves these issues.
+| Wird aufgerufen, nachdem ein Dokument wiederhergestellt oder ein FeaturePython-Objekt kopiert wurde.
+| Gelegentlich können Verweise auf das FeaturePython-Objekt aus der Klasse oder die Klasse aus dem FeaturePython-Objekt beschädigt sein, da die Klassenmethode {{incode|__init__()}} nicht aufgerufen wird, wenn das Objekt rekonstruiert wird. Das Hinzufügen von {{incode|self.Object <nowiki>=</nowiki> obj}} oder {{incode|obj.Proxy <nowiki>=</nowiki> self}} löst diese Probleme häufig.
 |}
 
-For a complete reference of FeaturePython methods available, see [[FeaturePython_methods|FeaturePython methods]].
+Eine vollständige Referenz der verfügbaren FeaturePython-Methoden findest du unter [[FeaturePython_methods/de|FeaturePython-Methoden]].
 
-In addition, there are two callbacks in the ViewProvider class that may occasionally prove useful:
+Darüber hinaus gibt es in der ViewProvider-Klasse zwei Callbacks, die sich gelegentlich als nützlich erweisen können:
 
 {| class="wikitable" cellpadding="5px" width="100%"
-|+ ViewProvider basic callbacks
+|+ Grundlegende ViewProvider-Rückrufe
 |-
 |style="width:25%" | {{incode|updateData(self, obj, prop)}}
-|style="width:25%" | Called after a data (model) property is changed
-|style="width:50%" | {{incode|obj}} is a reference to the FeaturePython class instance, not the ViewProvider instance.  {{incode|prop}} is the name of the property to be changed, not the property object itself.
+|style="width:25%" | Wird aufgerufen, nachdem eine Dateneigenschaft (Modelleigenschaft) geändert wurde
+|style="width:50%" | {{incode|obj}} ist ein Verweis auf die FeaturePython-Klasseninstanz, nicht auf die ViewProvider-Instanz. {{incode|prop}} ist der Name der zu ändernden Eigenschaft, nicht das Eigenschaftsobjekt selbst.
 |-
 | {{incode|onChanged(self, vobj, prop)}}
-| Called after a view property is changed
-| {{incode|vobj}} is a reference to the ViewProvider instance.  {{incode|prop}} is the name of the view property which was changed.
+| Wird aufgerufen, nachdem eine Ansichtseigenschaft geändert wurde
+| {{incode|vobj}} ist ein Verweis auf die ViewProvider-Instanz. {{incode|prop}} ist der Name der Ansichtseigenschaft, die geändert wurde.
 |}
 
-It is not uncommon to encounter a situation where the Python callbacks are not being triggered as they should. Beginners in this area can rest assured that the FeaturePython callback system is not fragile or broken. Invariably when callbacks fail to run it is because a reference is lost or undefined in the underlying code. If, however, callbacks appear to be breaking with no explanation, providing object/proxy references in the {{incode|onDocumentRestored()}} callback (as noted in the first table above) may alleviate these problems. Until you are comfortable with the callback system, it may be useful to add print statements in each callback to print messages to the console during development.
+Es kommt nicht selten vor, dass die Python-Rückrufe nicht wie vorgesehen ausgelöst werden. Anfänger auf diesem Gebiet können sicher sein, dass das FeaturePython-Rückrufsystem nicht fehleranfällig oder defekt ist. Wenn Rückrufe nicht ausgeführt werden, liegt dies immer daran, dass eine Referenz im zugrunde liegenden Code verloren gegangen oder nicht definiert ist. Wenn Rückrufe jedoch scheinbar ohne Erklärung abgebrochen werden, kann das Bereitstellen von Objekt-/Proxy-Referenzen im {{incode|onDocumentRestored()}}-Rückruf (wie in der ersten Tabelle oben angegeben) diese Probleme lindern. Bis Sie mit dem Rückrufsystem vertraut sind, kann es sinnvoll sein, in jeden Rückruf Druckanweisungen einzufügen, um während der Entwicklung Nachrichten auf der Konsole auszugeben.
 
 [[#top|Anfang]]
 
