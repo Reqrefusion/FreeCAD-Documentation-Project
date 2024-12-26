@@ -23,60 +23,41 @@ Wenn du beim Modellieren vorsichtig warst, sind die meisten Herausforderungen im
 
 * '''Netzanalyse und -kalibrierung''': Bevor du dein Modell in einen Slicer oder CNC-Werkzeugpfadgenerator exportierst, ist es ratsam, eine Netzanalyse mit der Mesh Workbench von FreeCAD durchzuführen, um Unregelmäßigkeiten, nicht-manifold Kanten oder andere Netzprobleme zu erkennen, die den Herstellungsprozess erschweren könnten. Stelle außerdem auch bei einem perfekten Modell sicher, dass dein 3D-Drucker oder deine CNC-Maschine richtig kalibriert ist (z. B. für Bettnivellierung, Schrittmotoreinstellungen oder Extruderkonfiguration), um Qualitätsprobleme im Endprodukt zu vermeiden.
 
-In the following sections, we'll assume that you've already taken care of creating solid models with the correct dimensions. Our focus will now shift to managing the conversion process to G-Code, ensuring that your model maintains the necessary quality for 3D printing or CNC machining. By addressing these considerations, you'll be better equipped to produce successful physical objects directly from your FreeCAD models.
+In den folgenden Abschnitten gehen wir davon aus, dass du dich bereits um die Erstellung von Volumenmodellen mit den richtigen Abmessungen gekümmert hast. Unser Fokus verlagert sich nun auf die Verwaltung des Konvertierungsprozesses in G-Code, um sicherzustellen, dass dein Modell die erforderliche Qualität für den 3D-Druck oder die CNC-Bearbeitung beibehält. Wenn du diese Überlegungen berücksichtigst, bist du besser gerüstet, um erfolgreiche physische Objekte direkt aus deinem FreeCAD-Modellen zu erstellen.
 
 <span id="Exporting_to_slicers"></span>
-=== Exportieren zu Zerschneidern ===
+=== Exportieren zu den Zerschneidern ===
 
-<div class="mw-translate-fuzzy">
-Dies ist die Technik, die am häufigsten für den 3D-Druck verwendet wird. Das 3D Objekt wird in ein anderes Programm (den Zerschneider) (engl.: Slicer) exportiert, das den G-Code aus dem Objekt generiert, indem es es in dünne Schichten zerlegt (daher der Name), die die Bewegungen reproduzieren, die der 3D Drucker ausführen wird. Da viele dieser Drucker selbstgebaut sind, gibt es oft kleine Unterschiede von einem zum anderen. Diese Programme bieten in der Regel erweiterte Konfigurationsmöglichkeiten, die dir erlauben die Ausgabe genau auf die Funktionen deines 3D Druckers zuzuschneiden.
-</div>
+Die gängigste Methode zur Vorbereitung eines 3D-Modells für den Druck besteht darin, das 3D-Objekt aus FreeCAD in eine spezielle Software namens Slicer zu exportieren. Der Slicer generiert G-Code, indem er das Modell in dünne Schichten aufteilt, denen der 3D-Drucker folgt, um das Objekt Schicht für Schicht aufzubauen. Da viele 3D-Drucker – insbesondere selbstgebaute oder Bastlermodelle – einzigartige Konfigurationen haben, bieten Slicer-Programme eine breite Palette erweiterter Einstellungen. Mit diesen Einstellungen kannst du wichtige Parameter wie Schichthöhe, Druckgeschwindigkeit, Fülldichte und Stützstrukturen anpassen und so sicherstellen, dass der G-Code auf die spezifischen Funktionen und Fähigkeiten deines Druckers zugeschnitten ist.
 
-<div class="mw-translate-fuzzy">
-Tatsächlich ist der 3D Druck jedoch ein zu umfangreiches Thema für dieses Handbuch. Aber wir werden sehen, wie  diese Zerschneider exportiert und verwendet werden können, um zu überprüfen, ob die Ausgabe korrekt ist.
-</div>
+Viele Slicer bieten auch Simulations- und Druckvalidierungsfunktionen, die für die Vorschau des Druckvorgangs von unschätzbarem Wert sind. Du kannst den Werkzeugweg für jede Schicht visualisieren, was dabei hilft, potenzielle Probleme wie Überhänge zu erkennen, die möglicherweise Stützen benötigen, oder Bereiche, in denen die Kühlung möglicherweise nicht ausreicht. Diese Validierung vor dem Druck stellt sicher, dass dein Modell vor Beginn des Drucks richtig vorbereitet ist, wodurch Fehldrucke oder Materialverschwendung vermieden werden.
 
-Slicers often include additional insights, such as estimating print time, material usage, and cost based on the filament or resin being used. This allows you to make informed decisions about the printing process and tweak settings for efficiency or material conservation. Although the deeper intricacies of 3D printing—such as machine calibration, material selection, and post-processing—are beyond the scope of this guide, we will focus on how to properly export your FreeCAD model and use slicer software to ensure the output is correct and optimized for your specific printer
+Slicer liefern oft zusätzliche Informationen, wie z. B. die Schätzung der Druckzeit, des Materialverbrauchs und der Kosten basierend auf dem verwendeten Filament oder Harz. Auf diese Weise kannst du fundierte Entscheidungen über den Druckvorgang treffen und Einstellungen für mehr Effizienz oder Materialeinsparung optimieren. Obwohl die tieferen Feinheiten des 3D-Drucks – wie Maschinenkalibrierung, Materialauswahl und Nachbearbeitung – über den Rahmen dieses Handbuchs hinausgehen, konzentrieren wir uns darauf, wie du dein FreeCAD-Modell ordnungsgemäß exportieren und Slicer-Software verwendest, um sicherzustellen, dass die Ausgabe korrekt und für deinen spezifischen Drucker optimiert ist.
 
 <span id="Converting_objects_to_meshes"></span>
 === Umwandeln von Objekten in Polygonnetze ===
 
-<div class="mw-translate-fuzzy">
-Keiner der Zerschneider wird zu diesem Zeitpunkt direkt die Volumenkörpergeometrie übernehmen, wie wir sie in FreeCAD erzeugen. Daher müssen wir jedes Objekt, das wir in 3D drucken wollen, zuerst in ein [https://de.wikipedia.org/wiki/Polygonnetz Polygonnetz] konvertieren, das der Zerschneider öffnen kann. Glücklicherweise ist die Konvertierung eines Netzes in einen Volumenkörper ein komplizierter Vorgang, während im Gegenteil die Konvertierung eines Volumenkörpers in ein Netz   sehr einfach ist. Alles, worauf wir achten müssen, ist, dass genau hier die oben erwähnte Verschlechterung eintritt. Wir müssen überprüfen, ob die Verschlechterung innerhalb akzeptabler Grenzen bleibt.
-</div>
+Keiner der derzeit verfügbaren Slicer kann die in FreeCAD erstellte Volumengeometrie direkt verarbeiten. Slicer wie Cura und PrusaSlicer arbeiten mit [https://en.wikipedia.org/wiki/Polygon_mesh mesh]-basierten Formaten wie STL, OBJ oder 3MF, die die Oberflächengeometrie des Objekts mithilfe eines Netzwerks aus Dreiecken darstellen. Um ein in FreeCAD erstelltes Modell verwenden zu können, muss es daher zunächst in ein Mesh-Format konvertiert werden, das diese Slicer interpretieren können.
 
-<div class="mw-translate-fuzzy">
-Die gesamte Netz Handhabung wird in FreeCAD von einem anderen spezifischen Arbeitsbereich durchgeführt, dem [[Mesh_Workbench/de|Arbeitsbereich Polygonnetz]]. Dieser Arbeitsbereich enthält zusätzlich zu den wichtigsten Werkzeugen zur Konvertierung zwischen Teil- und Netzobjekten verschiedene Hilfsprogramme zur Analyse und Reparatur von Netzen. Obwohl die Arbeit mit Netzen nicht im Mittelpunkt von FreeCAD steht, musst du dich bei der 3D Modellierung oft mit Netzobjekten befassen, da deren Verwendung unter anderen Anwendungen sehr weit verbreitet ist. Dieser Arbeitsbereich erlaubt dir sie vollständig in FreeCAD zu bearbeiten.
-</div>
+Das am häufigsten verwendete Format für den 3D-Druck ist STL. Ein Grund, warum STL bevorzugt wird, ist seine Einfachheit – es stellt die 3D-Geometrie als Netz aus Dreiecken dar, ohne komplexe Details wie Farben, Materialien oder Texturen einzuschließen. Dieser minimalistische Ansatz stellt sicher, dass STL-Dateien leichtgewichtig und mit praktisch allen Slicern und 3D-Druckern kompatibel sind, was es zum Industriestandard macht. Obwohl OBJ und 3MF ebenfalls unterstützt werden, können sie zusätzliche Informationen wie Texturen und Materialien enthalten, die für die meisten 3D-Druckaufgaben unnötig sind und den Slice-Prozess erschweren können.
 
-<div class="mw-translate-fuzzy">
-* Lass uns eines der Objekte konvertieren, die wir in den vorherigen Kapiteln modelliert haben, wie z.B. das Lego Stück (das am Ende des vorherigen Kapitels heruntergeladen werden kann).
-* Öffne die FreeCAD Datei, die das Lego Stück enthält.
-* Wechsle zum [[Mesh_Workbench/de|Netz Arbeitsbereich]]
-* Wähle den Legostein
-* Wähle das Menü '''Netze → Netz aus Form erzeugen'''
-* Es öffnet sich ein Aufgabenpaneel mit mehreren Optionen. Einige zusätzliche Vernetzungsalgorithmen (Mefisto oder Netgen) sind möglicherweise nicht verfügbar, je nachdem, wie deine Version von FreeCAD kompiliert wurde. Der Standard Vernetzungsalgorithmus wird immer vorhanden sein. Er bietet weniger Möglichkeiten als die beiden anderen, ist aber für kleine Objekte, die in die maximale Druckgröße eines 3D Druckers passen, völlig ausreichend.
-</div>
+Glücklicherweise ist die Konvertierung eines festen Objekts in ein Netz in FreeCAD unkompliziert, auch wenn die Rückkonvertierung eines Netzes in einen festen Gegenstand ein komplizierterer Vorgang ist. Während des Konvertierungsprozesses ist es wichtig zu bedenken, dass die Qualität des Modells möglicherweise etwas nachlässt, insbesondere wenn komplexe Geometrie auf ein einfaches dreieckiges Netz reduziert wird. Du musst sicherstellen, dass diese Verschlechterung innerhalb akzeptabler Grenzen bleibt, um die Genauigkeit deines gedruckten Objekts zu erhalten.
 
-<div class="mw-translate-fuzzy">
-[[Image:Exercise_meshing_01.jpg]]
-</div>
+In FreeCAD übernimmt der [[Mesh_Workbench|Mesh Workbench]] alle Mesh-bezogenen Aufgaben. Dieser Workbench enthält nicht nur Werkzeuge zum Konvertieren zwischen Part- und Mesh-Objekten, sondern auch zum Analysieren und Reparieren von Meshes. Obwohl die Mesh-Manipulation nicht der Hauptfokus von FreeCAD ist, wird sie bei der Vorbereitung von Modellen für den 3D-Druck unverzichtbar. Mesh-Objekte werden in anderen Anwendungen häufig verwendet, und der Mesh Workbench ermöglicht es dir, diese Objekte vollständig zu verwalten und anzupassen, um sicherzustellen, dass sie für den nächsten Schritt im Druckprozess bereit sind.
 
-* Let's convert the Lego piece we created in the last chapter into an STL mesh. The geometry can be downloaded at the end of said chapter.
-* Open the FreeCAD file containing the Lego piece.
-* Switch to the [[Mesh_Workbench|Mesh Workbench]]
-* Select the Lego brick
-* Select menu '''Meshes → Create Mesh from Shape'''
-* A task panel will open with several options. Some additional meshing algorithms (Mefisto or Netgen) might not be available, depending on how your version of FreeCAD was compiled. The Standard meshing algorithm will always be present. It offers fewer possibilities than the two others, but is totally sufficient for small objects that fit into the maximum print size of a 3D printer.
+* Lass uns das Lego-Stück, das wir im letzten Kapitel erstellt haben, in ein STL-Netz umwandeln. Die Geometrie kann am Ende des Kapitels heruntergeladen werden.
+* Öffne die FreeCAD-Datei, die das Lego-Stück enthält.
+* Wechsle zur [[Mesh_Workbench|Mesh Workbench]]
+* Wähle den Lego-Stein aus
+* Wähle das Menü '''Meshes → Create Mesh from Shape'''
+* Ein Aufgabenfenster mit mehreren Optionen wird geöffnet. Einige zusätzliche Netzalgorithmen (Mefisto oder Netgen) sind möglicherweise nicht verfügbar, je nachdem, wie deine Version von FreeCAD kompiliert wurde. Der Standard-Netzalgorithmus ist immer vorhanden. Er bietet weniger Möglichkeiten als die beiden anderen, ist aber für kleine Objekte, die in die maximale Druckgröße eines 3D-Druckers passen, völlig ausreichend.
 
 [[File:FreeCAD MeshLego.png]]
 
-<div class="mw-translate-fuzzy">
-* Wähle den '''Standard''' Netzbearbeiter und belasse den Abweichungswert auf dem Standardwert von '''0,10'''. Drücke '''Ok''''.
-* Es wird ein Netzobjekt erstellt, das sich genau über unserem Festkörperobjekt befindet. Entweder verbirg den Festkörper oder du verschiebst eines der Objekte zur Seite, so dass du beide vergleichen kannst.
-* Ändere die Eigenschaft '''Ansicht → Anzeigemodus''' des neuen Netzobjekts in '''Flache Linien''', um zu sehen, wie die Triangulation stattgefunden hat.
-* Wenn du mit dem Ergebnis nicht zufrieden bist und denkst, dass es zu grob ist, kannst du den Vorgang wiederholen und den Abweichungswert verringern. Im Beispiel unten verwendet das linke Netz den Standardwert '''0,10'''', während das rechte Netz '''0,01'''' verwendet:
-</div>
+* Wähle den '''Standard'''-Mesher und belasse den Abweichungswert auf dem Standardwert von '''0,10'''. Drücke '''Ok'''.
+* Es wird ein Mesh-Objekt genau über unserem festen Objekt erstellt. Verstecke entweder das feste Objekt oder verschiebe eines der Objekte zur Seite, damit du beide vergleichen kannst.
+* Ändere die Eigenschaft '''Ansicht → Anzeigemodus''' des neuen Mesh-Objekts in '''Flache Linien''', um zu sehen, wie die Triangulation erfolgte.
+* Wenn du nicht zufrieden bist und das Ergebnis zu grob findest, kannst du den Vorgang wiederholen und den Abweichungswert verringern. Im folgenden Beispiel wurde für das linke Mesh der Standardwert von '''0,10''' verwendet, während für das rechte '''0,01''' verwendet wird:
 
 [[Image:Exercise_meshing_02.jpg]]
 
