@@ -1,0 +1,445 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Third Party Tools/ru|Third Party Tools]]
+|[[FreeCAD Build Tool/ru|FreeCAD Build Tool]]
+}}
+</div>
+
+{{VeryImportantMessage|In FreeCAD version 0.20 the default location of the program's configuration, data and cache files was changed for Linux.<br>
+See [[Release_notes_0.20#Core|Release notes 0.20]] for more information. This page has not yet been updated accordingly.}}
+
+{{TOCright}}
+
+==Overview==
+
+<div class="mw-translate-fuzzy">
+==Обзор==
+На этой странице показаны различные способы запуска FreeCAD и наиболее важные особенности конфигурации.
+</div> 
+
+<span id="Starting_FreeCAD_from_the_Command_line"></span>
+== Запуск FreeCAD из командной строки ==
+
+FreeCAD может быть запущен, как правило, двойным щелчком по иконке на рабочем столе или выбором в стартовом меню, его также можно запустить напрямую из командной строки. Это позволяет вам изменять при запуске некоторые параметры по умолчанию.
+
+=== Using command line options without a command line shell ===
+
+<div class="mw-translate-fuzzy">
+=== Использование опций командной строки без оболочки командной строки ===
+* В Ubuntu Вы можете создать иконку на десктопе (это будет файл формата XDG с расширением .desktop) и редактировать её параметры. Добавьте опции командной строки, разделённые пробелами, после имени программы в поле "Command".
+* В Windows создайте ссылку и редактируйте её параметры. Добавьте разделённые пробелами опции командной строки в поле "Target".
+</div>
+
+<span id="Command_line_options"></span>
+=== Параметры командной строки ===
+
+Параметры командной строки часто меняются. Следовательно, будет отличной идей проверить текущие опции, введя:
+
+ FreeCAD --help
+
+<div class="mw-translate-fuzzy">
+Из появившегося ответа вы можете прочесть назначение параметров:
+</div>
+
+  Usage: FreeCAD [options] File1 File2 ...
+  
+  Allowed options:
+  
+  Generic options:
+    -v [ --version ]          Prints version string
+    --verbose                 Prints verbose version string
+    -h [ --help ]             Prints help message
+    -c [ --console ]          Starts in console mode
+    --response-file arg       Can be specified with '@name', too
+    --dump-config             Dumps configuration
+    --get-config arg          Prints the value of the requested configuration key
+    --set-config arg          Sets the value of a configuration key
+    --keep-deprecated-paths   If set then config files are kept on the old 
+                              location
+  
+  Configuration:
+    -l [ --write-log ]        Writes FreeCAD.log to the user directory.
+    --log-file arg            Unlike --write-log this allows logging to an 
+                              arbitrary file
+    -u [ --user-cfg ] arg     User config file to load/save user settings
+    -s [ --system-cfg ] arg   System config file to load/save system settings
+    -t [ --run-test ] arg     Run a given test case (use 0 (zero) to run all 
+                              tests). If no argument is provided then return list
+                              of all available tests.
+    -r [ --run-open ] arg     Run a given test case (use 0 (zero) to run all 
+                              tests). If no argument is provided then return list
+                              of all available tests.  Keeps UI open after 
+                              test(s) complete.
+    -M [ --module-path ] arg  Additional module paths
+    -P [ --python-path ] arg  Additional python paths
+    --single-instance         Allow to run a single instance of the application
+    --safe-mode               Force enable safe mode
+    --pass arg                Ignores the following arguments and pass them 
+                              through to be used by a script
+
+In the following table, selected options are described in more detail:
+
+{| border="2" cellpadding="4" cellspacing="0" style="margin-top:1em; margin-bottom:1em; background:#f9f9f9; border:1px #aaa solid; border-collapse:collapse;"
+|-
+! Long option !! Corresponding [[#Configuration_set|config var name]] !! Synopsis
+|-
+| {{incode|--user-cfg <filename>}} || UserParameter || Filename or relative path that ends with a filename. Defaults to {{incode|user.cfg}}.
+|-
+| {{incode|--module-path <dir>}} || Prepends to AdditionalModulePaths || Directory that contains modules. This option can be given repeatedly to specify multiple directories.
+|-
+| {{incode|--get-config <config-var-name>}} || most || Outputs the requested value in a popup dialog. Exits upon confirmation with {{KEY|OK}}. Cannot be used repeatedly. If an unknown/illegal variable name is used, the response is empty. The {{incode|--console}} flag is not honored.
+|}
+Options can written in two forms: {{incode|--long-option arg}} and {{incode|--long-option<nowiki>=</nowiki>arg}}.
+
+<span id="Response_and_config_files"></span>
+=== Файлы конфигурации и ответов(response) ===
+
+FreeCAD может считать некоторые параметры из конфигурационного файла. Этот файл должен находится в пути bin и должен называться {{FileName|FreeCAD.cfg}}. Помните, у параметров командной строки приоритет над  конфигурационным файлом!
+
+Некоторые операционные системы имеют очень лимитированную по символам командную строку. Чтобы обойти это ограничение используют обычно файлы ответов. Файл ответов - это просто конфигурационный файл, который использует синтаксис командной строки. Если в командной строке указан файл ответов, он загружается и обрабатывается как дополнение к командной строке:
+
+<pre>
+FreeCAD @ResponseFile.txt 
+</pre>
+
+или:
+ 
+<pre>
+FreeCAD --response-file=ResponseFile.txt
+</pre>
+
+или:
+ 
+<pre>
+FreeCAD --response-file ResponseFile.txt
+</pre>
+
+<span id="Hidden_options"></span>
+=== Скрытые опции ===
+
+Существует несколько параметров не видных пользователю. Эти параметры такие как X-Window параметры, анализируются оконной системой:
+* -display display, устанавливает значение X дисплея (по умолчанию это $DISPLAY).
+* -geometry geometry, устанавливает клиент геометрии первое окно что отображается.
+* -fn или -font font, определяет шрифт приложения. Шрифт должен быть указан используя X логическо описание шрифта.
+* -bg или -background color, устанавливает цвет фона по умолчанию и палитру приложения (рассчитываются темные и светлые оттенки).
+* -fg или -foreground color, устанавливает цвет по умолчанию переднего плана.
+* -btn или -button color, устанавливает цвет по умолчанию для кнопок.
+* -name name, устанавливает имя приложения.
+* -title title, устанавливает заголовок приложения.
+* -visual TrueColor, заставляет приложение использовать TrueColor визуальное отображение на 8-битном дисплее.
+* -ncols count, граничивает число цветов выделенных в цветовой куб на 8-битном дисплее, если приложение использует QApplication::ManyColor цветовую спецификацию. Если количество 216 то используется цветовой куб 6x6x6  (т.е. 6 уровней красного, 6 зеленого, и 6 синего); для остальных значений, используется куб пропорциональный 2x3x1.
+* -cmap,  вызывает приложение для установки вашей карты цветов на 8-битном дисплее.
+
+<span id="Running_FreeCAD_without_GUI_(headless)"></span>
+<div class="mw-translate-fuzzy">
+== Запуск FreeCAD без Графического Интерфейса ==
+</div>
+
+<div class="mw-translate-fuzzy">
+FreeCAD обычно компилируется в два исполняемых файла: с графическим интерфейсом, {{FileName|FreeCAD}}, и только с командной строкой, {{FileName|FreeCADCmd}}. FreeCAD может запускаться в консольном режиме с помощью ключа "-c", для {{FileName|FreeCADCmd}} это поведение по умолчанию:
+</div>
+
+ FreeCAD --console
+
+<div class="mw-translate-fuzzy">
+в командной строке. В консольном режиме, не будет отображаться пользовательский интерфейс, а вам будет предоставлена строка интерпретатора python. С помощью командной строки python, вы обладаете той же функциональностью, что и интерпретатором python, запущенном внутри FreeCAD GUI, и обладаете доступом ко всем модулям и плагинам  FreeCAD, исключая модуль FreeCADGui. Имейте в виду, что модули, зависящие от FreeCADGui, также могут быть недоступны.
+</div>
+
+To read more about console or headless mode, refer to [[Headless_FreeCAD|Headless FreeCAD]].
+
+<span id="Running_modules,_macros_and_scripts"></span>
+<div class="mw-translate-fuzzy">
+=== Пример выполнения файла ===
+</div>
+
+<div class="mw-translate-fuzzy">
+{| border="2" cellpadding="4" cellspacing="0" style="margin-top:1em; margin-bottom:1em; background:#f9f9f9; border:1px #aaa solid; border-collapse:collapse;"
+|+ Конфигурация командной строки для выполнения файла
+!  Выполнить файл     !! Система !! Конфигурация командной строки
+|-
+| Module, cfg||Windows || {{FileName|"C:\Program Files\FreeCAD\bin\FreeCAD.exe" -M "C:\FreeCAD\Mod\Draft" -u "C:\FreeCAD\Config\user.cfg" -s "C:\FreeCAD\Config\system.cfg"}}
+|-               
+|            ||Linux   || {{FileName|todo}}
+|-
+|-
+| .FCMacro or .py  ||Windows || {{FileName|"C:\Program Files\FreeCAD\bin\FreeCAD.exe" "C:\Users\userName\AppData\Roaming\FreeCAD\Mod\WorkFeature\start_WF.FCMacro"}}
+|-
+|                  ||Linux   || {{FileName|todo}}
+|-
+|Как установить макрос для автоматического запуска при старте FreeCAD ||Windows / Linux / Mac||Смотри как установить макрос для автоматического запуская во время старта FreeCAD, на странице [[Macro_at_Startup/ru|Макрос при старте]].
+|}
+</div>
+
+See [[Macro_at_Startup|Macro at Startup]] on how to set up a macro to automatically run at FreeCAD startup.
+
+<span id="Environment_variables"></span>
+== Переменные Среды Окружения ==
+
+FreeCAD supports the following environment variables, which can be used to configure directories: {{Version|0.19}}
+{| border="2" cellpadding="4" cellspacing="0" style="margin-top:1em; margin-bottom:1em; background:#f9f9f9; border:1px #aaa solid; border-collapse:collapse;"
+|-
+! Environment variable !! Corresponding [[#Configuration_set|config var name]] !! Synopsis
+|-
+| {{incode|FREECAD_USER_HOME}} || UserHomePath || FreeCAD's "base" directory for keeping local user data.
+|-
+| {{incode|FREECAD_USER_DATA}} || UserAppData || If not set, defaults to {{incode|FREECAD_USER_HOME/.FreeCAD}}, but only if {{incode|FREECAD_USER_HOME}} is set.
+|-
+| {{incode|FREECAD_USER_TEMP}} || AppTempPath || If not set, defaults to {{incode|FREECAD_USER_HOME/temp}}, but only if {{incode|FREECAD_USER_HOME}} is set.
+|}
+If the specified path does not exist, the setting is ignored!
+
+The above environment variables are meant to be used to realize a ''portable'' FreeCAD environment. For an example how environment variables can be used from the command line on Linux refer to the [[Download#Notes_for_GNU.2FLinux_users|notes for Linux users on the downloads page]].
+
+=== {{incode|HOME}} ===
+
+FreeCAD uses [[Third_Party_Libraries#Qt|Qt]], which does honor the {{incode|HOME}} environmental variable. Thus, setting {{incode|HOME}} can be used to specify the base directory of Qt-related configuration files ({{incode|.config/FreeCAD/FreeCAD.conf}}).
+
+FreeCad itself does not honor the {{incode|HOME}} environmental variable (because it determines the user's home directory from a lower-level system API). Use {{incode|FREECAD_USER_HOME}} for this pupose.
+
+=== {{incode|TMPDIR}} ===
+
+The default temporary directory is {{FileName|/tmp/}}. The {{incode|TMPDIR}} environmental variable can be used to override the default. (''Editor: precedence?'').
+
+=== Libraries ===
+
+<div class="mw-translate-fuzzy">
+Некоторые библиотеки нуждаются в вызове системных переменных. Иногда когда возникают проблемы с установкой FreeCAD , потому что некоторые переменные отсутствуют или установлены неправильно. Таким образом, некоторые важные переменные дублируются в Config и сохраняются в журнале(log file).
+</div>
+
+'''Python'''
+
+* PYTHONPATH
+* PYTHONHOME
+* TCL_LIBRARY
+* TCLLIBPATH
+
+'''OpenCascade'''
+
+* CSF_MDTVFontDirectory
+* CSF_MDTVTexturesDirectory
+* CSF_UnitsDefinition
+* CSF_UnitsLexicon
+* CSF_StandardDefaults
+* CSF_PluginDefaults
+* CSF_LANGUAGE
+* CSF_SHMessage
+* CSF_XCAFDefaults
+* CSF_GraphicShr
+* CSF_IGESDefaults
+* CSF_STEPDefaults
+
+<span id="Configuration_set"></span>
+<div class="mw-translate-fuzzy">
+== Конфигурационные параметры ==
+</div>
+
+<div class="mw-translate-fuzzy">
+При каждом запуске FreeCAD проверяет своё окружение и параметры командной строки. Он выстраивает '''конфигурационный набор''' который хранит суть о процессе выполнения программы (runtime information). Эта информация позже используется для определения места где сохранены пользовательские данные или файлы логов. Это также важно для анализа после крушения программы. Поэтому она сохраняется в лог файле (журнале).
+</div>
+
+<span id="User_related_information"></span>
+=== Пользовательская информация ===
+
+<div class="mw-translate-fuzzy">
+{| border="2" cellpadding="4" cellspacing="0" style="margin-top:1em; margin-bottom:1em; background:#f9f9f9; border:1px #aaa solid; border-collapse:collapse;"
+|+ Записи пользовательской конфигурации
+|-
+! Имя конф. переменной      !! Краткий обзор                         !! Пример для M$               !! Пример для Posix (Linux)
+|-
+| UserAppData          || Путь где FreeCAD хранит пользовательские данные программы. || {{FileName|C:\Documents and Settings\username\AppData\FreeCAD}}<hr />''Short path : ''{{FileName|%APPDATA%\FreeCAD}} || {{FileName|/home/username/.FreeCAD}}<hr />''Short path : ''{{FileName|~/.FreeCAD}}
+|-
+| UserParameter        || Файл где FreeCAD хранит пользовательские данные программы. || {{FileName|C:\Documents and Settings\username\AppData\FreeCAD\user.cfg}}<hr />''Short path : ''{{FileName|%APPDATA%\FreeCAD\user.cfg}} || {{FileName|/home/username/.FreeCAD/user.cfg}}<hr />''Short path : ''{{FileName|~/.FreeCAD/user.cfg}}      
+|-
+| SystemParameter      || Файл где FreeCAD хранит данные программы. || {{FileName|C:\Documents and Settings\username\AppData\FreeCAD\system.cfg}}<hr />''Short path : ''{{FileName|%APPDATA%\FreeCAD\system.cfg}} || {{FileName|/home/username/.FreeCAD/system.cfg}}<hr />''Short path : ''{{FileName|~/.FreeCAD/system.cfg}}
+|-               
+| UserHomePath         || Домашняя папка текущего пользователя.  || {{FileName|C:\Documents and Settings\username}}<hr />''Short path : ''{{FileName|%USERPROFILE%}} || {{FileName|/home/username}}<hr />''Short path : ''{{FileName|~}}
+|}
+</div>
+
+Note: For Linux distributions, an additional configuration file that relates to [[Third_Party_Tools#Qt-Toolkit|Qt]] may exist at path {{FileName|/home/username/.config/FreeCAD/FreeCAD.conf}}.
+
+<span id="Command_line_arguments"></span>
+=== Аргументы командной строки ===
+
+<div class="mw-translate-fuzzy">
+{| border="2" cellpadding="4" cellspacing="0" style="margin-top:1em; margin-bottom:1em; background:#f9f9f9; border:1px #aaa solid; border-collapse:collapse;"
+|+ Записи пользовательской конфигурации
+|-
+! Имя конф. переменной      !! Краткий обзор                          !! Пример                
+|-
+| LoggingFile          || 1 если ведение журнала включено || 1
+|-
+| LoggingFileName      || Имя файла куда помещен журнал || {{FileName|C:\Documents and Settings\username\AppData\FreeCAD\FreeCAD.log}}
+|-
+| RunMode              || Это показывает, как будет работать основной цикл. '''"Script"''' означает что данный сценарий вызывается, а затем выходит. '''"Cmd"''' запускает командную строку интепритатора. '''"Internal"''' запускает внутренний сценарий. '''"Gui"''' входит в цикл Gui событий. '''"Module"''' загружается как python модуль. || "Cmd"
+|-
+| FileName             || Значение зависит от RunMode || 
+|-               
+| ScriptFileName       || Значение зависит от RunMode || 
+|-
+| Verbose              || Уровень детализации сообщений в FreeCAD      || "" or "strict"
+|-
+| OpenFileCount        ||Содержит количество файлов, открытых через аргументы командной строки   || "12"
+|-
+| AdditionalModulePaths||Содержит дополнительные Пути к модулям заданных в командной строке   || "extraModules/"
+|}
+</div>
+
+<span id="System_related"></span>
+=== Связанные с системой ===
+
+<div class="mw-translate-fuzzy">
+{| border="2" cellpadding="4" cellspacing="0" style="margin-top:1em; margin-bottom:1em; background:#f9f9f9; border:1px #aaa solid; border-collapse:collapse;"
+|+ Записи пользовательской конфигурации
+|-
+! Имя конф. переменной      !! Краткий обзор                      !! Пример для M$                 !! Пример для Posix (Linux)
+|-
+| AppHomePath          || Путь куда установлен FreeCAD || {{FileName|c:/Progam Files/FreeCAD_0.7}} || {{FileName|/user/local/FreeCAD_0.7}}
+|-
+| PythonSearchPath     || Содержит список путей для поиска модулей python. Начальная конфигурация может изменятся во время выполнения программы  ||  || 
+|}
+</div>
+
+<span id="Build_related_information"></span>
+=== Информация связанная со Сборкой===
+
+Приведенная ниже таблица показывает доступную информацию о версии сборки. Большая часть её взята из хранилища Subversion. Этот материал нужен, чтобы точно восстановить версию!
+
+<div class="mw-translate-fuzzy">
+{| border="2" cellpadding="4" cellspacing="0" style="margin-top:1em; margin-bottom:1em; background:#f9f9f9; border:1px #aaa solid; border-collapse:collapse;"
+|+ Записи пользовательской конфигурации
+|-
+! Имя конф. переменной      !! Краткий обзор                        !! Пример                  
+|-               
+| BuildVersionMajor    || Основной номер версии Сборки. Задан в {{FileName|src/Build/Version.h.in}}   || 0
+|-               
+| BuildVersionMinor    || Малый номер версии Сборки. Задан в {{FileName|src/Build/Version.h.in}}   || 7
+|-               
+| BuildRevision        || Номер ревизии исходных кодов в хранилище SVN в Build. Генерируется SVN    || 356         
+|-               
+| BuildRevisionRange   || Диапазон различных изменений     ||  123-356 
+|-               
+| BuildRepositoryURL   || URL Хранилища    || https://free-cad.svn.sourceforge.net/svnroot/free-cad/trunk/src
+|-               
+| BuildRevisionDate    || Дата упомянутой ревизии    || 2007/02/03 22:21:18    
+|-               
+| BuildScrClean        || Показывает, были ли исходные коды изменены после синхронизации   ||Src modified            
+|-               
+| BuildScrMixed        ||       || Src not mixed
+|}
+</div>
+
+<span id="Branding_related"></span>
+=== Связанная с Брендированием ===
+
+Это конфигурационные записи связанные с механизмом брендинга FreeCAD. Смотри [[Branding/ru|Брендинг]] для более подробной информации.
+
+<div class="mw-translate-fuzzy">
+{| border="2" cellpadding="4" cellspacing="0" style="margin-top:1em; margin-bottom:1em; background:#f9f9f9; border:1px #aaa solid; border-collapse:collapse;"
+|+ Записи пользовательской конфигурации
+|-
+! Имя конф. переменной      !! Краткий обзор                         !! Пример 
+|-               
+| ExeName              || Название собранного исполняемого файла. Может запускаться из FreeCAD если используются различные {{FileName|main.cpp}}.     || {{FileName|FreeCAD.exe}}
+|-               
+| ExeVersion           || Переопределённая версия, показываемая во время запуска   || V0.7 
+|-               
+| AppIcon              || Иконка исполняемого файла, показывается в главном окне приложения.     || "FCIcon"     
+|-               
+| ConsoleBanner        || Баннер, выводимый в консольном режиме     ||  
+|-               
+| SplashPicture        || Название изображения используемого в качестве заставки    || "FreeCADSplasher"        
+|-               
+| SplashAlignment      || Alignment of the Text in the Splash dialog    || "Bottom" or "Left"     
+|-               
+| SplashTextColor      || Выравнивание текста в окне заставки    || "#000000"         
+|-               
+| StartWorkbench       || Название верстака, автоматически открывающегося при запуске приложения     || "Part design"  
+|-               
+| HiddenDockWindow     || Список панелей (разделенный запятой), которые будут отключены || "Property editor"    
+|}
+</div>
+
+=== Querying the configuration ===
+
+'''From FreeCAD's Python console'''
+
+Entries of the configuration set can be queried with the '''config var name''' (see tables above) from the [[Python_console|Python console]]. For example:
+  >>> FreeCAD.ConfigGet("ExeVersion")
+  '0.19'
+If the name is not found, an empty string is returned.
+
+'''Из командной строки'''
+
+Use the {{incode|--get-config <config-var-name>}} option to query a single name. Not all names are supported. For example:
+  FreeCAD --get-config ExeVersion
+
+Use the {{incode|--dump-config}} option to get a list of names and their values. Not all names are supported.
+
+'''Из консоли FreeCAD'''
+
+Start FreeCAD in console mode with {{incode|--console}} and query with Python code. For example:
+  $ FreeCAD --console
+  [FreeCAD Console mode <Use Ctrl-D (i.e. EOF) to exit.>]
+  >>> FreeCAD.ConfigGet("ExeVersion")
+  '0.19'
+  >>> exit()
+
+For Linux (bash shell) you can modify the following command line to suit your needs:
+  $ FreeCAD --console <<EOF
+  print( "FREECAD_USER_HOME: " + ( "not set" if ( os.environ.get('FREECAD_USER_HOME') is None ) else os.environ.get('FREECAD_USER_HOME') ) )
+  print( "UserHomePath: " + FreeCAD.ConfigGet("UserHomePath") )
+  exit()
+  EOF
+
+== Starting FreeCAD from the desktop ==
+
+=== Linux: Creating an additional start option ===
+
+The following assumes that your desktop is configured such that you can launch FreeCAD from it. Depending on your Linux distribution and desktop environment, you may have to adapt the following steps:
+# Copy the freedesktop entry file for FreeCAD from {{FileName|/usr/share/applications/freecad.desktop}} to {{FileName|~/.local/share/applications}}.
+# Change the name from {{FileName|freecad.desktop}} to something else (e.g. {{FileName|MyFreeCADConfig.desktop}}).
+# Open the file with a text editor and change how FreeCAD is invoked by modifying the line starting with {{incode|Exec}}.
+# As a result, an additional entry in your start menu/application launcher is available. This way, you can have multiple FreeCAD entries with various launch options.
+
+== Starting FreeCAD from a portable USB medium ==
+
+'''Windows'''
+
+Put the FreeCAD executable, {{FileName|FreeCAD.exe}}, on the USB medium. Create a batch file, {{FileName|FreeCAD.bat}}, and put it into the same directory as {{FileName|FreeCAD.exe}}. Inside the batch file write: 
+
+{{Code|code=
+set CURRENTDIR=%cd%
+set FREECAD_USER_HOME=%CURRENTDIR%
+start FreeCAD.exe -u FreeCAD/user.cfg -s FreeCAD/system.cfg --write-log 
+}}
+
+Or with {{incode|FREECAD_USER_DATA}} ([https://forum.freecadweb.org/viewtopic.php?f=12&t=54784&start=60#p474759 see]):
+
+{{Code|code=
+set CURRENTDIR="%cd%"
+set FREECAD_USER_DATA=%CURRENTDIR%/..
+start FreeCAD.exe -u %FREECAD_USER_DATA%/user.cfg -s %FREECAD_USER_DATA%/system.cfg}}
+
+With the batch in the root of the USB medium:
+
+{{Code|code=
+set CURRENTDIR=%cd%
+set FREECAD_USER_DATA=%CURRENTDIR%FreeCAD\
+start %cd%FreeCAD\bin\FreeCAD.exe -u %FREECAD_USER_DATA%user.cfg -s %FREECAD_USER_DATA%system.cfg
+}}
+
+Now double-click the batch file to start FreeCAD. ([https://forum.freecadweb.org/viewtopic.php?f=4&t=49028 see])
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Third Party Tools/ru|Third Party Tools]]
+|[[FreeCAD Build Tool/ru|FreeCAD Build Tool]]
+}}
+</div>
+
+{{Userdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]

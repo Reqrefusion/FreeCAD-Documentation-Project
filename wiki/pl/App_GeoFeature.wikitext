@@ -1,0 +1,111 @@
+<languages/>
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+[[File:Feature.svg|32px]]
+
+Obiekt '''App: Cechy geometrii''', lub formalnie {{incode|App::GeoFeature}}, jest klasą bazową większości obiektów wyświetlających elementy geometryczne w oknie [[3D_view/pl|widoku 3D]], ponieważ zawiera właściwość {{PropertyData|Umiejscowienie}}.
+
+[[File:FreeCAD_core_objects.svg|800px]]
+
+{{Caption|Uproszczony diagram zależności pomiędzy podstawowymi obiektami w programie FreeCAD.}}
+
+<span id="Usage"></span>
+==Użycie==
+
+App: Cechy geometrii jest obiektem wewnętrznym, więc nie można go utworzyć z poziomu interfejsu graficznego. Zasadniczo nie jest on przeznaczony do bezpośredniego użycia, a raczej może być podklasowany, aby uzyskać obiekt typu bare-bones, który ma tylko podstawową właściwość {{PropertyData|Umiejscowienie}} do zdefiniowania jego pozycji w oknie [[3D_view/pl|Widoku 3D]].
+
+Niektóre z najważniejszych obiektów pochodnych są następujące:
+* Klasa [[Part_Feature/pl|Część: Cecha]], rodzic większości obiektów o kształtach [[Part_TopoShape/pl|topologicznych]] 2D i 3D.
+* Klasa [[Mesh_Feature/pl|Siatka: Cecha]], rodzic większości obiektów wykonanych z [[Mesh_MeshObject/pl|Siatka]], a nie brył.
+* Klasa [[FEM_Mesh/pl|MES: FemMeshObject]], rodzic siatek elementów skończonych utworzonych za pomocą [[FEM_Workbench/pl|środowiska pracy MES]].
+* Klasa [[CAM_Feature/pl|CAM: Cecha]], rodzic ścieżek utworzonych za pomocą [[CAM_Workbench/pl|środowiska pracy CAM]] do użytku w obróbce CNC.
+* Klasa [[App_Part/pl|App: Część]], która definiuje [[Std_Part/pl|Std: Część]], które mogą być używane jako kontenery korpusów do wykonywania złożeń.
+
+Podczas tworzenia tego obiektu w środowisku [[Python/pl|Python]], zamiast klasy podrzędnej {{incode|App::GeoFeature}}, należy utworzyć klasę podrzędną {{incode|App::GeometryPython}}, ponieważ ta ostatnia zawiera domyślnego dostawcę widoku oraz atrybuty {{incode|Proxy}} dla samego obiektu i jego dostawcy widoku. Zobacz także sekcję [[App_GeoFeature/pl#Tworzenie_skryptów|tworzenie skryptów]].
+
+<span id="Properties_App_GeoFeature"></span>
+==Właściwości App GeoFeature==
+
+Zobacz stronę [[Property/pl|Właściwości]] dla wszystkich typów właściwości, które mogą mieć obiekty tworzone skryptami.
+
+App: Cechy geometrii ''(klasa{{incode|App::GeoFeature}})'' jest pochodną podstawowego obiektu [[App_DocumentObject/pl|App DocumentObject]] ''(klasa {{incode|App::DocumentObject}})'' i dziedziczy wszystkie jego właściwości. Dodatkowo posiada właściwość {{PropertyData|Umiejscowienie}}, która kontroluje jego pozycję w oknie [[3D_view/pl|Widoku 3D]].
+
+<span id="Properties_App_GeometryPython"></span>
+==Właściwości App GeometryPython==
+
+Zobacz stronę [[Property/pl|Właściwości]] dla wszystkich typów właściwości, które mogą mieć obiekty tworzone skryptami.
+
+Obiekt '''App: Cechy geometrii Python''' ''(klasa {{incode|App::GeometryPython}})'' jest pochodną podstawowego obiektu [[App_GeoFeature/pl|App: Cechy geometrii]] ''(klasa {{incode|App::GeoFeature}})'' i dziedziczy wszystkie jego właściwości. Posiada również kilka dodatkowych właściwości.
+
+Są to właściwości dostępne w [[Property_editor/pl|edytorze właściwości]]. Ukryte właściwości można wyświetlić za pomocą polecenia {{MenuCommand|Wyświetl wszystko}} w menu kontekstowym [[Property_editor/pl|edytora właściwości]].
+
+<span id="Data"></span>
+===Dane===
+
+{{TitleProperty|Podstawa}}
+
+* {{PropertyData|Proxy|PythonObject|Ukryte}}: niestandardowa klasa powiązana z tym obiektem.
+* {{PropertyData|Umiejscowienie|Placement}}: pozycja obiektu w [[3D_view/pl|widoku 3D]]. Umiejscowienie jest definiowane przez punkt {{incode|Bazowy}} ''(wektor)'' i {{incode|Obrót}} ''(oś i kąt)''. Zobacz informacje na stronie [[Placement/pl|Umiejscowienie]].
+** {{PropertyData|Kąt}}: kąt obrotu wokół {{PropertyData|Osi}}. Domyślnie jest to {{value|0°}} ''(zero stopni)''.
+** {{PropertyData|Oś}}: wektor jednostkowy definiujący oś obrotu dla umiejscowienia. Każdy element jest wartością zmiennoprzecinkową pomiędzy {{value|0}} i {{value|1}}. Jeśli jakakolwiek wartość znajduje się powyżej {{value|1}}, wektor jest normalizowany tak, aby jego wielkość wynosiła {{value|1}}. Domyślnie jest to dodatnia oś Z, {{value|(0, 0, 1)}}.
+** {{PropertyData|Pozycja}}: wektor ze współrzędnymi 3D punktu bazowego. Domyślnie jest to punkt odniesienia połażenia {{value|(0, 0, 0)}}.
+* {{PropertyData|Etykieta|String}}: edytowalna przez użytkownika nazwa tego obiektu, jest to dowolny ciąg UTF8.
+* {{PropertyData|Etykieta2|String|Ukryte}}: dłuższy, edytowalny przez użytkownika opis tego obiektu, jest to dowolny ciąg UTF8, który może zawierać nowe linie. Domyślnie jest to pusty ciąg {{value|""}}.
+* {{PropertyData|SilnikWyrażeń|Ukryte}}: lista wyrażeń. Domyślnie jest pusta {{value|[]}}.
+* {{PropertyData|Widoczność|Bool|Ukryte}}: określa czy obiekt ma być wyświetlany czy nie.
+
+<span id="View"></span>
+===Widok===
+
+{{TitleProperty|Baza}}
+* {{PropertyView|Proxy|PythonObject|Ukryte}}: niestandardowa klasa [[Viewprovider/pl|dostawcy widoku]] powiązana z tym obiektem.
+
+{{TitleProperty|Opcje wyświetlania}}.
+* {{PropertyView|Ramka otaczająca|Bool}}: jeśli ma wartość {{TRUE/pl}}, obiekt wyświetli obwiednię w oknie [[3D_view/pl|widoku 3D]].
+* {{PropertyView|Tryb wyświetlania|Enumeration}}: zobacz informacje w [[App_FeaturePython/pl|App: Właściwości Python]].
+* {{PropertyView|Pokaż w drzewie|Bool}}: zobacz informacje w [[App_FeaturePython/pl|App: Właściwości Python]].
+* {{PropertyView|Widoczność|Bool}}: zobacz informacje w [[App_FeaturePython/pl|App: Właściwości Python]].
+
+{{TitleProperty|Styl obiektu}}
+* {{PropertyView|Kolor kształtu|Color}}: krotka trzech zmiennoprzecinkowych wartości RGB {{value|(r,g,b)}} do definiowania koloru ścian w [[3D_view/pl|widoku 3D]]. Domyślnie jest to {{value|(0. 8, 0.8, 0.8)}}, co jest wyświetlane jako {{value|[204, 204, 204]}} na podstawie 255, a <span style="background-color:#ccc; width:3em; height:12pt; padding: 2px 1em 2px;"> jasnoszary </span>.
+* {{PropertyView|Materiał kształtu|Material|ukryte}}: powiązany z tym obiektem [[App_Material/pl|Materiał]]. Domyślnie włąściwość jest pusta.
+* {{PropertyView|Przeźroczystość|Percent}}: wartość całkowita od {{value|0}} do {{value|100}}, która określa poziom przeźroczystości ścian w [[3D_view|widoku 3D]]. Wartość {{value|100}} oznacza całkowicie niewidoczne ściany, ściany są niewidoczne, ale nadal można je wybrać, o ile właściwość {{PropertyView|Wybieralny}} ma wartość {{TRUE/pl}}.
+
+{{TitleProperty|Wybór}}
+* {{PropertyView|Na górze po wybraniu|Enumeration}}: zobacz informacje na stronie [[App_FeaturePython/pl|App: Właściwości Python]].
+* {{PropertyView|Wybieralny|Bool}}: jeśli ma wartość {{TRUE/pl}}, obiekt może zostać wybrany za pomocą kursora w oknie [[3D_view/pl|widoku 3D]]. W przeciwnym razie obiekt nie może zostać wybrany, dopóki ta właściwość nie zostanie ustawiona na {{TRUE/pl}}.
+* {{PropertyView|Styl wyboru|Enumeration}}: zobacz informacje na ten temat zawarte na stronie [[App_FeaturePython/pl|App: Właściwości Python]].
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]], oraz [[Scripted_objects/pl|Obiekty skryptowe]].
+
+Ogólne informacje na temat dodawania obiektów do dokumentu można znaleźć na stronie [[Part_Feature/pl|Część: właściwość]].
+
+Obiekt Cechy geometrii jest tworzony za pomocą metody {{incode|addObject()}} dokumentu. Jeśli chcesz utworzyć obiekt o kształcie 2D lub 3D [[Part_TopoShape/pl|kształt topologiczny]], lepszym rozwiązaniem może być utworzenie jednej z klas podrzędnych wyspecjalizowanych do obsługi kształtów, na przykład [[Part_Feature/pl|Część: Cecha]] lub [[Part_Part2DObject/pl|Część: Część na obiekt 2D]].
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("App::GeoFeature", "Name")
+obj.Label = "Custom label"
+}}
+
+Dlatego też, dla klasy podrzędnej [[Python/pl|Python]], powinieneś stworzyć obiekt {{incode|App::GeometryPython}}.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("App::GeometryPython", "Name")
+obj.Label = "Custom label"
+}}
+
+
+{{Document_objects_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

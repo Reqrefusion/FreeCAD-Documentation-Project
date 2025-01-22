@@ -1,0 +1,247 @@
+<languages/>
+{{TOCright}}
+
+<span id="Overview"></span>
+==Обзор==
+
+В течение многих лет широко обсуждались различия и особенности совместного применения верстаков [[File:Workbench_Part.svg|24px]] [[Part_Workbench/ru|Part]] и [[File:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/ru|PartDesign]].
+
+Рекомендуется использовать один из верстаков, пока пользователь не освоится с ним, а затем изучить другой. Также обычно рекомендуется, чтобы новые пользователи не смешивали их, пока не будут понятны последствия этого.
+
+Давайте обсудим эти особенности.
+
+<span id="Part_Workbench_Concepts"></span>
+==Концепция Верстака Part==
+
+Верстак Part это по сути [[Constructive_solid_geometry/ru|моделирование в стиле КТГ]]. Оператор комбинирует различные примитивы, чтобы в конечном итоге получить представление желаемой формы. (Фактически, Верстак Part идёт на один шаг дальше, чем просто примитивы, и позволяет оператору использовать операцию эскиз+выдавливание (или эскиз+вращение, профиль (loft), профиль по траектории (sweep) ...) для создания случайных форм.)
+При создании каждого примитива или фигуры он не имеет отношения к другим созданным объектам (кроме эскизов и их вложений), является единым твёрдым телом.
+
+[[File:Part_CSG_Prims.png|frame|centre|Одиночные твёрдые тела]]
+
+
+Это условие остается таким до тех пор, пока оператор не использует некоторую операцию для их объединения (обычно это Булева операция, которая складывает или вычитает тела).
+Каждое твёрдое тело изначально является отдельным, но операция создает новый объект.
+
+Результатом является единый твёрдый объект и комбинация объектов.
+
+<span id="PartDesign_Workbench_Concepts"></span>
+==Концепция Верстака PartDesign==
+
+В Верстаке PartDesign объект Body создаётся непосредственно как одиночное самостоятельное твёрдое тело.
+
+Первым шагом в теле должен быть блок материала, созданного либо из аддитивного примитива, либо из выдавленного эскиза, либо из импортированной формы (далее называемая Базовым Элементом).
+
+Этот исходный блок материала будет последовательно изменяться до тех пор, пока не будет получено желаемое конечное твёрдое тело.
+
+Он является совокупностью операций в том смысле, что каждая операция добавляет или удаляет материал.
+
+ 
+По умолчанию "точка завершения расчета тела" (tip) - является последней операцией, выполняемой над телом (если она конечно добровольно не сдвинута на определённый шаг построения фигуры). Это текущее и видимое состояние тела, готовое к повторному изменению с помощью добавления следующего конструктивного элемента.
+
+Каждый шаг построения тела представляет собой тело сформированное в результате проведения совокупности операций от начального конструктивного элемента до текущего конструктивного элемента.
+
+Таким образом, '''чтобы иметь законченное твёрдое тело''', с одной стороны точка завершения расчёта должна быть последним этапом построения этого тела, а с другой стороны '''должно быть выбрано тело''', а не этап его построения.
+
+Это позволит в случае изменений '''всегда иметь последнюю версию твёрдого тела'''.
+
+
+'''Note and additions :'''
+At each time of the construction, the last function used is the "Tip", which can be defined too as "active stage in the construction of the object" or "stage preceding the next action in the construction of the object". When the object's drawing is complete, Tip is naturally the last stage or feature of the construction. But if desired, in case of forgetting, any feature of the construction can be provisionally declared as Tip: it then becomes the step preceding the next action in the construction of the object, which means that new feature(s) can be inserted anywhere in the construction, '''on the condition that no incompatibilities are created with the suite'''.
+
+When everything is finished, you have to redeclare the last feature as Tip, which corresponds to the finished object.
+
+[[File:Part_Design_Cumulativ.png|frame|centre|Твердое тело полученное в результате совокупности операций]]
+
+На изображении представлено совокупное твердое тело, состоящее из выдавленного эскиза и примитива конуса. Это единое твердое тело.
+
+Если конечной точкой расчёта тела является '''выдавленный эскиз''', то выдавленный эскиз будет отображен как отдельное тело, однако если конечной точкой расчета является '''Конус''', то конус не будет отображен как отдельное тело (а будет отображен, как конус соединенный с выдавленным эскизом).
+
+(Еще одно важное замечание: Тело '''''ДОЛЖНО''''' быть монолитным. Это означает, что новые, создаваемые конструктивные элементы, ''всегда должны'' соприкасаться с Телом к которому они применены.)
+
+<span id="The_Ramifications"></span>
+==Совместное применение==
+
+Хотя это и не рекомендуется для новичков, но инструменты из верстаков Part и PartDesign можно комбинировать, при условии, что вы знаете, что делаете. Например :
+
+Люди попадают в ловушку, когда пытаются использовать какой-либо конструктивный элемент из Тела (а не само Тело) в качестве одного из объектов Булевой операции верстака Part. Это проблема, потому что выбранный конструктивный элемент не является '''ПОЛНОЦЕННЫМ''' твёрдое тело.
+
+В некотором смысле, с точки зрения верстака Part, Тело представляет собой ещё один примитив. Таким образом, использование Тела (помните, что это прокси для точки завершения расчёта тела) и объекта верстака Part для выполнения Булевых операций допустимо. Но результирующий объект является частью объекта верстака Part. Поэтому инструменты верстака PartDesign больше нельзя использовать на нём.
+
+И это может стать ещё сложнее. Если вы создадите новое Тело и перетащите в него результат из предыдущего абзаца, будет создан BaseObject. И вы можете перейти к использованию инструментов Верстака PartDesign на нём.
+
+<span id="The_Caveats"></span>
+==Предупреждение==
+
+There is a caveat with the Tip and it's representation of the single solid in the Body. ''If'' the tip is a subtractive feature and is used in a dress up operation, for instance a Mirror, the Mirror is operating on the underlying feature (a pocket for example). Thus the cumulative solid is not mirrored, but the subtractive feature is. The result of this must create a single solid.
+
+In this example, a mirror of the tip (which is the pocket of the slot) around any of the base planes, or even a face of the solid will not produce a mirrored solid of the entire model. (In fact, it will produce a Mirrored feature in the tree that is essentially empty.)
+
+[[File:PhantomMirror.png|frame|centre|Одиночные твёрдые тела]]
+
+In this example, a mirror of the tip (which is the pocket of the slot) is performed around the datum plane and produces a mirrored slot:
+
+[[File:MirroredSlot.png|frame|centre|Одиночные твёрдые тела]]
+
+Дополнительные сведения смотри на вики-странице инструмента [[File:PartDesign_Mirrored.svg|24px|link=PartDesign_Mirrored]] [[PartDesign_Mirrored/ru|Симметрия PartDesign]].
+
+<span id="Comparison"></span>
+==Сравнение==
+
+Ниже представлен один и тот же пример, созданный и тем и другим верстаком. Конечно, помимо ниже представленных способов для каждого из верстаков всегда существует множество возможных способов для построения данного Тела.
+[[File:PartWBvsPartDesignWBexample.jpg|frame|center|Сравнение построения верстаками Part и PartDesign]]
+
+{| class="wikitable"
+|+ 
+|-
+! В [[Image:Workbench_PartDesign.svg|24px]] верстаке PartDesign !! В [[Image:Workbench_Part.svg|24px]] верстаке Part
+|-
+| 01- [[File:PartDesign_Body.svg|32px]] Создать тело > [[File:Sketcher_NewSketch.svg|32px]] Создать эскиз на плоскости XZ || 01- [[Image:Workbench_Sketcher.svg|24px]] верстак Sketcher > [[Image:Sketcher_NewSketch.svg‎‎|32px]] Создать эскиз на плоскости XZ
+|-
+| [[File:01sketchXZ PartWBvsPartDesignWBn.jpg|center]] || 
+[[File:01Psketch PartWBvsPartDesignWBn.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 02- [[File:PartDesign_Revolution.svg|32px]] Вращение / Z || 02- [[Image:Part_Revolve.svg|32px]] Вращать / Z
+|-
+| [[File:02revolutionZ PartWBvsPartDesignWBn.jpg|center]] || 
+[[File:02revolveZ PartWBvsPartDesignWBn.jpg|center]] 
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 03- [[File:Sketcher_NewSketch.svg|32px]] Создать эскиз на плоскости XY || 03- [[Image:Workbench_Sketcher.svg|24px]] верстак Sketcher > [[Image:Sketcher_NewSketch.svg‎‎|32px]] Создать эскиз на плоскости XY
+|-
+| [[File:03sketchXY PartWBvsPartDesignWBn.jpg|center]] || 
+[[File:03sketchXY PartWBvsPartDesignWBn.jpg|center]] 
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 04- [[File:PartDesign_Pocket.svg|32px]] Вырез || 04a- [[Image:Part_Extrude.svg|32px]] Выдавить
+|-
+| [[File:04pocket PartWBvsPartDesignWBn.jpg|center]] || 
+[[File:04aExtrude PartWBvsPartDesignWB.jpg|center]] 
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+|  || 04b- [[Image:Part_Cut.svg|32px]] Обрезать
+|-
+| [[File:00nothing PartWBvsPartDesignWB.jpg|center]] || 
+[[File:04bCut PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 05- [[File:Sketcher_NewSketch.svg|32px]] Создать эскиз на плоскости XZ || 05- [[Image:Workbench_Sketcher.svg|24px]] верстак Sketcher > [[Image:Sketcher_NewSketch.svg‎‎|32px]] Создать эскиз на плоскости XZ
+|-
+| [[File:05sketchXZ PartWBvsPartDesignWB.jpg|center]] || 
+[[File:05PsketchXZ PartWBvsPartDesignWB.jpg|center]] 
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 06- [[File:PartDesign_Pad.svg|32px]] Выдавливание sym/XZ || 06a- [[Image:Part_Extrude.svg|32px]] Выдавить sym/XZ
+|-
+| [[File:06padSymXZ PartWBvsPartDesignWB.jpg|center]] || 
+[[File:06aExtrude PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+|  || 06b- [[Image:Workbench_Draft.svg|24px]] верстак Draft [[File:Draft_PolarArray.svg|32px]] Массив вращения
+|-
+| [[File:00nothing PartWBvsPartDesignWB.jpg|center]] || 
+[[File:06bDraftPolarPattern PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+|  || 06c- [[Image:Part_Fuse.svg|32px]] Объединение
+|-
+| [[File:00nothing PartWBvsPartDesignWB.jpg|center]] || 
+[[File:06cFusion PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 07- [[File:Sketcher_NewSketch.svg|32px]] Создать эскиз на базовой плоской грани || 07- [[Image:Workbench_Sketcher.svg|24px]] верстак Sketcher > [[Image:Sketcher_NewSketch.svg‎‎|32px]] Создать эскиз на плоскости XZ
+|-
+| [[File:07sketchBaseSupFace PartWBvsPartDesignWB.jpg|center]] || 
+[[File:07PsketchXZ PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 08- [[File:PartDesign_Hole.svg|32px]] Отверстие - цековка || 08a- [[Image:Part_Revolve.svg|32px]] Вращать
+|-
+| [[File:08hole-counterbore PartWBvsPartDesignWB.jpg|center]] || 
+[[File:08aRevolve PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+|  || 08b- [[Image:Workbench_Draft.svg|24px]] верстак Draft [[File:Draft_PolarArray.svg|32px]] Массив вращения
+|-
+| [[File:00nothing PartWBvsPartDesignWB.jpg|center]] || 
+[[File:08bDraftPolarPattern PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+{| class="wikitable"
+|+ 
+|-
+| 09- [[Image:PartDesign_PolarPattern.svg|32px]] Круговой массив Отверстия и Выдавливания || 09- [[Image:Part_Cut.svg|32px]] Обрезать
+|-
+| [[File:09polarPatternHoleAndPad PartWBvsPartDesignWB.jpg|center]] || 
+[[File:09Cut PartWBvsPartDesignWB.jpg|center]]
+|-
+|}
+
+Сравните древа построения на двух верстаках, а также их организацию и посмотрите график :
+
+{| class="wikitable"
+|+ 
+|-
+| 10- Древо построения в верстаке PartDesign || 10- Древо построения в верстаке Part
+|-
+| [[File:PartvsPartDesign TreePartDesignWB.jpg|center]] || 
+[[File:PartvsPartDesign TreePartWB.jpg|center]]
+|-
+|}
+
+<span id="Conclusion"></span>
+==Заключение==
+
+Верстаки Part и PartDesign можно с осторожностью использовать вместе, создавая довольно сложные модели.
+ 
+[[#Top|Наверх]]
+
+{{Part Tools navi{{#translation:}}}}
+{{PartDesign Tools navi{{#translation:}}}}
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

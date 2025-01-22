@@ -1,0 +1,140 @@
+<languages/>
+
+{{Docnav
+|[[FEM_MeshNetgenFromShape/pl|Siatka MES z kształtu przy pomocy generatora Netgen]]
+|[[FEM_MeshBoundaryLayer/pl|Warstwa przyścienna siatki MES]]
+|[[FEM_Workbench/pl|środowisko pracy MES]]
+|IconL=FEM_MeshNetgenFromShape.svg
+|IconR=FEM_MeshBoundaryLayer.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommandContainer|
+{{GuiCommand/pl
+|Name=FEM MeshGmshFromShape
+|Name/pl=Siatka MES z kształtu przy pomocy generatora Gmsh
+|MenuLocation=Siatka → Siatka MES z kształtu przy pomocy generatora Gmsh
+|Workbenches=[[FEM_Workbench/pl|MES]]
+|SeeAlso=[[FEM_tutorial/pl|Poradnik MES]]
+}}
+{{GuiCommandFemInfo/pl
+|Solvers=Wszystkie
+}}
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Geometria do analizy metodą elementów skończonych musi być poddana dyskretyzacji do [[FEM_Mesh/pl|siatki MES]]. To narzędzie korzysta z programu [https://en.wikipedia.org/wiki/Gmsh Gmsh] (który musi być zainstalowany w systemie) do generowania siatki.
+
+W zależności od Twojego systemu operacyjnego i pakietu instalacyjnego, Gmsh może być dołączony do programu FreeCAD lub nie. Więcej informacji można znaleźć na stronie [[FEM_Install/pl#Generator_siatki_MES|Instalacja środowiska MES]].
+
+<span id="Usage"></span>
+==Użycie== 
+
+# Wybierz kształt, który chcesz analizować. Dla objętości musi to być bryła pojedyncza lub złożona. Bryła złożona jest konieczna jeśli część jest wykonana z wielu materiałów ''(bryłę złożoną można utworzyć przy pomocy narzędzia [[Part_BooleanFragments/pl|Fragmentacja funkcją logiczną]])''.
+# Aktywuj narzędzie na jeden z następujących sposobów:
+#* Press the {{Button|[[Image:FEM_MeshGmshFromShape.svg|16px]] '''FEM mesh from shape by Gmsh'''}} button.
+#* Wybierz opcję {{MenuCommand|Siatka → [[Image:FEM_MeshGmshFromShape.svg|16px]] Siatka MES z kształtu przy pomocy generatora Gmsh}} z menu.
+# Opcjonalnie, edytuj minimalny i maksymalny rozmiar elementu ''(domyślne ustawienie często tworzy zbyt rzadkie siatki)''. Możesz też zmienić przestrzeń elementów (ale domyślne ustawienie ''From shape'' zwykle wystarczy) i ich rząd.
+# Wciśnij przycisk {{Button|Zastosuj}} i poczekaj aż zakończy się generowanie siatki. {{Version/pl|1.0}}: Opcjonalnie, wciśnij przycisk {{Button|Anuluj}} aby zatrzymać generowanie siatki.
+# Wciśnij przycisk {{Button|OK}} aby zamknąć okno dialogowe. Powinieneś widzieć nowy obiekt FEMMeshGmsh dodany do aktywnego kontenera analizy. Możesz też kliknąć {{Button|Anuluj}} aby anulować zmiany bądź tworzenie obiektu siatki.
+
+Po utworzeniu siatki można zmienić jej właściwości używając [[Property_editor/pl|edytora właściwości]]. Po zmianie właściwości należy ponownie otworzyć okno dialogowe narzędzia i wcisnąć przycisk {{Button|Zastosuj}} ''(można zostawić okno dialogowe otwarte podczas zmieniania właściwości)''.
+
+Przycisk {{Button|Wersja Gmsh}} pozwala sprawdzić szczegóły dotyczące aktualnie używanego pliku wykonywalnego Gmsh.
+
+<span id="Properties"></span>
+== Właściwości ==
+
+* {{PropertyData|Algorithm2D}}: Algorytm do tworzenia siatek 2D. Dostępne algorytmy są opisane [https://gmsh.info/doc/texinfo/gmsh.html#Choosing-the-right-unstructured-algorithm na stronie projektu GMSH]. Dla Delaunay zobacz stronę [https://pl.wikipedia.org/wiki/Triangulacja_Delone triangulacja Delone].
+* {{PropertyData|Algorithm3D}}: Algorytm do tworzenia siatek 3D. Dostępne algorytmy są opisane [https://gmsh.info/doc/texinfo/gmsh.html#Choosing-the-right-unstructured-algorithm  na stronie projektu GMSH].
+* {{PropertyData|Characteristic Length Max}}: Maksymalny rozmiar elementów. Jeśli ustawione jest ''0.0'' to rozmiar zostanie dobrany automatycznie.  Ta właściwość może być również zmieniona w oknie dialogowym narzędzia w polu '''Maksymalny rozmiar elementu'''.
+* {{PropertyData|Characteristic Length Min}}: Minimalny rozmiar elementów. Jeśli ustawione jest {{Value|0.0}} to rozmiar zostanie dobrany automatycznie. Ta właściwość może być również zmieniona w oknie dialogowym narzędzia w polu '''Minimalny rozmiar elementu'''.
+* {{PropertyData|Coherence Mesh}}:
+** {{true/pl}} ''(domyślne)'' zduplikowane węzły siatki zostaną usunięte
+** {{false/pl}}
+* {{PropertyData|Element Dimension}}: Przestrzeń elementów siatki. Ta właściwość może być również zmieniona w oknie dialogowym narzędzia w polu '''Wymiar elementu'''.
+** From Shape ''(domyślne)'' przestrzeń zostanie określona na podstawie przestrzeni obiektu, dla którego siatka jest generowana
+** 1D
+** 2D
+** 3D
+* {{PropertyData|Element Order}}: [https://www.comsol.de/support/knowledgebase/1270 Rząd elementów]. Ta właściwość może być również zmieniona w oknie dialogowym narzędzia w polu '''Kolejność elementów'''. {{Version/pl|0.20}}
+** 1st
+** 2nd ''(domyślne)''</br>'''Uwaga:''' Jeśli korzystasz z solvera [[FEM_SolverElmer/pl|Elmer]], możesz trafić na ten błąd: ''ERROR:: GetEdgeBasis: Can't handle but linear elements, sorry.'' To oznacza, że dane równanie ''(typ analizy)'' nie wspiera siatek drugiego rzędu. W takim wypadku użyj siatki pierwszego rzędu lub sprawdź stronę wiki danego równania żeby znaleźć ewentualne możliwości używania siatek drugiego rzędu.
+* {{PropertyData|Geometrical Tolerance}}: Tolerancja geometryczna dla dopasowania siatki do krawędzi obiektu. Domyślne ustawienie ''0.0'' oznacza, że Gmsh skorzysta z wartości 1e-8.
+* {{PropertyData|Groups Of Nodes}}: Wszystkie węzły a nie tylko elementy zostaną zapisane dla każdej fizycznej grupy siatki. Fizyczne grupy siatki to zbiory obiektów siatki ''(punktów, krawędzi, powierzchni i objętości)''. Są one identyfikowane za pomocą przestrzeni i indywidualnego oznaczenia. Przykładowo, siatka tego samego obszaru obiektu jest wewnętrznie oznaczana tak samo. Więc wszystkie powierzchnie tego obszaru będą tworzyły jedną grupę fizyczną.
+* {{PropertyData|High Order Optimize}}: Czy i jak siatki z właściwością {{PropertyData|Element Order}} = ''2nd'' są optymalizowane. Optymalizacja odbywa się poprzez deformację krawędzi elementu.</br>{{Version/pl|0.20}} Gmsh wspiera różne algorytmy optymalizacji. '''Elastic''' to algorytm, w którym elementy siatki są traktowane jako kolekcja deformowalnych ciał lepkosprężystych. Siatki pierwszego rzędu nie mogą być optymalizowane, ponieważ ich krawędzie są liniowe i nie można ich deformować.
+* {{PropertyData|Mesh Size From Curvature}} {{Version/pl|0.20}}: Liczba elementów siatki na <math>2\pi</math> razy promień krzywizny. Aby uzyskać gęstszą siatkę dla małych wierzchołków lub otworów, należ zwiększyć tą wartość dla lepszych wyników.
+[[Image:FEM_Gmsh-MeshSizeFromCurvature.png|450px]]
+{{Caption|Efekt właściwości  ''Mesh Size From Curvature'''. Po lewej: ustawionej na 12. Po prawej: dezaktywowanej.
+}}
+* {{PropertyData|Optimize Netgen}}: Czy siatka będzie optymalizowana przy pomocy generatora siatki 3D [https://github.com/NGSolve/netgen Netgen] aby poprawić jakość elementów czworościennych. '''Uwaga:''' ponieważ Netgen może tworzyć tylko elementy czworościenne, ta opcja jest ignorowana dla siatek, których właściwość {{PropertyData|Element Dimension}} nie jest ustawiona na ''3D''.
+* {{PropertyData|Recombination Algorithm}} {{Version/pl|0.20}}: Algorytm używany przez {{PropertyData|Recombine 3D All}} i przez {{PropertyData|Recombine All}}. Więcej informacji można znaleźć w sekcji [[#Rekombinacja_elementów|Rekombinacja elementów]] a szczegóły technicznej znajdują się w [https://www.gmsh.info/doc/texinfo/gmsh.html#t11 dokumentacji Gmsh].
+* {{PropertyData|Recombine 3D All}} {{Version/pl|0.20}}: Stosuje algorytm rekombinacji 3D dla wszystkich objętości. Czworościany będą przekształcone w pięciościany, prostopadłościany lub piramidki gdzie będzie to możliwe. 
+* {{PropertyData|Recombine All}}: Stosuje algorytm rekombinacji dla wszystkich powierzchni. Trójkąty będą przekształcone w czworokąty gdzie będzie to możliwe a recombination algorithm to all surfaces. 
+* {{PropertyData|Optimize Std}} Optymalizuje siatkę aby zwiększyć jakość elementów czworościennych.
+* {{PropertyData|Second Order Linear}}: Czy węzły elementów drugiego rzędu ''(jeśli wlaściwość {{PropertyData|Element Order}} jest ustawiona '''2nd''')'' i / lub punkty zagęszczania siatki są tworzone przez interpolację liniową.
+** {{true/pl}} używana jest interpolacja liniowa.
+** {{false/pl}} ''(domyślne)'' używana jest interpolacja krzywoliniowa.
+* {{PropertyData|Algorytm podziału}}. {{Version/pl|1.0}}: umożliwia tworzenie elementów czworościennych i sześciościennych przez podział.
+** Brak: nie używa żadnego algorytmu podziału.
+** Wszystkie czworokąty: tworzy elementy czworokątne poprzez podział.
+** Wszystkie heksaedry: tworzy elementy heksaedralne poprzez podział.
+** Barocentryczny: tworzy elementy trójkątne poprzez podział barycentryczny.
+
+<span id="Notes"></span>
+==Uwagi==
+
+<span id="Nonpositive_Jacobians"></span>
+=== Ujemne jakobiany ===
+
+Jeśli pojawia się błąd o ujemnych jakobianach, można wypróbować następujące podejściaː
+
+* Ustawić właściwość {{PropertyData|Second Order Linear}} na {{true/pl}}, ale zostawić {{PropertyData|Element Order}} na ''2nd''.
+* Ustawić {{PropertyData|Element Order}} na ''1st''.
+* Zmniejszyć rozmiar elementów siatki poprzez redukcję {{PropertyData|Characteristic Length Max}}.
+* Jeśli używany jest solver ccxtools i przycisk uruchamiania ''(nie panel zadań)'' to węzły elementów z ujemnymi jakobianami będą zaznaczone na zielono.
+
+<span id="Mesh_Growth"></span>
+===Wzrost siatki===
+
+Na krawędziach i małych obiektach geometrycznych siatka musi być mniejsza niż w obszarach z dala od krawędzi. Więc rozmiar elementu rośnie w oddaleniu od krawędzi. Strategia wzrostu siatki w Gmsh to wzrost między krawędziami o różnych rozmiarach. Więc wzrost zawodzi jeśli obszar ma krawędzie o tych samych rozmiarach jak w poniższym przykładzieː
+
+[[Image:FEM_Gmsh-MeshGrowth-failing.png|400px]]
+{{Caption|Wzrost siatki zawodzi, ponieważ obszar cylindryczny jest otoczony takimi samymi krawędziami.}}
+
+Aby umożliwić rozsądny wzrost siatki, należy w takim przypadku dodać krawędź do tego obszaru. W tym przykładzie byłby to okrąg w środku walca. Okrąg jest dodany jako część bryły złożonej z [[Part_BooleanFragments/pl|fragmentacji funkcją logiczną]], zobacz [https://forum.freecadweb.org/download/file.php?id=146255 plik projektu] tego przykładu.
+
+[[Image:FEM_Gmsh-MeshGrowth-success.png|400px]]
+{{Caption|Rozsądny wzrost siatki dzięki dodatkowej krawędzi w środku cylindrycznego obszaru.}}
+
+<span id="Element_Recombination"></span>
+===Rekombinacja elementów===
+
+Elementy mogą być rekombinowane na dwa sposoby, na powierzchni obiektów tak, że trójkąty są przekształcane w czworoboki jeśli to możliwe i w objętości obiektów tak, że czworościany są przekształcane w pięciościany, prostopadłościany lub piramidki jeśli to możliwe. Oczywiste jest, iż wynik rekombinacji silnie zależy od geometrii obiektu i że rekombinacja obiektu 3D tylko na powierzchni zwykle prowadzi do niepożądanych rezultatów.
+
+Zostało to przedstawione na rysunku poniżej. Siatka dla prostopadłościanu jest tworzona ze standardowymi ustawieniami ''(czworościany drugiego rzędu)'' To rysunek w lewym górnym rogu. Rysunek w prawym górnym rogu pokazuje wynik gdy dodatkowo elementy są rekombinowane tylko na powierzchni obiektu. Wynik jest zły, ponieważ zmienione elementy na powierzchni nie pasują do niezmienionych elementów w objętości. Więc sama właściwość {{PropertyData|Recombine All}} zwykle ma sens tylko dla siatek 2D. </br>Jeśli używana jest dodatkowo właściwość {{PropertyData|Recombine 3D All}}, wynik jest lepszy ''(lewy dolny rysunek)''. Jednak wynik nie odbiega znacząco od siatki bez rekombinacji. Ponieważ obiekt jest prostopadłościanem, rozsądne jest użycie algorytmu rekombinacji, który próbuje też utworzyć prostopadłościany. Taki wynik jest pokazany na prawym dolnym rysunku.
+
+Algorytm rekombinacji ''Simple'' zostawi pewną liczbę trójkątów w siatce jeśli rekombinacja prowadzi do złej jakości czworoboków. W takich przypadkach należy użyć algorytmu ''full-quad'', który automatycznie tworzy rzadszą siatkę a następnie dokonuje rekombinacji, wygłaszania i podziału. Więcej informacji można znaleźć [https://forum.freecadweb.org/viewtopic.php?f=18&t=20351#p520392 w tym wątku na forum].
+
+[[Image:FEM_Gmsh-Recombination.png|600px]]
+{{Caption|Efekt rekombinacji elementów siatki.<br>
+Górny lewy róg: standardowa siatka.<br>
+Górny prawy róg: rekombinacja tylko na powierzchni przy pomocy algorytmu '''Simple'''.<br>
+Dolny lewy róg: rekombinacja na powierzchni i w objętości przy pomocy algorytmu '''Simple'''.<br>
+Dolny prawy róg: rekombinacja na powierzchni i w objętości przy pomocy algorytmu '''Simple full-quad'''}}
+
+
+{{Docnav
+|[[FEM_MeshNetgenFromShape/pl|Siatka MES z kształtu przy pomocy generatora Netgen]]
+|[[FEM_MeshBoundaryLayer/pl|Warstwa przyścienna siatki]]
+|[[FEM_Workbench/pl|środowisko pracy MES]]
+|IconL=FEM_MeshNetgenFromShape.svg
+|IconR=FEM_MeshBoundaryLayer.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+{{clear}}

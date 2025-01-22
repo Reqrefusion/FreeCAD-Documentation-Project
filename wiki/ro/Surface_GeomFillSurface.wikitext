@@ -1,0 +1,158 @@
+<languages/>
+
+{{Docnav
+|[[Surface_Filling|Filling]]
+|[[Surface_Sections|Sections]]
+|[[Surface_Workbench|Surface]]
+|IconL=Surface_Filling.svg
+|IconR=Surface_Sections.svg
+|IconC=Workbench_Surface.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand|Icon=BSplineSurf.svg|Name=Surface Fill boundary curves|MenuLocation=Surface → Fill boundary curves|Workbenches=[[Surface Workbench|Surface]]|}}
+</div>
+
+==Description== 
+
+<div class="mw-translate-fuzzy">
+==Descriere==
+Acest instrument creează o suprafță mărginită din două, trei sau patru muchii. Trei sunt disponibile diferite stiluri de umplere: curbe, [https://en.wikipedia.org/wiki/Coons_patch Coons], Dreaptă.
+Instrumentul creează o tranziție lină între muchiile care mărginesc.
+</div>
+
+[[File:Surface_GeomFillSurface_4_edges.png|330px]] [[File:Surface_GeomFillSurface_4_edges_example.png|330px]]
+
+[[File:Surface_GeomFillSurface_3_edges.png|330px]] [[File:Surface_GeomFillSurface_3_edges_example.png|330px]]
+
+[[File:Surface_GeomFillSurface_2_edges.png|330px]] [[File:Surface_GeomFillSurface_2_edges_example.png|330px]]
+
+{{Caption|Left: edges that are used to generate a surface with the [[Surface_GeomFillSurface|GeomFillSurface]] tool, 4 connected edges, 3 connected edges, and 2 disconnected edges. Right: resulting surface from using the 4, 3, and 2 edges, respectively.}}
+
+<span id="Usage"></span>
+<div class="mw-translate-fuzzy">
+== Cum se folosește ==
+</div>
+
+<div class="mw-translate-fuzzy">
+# Apăsați butonul {{Button|[[File:BSplineSurf.svg|24px]] '''Fill boundary curves'''}}.
+# Selectați muchiile în vedere 3D. 
+Marginile trebuie să se conecteze împreună pentru a oferi un profil închis.
+# Definiți oțiunile și apăsați{{Button|OK}}.
+</div>
+
+{{Emphasis|Note:}} once created, it is not possible to apply additional constraints to the created surface.
+
+<span id="Options"></span>
+== Opţiuni ==
+
+{{MenuCommand|Fill type}}: {{RadioButton|TRUE|Stretch}}, {{RadioButton|TRUE|Coons}}, or {{RadioButton|TRUE|Curved}}.
+
+<span id="Properties"></span>
+==Proprietăți==
+
+A [[Surface_GeomFillSurface|Surface GeomFillSurface]] ({{incode|Surface::GeomFillSurface}} class) is derived from the basic [[Part_Feature|Part Feature]] ({{incode|Part::Feature}} class, through the {{incode|Part::Spline}} subclass), therefore it shares all the latter's properties.
+
+In addition to the properties described in [[Part_Feature|Part Feature]], the Surface Filling has the following properties in the [[Property_editor|property editor]].
+
+=== Data ===
+
+{{TitleProperty|Base}}
+
+<div class="mw-translate-fuzzy">
+{{PropertyData/ro|Fill Type}}:Algoritmul de umplere aplicat
+* Curved - stilul cu cele mai rotunjite patch-uri.
+* Coons - un stil rotunjit, cu o adâncime mai mică decât Curved
+* Stretch - stil cu cele mai plate patch-uri
+</div>
+
+=== View ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyView|Control Points|Bool}}: it defaults to {{FALSE}}; if set to {{TRUE}}, it will show an overlay with the control points of the surface.
+
+== Twisting of the surface ==
+
+The shape of the surface depends on the direction of the chosen edges; if edges are selected and the result is a surface that "twists" on itself, one of the edges may need its list of vertices in the reverse order. A surface that twists on itself will probably have self-intersections, and thus will be an invalid [[Part_TopoShape|Shape]]; this can be verified with {{Button|[[File:Part_CheckGeometry.svg|16px]] [[Part_CheckGeometry|Part CheckGeometry]]}}.
+
+For example, if two curves have the points
+{{Code|code=
+curve1 = [a, b, c, d]
+curve2 = [e, f, g]
+}}
+and the resulting surface after using {{Button|[[File:Surface_GeomFillSurface.svg|16px]] [[Surface_GeomFillSurface|GeomFillSurface]]}} or {{Button|[[File:Surface_Sections.svg|16px]] [[Surface_Sections|Sections]]}} is a twisted surface, you may create a third curve that is equal to one of the two original curves but with a reversed list of points.
+
+Either
+{{Code|code=
+curve1 = [a, b, c, d]
+curve3 = [g, f, e]
+}}
+
+or
+{{Code|code=
+curve3 = [d, c, b, a]
+curve2 = [e, f, g]
+}}
+should work to generate a surface that doesn't twist.
+
+In practical terms this means that all edges used to generate a surface should be created preferably in the same clockwise or anti-clockwise direction. Following this simple rule usually guarantees that the surface will follow the smoothest direction and won't twist.
+
+When the surface's {{PropertyView|Lighting}} property is {{Value|One side}}, a face will be painted completely black if its normal direction points into the [[3D_view|3D view]] (away from the current viewer), indicating a flipped face with respect to the other colored faces.
+
+[[File:Surface_twisting_example_smooth.png|330px]] [[File:Surface_twisting_example_twisted.png|330px]]
+{{Caption|Left: the boundary edges are oriented in the same direction, and thus the generated surface is smooth. Right: the boundary edges have opposite directions, and thus the generated surface twists on itself, resulting in self-intersections.}}
+
+== Scripting ==
+
+{{Emphasis|See also:}} [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+The Surface GeomFillSurface tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by adding the {{incode|Surface::GeomFillSurface}} object.
+* The edges to be used to define the surface must be assigned as a [[FeaturePython_Custom_Properties#App::PropertyLinkSubList|LinkSubList]] to the {{incode|BoundaryList}} property of the object.
+* The type of algorithm must be assigned like a string to the {{incode|FillType}} property.
+* All objects with edges need to be computed before they can be used as input for the properties of the GeomFillSurface object.
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+a = App.Vector(-140, -100, 0)
+b = App.Vector(175, -108, 0)
+c = App.Vector(200, 101, 0)
+d = App.Vector(-135, 107, 70)
+
+points1 = [a, App.Vector(-55, -91, 65), App.Vector(35, -85, -5), b]
+obj1 = Draft.make_bspline(points1)
+
+points2 = [b, App.Vector(217, -45, 55), App.Vector(217, 35, -15), c]
+obj2 = Draft.make_bspline(points2)
+
+points3 = [c, App.Vector(33, 121, 55), App.Vector(0, 91, 15), App.Vector(-80, 121, -40), d]
+obj3 = Draft.make_bspline(points3)
+
+points4 = [d, App.Vector(-140, 0, 45), a]
+obj4 = Draft.make_bspline(points4)
+doc.recompute()
+
+surf = doc.addObject("Surface::GeomFillSurface", "Surface")
+surf.BoundaryList = [(obj1, "Edge1"),
+                     (obj2, "Edge1"),
+                     (obj3, "Edge1"),
+                     (obj4, "Edge1")]
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Surface_Filling|Filling]]
+|[[Surface_Sections|Sections]]
+|[[Surface_Workbench|Surface]]
+|IconL=Surface_Filling.svg
+|IconR=Surface_Sections.svg
+|IconC=Workbench_Surface.svg
+}}
+
+{{Surface Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

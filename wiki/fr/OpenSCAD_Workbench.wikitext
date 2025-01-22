@@ -1,0 +1,131 @@
+<languages/>
+
+{{Docnav/fr
+|[[Mesh_Workbench/fr|Atelier Mesh]]
+|[[Part_Workbench/fr|Atelier Part]]
+|IconL=Workbench_Mesh.svg
+|IconR=Workbench_Part.svg
+}}
+
+[[Image:Workbench_OpenSCAD.svg|thumb|128px|Icône de l'atelier OpenSCAD]]
+
+{{TOCright}}
+
+== Introduction ==
+
+L'[[Image:Workbench_OpenSCAD.svg|24px]] [[OpenSCAD_Workbench/fr|atelier OpenSCAD]] est destiné à offrir une interopérabilité avec le logiciel open source [http://www.openscad.org/ OpenSCAD]. Ce programme n'est pas distribué comme partie prenante de FreeCAD, mais doit être installé pour utiliser pleinement cet atelier. OpenSCAD ne doit pas être confondu avec [[OpenCASCADE/fr|OpenCASCADE]], qui est le noyau géométrique que FreeCAD utilise pour créer la géométrie à l'écran. Les bibliothèques OpenCASCADE sont toujours nécessaires pour utiliser FreeCAD tandis que l'exécutable OpenSCAD est entièrement facultatif.
+
+Il contient un importateur [[OpenSCAD_CSG/fr|CSG]] pour ouvrir les fichiers CSG créés par OpenSCAD et un exportateur pour générer une arborescence basée sur CSG. Les géométries non basées sur des opérations CSG seront exportées sous forme de maillage.
+
+Cet atelier contient des fonctions permettant de modifier l'arborescence des éléments CSG et de réparer les modèles. Il contient également des outils d'usage général qui ne nécessitent pas l'installation d'OpenSCAD et peuvent être utilisés conjointement avec d'autres ateliers. Par exemple, l'[[Mesh_Workbench/fr|Atelier Mesh]] utilise en interne les fonctions OpenSCAD pour effectuer des opérations avec de [[mesh/fr|maillage]] car elles sont assez robustes.
+
+[[Image:OpenSCADexamaple1.png]]
+
+<span id="Dependencies"></span>
+== Dépendances ==
+
+Dans FreeCAD 0.19, le module Ply (Python-Lex-Yacc), qui est utilisé pour importer des fichiers CSG, a été supprimé du code source de FreeCAD, car il s'agit d'une bibliothèque tierce non développée par FreeCAD. Par conséquent, vous devez maintenant installer Ply avant d'utiliser OpenSCAD Workbench. Lorsque vous utilisez une version pré-packagée et stable de FreeCAD, cette dépendance doit être installée automatiquement sur toutes les plates-formes. Dans d'autres cas, par exemple, lorsque vous voulez [[Compiling/fr|compiler]] à partir de la source, vous devrez peut-être l'installer à partir d'un référentiel en ligne.
+
+Dans openSUSE, ceci est fait par :
+
+{{Code|code=
+sudo zypper install python3-ply
+}}
+
+Sur les systèmes basés sur Debian/Ubuntu, cela se fait de la manière suivante :
+
+{{Code|code=
+sudo apt install python3-ply
+}}
+
+L'installation générale sur toutes les plates-formes peut être effectuée à partir de l'index du package Python.
+
+{{Code|code=
+pip3 install --user ply
+}}
+
+<span id="OpenSCAD_language_and_file_format"></span>
+==Langage OpenSCAD et format de fichier==
+
+Le langage [http://www.openscad.org/ OpenSCAD] permet l'utilisation de variables et de boucles. Il permet de spécifier les sous-modules pour réutiliser le code et les formes géométriques. Cette grande flexibilité, rend l'analyse très complexe. Actuellement le module '''OpenSCAD de FreeCAD''' ne permet pas de gérer le langage OpenSCAD nativement. Au contraire, si '''OpenSCAD''' est installé, il est utilisé pour compiler l'entrée dans un format de sortie nommé '''CSG'''. C'est un sous-ensemble du langage d'OpenSCAD et peut être utilisé comme entrée de '''OpenSCAD''' pour un traitement ultérieur. Cependant dans cette étape de la compilation, tous les comportements paramétriques sont perdus. Tous les noms de variables seront écartés, les boucles sont élargies et les expressions mathématiques sont évaluées.
+
+<span id="Tools"></span>
+== Outils ==
+
+* [[Image:OpenSCAD_ColorCodeShape.svg|32px]] [[OpenSCAD_ColorCodeShape/fr|ColorCodeShape]] : change la couleur de la sélection, ou toutes les formes en fonction de leurs validités.
+* [[Image:OpenSCAD_ReplaceObject.svg|32px]] [[OpenSCAD_ReplaceObject/fr|Remplacement d'un objet]] : remplace un objet dans l'arborescence des éléments.
+* [[Image:OpenSCAD_RemoveSubtree.svg|32px]] [[OpenSCAD_RemoveSubtree/fr|Suppression de l'arborescence]] : supprime les objets sélectionnés, et toute leur descendance non référencée depuis d'autres objets.
+* [[Image:OpenSCAD_RefineShapeFeature.svg|32px]] [[OpenSCAD_RefineShapeFeature/fr|Affiner la forme]] : nettoie les lignes inutiles.
+* [[Image:OpenSCAD_MirrorMeshFeature.svg|32px]] [[OpenSCAD_MirrorMeshFeature/fr|Maillage miroir]]: crée un maillage en miroir.
+* [[Image:OpenSCAD_ScaleMeshFeature.svg|32px]] [[OpenSCAD_ScaleMeshFeature/fr|Mettre à l'echelle]]: change l'echelle un maillage.
+* [[Image:OpenSCAD_ResizeMeshFeature.svg|32px]] [[OpenSCAD_ResizeMeshFeature/fr|Redimensionner le maillage]]: redimensionne le maillage.
+* [[Image:OpenSCAD_IncreaseToleranceFeature.svg|32px]] [[OpenSCAD_IncreaseToleranceFeature/fr|Augmenter la tolérance]] : augmente la tolérance des arêtes/faces/sommets des objets sélectionnés.
+* [[Image:OpenSCAD_Edgestofaces.svg|32px]] [[OpenSCAD_Edgestofaces/fr|Convertir des arêtes en faces]] : converti les arêtes en faces. Utile pour préparer les formes géométriques '''DXF''' importées et les extruder.
+* [[Image:OpenSCAD_ExpandPlacements.svg|32px]] [[OpenSCAD_ExpandPlacements/fr|Développer les placements]] : développe tous les éléments vers le bas de l'arborescence.
+* [[Image:OpenSCAD_ExplodeGroup.svg|32px]] [[OpenSCAD_ExplodeGroup/fr|Dégrouper]]: dégroupe les primitives des pièces fusionnées.
+* [[Image:OpenSCAD_AddOpenSCADElement.png|32px]] [[OpenSCAD_AddOpenSCADElement/fr|Ajout d'un élément OpenSCAD]] : ajoute un élément OpenSCAD en entrant le code OpenSCAD dans le panneau de tâches et exécute le binaire OpenSCAD (OpenSCAD doit être installé sur votre ordinateur) Remarque : cet icône ne s'affiche pas (même si OpenSCAD est installé sur votre ordinateur), vous devez également configurer FreeCAD. [https://sourceforge.net/apps/mediawiki/free-cad/index.php?title=OpenSCAD_AddOpenSCADElement#Initial_set_up_from_within_FreeCAD Voir ici pour plus de détails]
+* [[Image:OpenSCAD_MeshBoolean.svg|32px]] [[OpenSCAD_MeshBoolean/fr|Maillage à partir d'opération booléenne]] : crée un nouvel objet de maillage avec une opération booléenne à partir de plusieurs formes.
+* [[Image:OpenSCAD_Hull.svg|32px]] [[OpenSCAD_Hull/fr|Enveloppe convexe]] : applique une coque aux formes sélectionnées.
+* [[Image:OpenSCAD_Minkowski.svg|32px]] [[OpenSCAD_Minkowski/fr|Somme de Minkowski]] : applique une somme de Minkowski aux formes sélectionnées.
+
+<span id="Preferences"></span>
+== Préférences ==
+
+* [[Image:Std_DlgPreferences.svg|32px]] [[OpenSCAD_Preferences/fr|Préférences...]]: préférences disponibles dans OpenSCAD Tools.
+
+== Limitations ==
+
+OpenSCAD crée des géométries solides constructives, importe des fichiers de maillage et extrude des géométries 2D à partir de fichiers [[DXF/fr|DXF]]. FreeCAD vous permet également de créer des CSG avec des primitives. Le noyau géométrique de FreeCAD (OCCT) fonctionne en utilisant une représentation des frontières. Par conséquent, la conversion de CSG en BREP devrait, en théorie, être possible alors que la conversion de BREP en CSG ne l'est pas en général.
+
+OpenSCAD fonctionne en interne avec les maillages (mesh). Certaines opérations qui sont utiles sur les maillages ne sont pas significatives sur un modèle BREP et peuvent ne pas être entièrement supporté. Parmi celle-ci figurent le recouvrement convexe, la somme de Minkowski, glide et subdiv. Pour l’instant OpenSCAD est exécuté pour réaliser le recouvrement convexe et la somme de Minkowski et importer le résultat. Cela signifie que la géométrie impliquée sera triangulée. Avec OpenSCAD la mise à l’échelle non uniforme est souvent utilisée, ce qui ne pose pas de problèmes avec les maillages. Avec notre noyau géométrique, les formes primitives (lignes, sections circulaires, etc) sont converties en BSpline avant d’être déformées. Ces BSplines sont connues pour poser problèmes avec des opérations booléennes futures. Une solution automatique n’est pas disponible pour le moment. S’il vous plaît n’hésitez pas à poster sur le [http://forum.freecadweb.org/ forum] si vous rencontrez ce genre de problème. Souvent ce genre de problèmes peut être résolu en modélisant des parties plus petites. Une déformation d’un cylindre peut être remplacée par l’extrusion d’une ellipse.
+
+<span id="Importing_text"></span>
+== Importer du texte ==
+
+L'importation de code OpenSCAD avec des textes nécessite que les polices utilisées soient correctement installées sur votre système. Vous pouvez le vérifier en ouvrant OpenSCAD en tant qu'outil autonome et en consultant la liste dans {{MenuCommand|Aide → Liste des polices}}. La liste vous donnera également les noms de polices corrects. Si une police n'apparaît pas dans la liste après l'installation, vous devrez peut-être copier manuellement le fichier de police dans le répertoire système approprié.
+
+L'importation de textes est relativement lente. Dans les coulisses, FreeCAD utilise un fichier DXF créé par OpenSCAD. Plus il y a de contours, plus l'importation est lente.
+
+Il peut être judicieux d'importer d'abord un cas de test simple (remplacer {{Incode|NameOfFont}} par le nom correct de la police) :
+
+<pre>
+TESTFONT="NameOfFont";
+linear_extrude(0.001) {
+  text("A", size=5, font=TESTFONT, script="Latn");
+};
+</pre>
+
+Le paramètre {{Incode|<nowiki>script="Latn"</nowiki>}} peut être omis ici, mais il est requis si la chaîne de texte ne contient pas de lettres, mais uniquement des signes de ponctuation et/ou des chiffres.
+
+Veuillez noter que les instructions {{Incode|<nowiki>use <FONT>;</nowiki>}} dans vos fichiers sources sont ignorées lors de l'importation dans FreeCAD. Sous OpenSCAD, l'effet d'une instruction {{Incode|use}} est que le fichier de police fourni est temporairement ajouté à la liste des polices connues (bien que même là, l'instruction ne fonctionne pas lorsqu'un script est modifié interactivement).
+
+<span id="Hints"></span>
+== Conseils ==
+
+Lors de l'importation du fichier [[DXF/fr|DXF]], il faut définir la précision du projet à une valeur raisonnable, car cela aura une incidence sur la détection des arêtes connectées.
+
+Si FreeCAD se bloque lors de l'importation de CSG, il est fortement recommandé d'activer la case à cocher "Vérifier les modèles automatiquement après une opération booléenne" dans le menu {{MenuCommand|Édition → Préférences → Conception de pièces → Général → Paramètres de modèle}}
+
+<span id="Tutorials"></span>
+== Tutoriels ==
+
+* [[Import_OpenSCAD_code/fr|Importer code OpenSCAD]]
+
+<span id="Links"></span>
+== Liens ==
+
+* Le dépôt officiel du code source du projet OpenSCAD est hébergé sur [https://github.com/openscad/openscad GitHub].
+* Tickets ouverts étiquetés "OpenSCAD" sur le [https://github.com/FreeCAD/FreeCAD/labels/WB%20OpenSCAD FreeCAD Suivi des problèmes sur Github]. Il existe également des tickets sur le [https://freecadweb.org/tracker/search.php?tag_string=OpenSCAD gestionnaire de bogues mantis], désormais archivé.   
+* Modèles étiquetés "OpenSCAD" sur [http://www.thingiverse.com/tag:openscad Thingiverse].
+
+
+{{Docnav/fr
+|[[Mesh_Workbench/fr|Atelier Mesh]]
+|[[Part_Workbench/fr|Atelier Part]]
+|IconL=Workbench_Mesh.svg
+|IconR=Workbench_Part.svg
+}}
+
+{{OpenSCAD Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Workbenches{{#translation:}}]]

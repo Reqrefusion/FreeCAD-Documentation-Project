@@ -1,0 +1,120 @@
+<languages/>
+
+{{Docnav/pl
+|[[Reinforcement_BentShapeRebar/pl|Pręty zbrojeniowe odgięte]]
+|[[Reinforcement_ColumnRebars/pl|Zbrojenie słupów]]
+|[[Reinforcement_Workbench/pl|środowisko pracy Zbrojenie]]
+|IconL=Reinforcement_BentShapeRebar.svg
+|IconR=Reinforcement_ColumnRebars.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+{{GuiCommand/pl
+|Name=Reinforcement HelicalRebar
+|Name/pl=Zbrojenie: Pręty zbrojeniowe spiralne
+|MenuLocation=3D / BIM → Narzędzia zbrojenia → Pręty zbrojeniowe spiralne
+|Workbenches=[[Reinforcement_Workbench/pl|Zbrojenie]], [[BIM_Workbench/pl|BIM]]
+|Version=0.17
+|SeeAlso=
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie '''Pręty zbrojeniowe spiralne''' pozwala użytkownikowi na utworzenie zestawu spiralnych prętów zbrojeniowych, wewnątrz obiektu [[Arch_Structure/pl|konstrukcji]].
+
+To polecenie jest częścią [[External_workbenches/pl|zewnętrznego środowiska pracy]] [[Reinforcement_Workbench/pl|Zbrojenie]], które można zainstalować za pomocą [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr/pl|Menadżera dodatków]] poprzez menu {{MenuCommand|Przybory → Menadżera dodatków → Zbrojenie}}.
+
+: [[Image:Arch_Rebar_Helical_example.png|80px]]
+{{Caption|Jeden ciągły spiralny pręt zbrojeniowy wewnątrz [[Arch_Structure/pl|konstrukcji]]}}
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wybierz dowolną ścianę wcześniej utworzonego obiektu {{Button|[[Image:Arch_Structure.svg|16px]] [[Arch_Structure/pl|konstrukcji]]}}.
+# Następnie wybierz {{Button|[[Image:Reinforcement_HelicalRebar.svg|16px]] '''Pręty zbrojeniowe spiralne'''}} z narzędzi zbrojenia.
+# Po lewej stronie ekranu pojawi się [[Task_panel/pl|panel zadań]], jak pokazano poniżej.
+# Wybierz żądaną orientację.
+# Wypełnij dane wejściowe, takie jak "Lewa otulina", "Prawa otulina", "Górna otulina", "Dolna otulina", "Przednia otulina", "Kąt wygięcia", "Współczynnik wygięcia", "Zaokrąglenie" i "Średnica" pręta zbrojeniowego.
+# Wybierz tryb dystrybucji "Ilość" lub "Rozstaw".
+#* Jeśli wybrano "Rozstaw", użytkownik może również wybrać [[Reinforcement_Custom_Spacing/pl|Rozstaw niestandardowy]].
+# {{Button|Wybierz zaznaczoną ścianę}} służy do weryfikacji lub zmiany powierzchni dla rozmieszczenia prętów zbrojeniowych.
+# Kliknij {{Button|OK}} lub {{Button|Zastosuj}}, aby wygenerować pręty zbrojeniowe.
+# Kliknij przycisk {{Button|Anuluj}}, aby opuścić panel zadań.
+
+[[Image:HelicalRebarDialog.png|250px]]
+{{Caption|Panel zadań dla narzędzia.}}
+
+<span id="Properties"></span>
+==Właściwości== 
+
+* {{PropertyData|Otulina boczna}}: Odległość między prętem zbrojeniowym a zakrzywioną powierzchnią.
+* {{PropertyData|Otulina górna}}: Odległość między prętami zbrojeniowymi od górnej ściany konstrukcji.
+* {{PropertyData|Otulina dolna}}: Odległość między prętami zbrojeniowymi od dolnej powierzchni konstrukcji.
+* {{PropertyData|Skok}}: Skok spirali to wysokość jednego pełnego obrotu spirali, mierzona równolegle do osi spirali.
+* {{PropertyData|Średnica}}: Średnica pręta zbrojeniowego.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[Arch_API/pl|Skrypty Architektury]], [[Reinforcement_API/pl|Skrypty Zbrojenia]] oraz [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]].
+
+Narzędzie '''Pręty zbrojeniowe spiralne''' może być używane w [[Macros/pl|makrodefinicjach]] i z konsoli [[Python/pl|Python]] za pomocą następującej funkcji:
+
+{{Code|code=
+Rebar = makeHelicalRebar(s_cover, b_cover, diameter, t_cover, pitch, structure=None, facename=None)
+}}
+
+* Tworzy obiekt {{incode|Rebar}} z podanego {{incode|structure}}, który jest [[Arch_Structure/pl|konstrukcja architektury]] i {{incode|facename}}, który jest ścianą tej konstrukcji.
+** Jeśli nie podano {{incode|structure}} ani {{incode|facename}}, jako dane wejściowe zostanie przyjęta ściana wybrana przez użytkownika.
+* {{incode|s_cover}}, {{incode|b_cover}} i {{incode|t_cover}} są wewnętrznymi odległościami przesunięcia pręta zbrojeniowego względem powierzchni konstrukcji. Są to odpowiednio przesunięcia boczne, dolne i górne.
+* {{incode|diameter}} to średnica spirali zbrojenia wewnątrz konstrukcji.
+* {{incode|pitch}} to parametr określający, jak blisko lub daleko od siebie znajdują się poszczególne pętle spirali.
+
+<span id="Example"></span>
+===Przykład===
+
+{{Code|code=
+import FreeCAD, Draft, Arch, HelicalRebar
+
+Circle = Draft.makeCircle(radius=250)
+Structure = Arch.makeStructure(Circle)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = HelicalRebar.makeHelicalRebar(10, 50, 8, 50, 50, structure, "Face2")
+}}
+
+<span id="Edition_of_the_rebar"></span>
+===Edycja zbrojenia===
+
+Właściwości pręta zbrojeniowego można zmienić za pomocą poniższej funkcji:
+
+{{Code|code=
+editHelicalRebar(Rebar, s_cover, b_cover, diameter, t_cover, pitch, structure=None, facename=None)
+}}
+
+* {{incode|Rebar}} jest wcześniej utworzonym obiektem {{incode|HelicalRebar}}.
+* Pozostałe parametry są takie same jak wymagane przez funkcję {{incode|makeHelicalRebar()}}.
+* {{incode|structure}} i {{incode|facename}} mogą zostać pominięte, aby pręt zbrojeniowy pozostał w oryginalnej konstrukcji.
+
+{{Code|code=
+import HelicalRebar
+
+HelicalRebar.editHelicalRebar(Rebar, 20, 100, 20, 20, 100)
+}}
+
+
+{{Docnav/pl
+|[[Reinforcement_BentShapeRebar/pl|Pręty zbrojeniowe odgięte]]
+|[[Reinforcement_ColumnRebars/pl|Zbrojenie słupów]]
+|[[Reinforcement_Workbench/pl|środowisko pracy Zbrojenie]]
+|IconL=Reinforcement_BentShapeRebar.svg
+|IconR=Reinforcement_ColumnRebars.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

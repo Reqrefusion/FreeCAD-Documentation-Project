@@ -1,0 +1,112 @@
+<languages/>
+
+{{Docnav/pl
+|[[Part_JoinConnect/pl|Połącz obiekty]]
+|[[Part_JoinCutout/pl|Wycięcie dla obiektu]]
+|[[Part_Workbench/pl|środowisko pracy Część]]
+|IconL=Part_JoinConnect.svg
+|IconR=Part_JoinCutout.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/pl
+|Name=Part JoinEmbed
+|Name/pl=Część: Osadź obiekt
+|MenuLocation=Część → Połącz → Osadź obiekt
+|Workbenches=[[Part_Workbench/pl|Część]]
+|Version=0.16
+|SeeAlso=[[Part_JoinConnect/pl|Połącz obiekty]], [[Part_JoinCutout/pl|Wycięcie dla obiektu]], [[Part_Boolean/pl|Operacja logiczna]], [[Part_Thickness/pl|Grubość]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie [[Image:Part_JoinEmbed.svg|24px]] '''Osadź''' umożliwia umieszczenie obiektu ze ściankami ''(np. rury)'' w innym obiekcie ze ściankami.
+
+[[image:JoinFeatures_Embed.png|600px]]
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wybierz najpierw obiekt bazowy, a następnie obiekt, który ma zostać osadzony. Kolejność wyboru jest ważna. Wystarczy wybrać jeden kształt podrzędny każdego obiektu ''(np. ściany)''.
+# Istnieje kilka sposobów na wywołanie tego polecenia:
+#* Wciśnij przycisk {{Button|[[Image:Part_JoinEmbed.svg|16px]] [[Part_JoinEmbed/pl|Osadź obiekt]]}}.
+#* Wybierz opcję {{MenuCommand|Część → Połącz → [[Image:Part_JoinEmbed.svg|16px]] Osadź obiekt}} z menu.
+# Zostanie utworzony obiekt Part JoinFeature z trybem ustawionym na 'Osadź'. Oryginalne obiekty zostaną ukryte a wynik osadzania będzie pokazany w [[3D_view/pl|widoku 3D]].
+
+<span id="Properties"></span>
+==Właściwości==
+
+{{TitleProperty|Podstawa}}
+
+* {{PropertyData|Baza}}: Odniesienie do obiektu bazowego ''(tego, w którym ma zostać osadzony inny obiekt)''. Obiekt powinien być pojedynczą bryłą.
+* {{PropertyData|Narzędzie}}: Odniesienie do obiektu narzędzia (obiektu, który ma zostać osadzony). Obiekt może być pojedynczą bryłą lub [[Part_Compound|prawidłowym złożeniem]] brył.
+* {{PropertyData|Tryb}}: Tryb działania, równy '''Osadź''' ''(Zmiana, która przekształci narzędzie w inne Part_JoinXXX)''. Wartość '''obejdź''' może być użyta do tymczasowego wyłączenia długich obliczeń (zostanie utworzone połączenie bazy i narzędzia, co jest szybką operacją).
+* {{PropertyData|Ulepsz}}: Określa, czy zastosować operację [[Part_RefineShape/pl|ulepszania]] wobec ostatecznego kształtu. Wartość domyślna jest określona przez pole wyboru "Automatycznie udoskonal model po wykonaniu operacji logicznej" w [[PartDesign_Preferences/pl|Preferencjach środowiska Projekt Części]]. Gdy właściwość '''Tryb''' ma wartość '''Obejdź''', Ulepszanie jest ignorowane ''(nigdy nie jest stosowane)''.
+
+<span id="Example"></span>
+==Przykład==
+
+# Utwórz rurę, stosując narzędzie [[Part_Thickness/pl|grubość]] do bryły [[Part_Cylinder/pl|cylindra]]: 
+<br>[[Image:JoinFeatures_Example_step1.png|320px]]
+# Utwórz kolejną rurę o mniejszej średnicy i [[Placement/pl|umieść]] ją tak, aby przebiła ścianę pierwszej rury:
+<br>[[image:JoinFeatures_Example_step2.png|320px]]
+# Wybierz pierwszą rurę, a następnie drugą rurę (kolejność wyboru jest ważna) i kliknij opcję "Osadź obiekt" na rozwijanym pasku narzędzi Dołącz.
+<br>[[image:JoinFeatures_Example_step3_Embed.png|320px]]
+# Zastosuj narzędzie przekroju ''([[Std_ToggleClipPlane/pl|Przełącz płaszczyznę tnącą]], [[Arch_SectionPlane/pl|Płaszczyzna przekroju]] środowiska Architektura, [[Arch_CutPlane/pl|Płaszczyzna cięcia]] środowiska Architektura)'', aby odsłonić elementy wewnętrzne. Na poniższym obrazku użyto narzędzia Płaszczyzna przekroju środowiska Architektura. 
+<br>[[image:JoinFeatures_Example_step4_Embed.png|320px]]
+
+<span id="Algorithm"></span>
+==Sposób działania==
+
+Algorytmy stojące za narzędziami Połącz są dość proste, a ich zrozumienie jest ważne dla prawidłowego korzystania z narzędzi.
+
+1. Obiekt bazowy jest [[Part Cut/pl|wycięty logicznie]] za pomocą obiektu narzędzia. Wynikowy kształt jest zestawem ''([[Part_Compound/pl|złożeń]])'' nieprzecinających się brył ''(zazwyczaj dwóch)''. 
+
+2. Uzyskane złożenie jest kolejnie filtrowane, przy czym zachowywana jest tylko największa bryła.
+
+3. Ta największa bryła jest [[Part_Fuse/pl|logicznym połączeniem]] z obiektem narzędzia.
+
+4. Jeśli właściwość Ulepsz ma wartość {{true/pl}}, wynikowy kształt to obiekt funkcji [[Part RefineShape|Ulepsz]].
+<br><br>[[image:JoinFeatures-Algo-Embed.png|800px]]
+
+<span id="Notes"></span>
+===Uwagi===
+
+* Jeśli po kroku 1 obiekt pozostaje w jednym kawałku, wynik operacji Osadź będzie równoważny [[Part_Fuse/pl|połączeniu]] bazy i narzędzia, ale jego obliczenie zajmie więcej czasu.
+* Obecnie narzędzie wygeneruje nieoczekiwany wynik, jeśli jako baza zostanie użyte złożenie. ''(Może to zostać zmienione w przyszłości.)''
+* Ponieważ największy element jest określany przez porównanie objętości elementów, narzędzie może działać tylko z bryłami. ''(Może to zostać zmienione w przyszłości.)''
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Narzędzie Osadź może być używane w [[Macros/pl|makrodefinicjach]] i z konsoli [[Python/pl|Python]] za pomocą następującej funkcji:
+
+{{Code|code=JoinFeatures.makePartJoinFeature(name = 'Embed', mode = 'Embed')}}
+
+* Tworzy pusty element osadzania ''(lub inny element dołączania, w zależności od przekazanego trybu)''. Następnie należy jawnie przypisać właściwości Baza i Narzędzie.
+* Zwraca nowo utworzony obiekt.
+
+Przykład:
+
+{{code|code=
+import JoinFeatures
+j = JoinFeatures.makePartJoinFeature(name = 'Embed', mode = 'Embed' )
+j.Base = FreeCADGui.Selection.getSelection()[0]
+j.Tool = FreeCADGui.Selection.getSelection()[1]
+}}
+
+Samo narzędzie jest zaimplementowane w środowisku Python, patrz {{FileName|/Mod/Part/JoinFeatures.py}} ([https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/Part/JoinFeatures.py Link do Github]) w miejscu, w którym zainstalowany jest FreeCAD.
+
+
+{{Docnav/pl
+|[[Part_JoinConnect/pl|Połącz obiekty]]
+|[[Part_JoinCutout/pl|Wycięcie dla obiektu]]
+|[[Part_Workbench/pl|środowisko pracy Część]]
+|IconL=Part_JoinConnect.svg
+|IconR=Part_JoinCutout.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

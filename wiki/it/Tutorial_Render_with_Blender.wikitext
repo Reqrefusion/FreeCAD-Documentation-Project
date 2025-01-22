@@ -1,0 +1,304 @@
+<languages/>
+
+{{TutorialInfo/it
+|Topic=Rendering
+|Level=Intermedio
+|Time=60 minuti
+|Author=[https://forum.freecadweb.org/memberlist.php?mode=viewprofile&u=21943 vocx]
+|FCVersion=0.18 o superiore
+|Files=none
+}}
+
+<span id="Introduction"></span>
+==Introduzione==
+
+This tutorial shows how to produce a rendered image in [https://www.blender.org/ Blender], beginning from a part or assembly created with FreeCAD. It assumes that the user already created the part in FreeCAD, or has imported it into it. Then this part is exported to Blender for rendering.
+
+It produces a rendering with Blender 2.80 with both the EEVEE and Cycles renderers. It shows various [[Python|Python]] commands that can be used to perform actions quicker both in FreeCAD and Blender.
+
+A similar description of this process is described in a series of videos, [https://www.youtube.com/watch?v=U7e6-Wfv2b0 Render Solidworks and FreeCAD Models in Blender], by Joko Engineering.
+
+== FreeCAD ==
+
+1. Create an assembly using bodies from the [[Part_Workbench|Part Workbench]] or [[PartDesign_Workbench|PartDesign Workbench]], or any other workbench that produces solid objects, for example, the [[Arch_Workbench|Arch Workbench]]. Assign colors or materials to the individual bodies that make the assembly, approximately matching the color that you want in your render.
+
+[[Image:01_T03_FreeCAD_Blender_model.png|600px|center]]
+
+{{Caption|align=center|Assembly of three bodies created in FreeCAD, and with colors or materials assigned.}}
+
+2. If your model is very detailed, make sure the {{PropertyView|Deviation}} of the body is set to a low value, between {{incode|0.1}} and {{incode|0.01}}, or even smaller. The lower this value is, the more detailed the exported mesh will be, and thus the better the quality of the render will be.
+
+[[Image:02_T03_FreeCAD_Blender_deviation.png|center]]
+
+{{Caption|align=center|Deviation property of the bodies created in FreeCAD; the deviation needs to be small in order to export the parts with good resolution.}}
+
+3. Select the {{incode|Part}}, then {{MenuCommand|File → Export}}, or press {{KEY|Ctrl}}+{{KEY|E}}, and export it as {{incode|Wavefront OBJ}}.
+
+Alternatively, the export can be done from the [[Python|Python]] console. Define a list of objects to be exported and use the exporting function with a file name.
+
+{{Code|code=
+import importOBJ
+objs = FreeCAD.ActiveDocument.getObjectsByLabel("Part")[0]
+
+importOBJ.export(objs, "/home/user/assembly.obj")
+}}
+
+{{Emphasis|Note:}} when exporting to OBJ, two files are created; the first one contains the mesh information itself, {{incode|assembly.obj}}; the second one contains the definition of the materials, which in most cases is just the color, {{incode|assembly.mtl}}.
+
+{{Emphasis|Note 2:}} if the resulting OBJ file appears to be empty, you may have to export the individual bodies. In this case, select each of the bodies under the part, and repeat the export.
+
+{{Code|code=
+import importOBJ
+objs = [FreeCAD.ActiveDocument.getObjectsByLabel("Body.base")[0],
+FreeCAD.ActiveDocument.getObjectsByLabel("Body.bolt")[0],
+FreeCAD.ActiveDocument.getObjectsByLabel("Body.bolt.big")[0]]
+
+importOBJ.export(objs, "/home/user/assembly.obj")
+}}
+
+== Blender ==
+
+=== Prepare the model ===
+
+4. Open Blender. Change the {{incode|Timeline}} panel into a {{incode|Python Console}} ({{KEY|Shift}}+{{KEY|F4}}). This will help you to input commands and see the results. You may divide this panel, to keep the console on one side, and make the other division an {{incode|Info}} panel; this will allow you to see the code of the actions as you click on the interface.
+
+Make sure you are using the EEVEE renderer. In the {{incode|Properties}} panel go to {{incode|Render}}, and for {{incode|Render Engine}} select {{incode|Eevee}}.
+
+{{Code|code=
+bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+}}
+
+5. Import the model file from the menu, {{MenuCommand|File → Import → Wavefront (.obj)}}.
+
+Alternatively, importing can be done from the {{incode|Python Console}}.
+
+{{Code|code=
+obj_file = "/home/user/assembly.obj"
+bpy.ops.import_scene.obj(filepath=obj_file)
+}}
+
+6. Change the scale.
+
+If the bodies appear to be very large you may have to change the units so the objects appear at the right scale.
+
+In the {{incode|Properties}} panel go to {{incode|Scene}}, {{incode|Units}}, and select the appropriate {{incode|Unit System}}, {{incode|Unit Scale}}, and {{incode|Length}}.
+
+For small parts, you may wish to keep the length to {{incode|Millimeters}}, and the scale to {{incode|0.001}}. For bigger parts, for example, the model of a building, you may have to set these values to {{incode|Meters}} and {{incode|0.001}}. Try other values of scale as required.
+
+This can be set also from the {{incode|Python console}}.
+
+{{Code|code=
+bpy.context.scene.unit_settings.length_unit = 'MILLIMETERS'
+# or bpy.context.scene.unit_settings.length_unit = 'METERS'
+bpy.context.scene.unit_settings.scale_length = 0.001
+}}
+
+{{Emphasis|Note:}} changing the scale and units of the scene is only necessary if you wish to work with objects at their true dimensions. If you just want to render your scene quickly, you may omit any adjustment.
+
+6.1. If you zoom out, and the view cuts the imported parts, you may have to adjust the view clip values.
+
+Hit {{KEY|N}} to show the auxiliary panel; go to the {{incode|View}} section and set the {{incode|End}} to a large value, for example, {{incode|1E6 mm}} or {{incode|1000 m}}.
+
+6.2. If you wish, also adjust the size of the grid; go to {{incode|Overlays}}, then {{incode|Guides}}, and set the {{incode|Scale}} of the grid to {{incode|0.001}}.
+
+7. Fix the rotation of the objects.
+
+When imported, objects may appear rotated around one of the axes, for example, 90 degrees around the X axis.
+Hit {{KEY|N}} to show the auxiliary panel; select an object, go to the {{incode|Transform}} section and set the {{incode|Rotation}} to {{incode|0°}} in each field. Do this for every object.
+
+This can be automated by a small script that just sets the rotation of each imported body to zero, with the exception of the objects inside the {{incode|fixed_objs}} tuple. This can be useful if you are importing objects into an existing scene where other objects are already in their right positions.
+
+{{Code|code=
+fixed_objs = ('Camera', 'Cube', 'Light')
+
+for obj in bpy.data.objects:
+    if any(s for s in fixed_objs if s in obj.name):
+        print('%s %s  [[No change]]' % (obj.name, obj.rotation_euler))
+        continue
+    else:
+        obj.rotation_euler = (0, 0, 0)
+        print('%s %s  ... rotated' % (obj.name, obj.rotation_euler))
+}}
+
+[[Image:03_T03_FreeCAD_Blender_imported_assembly.png|center]]
+
+{{Caption|align=center|Assembly created in FreeCAD imported into Blender; the model was rotated and the units for the scene were adjusted to match the imported objects.}}
+
+=== Prepare the camera of the scene ===
+
+8. Set the camera in the right position.
+
+Adjust the viewport to look at the model in the desired orientation, then hit {{KEY|Ctrl}}+{{KEY|Alt}}+{{KEY|0}} (numerical pad), or use the menu {{MenuCommand|View → Align View → Align Active Camera to View}}.
+
+8.1. If you don't see anything in the camera view, you may need to adjust the clipping. Selecting the camera in the {{incode|Outliner}}, go to the {{incode|Properties}} panel, then {{incode|Object Data}}, then {{incode|Lens}}, then set the {{incode|Clip End}} to a large value, for example, {{incode|1E3 mm}} or {{incode|1000 m}}.
+
+{{Code|code=
+bpy.context.object.data.clip_end = 1e+03
+}}
+
+If you can see the object through the camera view, now you can quickly render the model by pressing {{KEY|F12}}, which will open the {{incode|Image Editor}} with the result. Press {{KEY|Esc}} to exit, and return to the {{incode|3D Viewport}}.
+
+[[Image:04_T03_FreeCAD_Blender_first_render.png|600px|center]]
+
+{{Caption|align=center|First render of the assembly in Blender, with the camera with correct clipping but no lighting}}
+
+You can toggle between camera view and the 3D viewport by pressing {{KEY|0}} in the numerical pad; pressing {{KEY|F12}} will render the camera view in any moment.
+
+8.2. If the camera looks very small in the 3D viewport, go to the {{incode|Properties}} panel, then {{incode|Object Data}}, then {{incode|Viewport Display}}, and set a larger value for the {{incode|Size}}, for example, {{incode|20 mm}}. Also activate the {{incode|Limits}} checkbox to see the clipping distance of the camera.
+
+{{Code|code=
+bpy.context.object.data.display_size = 20
+bpy.context.object.data.show_limits = True
+}}
+
+=== Prepare the lighting of the scene ===
+
+9. Select the light in the {{incode|Outliner}}, go to the {{incode|Properties}} panel, then {{incode|Object Data}}, then press on {{incode|Sun}}, and set the {{incode|Strength}} to {{incode|5.0}}.
+
+{{Code|code=
+bpy.context.object.data.type = 'SUN'
+bpy.context.object.data.energy = 5
+}}
+
+This will turn the light into a Sun lamp. This type of lamp emits an infinite number of parallel light rays that all arrive to the scene with a fixed angle.
+
+You may position the Sun lamp anywhere on the viewport above your model so that you define the direction of the rays of light. For a Sun lamp it doesn't matter how close or far you place the lamp, only the direction of the rays, which are defined by the rotation of the {{incode|Light}} object.
+
+{{Code|code=
+bpy.context.active_object.location = (150, 100, 100)
+bpy.context.active_object.rotation_euler = (0.6, 0.05, 1.88)
+}}
+
+Press {{KEY|F12}} again to see a preliminary render of the model.
+
+[[Image:05_T03_FreeCAD_Blender_render_sun_lamp.png|600px|center]]
+
+{{Caption|align=center|Render of the assembly in Blender with a Sun lamp added that emits parallel light rays with a fixed angle}}
+
+=== More setup: floor, global lighting, reflections, and soft shadows ===
+
+10. Add a floor plane. Press {{KEY|Shift}}+{{KEY|A}} then choose {{incode|Mesh}}, {{incode|Plane}}, and give it dimensions about 10 times larger than your model. This mesh object will serve as a floor plane or table top on which the model is standing. Also move the plane a bit down so that it does not intersect the model; {{incode|-1 mm}} below the object is enough.
+
+{{Code|code=
+bpy.ops.mesh.primitive_plane_add(size=1500, view_align=False, enter_editmode=False, location=(0, 0, -1))
+}}
+
+11. Set the world illumination. In the {{incode|Properties}} panel go to {{incode|World}}, and set {{incode|Color}} to a light blue-gray value, {{incode|RGB (0.358, 0.512, 0.527)}}, and set the {{incode|Strength}} to {{incode|0.3}}.
+
+12. Set reflections and shadows. The EEVEE renderer of Blender produces fast renders by deactivating most effects initially. In order to obtain better images, some options need to be made active.
+
+Go to the {{incode|Properties}} panel, then {{incode|Render}}, and check {{incode|Screen Space Reflections}}. In the {{incode|Shadows}} section, also check {{incode|Soft Shadows}}.
+
+{{Code|code=
+bpy.context.scene.eevee.use_ssr = True
+bpy.context.scene.eevee.use_soft_shadows = True
+}}
+
+=== Set the materials of the objects ===
+
+13. Turn the {{incode|Python Console}} panel into a {{incode|Shader Editor}} panel ({{KEY|Shift}}+{{KEY|F3}}).
+
+13.1. Select the ground plane, go to the {{incode|Properties}} panel, then {{incode|Material}}, and click on {{incode|New}}. In the {{incode|Shader Editor}} a {{incode|Principled BSDF}} node should appear. Give it a beige {{incode|Base Color}} {{incode|RGB (0.318, 0.267, 0.187)}}, turn the {{incode|Metallic}} slider to {{incode|0.000}}, and the {{incode|Roughness}} to {{incode|1.000}}.
+
+[[Image:06_T03_FreeCAD_Blender_Principled_shader.png|center]]
+
+{{Caption|align=center|Principled BSDF shader used in Blender to simulate a variety of materials ranging from shiny metals to rough and opaque solids.}}
+
+13.2. Select each of the parts of the model, and adjust the respective {{incode|Principled BSDF}} material node. For metallic parts, turn the {{incode|Metallic}} property all the way to {{incode|1.000}}. Adjust the value of {{incode|Roughness}} to be between {{incode|0.2}} and {{incode|0.7}}. The closer to {{incode|0.000}} the {{incode|Roughness}} is, the more reflective (mirror-like) it will appear.
+
+For non metals, like plastics, wood and textiles, set the {{incode|Metallic}} slider all the way to {{incode|0.000}}, and adjust the value of {{incode|Roughness}} to between {{incode|0.4}} and {{incode|1.0}}.
+
+In general, metals are naturally smooth and therefore their roughness value is small, making them very reflective (shiny). Other materials are microscopically rough, and therefore do not reflect as much light, making them opaque.
+
+14. Test different combinations of materials until they look acceptable. Press {{KEY|Z}} and then {{KEY|8}} (numerical pad) to enter {{incode|Rendered}} mode; in this mode, the EEVEE renderer shows in real time in the 3D viewport how the final image will look like. Use {{KEY|Z}} to open the pie menu and switch back to {{incode|Solid}} mode ({{KEY|Z}} {{KEY|6}}), or go to {{incode|LookDev}} mode ({{KEY|Z}} {{KEY|2}}), a mode which adds different types of lighting to the scene to test the appearance of the materials.
+
+Press {{KEY|F12}} to render the view through the camera and check the quality of the image.
+
+=== Rendering and saving ===
+
+15. If your model looks reasonably well with the EEVEE renderer you can already save the image by going to {{MenuCommand|Image → Save As}} or pressing {{KEY|Shift}}+{{KEY|S}} in the {{Incode|Image Editor}}.
+
+[[Image:07_T03_FreeCAD_Blender_EEVEE_render.png|600px|center]]
+
+{{Caption|align=center|Rendered assembly produced with Blender EEVEE; all materials use the Principled BSDF shader; only one Sun lamp is used, with some ambient background light.}}
+
+16. If you want to improve the quality of the image, try the Cycles renderer.
+
+Go to the {{incode|Properties}} panel, then {{incode|Render}}, and for {{incode|Render Engine}} select {{incode|Cycles}}. With the Cycles renderer, Blender will refine the image gradually until a number of iterations have passed. Every time the viewport changes the recalculation restarts.
+
+{{Code|code=
+bpy.context.scene.render.engine = 'CYCLES'
+}}
+
+16.1. Adjust the sampling rate. Go to the {{incode|Properties}} panel, then {{incode|Render}}, then in the {{incode|Sampling}} section select an appropriate number for {{incode|Render}} and {{incode|Viewport}}.
+
+For the {{incode|Viewport}} a small number of samples, in the range of {{incode|32}} to {{incode|128}}, is generally enough to obtain a good preview of the image. For the final image, set {{incode|Render}} to a higher number, from {{incode|128}} to {{incode|2000}}, depending on the complexity and amount of details on the scene.
+
+Press {{KEY|F12}} to render the final view through the camera. Depending on your graphics card (GPU) the image should take several more seconds, or minutes, to render with Cycles than with EEVEE, but the quality of the image should be better.
+
+17. When you are satisfied with the quality of the rendering, in the {{incode|Image Editor}} go to {{MenuCommand|Image → Save As}} or press {{KEY|Shift}}+{{KEY|S}}.
+
+[[Image:08_T03_FreeCAD_Blender_Cycles_render.png|600px|center]]
+
+{{Caption|align=center|Rendered assembly produced with Blender Cycles; all options, materials, and lights that were used with EEVEE were kept for use with Cycles.}}
+
+=== Rendering from the command line ===
+
+18. If the scene has been completely finished, you may wish to render from outside Blender, from the operating system's command line. This can be useful to batch render different scenes in a remote system. Both EEVEE and Cycles are supported.
+
+{{Code|lang=sh|code=
+blender -b assembly.blend -E BLENDER_EEVEE -o //assembly_EEVEE_#### -t 3 -F PNG -x 1 -f 1
+}}
+
+{{Code|lang=sh|code=
+blender -b assembly.blend -E CYCLES -o //assembly_CYCLES_#### -t 3 -F PNG -x 1 -f 1
+}}
+
+This specifies that rendering should happen in the background with {{incode|-b}}; the rendering engine is chosen with {{incode|-E}}; the output filename is selected with {{incode|-o}}; the double forward slash {{incode|//}} indicates a path relative to the input file; the hash mark {{incode|#}} is used to indicate the frame number, padded with zeroes if necessary, for example, {{incode|0001}}; the number of CPU threads used in rendering is chosen with {{incode|-t 3}}; the output file format is indicated with {{incode|-F}}, and the {{incode|-x 1}} option adds automatically the extension to the name; the final option is {{incode|-f 1}} which indicates that only the first frame will be rendered, which is the normal case for a static scene; for animations use the {{incode|-a}} switch to produce an image for each frame, which can then be assembled to produce a video file.
+
+== Importing plugin ==
+
+Creating the intermediate Wavefront mesh (.obj) and then importing it into Blender will work in most situations. However, there is also the option of importing the FreeCAD file (.FCStd) directly into Blender by means of a plugin.
+* [https://gist.github.com/yorikvanhavre/e873d51c8f0e307e333fe595c429ba87 io_import_fcstd.py], original version for Blender 2.79
+* [https://gist.github.com/yorikvanhavre/680156f59e2b42df8f5f5391cae2660b FreeCAD .FCStd importer for Blender 2.80]
+
+This is a Blender plugin; for it to work, Blender needs to be able to import FreeCAD as a module from the {{incode|Python Console}}.
+{{Code|code=
+import FreeCAD
+}}
+
+This is only possible if both Blender and FreeCAD are compiled against the same {{incode|pythonX.Y}} (major and minor) version. For example, if Blender is compiled against Python 3.7, FreeCAD must be compiled against a Python 3.7 version as well. If FreeCAD is compiled against another version, for example, Python 2.7.15 or Python 3.6.7, the plugin will not work. The micro version number (third number) does not matter, that is, the plugin should work if one software is compiled against Python 3.7.5 and the other against Python 3.7.8.
+
+In addition, the FreeCAD precompiled Python module, {{incode|FreeCAD.so}} on Linux and {{incode|FreeCAD.pyd}} on Windows, should be in the Python path used by Blender to import modules. This path can be set up in different ways, depending on the operating system and Python distribution.
+
+In Blender you can see all paths searched by inspecting the {{incode|sys.path}} variable. The FreeCAD module should be found in any of those directories.
+{{Code|code=
+import sys
+print(sys.path)}}
+
+* A copy or symbolic link inside one of those directories could be created pointing to the FreeCAD module.
+{{Code|code=
+ln -s /usr/lib/freecad/lib/FreeCAD.so $HOME/.config/blender/2.80/scripts/addons
+
+ln -s /usr/lib/freecad/lib/FreeCAD.so $HOME/.local/lib/python3.7/site-packages
+}}
+
+* Another possibility is adding the module directly into the path inside Blender.
+{{Code|code=
+import sys
+sys.path.append("/usr/lib/freecad/lib/FreeCAD.so")
+}}
+
+== Final notes ==
+
+EEVEE is not a physically accurate renderer, however its main strength is that it is a real time engine so it is able to produce quick renderings directly in the 3D viewport. In many cases these images have enough quality for final production, which means it is possible to obtain a good result in a very short time. In cases where complex light interactions are desired (reflections, refractions, volumetric light, and caustics) EEVEE is more limited, and requires some options and tricks to work around some of these limitations.
+
+On the other hand, Cycles is a true raytracing renderer which means it is more accurate at calculating light paths in a scene. Cycles is the recommended renderer when the best quality is desired (photorealistic results), at the cost of more rendering time.
+
+Both renderers can be used to leverage the advantages of each. In many cases the scene can be quickly prepared and tested with EEVEE to obtain preliminary renderings; then the same scene can be used with minor changes with Cycles in order to produce a higher quality, final rendering. In particular, when a scene that was setup with EEVEE will be used with Cycles, the lights may need to be adjusted in value and position as both renderers treat light in different ways.
+
+Obtaining good results is highly dependent on the rendering options, the materials, and the lighting. The {{incode|Principled BSDF}} material shader is a generic solution that works well for many cases, however, to produce truly photorealistic results, the use of texture maps and normal maps, along with careful lighting of the scene is still very important.
+
+
+{{Raytracing Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

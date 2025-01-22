@@ -1,0 +1,131 @@
+<languages/>
+
+{{Docnav/ru
+|[[TechDraw_Annotation/ru|Вставить заметку]]
+|[[TechDraw_RichTextAnnotation/ru|Вставка аннотаций форматированным текстом]]
+|[[TechDraw_Workbench/ru|Верстак "TechDraw"]]
+|IconL=TechDraw_Annotation.svg
+|IconR=TechDraw_RichTextAnnotation.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/ru
+|Name/ru=Добавить Линию-выноску в Вид
+|Name=TechDraw_LeaderLine
+|MenuLocation=TechDraw → Добавить Линии → Добавить Линию-выноску в Вид
+|Workbenches=[[TechDraw_Workbench/ru|TechDraw]]
+|Version=0.19
+|SeeAlso=[[TechDraw_RichTextAnnotation/ru|Вставка аннотаций форматированным текстом]], [[TechDraw_WeldSymbol/ru|Добавить информацию о сварке в указательную линию]], [[TechDraw_LineGroup/ru|Группы линий]]
+}}
+</div>
+
+<span id="Description"></span>
+==Описание==
+
+The '''TechDraw LeaderLine''' tool adds a line to a View. Other annotation objects (such as [[TechDraw_RichTextAnnotation|Rich Text Annotations]]) can be connected to the leaderline to form complex annotations. 
+
+[[Image:TechDraw_LeaderLine_sample.png]]
+{{Caption|Leaderline added to a View}}
+
+<span id="Usage_create"></span>
+<div class="mw-translate-fuzzy">
+==Применение==
+</div>
+
+# Select a View.
+# There are several ways to invoke the tool:
+#* Press the {{Button|[[Image:TechDraw_LeaderLine.svg|16px]] [[TechDraw_LeaderLine|Add Leaderline to View]]}} button.
+#* Select the {{MenuCommand|TechDraw → Add Lines → [[Image:TechDraw_LeaderLine.svg|16px]] Add Leaderline to View}} option from the menu.
+# A task panel opens.
+# Press the {{Button|Pick points}} button.
+# Pick the first point on the page to define the start point of the line.
+# Pick the next point on the page. Hold down {{KEY|Ctrl}} to snap to multiples of 22.5° angles. Optionally use a double-click instead of a single-click to finish entering points.
+# Optionally add more points.
+# If you have not double-clicked a point: press the {{Button|Save Points}} button.
+# Optionally change the '''Start Symbol''', '''End Symbol''', '''Color''', '''Width''' and '''Style''' of the leader. See [[#Properties|Properties]] for more information.
+# Press the {{Button|OK}} button.
+
+==Usage edit==
+
+# Double-click a Leaderline in the [[Tree_view|Tree view]].
+# A task panel opens.
+# To edit the points:
+## Press the {{Button|Edit points}} button.
+## The Leaderline is marked with temporary nodes.
+## Drag one or more of the nodes to a new position.
+## Press the {{Button|Save changes}} button.
+# Optionally change the '''Start Symbol''', '''End Symbol''', '''Color''', '''Width''' and '''Style''' of the leader. See [[#Properties|Properties]] for more information.
+# Press the {{Button|OK}} button.
+
+==Notes== 
+
+* You cannot add or remove points from an existing Leaderline.
+* If no points were specified at creation time a short line is placed at the center of the View. There is no way to fix such a line, it should be deleted.
+* By default the '''Leader Line Auto Horizontal''' [[TechDraw_Preferences#Annotation|preference]] is checked. This means that the last line segment of new Leaderlines is drawn horizontally. If there is only one segment the result is then a single horizontal line.
+* You can turn off this auto horizontal feature for existing Leaderlines by changing their {{PropertyData|Auto Horizontal}} property.
+
+<span id="Properties"></span>
+==Свойства==
+
+===Data===
+
+{{Properties_Title|Base}}
+
+* {{PropertyData|Start Symbol|Enumeration}}: The symbol at the start of the leaderline. Options: [[Image:Arrowfilled.svg|20px]] Filled Arrow, [[Image:Arrowopen.svg|20px]] Open Arrow, [[Image:Arrowtick.svg|20px]] Tick, [[Image:Arrowdot.svg|20px]] Dot, [[Image:arrowopendot.svg|20px]] Open Circle, [[Image:arrowfork.svg|20px]] Fork, [[Image:arrowpyramid.svg|20px]] Filled Triangle, None.
+* {{PropertyData|End Symbol|Enumeration}}: The symbol at the end of the leaderline. Idem.
+* {{PropertyData|X|Distance}}: The X coordinate of the leaderline relative to the View.
+* {{PropertyData|Y|Distance}}: The Y coordinate of the leaderline relative to the View.
+
+{{Properties_Title|Leader}}
+
+* {{PropertyData|Leader Parent|Link}}: The View the leaderline is attached to.
+* {{PropertyData|Way Points|VectorList}}: The points of the leaderline.
+* {{PropertyData|Scalable|Bool}}: Specifies if the leaderline scales with {{PropertyData|Leader Parent}}.
+* {{PropertyData|Auto Horizontal|Bool}}: Specifies if the last leaderline segment is forced to be horizontal.
+
+===View===
+
+{{TitleProperty|Base}}
+
+* {{PropertyView|Keep Label|Bool}}: Not used.
+* {{PropertyView|Stack Order|Integer}}: Over or underlap relative to other drawing objects. {{Version|0.21}}
+
+{{TitleProperty|Line Format}}
+
+* {{PropertyView|Color|Color}}: The color of the leaderline.
+* {{PropertyView|Line Style|Enumeration}}: The style of the leaderline. Options: NoLine, [[Image:Continuous-line.svg|20px]] Continuous, [[Image:Dash-line.svg|20px]] Dash, [[Image:Dot-line.svg|20px]] Dot, [[Image:DashDot-line.svg|20px]] DashDot, [[Image:DashDotDot-line.svg|20px|Length]] DashDotDot.
+* {{PropertyView|Line Width|Length}}: The width of the leaderline.
+
+<span id="Scripting"></span>
+==Программирование==
+
+{{Emphasis|См. так же:}} [[TechDraw_API/ru|TechDraw API]] и [[FreeCAD_Scripting_Basics/ru|Основы составления скриптов FreeCAD]].
+
+The LeaderLine tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following functions:
+
+{{Code|code=
+myPage = FreeCAD.ActiveDocument().Page
+myBase = FreeCAD.ActiveDocument().View
+leaderObj = FreeCAD.ActiveDocument.addObject('TechDraw::DrawLeaderLine','DrawLeaderLine')
+FreeCAD.activeDocument().myPage.addView(leaderObj)
+FreeCAD.activeDocument().leaderObj.LeaderParent = myBase
+#first waypoint is always (0,0,0)  
+#rest of waypoints are positions relative to (0,0,0)
+leaderObj.WayPoints = [p0,p1,p2]
+leaderObj.X = 5
+leaderObj.Y = 5
+}}
+
+
+{{Docnav/ru
+|[[TechDraw_Annotation/ru|Вставить заметку]]
+|[[TechDraw_RichTextAnnotation/ru|Вставка аннотаций форматированным текстом]]
+|[[TechDraw_Workbench/ru|Верстак "TechDraw"]]
+|IconL=TechDraw_Annotation.svg
+|IconR=TechDraw_RichTextAnnotation.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{TechDraw Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,133 @@
+<languages/>
+
+{{Docnav
+|[[Reinforcement_StraightRebar|StraightRebar]]
+|[[Reinforcement_LShapeRebar|LShapeRebar]]
+|[[Reinforcement_Workbench|Reinforcement]]
+|IconL=Reinforcement_StraightRebar.svg
+|IconR=Reinforcement_LShapeRebar.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+{{GuiCommand
+|Name=Reinforcement UShapeRebar
+|MenuLocation=3D/BIM → Reinforcement tools → U-Shape Rebar
+|Workbenches=[[Reinforcement_Workbench|Reinforcement]], [[BIM_Workbench|BIM]]
+|Version=0.17
+|SeeAlso=
+}}
+
+==Description==
+
+The [[Reinforcement_UShapeRebar|Reinforcement UShapeRebar]] tool allows the user to create a set of U-shaped reinforcing bars inside an [[Arch_Structure|Arch Structure]] object.
+
+This tool is part of the [[Reinforcement_Workbench|Reinforcement Workbench]], an [[External_workbenches|external workbench]] that can be installed with the [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr|Addon Manager]].
+
+[[Image:Arch_Rebar_UShape_example.png|400px]]
+{{Caption|Two sets of U-shaped reinforcement bars inside an [[Arch_Structure|Arch Structure]]}}
+
+==Usage== 
+
+# Select any face of a previously created {{Button|[[Image:Arch_Structure.svg|16px]] [[Arch_Structure|Arch Structure]]}} object.
+# Then select  {{Button|[[Image:Reinforcement_UShapeRebar.svg|16px]] [[Reinforcement UShapeRebar|U-Shape Rebar]]}} from the rebar tools.
+# A [[Task_panel|task panel]] will pop-out on the left side of the screen as shown below.
+# Select the desired orientation.
+# Populate the inputs like 'Left Cover', 'Right Cover', 'Top Cover', 'Bottom Cover', 'Front Cover', 'Bent Angle', 'Bent Factor', 'Rounding' and 'Diameter' of the rebar.
+# Select the mode of distribution either 'Amount' or 'Spacing'.
+#* If 'Spacing' is selected, a user can also opt for [[Reinforcement_Custom_Spacing|custom spacing]].
+# {{Button|Pick Selected Face}} is used to verify or change the face for rebar distribution.
+# Click {{Button|OK}} or {{Button|Apply}} to generate the rebars.
+# Click {{Button|Cancel}} to exit the task panel.
+
+[[Image:UShapeDialog.png|250px]]
+{{Caption|Task panel for the tool}}
+
+==Properties== 
+
+* {{PropertyData|Orientation}}: It decides the orientation of the rebar (like a bottom, top, right and left).
+* {{PropertyData|Front Cover}}: The distance between rebar and selected face.
+* {{PropertyData|Right Cover}}: The distance between the right end of the rebar to right face of the structure.
+* {{PropertyData|Left Cover}}: The distance between the left end of the rebar to the left face of the structure.
+* {{PropertyData|Bottom Cover}}: The distance between rebar from the bottom face of the structure.
+* {{PropertyData|Top Cover}}: The distance between rebar from the top face of the structure.
+* {{PropertyData|Rounding}}: A rounding value to be applied to the corners of the bars, expressed in times the diameter.
+* {{PropertyData|Amount}}: The amount of rebars.
+* {{PropertyData|Spacing}}: The distance between the axes of each bar.
+
+==Scripting==
+
+{{Emphasis|See also:}} [[Arch_API|Arch API]], [[Reinforcement_API|Reinforcement API]] and [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+The Reinforcement UShapeRebar tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following function:
+
+{{Code|code=
+Rebar = makeUShapeRebar(f_cover, b_cover, r_cover, l_cover,
+                        diameter, t_cover, rounding, amount_spacing_check, amount_spacing_value, orientation="Bottom",
+                        structure=None, facename=None)
+}}
+
+* Creates a {{incode|Rebar}} object from the given {{incode|structure}}, which is an [[Arch_Structure|Arch Structure]], and {{incode|facename}}, which is a face of that structure.
+** If no {{incode|structure}} nor {{incode|facename}} are given, it will take the user selected face as input.
+* {{incode|f_cover}}, {{incode|b_cover}}, {{incode|r_cover}}, {{incode|l_cover}}, and {{incode|t_cover}} are inner offset distances for the rebar elements with respect to the faces of the structure. They are respectively the front, bottom, right, left, and top offsets.
+* {{incode|diameter}} is the diameter of the reinforcement bars inside the structure.
+* {{incode|rounding}} is the parameter that determines the bending radius of the reinforcement bars.
+* {{incode|amount_spacing_check}} if it is {{incode|True}} it will create as many reinforcement bars as given by {{incode|amount_spacing_value}}; if it is {{incode|False}} it will create reinforcement bars separated by the numerical value of {{incode|amount_spacing_value}}.
+* {{incode|amount_spacing_value}} specifies the number of reinforcement bars, or the value of the separation between them, depending on {{incode|amount_spacing_check}}.
+* {{incode|orientation}} specifies the orientation of the rebar; it can be {{incode|"Bottom"}}, {{incode|"Top"}}, {{incode|"Right"}}, or {{incode|"Left"}}.
+
+=== Example ===
+
+{{Code|code=
+import FreeCAD, Arch, UShapeRebar
+
+Structure = Arch.makeStructure(length=1000, width=1000, height=400)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = UShapeRebar.makeUShapeRebar(50, 20, 20, 20,
+                                    8, 50, 4, True, 6, "Bottom", Structure, "Face4")
+Rebar.ViewObject.ShapeColor = (0.9, 0.0, 0.0)
+
+Rebar2 = UShapeRebar.makeUShapeRebar(50, 50, 20, 20,
+                                     8, 50, 4, True, 6, "Bottom", Structure, "Face6")
+Rebar2.ViewObject.ShapeColor = (0.0, 0.0, 0.9)
+}}
+
+=== Edition of the rebar ===
+
+You can change the properties of the rebar with the following function:
+
+{{Code|code=
+editUShapeRebar(Rebar, f_cover, b_cover, r_cover, l_cover,
+                diameter, t_cover, rounding, amount_spacing_check, amount_spacing_value, orientation,
+                structure=None, facename=None) 
+}}
+
+* {{incode|Rebar}} is a previously created {{incode|UShapeRebar}} object.
+* The other parameters are the same as required by the {{incode|makeUShapeRebar()}} function.
+* {{incode|structure}} and {{incode|facename}} may be omitted so that the rebar stays in the original structure.
+
+{{Code|code=
+import UShapeRebar
+
+UShapeRebar.editUShapeRebar(Rebar, 50, 50, 20, 20,
+                            16, 20, 5, True, 5, "Top")
+
+UShapeRebar.editUShapeRebar(Rebar2, 70, 50, 20, 20,
+                            16, 70, 5, True, 5, "Top")
+}}
+
+
+{{Docnav
+|[[Reinforcement_StraightRebar|StraightRebar]]
+|[[Reinforcement_LShapeRebar|LShapeRebar]]
+|[[Reinforcement_Workbench|Reinforcement]]
+|IconL=Reinforcement_StraightRebar.svg
+|IconR=Reinforcement_LShapeRebar.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

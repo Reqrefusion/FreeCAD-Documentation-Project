@@ -1,0 +1,80 @@
+<languages/>
+
+{{Docnav/pl
+|[[Arch_MergeWalls/pl|Połącz ściany]]
+|[[Arch_ToggleIfcBrepFlag/pl|Przełącz flagę Brep IFC]]
+|[[BIM_Workbench/pl|środowisko pracy BIM]]
+|IconL=Arch_MergeWalls.svg
+|IconR=Arch_ToggleIfcBrepFlag.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|POLECENIE TO JEST CZĘŚCIĄ ZINTEGROWANEGO środowiska pracy [[BIM_Workbench/pl|BIM]] w V1.0<br>
+Ta strona została zaktualizowana dla tej wersji.}}
+
+{{GuiCommand/pl
+|Name=Arch Check
+|Name/pl=Architektura: Sprawdź
+|MenuLocation=Narzędzia → Sprawdź
+|Workbenches=[[BIM_Workbench/pl|BIM]]
+|SeeAlso=[[Arch_CloseHoles/pl|Zamknij otwory]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie to sprawdza bieżący dokument lub wybrane obiekty pod kątem braku brył typu [[Part_Workbench/pl|Część]] lub [[BIM_Workbench/pl|BIM]], co może powodować problemy, ponieważ większość operacji środowiska pracy BIM wymaga obiektów bryłowych.
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wybierz z manu opcję {{Button|[[Image:Arch Check.svg|16px]] '''Sprawdź'''}} lub {{MenuCommand|Narzędzia → [[Image:Arch Check.svg|16px]] Sprawdź}}.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[Arch_API/pl|API: Architektura]] i [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]].
+
+Narzędzie '''Kształt z siatki''' może być używane w [[Macros/pl|makrodefinicjach]] i z konsoli [[Python/pl|Python]] za pomocą następującej funkcji:
+{{Code|code=
+list_bad = check(objectslist, includehidden=False)
+}}
+
+* Sprawdza, czy podane obiekty w {{incode|objectslist}} zawierają tylko bryły.
+* Jeśli {{incode|includehidden}} ma wartość {{incode|True}}, uwzględni wszystkie ukryte obiekty, w przeciwnym razie pominie je w wyszukiwaniu.
+* Zwraca {{incode|list_bad}}, listę obiektów, które nie są pochodnymi {{incode|Part::Feature}} lub komponentów, które nie są zamknięte, nieważne, nie zawierają brył lub zawierają ściany, które nie są częścią żadnej bryły. Służy do wykrywania polilinii i profili środowiska pracy [[BIM_Workbench/pl|BIM]] lub [[Draft_Workbench/pl|Rysunek Roboczy]], które nie są bryłami.
+** Każdy element w {{incode|list_bad}} jest kolejną listą {{incode|[object, message]}}, gdzie {{incode|object}} jest wykrytą nie-bryłą, a {{incode|message}} wskazuje powód, dla którego został on włączony do tej listy.
+
+Przykład:
+
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 0, 0)
+baseline = Draft.makeLine(p1, p2)
+Wall1 = Arch.makeWall(baseline, length=None, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+Wall2 = Arch.makeWall(None, length=2000, width=200, height=1000)
+FreeCAD.ActiveDocument.recompute()
+
+Circle = Draft.makeCircle(450)
+Wire = Draft.makeWire([FreeCAD.Vector(1000, 0, 0), FreeCAD.Vector(1500, 1000, 0), FreeCAD.Vector(2500, -1000, 0)])
+
+list_bad = Arch.check([Wall1, Wall2, Circle, Wire], includehidden=True)
+print(list_bad)
+}}
+
+
+{{Docnav/pl
+|[[Arch_MergeWalls/pl|Połącz ściany]]
+|[[Arch_ToggleIfcBrepFlag/pl|Przełącz flagę Brep IFC]]
+|[[BIM_Workbench/pl|środowisko pracy BIM]]
+|IconL=Arch_MergeWalls.svg
+|IconR=Arch_ToggleIfcBrepFlag.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

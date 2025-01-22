@@ -1,0 +1,135 @@
+<languages/>
+<translate>
+
+<!--T:23-->
+{{Docnav
+|[[Part_JoinCutout|JoinCutout]]
+|[[Part_SliceApart|SliceApart]]
+|[[Part_Workbench|Part]]
+|IconL=Part_JoinCutout.svg
+|IconR=Part_SliceApart.svg
+|IconC=Workbench_Part.svg
+}}
+
+<!--T:1-->
+{{GuiCommand
+|Name=Part BooleanFragments
+|MenuLocation=Part → Split → Boolean fragments
+|Workbenches=[[Part_Workbench|Part]]
+|Version=0.17
+|SeeAlso=[[Part_Slice|Part Slice]], [[Part_XOR|Part XOR]], [[Part_CompJoinFeatures|Part JoinFeatures]], [[Part_Boolean|Part Boolean]]
+}}
+
+==Description== <!--T:27--> 
+
+<!--T:2-->
+The [[Image:Part_BooleanFragments.svg|24px]] '''Part BooleanFragments''' tool computes all fragments that can result from applying Boolean operations between input shapes. For example, for two intersecting spheres, three non-overlapping but touching solids are generated. 
+
+</translate>
+[[image:Part_BooleanFragments_Demo.png|600px]]
+<translate>
+<!--T:4-->
+{{Caption|In the image above, the pieces were moved apart manually afterwards, to reveal the slicing.}}
+
+<!--T:5-->
+The output shape is always a compound. The content of the compound depends on input shape types and operation mode. That means, you don't immediately get access to individual pieces of the result - the pieces remain grouped together. The individual pieces can be extracted by exploding the compound ([[Draft_Downgrade|Draft Downgrade]]).
+
+<!--T:6-->
+The tool has three modes: "Standard", "Split", and "CompSolid".
+
+<!--T:7-->
+"Standard" and "Split" differ by the action of the tool on wires, shells and compsolids. If "Split", those are separated. If "Standard", they are kept together (get extra segments).
+
+<!--T:8-->
+Compounding structure in "Standard" and "Split" modes follows the compounding structure of inputs. That is, if you feed in two compounds, each containing a sphere like on example above, the result will also contain two compounds, each containing the pieces of the originally contained sphere. That means, the common piece will be repeated twice in the result. Only if the input spheres are both not in compounds, the result will contain the common piece once.
+
+<!--T:9-->
+In "CompSolid" mode, the solids are joined into a compsolid (compsolid is a set of solids connected by faces; they are related to solids like wires are related to edges, and shells are related to faces; the name is probably a shortened phrase "composite solid"). The output is a non-nested compound of compsolids.
+
+==Usage== <!--T:28--> 
+
+<!--T:10-->
+# Select objects to be intersected. The order of selection is not important, since the action of the tool is symmetric. It is enough to select one sub-shape of each object (e.g. faces). You can also select a compound containing all shapes to be connected, e.g. a [[Draft_OrthoArray|Draft OrthoArray]].
+# There are several ways to invoke the tool:
+#* Press the {{Button|[[Image:Part_BooleanFragments.svg|16px]] [[Part_BooleanFragments|Boolean fragments]]}} button.
+#* Select the {{MenuCommand|Part → Split → [[Image:Part_BooleanFragments.svg|16px]] Boolean fragments}} option from the menu.
+# A Boolean Fragments parametric object is created. Original objects are hidden, and the result of intersection is shown in the [[3D_view|3D view]].
+
+==Properties== <!--T:29--> 
+
+<!--T:12-->
+{{TitleProperty|Boolean Fragments}}
+* {{PropertyData|Objects}}: List of objects to be intersected. Generally, at least two objects are needed, but a single compound containing the shapes to intersect will do as well. (as of FreeCAD v0.17.8053, this property is not displayed in property editor, and can only be accessed via Python).
+* {{PropertyData|Mode}}: "Standard", "Split", or "CompSolid". "Standard" is default. Standard and Split differ by the action of the tool on aggregation type shapes: if Split, those are separated; otherwise they are kept together (get extra segments).
+* {{PropertyData|Tolerance}}: "fuzziness" value. This is an extra tolerance to apply when searching for intersections, in addition to tolerances stored in the input shapes.
+
+==Implementation details== <!--T:31-->
+
+<!--T:13-->
+Boolean Fragments tool in "Standard mode" is OpenCascade's General Fuse Operator (GFA). It accepts a combination of probably all shape types, and the logic of output is quite convoluted. See [https://www.opencascade.com/doc/occt-7.0.0/overview/html/occt_user_guides__boolean_operations.html OpenCascade user guide: Boolean operations].
+
+<!--T:14-->
+For "Split" and "CompSolid" modes, extra post-processing is done by FreeCAD.
+
+==Scripting== <!--T:15--> 
+
+<!--T:16-->
+The tool can by used in [[Macros|macros]] and from the [[Python|python]] console by using the following function:
+</translate>
+ '''BOPTools.SplitFeatures.makeBooleanFragments(name)'''
+<translate>
+
+<!--T:17-->
+* Creates an empty BooleanFragments feature. The 'Objects' property must be assigned explicitly, afterwards.
+* Returns the newly created object.
+
+<!--T:18-->
+BooleanFragments can also be applied to plain shapes, without the need to have a document object, via:
+
+</translate>
+{{code|code=
+import BOPTools.SplitAPI
+BOPTools.SplitAPI.booleanFragments(list_of_shapes, mode, tolerance = 0.0)
+
+# OR, for Standard mode:
+
+list_of_shapes = [App.ActiveDocument.Sphere.Shape, App.ActiveDocument.Sphere001.Shape]
+pieces, map = list_of_shapes[0].generalFuse(list_of_shapes[1:], tolerance)
+# pieces receives a compound of shapes; map receives a list of lists of shapes, defining list_of_shapes <--> pieces correspondence 
+}}
+<translate>
+<!--T:19-->
+This can be useful for making custom Python scripted features.
+
+<!--T:20-->
+Example:
+</translate>
+{{code|code=
+import BOPTools.SplitFeatures
+j = BOPTools.SplitFeatures.makeBooleanFragments(name= 'BooleanFragments')
+j.Objects = FreeCADGui.Selection.getSelection() 
+}}
+<translate>
+
+<!--T:21-->
+The tool itself is implemented in Python, see /Mod/Part/BOPTools/SplitFeatures.py under where FreeCAD is installed.
+
+==Notes== <!--T:30--> 
+
+<!--T:22-->
+The tool was introduced in FreeCAD v0.17.8053. FreeCAD needs to be compiled with OCC 6.9.0 or later; otherwise, the tool is unavailable.
+
+
+<!--T:24-->
+{{Docnav
+|[[Part_JoinCutout|JoinCutout]]
+|[[Part_SliceApart|SliceApart]]
+|[[Part_Workbench|Part]]
+|IconL=Part_JoinCutout.svg
+|IconR=Part_SliceApart.svg
+|IconC=Workbench_Part.svg
+}}
+
+</translate>
+{{Part_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

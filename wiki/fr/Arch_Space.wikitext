@@ -1,0 +1,147 @@
+<languages/>
+
+{{Docnav/fr
+|[[Arch_Floor/fr|Niveau]]
+|[[Arch_Wall/fr|Mur]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_Floor.svg
+|IconR=Arch_Wall.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|Cette commande fait partie de l'ensemble intégré de l'[[BIM_Workbench/fr|atelier BIM]] avec la V1.0<br>
+Cette page a été mise à jour pour cette version.}}
+
+{{GuiCommand/fr
+|Name=Arch Space
+|Name/fr=Arch Espace
+|MenuLocation=3D/BIM → Espace
+|Workbenches=[[BIM_Workbench/fr|BIM]]
+|Shortcut={{KEY|S}} {{KEY|P}}
+|Version=0.14
+|SeeAlso=
+}}
+
+==Description==
+
+L'outil '''Arch Espace''' vous permet de définir un volume vide, soit en le basant sur une forme solide, soit en définissant ses limites, soit en combinant les deux. S'il est basé uniquement sur des limites, le volume est calculé en partant du cadre de sélection de toutes les limites données et en soustrayant les espaces situés derrière chaque limite. L'objet Espace définit toujours un volume solide. La surface de plancher d'un objet d'espace, calculée en coupant un plan horizontal au centre de gravité du volume d'espace, peut également être affichée.
+
+[[Image:Arch Space example.jpg|640px]]
+
+{{Caption|L'objet Espace créé à partir d'un objet solide existant, deux faces de mur sont ajoutées en tant que limites.}}
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Sélectionnez un objet solide existant ou des faces sur des objets de contour.
+# Lancez la commande en utilisant plusieurs méthodes :
+#* En appuyant sur le bouton {{Button|[[Image:Arch_Space.svg|16px]] [[Arch_Space/fr|Espace]]}} de la barre d'outils.
+#* En utilisant les touches {{KEY|S}} puis {{KEY|P}}
+#* En utilisant l'entrée {{MenuCommand|3D/BIM → Espace}} du menu supérieur
+
+<span id="Limitations"></span>
+===Limitations===
+
+* Les propriétés des bords ne sont actuellement pas modifiables via l'interface graphique.
+* Voir sur le forum [http://forum.freecadweb.org/viewtopic.php?f=9&t=4275 forum announcement].
+
+<span id="Properties"></span>
+==Propriétés==
+
+* {{PropertyData|Base}} : objet de base, le cas échéant (doit être un solide)
+* {{PropertyData|Boundaries}} : liste d'éléments de limite facultatifs.
+* {{PropertyData|Area}} : surface de plancher calculée de cet espace.
+* {{PropertyData|FinishFloor}} : finition du sol de cet espace.
+* {{PropertyData|FinishWalls}} : finition des murs de cet espace.
+* {{PropertyData|FinishCeiling}} : finition du plafond de cet espace.
+* {{PropertyData|Group}} : objets inclus dans cet espace, tels que des meubles.
+* {{PropertyData|SpaceType}} : type de cet espace.
+* {{PropertyData|FloorThickness}} : épaisseur de la finition du sol.
+* {{PropertyData|NumberOfPeople}} : nombre de personnes qui occupent généralement cet espace.
+* {{PropertyData|LightingPower}} : puissance électrique nécessaire pour éclairer cet espace en watts.
+* {{PropertyData|EquipmentPower}} : puissance électrique nécessaire à l'équipement de cet espace en watts.
+* {{PropertyData|AutoPower}} : si True, la puissance de l'équipement sera automatiquement renseignée par l'équipement inclus dans cet espace.
+* {{PropertyData|Conditioning}} : type de climatisation de cet espace.
+* {{PropertyData|Internal}} : spécifie si cet espace est interne ou externe.
+
+* {{PropertyView|Text}} : texte à afficher. Utilisez $area, $label, $tag, $floor, $walls, $ceiling pour insérer les données respectives.
+* {{PropertyView|FontName}} : nom de la police.
+* {{PropertyView|TextColor}} : couleur du texte.
+* {{PropertyView|FontSize}} : taille du texte.
+* {{PropertyView|FirstLine}} : taille de la première ligne de texte (multiplie la taille de la police. 1 = même taille, 2 = double taille, etc...)
+* {{PropertyView|LineSpacing}} : espace entre les lignes de texte.
+* {{PropertyView|TextPosition}} : position du texte. Laisser à (0,0,0) pour la position automatique.
+* {{PropertyView|TextAlign}} : justification du texte.
+* {{PropertyView|Decimals}} : nombre de décimales à utiliser pour les textes calculés.
+* {{PropertyView|ShowUnit}} : affiche le suffixe de l'unité ou non.
+
+==Options==
+
+* Pour créer des zones regroupant plusieurs espaces, utilisez [[Arch_BuildingPart/fr|Arch Partie de bâtiment]] et définir son type IFC sur "Spatial Zone".
+* L'objet Space a les mêmes modes d'affichage que les autres objets d'Arch et Part, avec un mode en plus appelé '''Footprint''' qui n'affiche que la face inférieure de l'espace.
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Voir aussi :}} [[Arch_API/fr|Arch API]] et [[FreeCAD_Scripting_Basics/fr|Débuter avec les scripts FreeCAD]].
+
+L'outil Espace peut être utilisé dans des [[Macros/fr|macros]] et à partir de la console [[Python/fr|Python]] à l'aide de la fonction suivante :
+
+{{Code|code=
+Space = makeSpace(objects=None, baseobj=None, name="Space")
+}}
+
+* Crée un objet {{incode|Space}} à partir de {{incode|objects}} donné ou {{incode|baseobj}} qui peut être :
+** un objet de document, auquel cas il devient la forme de base de l'objet Espace, ou
+** une liste d'objets de sélection renvoyés par {{incode|FreeCADGui.Selection.getSelectionEx()}}, ou
+** une liste de tuples {{incode|(objet,subobjectname)}}
+
+Exemple :
+
+{{Code|code=
+import FreeCAD, Arch
+
+Box = FreeCAD.ActiveDocument.addObject("Part::Box", "Box")
+Box.Length = 1000
+Box.Width = 1000
+Box.Height = 1000
+
+Space = Arch.makeSpace(Box)
+Space.ViewObject.LineWidth = 2
+FreeCAD.ActiveDocument.recompute()
+}}
+
+Après avoir créé un objet Space, les faces sélectionnées peuvent être ajoutées avec le code suivant :
+
+{{Code|code=
+import FreeCAD, FreeCADGui, Draft, Arch
+
+points = [FreeCAD.Vector(-500, 0, 0), FreeCAD.Vector(1000, 1000, 0)]
+Line = Draft.makeWire(points)
+Wall = Arch.makeWall(Line, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+# Select a face of the wall
+selection = FreeCADGui.Selection.getSelectionEx()
+Arch.addSpaceBoundaries(Space, selection)
+}}
+
+Les limites peuvent également être supprimées, à nouveau en sélectionnant les faces indiquées :
+
+{{Code|code=
+selection = FreeCADGui.Selection.getSelectionEx()
+Arch.removeSpaceBoundaries(Space, selection)
+}}
+
+
+{{Docnav/fr
+|[[Arch_Floor/fr|Niveau]]
+|[[Arch_Wall/fr|Mur]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_Floor.svg
+|IconR=Arch_Wall.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

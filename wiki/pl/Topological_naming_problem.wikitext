@@ -1,0 +1,147 @@
+<languages/>
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+{{TOCright}}
+
+Problem z '''nazewnictwem topologicznym''' w programie FreeCAD odnosi się do kwestii zmiany wewnętrznej nazwy kształtu po wykonaniu operacji modelowania ''(wyciągnięcie, wycięcie, połączenie, fazka, zaokrąglenie, itp.)''. Spowoduje to, że inne właściwości parametryczne, które zależą od tego kształtu, zostaną uszkodzone lub niepoprawnie obliczone. Ten problem dotyczy wszystkich obiektów w programie FreeCAD, ale jest szczególnie zauważalny podczas budowania brył za pomocą środowiska pracy [[Image:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/pl|Projekt Części]], oraz podczas wymiarowania tych brył za pomocą środowiska[[Image:Workbench_TechDraw.svg|24px]] [[TechDraw_Workbench/pl|Rysunek Techniczny]].
+* W środowisku pracy [[Image:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/pl|Projekt Części]], jeśli element jest obsługiwany na powierzchni ''(lub krawędzi lub wierzchołku)'', element może zostać uszkodzony, jeśli bazowa bryła zmieni rozmiar lub orientację, ponieważ oryginalna powierzchnia ''(lub krawędź lub wierzchołek)'' może zostać wewnętrznie przemianowana.
+* W przypadku środowiska [[Image:Workbench_TechDraw.svg|24px]] [[TechDraw_Workbench/pl|Rysunek Techniczny]], jeżeli wymiar mierzy długość rzutowanej krawędzi, wymiar może zostać uszkodzony, jeżeli model 3D zostanie zmodyfikowany, ponieważ wierzchołki mogą zostać przemianowane, zmieniając w ten sposób mierzoną krawędź.
+
+Kwestia nazewnictwa topologicznego jest złożonym problemem w modelowaniu CAD, który wynika ze sposobu, w jaki wewnętrzne procedury programu FreeCAD obsługują aktualizacje kształtów geometrycznych utworzonych za pomocą [[OpenCASCADE/pl|jądra OCCT]]. Ten problem nie występuje tylko we FreeCAD. Jest on ogólnie obecny w oprogramowaniu CAD, ale większość innych środowisk tego typu używa heurystyk do redukcji wpływu tego problemu na użytkowników.
+
+Od wersji FreeCAD 0.19 trwają prace nad poprawą obsługi kształtów poprzez dodawanie heurystyk, które zmniejszają wpływ tego typu problemów.
+[[#Topological_naming_algorithm/pl|Algorytm nazewnictwa]] został zaprojektowany aby zredukować potrzebę ręcznych działań, czasem poprzez automatyczne naprawienie problemów, innym razem prezentując prawdopodobne rozwiązanie a w innych przypadkach chociaż jasno pokazując co spowodowało problem. Pierwsza stabilna wersja programu FreeCAD zawierająca ten nowy algorytm nazewnictwa to 1.0. Z czasem ten algorytm zostanie zastosowany do innych części programu i pojawi się więcej automatycznych i wspieranych napraw w kolejnych wersjach.
+
+Problem nazewnictwa topologicznego najczęściej dotyka i dezorientuje nowych użytkowników programu FreeCAD. W środowisku Projekt Części użytkownik powinien stosować się do najlepszych praktyk omówionych na stronie [[Feature_editing/pl|Edycja cech]]. Użycie obiektów [[PartDesign_Plane/pl|płaszczyzny]] oraz [[PartDesign_CoordinateSystem/pl|lokalne układy współrzędnych]] jest zalecane do tworzenia modeli, które nie są podatne na tego typu błędy topologiczne. W środowisku Rysunek Techniczny, użytkownik powinien dodawać wymiary tylko wtedy, gdy model 3D jest kompletny i nie będzie dalej modyfikowany.
+
+<span id="Example"></span>
+==Przykład==
+
+1. W środowisku [[Image:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/pl|Projekt Części]], stwórz [[Image:PartDesign_Body.svg|24px]] [[PartDesign_Body/pl|Zawartość]], następnie użyj przycisku [[Image:PartDesign_NewSketch.svg|24px]] [[PartDesign_NewSketch/pl|Nowy szkic]] i wybierz płaszczyznę XY, aby narysować szkic bazowy. Kolejnie zrób [[Image:PartDesign_Pad.svg|24px]] [[PartDesign_Pad/pl|wyciągnięcie]], aby utworzyć pierwszą bryłę.
+
+[[Image:FreeCAD_topological_problem_01_solid.png|x400px]]
+
+2. Zaznacz górną ścianę poprzedniej bryły, a następnie użyj narzędzia [[Image:PartDesign_NewSketch.svg|24px]] [[PartDesign_NewSketch/pl|Nowy szkic]], aby narysować kolejny szkic. Kolejnie wykonaj drugie wyciągnięcie.
+
+{|
+| [[Image:FreeCAD_topological_problem_02_solid_sketch_2.png|x400px]] || [[Image:FreeCAD_topological_problem_03_solid_2.png|x400px]]
+|}
+
+3. Wybierz górną płaszczyznę poprzedniego wyciągnięcia i ponownie utwórz szkic oraz wyciągnięcie.
+
+[[Image:FreeCAD_topological_problem_04_solid_3.png|x400px]]
+
+4. Teraz kliknij dwukrotnie drugi szkic i zmodyfikuj go tak, aby jego długość przebiegała wzdłuż kierunku X. W ten sposób zostanie odtworzone drugie wyciągnięcie. Trzeci szkic i wyciągnięcie pozostaną w tym samym miejscu.
+
+{|
+| [[Image:FreeCAD_topological_problem_05_solid_sketch_2.png|x400px]] || [[Image:FreeCAD_topological_problem_06_solid_2.png|x400px]]
+|}
+
+[[Image:FreeCAD_topological_problem_07_solid_3.png|x400px]]
+
+5. Teraz ponownie kliknij dwukrotnie drugi szkic i dopasuj jego punkty tak, aby część z nich znalazła się poza granicami zdefiniowanymi przez pierwsze wyciągnięcie. W ten sposób drugie wyciągnięcie obliczy się poprawnie, ale w [[Tree_view/pl|widoku drzewa]] pojawi się błąd w trzecim wyciągnięciu.
+
+{|
+| [[Image:FreeCAD_topological_problem_08_solid_sketch_2.png|x400px]] || [[Image:FreeCAD_topological_problem_09_solid_2.png|x400px]]
+|}
+
+[[Image:FreeCAD_topological_problem_12_broken_tree.png]]
+
+6. Po uwidocznieniu trzeciego szkicu i wyciągnięcia widać wyraźnie, że obliczanie nowej bryły nie przebiegło poprawnie. Trzeci szkic, zamiast opierać się na górnej powierzchni drugiego wyciągnięcia, pojawia się w dziwnym miejscu, ze swoją normalną skierowaną w kierunku X. Skutkuje to tym, że wyciągnięcie tego szkicu nie jest poprawne, ponieważ wyciągnięcie to byłoby odłączone od reszty [[Image:PartDesign_Body.svg|24px]] [[PartDesign_Body/pl|zawartości]] bryły, co jest niedozwolone.
+
+Wydaje się, że problem polega na tym, że gdy zmodyfikowano drugi szkic, nazwa górnej powierzchni drugiego wyciągnięcia została zmieniona z {{incode|Face13}} na {{incode|Face14}}. Trzeci szkic jest dołączony do {{incode|Face13}} tak jak pierwotnie, ale ponieważ ta powierzchnia znajduje się teraz z boku (a nie na górze), szkic podąża za jej orientacją i jest teraz nieprawidłowo umieszczony.
+
+{|
+| [[Image:FreeCAD_topological_problem_10_solid_2_sketch_3.png|x400px]] || [[Image:FreeCAD_topological_problem_11_solid_2_faces.png|x400px]]
+|}
+
+7. Aby rozwiązać ten problem, należy ponownie zmapować trzeci szkic do górnej powierzchni. Zaznacz szkic, kliknij wielokropek ''(trzy kropki)'' obok właściwości {{PropertyData|Tryb dołączenia}} i ponownie wybierz górną powierzchnię drugiego wyciągnięcia. Wtedy szkic zostanie przeniesiony na wierzch istniejącej bryły, a trzecie wyciągnięcie zostanie wygenerowane bez problemów.
+
+[[Image:FreeCAD_topological_problem_13_remap_sketch_2.png]]
+
+{|
+| [[Image:FreeCAD_topological_problem_14_solid_2_sketch_3.png|x400px]] || [[Image:FreeCAD_topological_problem_15_solid_3.png|x400px]]
+|}
+
+Przemapowanie szkicu w ten sposób może być wykonywane za każdym razem, gdy wystąpi błąd nazewnictwa topologicznego, jednak może to być uciążliwe, jeśli model jest skomplikowany i jest wiele takich szkiców, które wymagają korekty.
+
+<span id="Solution"></span>
+==Rozwiązanie==
+
+[[Image:FreeCAD_topological_problem_16_dependency_graph.png|left]]
+
+[[Std_DependencyGraph/pl|Graf zależności]] jest narzędziem, które jest pomocne w obserwowaniu zależności pomiędzy różnymi zawartościami w dokumencie. Użycie oryginalnego przepływu pracy modelowania ujawnia bezpośrednią zależność, jaka istnieje między szkicami a wyciągnięciami. Podobnie jak w przypadku łańcucha, łatwo zauważyć, że ta bezpośrednia zależność będzie podlegała problemom z nazewnictwem topologicznym, jeśli któreś z ogniw sekwencji ulegnie zmianie.
+
+Jak wyjaśniono na stronie [[Feature_editing/pl|Edycja cech]], rozwiązaniem tego problemu jest bazowanie szkiców nie na powierzchniach, lecz na płaszczyznach globalnego układu współrzędnych [[PartDesign_Body/pl|Zawartości]] lub płaszczyznach konstrukcyjnych dołączonych do tych globalnych płaszczyzn. Używanie płaszczyzn konstrukcyjnych do bazowania pojedynczego szkicu, jak to opisano poniżej, nie jest właściwie konieczne, ponieważ sam szkic może być bezpośrednio dołączony do płaszczyzny globalnej i ma takie same opcje odsunięcia jak płaszczyzna konstrukcyjna. Ale korzystanie z płaszczyzn konstrukcyjnych może mieć sens w przypadku pozycjonowania wielu szkiców.
+
+1. Zaznacz punkt położenie odniesienia [[PartDesign_Body/pl|Zawartości]] i upewnij się, że jest on widoczny. Następnie wybierz płaszczyznę XY i kliknij w narzędzie [[PartDesign_Plane/pl|Płaszczyzna]]. W oknie dialogowym Odsunięcie dołączenia nadaj jej odsunięcie w kierunku Z, tak aby płaszczyzna odniesienia była współpłaszczyznowa z górną powierzchnią pierwszego wyciągnięcia.
+
+2. Powtórz proces, ale tym razem dodaj większe odsunięcie, tak aby druga płaszczyzna odniesienia była współpłaszczyznowa z górną powierzchnią drugiego wyciągnięcia.
+
+{{clear}}
+{|
+| [[Image:FreeCAD_topological_problem_17_datum_plane_1.png|x400px]] || [[Image:FreeCAD_topological_problem_18_datum_plane_2.png|x400px]]
+|}
+
+3. Zaznacz drugi szkic, kliknij elipsę obok właściwości {{PropertyData|Tryb dołączenia}}, a następnie wybierz pierwszą płaszczyznę odniesienia. Płaszczyzna odniesienia jest już odsunięta od płaszczyzny XY zawartości, więc w przypadku szkicu nie jest wymagane dodatkowe odsunięcie Z.
+
+4. Powtórz tę procedurę z trzecim szkicem i wybierz drugą płaszczyznę odniesienia jako podporę. Również w tym przypadku nie jest konieczne dodatkowe przesunięcie w kierunku Z.
+
+5. Na wykresie zależności widać teraz, że szkice i wyciągnięcia są obsługiwane przez płaszczyzny odniesienia. Ten model jest bardziej stabilny, ponieważ każdy szkic można modyfikować w zasadzie niezależnie od siebie.
+
+[[Image:FreeCAD_topological_problem_19_dependency_graph_datum_planes.png]]
+
+6. Kliknij dwukrotnie drugi szkic i zmodyfikuj jego kształt. Drugie wyciągnięcie powinno zostać natychmiast zaktualizowane, nie powodując problemów topologicznych z trzecim szkicem i trzecim wyciągnięciem.
+
+[[Image:FreeCAD_topological_problem_20_independent_solid_2.png|x400px]]
+
+7. W rzeczywistości każdy szkic można modyfikować bez ingerencji w inne wyciągnięcie. Tak długo, jak wyciągnięcia mają wystarczającą długość wyciskania, tak że dotykają się i tworzą przylegającą bryłę, cała bryła będzie poprawna.
+
+[[Image:FreeCAD_topological_problem_21_independent_solids_all.png|x400px]]
+
+<span id="Tradeoffs"></span>
+== Kompromisy ==
+
+Dodawanie obiektów punktów odniesienia wymaga więcej pracy od użytkownika, ale w efekcie końcowym daje bardziej stabilne modele, które w mniejszym stopniu podlegają problemowi nazewnictwa topologicznego.
+
+Oczywiście obiekty układu odniesienia można utworzyć przed narysowaniem szkiców i wykonaniem wyciągnięć. Może to być pomocne w wizualizacji przybliżonego kształtu i wymiarów ostatecznej bryły.
+
+Płaszczyzny odniesienia mogą być także oparte na innych płaszczyznach odniesienia. Tworzy to łańcuch zależności, który również może powodować problemy topologiczne. Ponieważ jednak płaszczyzny odniesienia są bardzo prostymi obiektami, ryzyko wystąpienia takich problemów jest mniejsze niż w przypadku, gdy jako podparcie wykorzystuje się powierzchnię obiektu bryłowego.
+
+Obiekty układu odniesienia, [[PartDesign_Point/pl|punkty]], [[PartDesign_Line/pl|linie]], [[PartDesign_Plane/pl|płaszczyzny]] oraz [[PartDesign_CoordinateSystem/pl|układy współrzędnych]], mogą być również przydatne jako geometria odniesienia, czyli jako pomoce wizualne pokazujące ważne cechy modelu, nawet jeśli nie jest do nich bezpośrednio dołączony żaden szkic.
+
+<span id="Topological_naming_algorithm"></span>
+== Algorytm TNP ==
+
+Algorytm TNP autorstwa Realthundera opisany w wątku [https://forum.freecadweb.org/viewtopic.php?t=27278 Topological Naming, My Take] na forum, który został wybrany do redukcji wpływu problemu gubienia odniesień, został szeroko przedstawiony jako "naprawiający problem gubienia odniesień". To niezamierzenie wprowadziło w błąd wielu użytkowników, sugerując, że korzystanie z technik takich jak geometrie konstrukcyjne, jawne pozycjonowanie szkiców i [[Feature_editing/pl#Porady_dotyczące_tworzenia_stabilnych modeli|edycja cech]] nie będą już przydatne do tworzenia bardziej stabilnych modeli. Ten algorytm nie ma naprawiać każdego błędu wprowadzonego przez niejasność nazewnictwa topologicznego. Ma za to trzy cele.
+
+# Pierwszy i najważniejszy cel to, gdy tylko możliwe, '''identyfikacja''' zepsutych odniesień ze zmian topologicznych i wyświetlanie błędu użytkowników. Zamiast konieczności przechodzenia przez szereg operacji aby znaleźć pierwszą operację, która odbiega od celu projektu, operacja, która zmienia nazwy będzie automatycznie oznaczona błędem, ułatwiając znacznie ręczną naprawę problemów modelu wprowadzonych przez zmiany w operacjach lub parametrach.
+# Niekiedy FreeCAD będzie w stanie zidentyfikować '''prawdopodobną''' poprawkę dla zepsutego odniesienia, tak że gdy użytkownik ręcznie naprawia oznaczone zepsute odniesienie, zaprezentowany będzie kandydat do zaakceptowania lub odrzucenia. Częstym przykładem są operacje kosmetyczne, takie jak zaokrąglenia i sfazowania, gdzie użytkownik może musieć edytować operację i albo zaakceptować proponowany wybór zastąpienia cechy albo zmienić go aby dokonać naprawy.
+# W niektórych przypadkach, FreeCAD będzie w stanie '''automatycznie''' naprawić zepsute odniesienia, ponieważ wystarczające informacje o odniesieniu są przechowywane aby mieć dużą pewność, że zastąpienie jest prawidłowe. Przykładowo, podczas szkicowania bezpośrednio na ścianie, algorytm często (ale nie zawsze) prawidłowo naprawi odniesienie do ściany gdy geometria pod spodem jest zmieniana parametrycznie (przy zmienianiu struktury, jak dodawanie lub usuwanie operacji ze środka Zawartości środowiska Projekt Części taka automatyczna naprawa będzie mniej prawdopodobna). Ale FreeCAD zrobi to tylko z dużą pewnością poprawności naprawy, ponieważ błędna automatyczna naprawa może ponownie wprowadzić problem konieczności poszukiwania gdzie problem został wprowadzony aby naprawić modelu po modyfikacji. ''Po pierwsze, nie szkodzić.''
+
+We FreeCAD 1.0 implementacja tego algorytmu w oficjalnym wydaniu programu osiągnęła poziom funkcjonalności wersji Linkstage 3 użytkownika Realthunder (w której pierwotnie stworzył algorytm) na moment rozpoczęcia prac nad integracją. Istnieją nowe funkcje programu FreeCAD, które mogłyby korzystać z algorytmu, ale jeszcze tego nie robią i zawsze będzie więcej okazji do dodania poprawek kandydatów i automatycznych napraw. Początkowa praca zaowocowała ''fundamentem'' do wprowadzenia tych dodatkowych usprawnień z czasem, zarówno w samym programie FreeCAD, jak i w dodatkach do niego.
+
+<span id="Links"></span>
+==Odnośniki internetowe==
+
+* [[PartDesign_Fillet/pl#Nazewnictwo_topologiczne|Projekt części: Zaokrąglenie - Nazewnictwo topologiczne]].
+* [https://forum.freecadweb.org/viewtopic.php?t=27278 Topological Naming, My Take]: możliwe rozwiązanie, autor: realthunder.
+* [[Topological_Naming_Project/pl|Projekt nazewnictwa topologicznego]]: pomysł na rozwiązanie problemu, autorstwa ickby.
+* [[Topological_data_scripting/pl|Skrypty danych topologicznych]].
+* [[Feature_editing/pl|Edycja cech]]: zawiera alternatywne porady dotyczące stabilnych technik modelowania.
+* [https://forum.freecad.org/viewtopic.php?p=770360 Clarifying and expanding "Topological Naming Problem" documentation]: Wyjaśnianie oczekiwań dla algorytmu TNP Realthundera wybranego do FreeCAD 1.0.
+
+<span id="Videos"></span>
+==Filmy==
+
+* [https://youtu.be/6p2vqEEmWq4 Dlaczego moje modele FreeCAD się psują? - '''Problem nazewnictwa topologicznego''']: Wideo wyjaśnienie podstawowych zagadnień związanych z [[Topological_naming_problem/pl|Problem nazewnictwa topologicznego]].
+* [https://www.youtube.com/watch?v=QSsVFu929jo FreeCAD jest fundamentalnie uszkodzony! - Co teraz... Pomóż mi zdecydować...]: Wideo autorstwa Maker Tales
+
+
+{{Userdocnavi{{#translation:}}}}
+{{TechDraw Tools navi{{#translation:}}}}
+{{PartDesign Tools navi{{#translation:}}}}
+{{Part Tools navi{{#translation:}}}}
+[[Category:Common Questions{{#translation:}}]]

@@ -1,0 +1,106 @@
+<languages/>
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[TechDraw_PageDefault/ru|Вставить страницу по умолчанию]]
+|[[TechDraw_RedrawPage/ru|Перерисовать страницу]]
+|[[TechDraw_Workbench/ru|Верстак "TechDraw"]]
+|IconL=TechDraw_PageDefault.svg
+|IconR=TechDraw_RedrawPage.svg
+|IconC=Workbench_TechDraw.svg
+}}
+</div>
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/ru
+|Name/ru=Вставить страницу используя шаблон
+|Name=TechDraw_PageTemplate
+|MenuLocation=TechDraw → Вставить страницу используя шаблон
+|Workbenches=[[TechDraw_Workbench/ru|TechDraw]]
+|SeeAlso=[[TechDraw_PageDefault/ru|Вставить страницу по умолчанию]], [[TechDraw_Templates/ru|Шаблоны]]
+}}
+</div>
+
+<span id="Description"></span>
+==Описание==
+
+The '''TechDraw PageTemplate''' tool creates a new Page object using the template file selected from a dialog.
+
+The starting directory for the dialog can be specified in the [[TechDraw_Preferences|TechDraw Preferences]].
+
+[[Image:A4_Landscape_ISO7200_Pep.svg|400px]]
+{{Caption|One of the templates that comes with TechDraw: A4_Landscape_ISO7200_Pep.svg}}
+
+<span id="Usage"></span>
+==Применение==
+
+# An active document must exist.
+# There are several ways to invoke the tool:
+#* Press the {{Button|[[Image:TechDraw_PageTemplate.svg|16px]] [[TechDraw_PageTemplate|Insert Page using Template]]}} button.
+#* Select the {{MenuCommand|TechDraw → Page → [[Image:TechDraw_PageTemplate.svg|16px]] Insert Page using Template}} option from the menu.
+
+<span id="Properties"></span>
+==Свойства==
+
+See [[TechDraw_PageDefault#Properties|TechDraw PageDefault]].
+
+<span id="Scripting"></span>
+==Программирование==
+
+{{Emphasis|См. так же:}} [[TechDraw_API/ru|TechDraw API]] и [[FreeCAD_Scripting_Basics/ru|Основы составления скриптов FreeCAD]].
+
+A Page based on a selected template can be created with [[Macros|macros]] and from the [[Python|Python]] console by using the following functions:
+
+{{Code|code=
+import FreeCAD as App
+from PySide import QtGui
+
+doc = App.ActiveDocument
+default_dir = App.getResourceDir() + "Mod/TechDraw/Templates"
+param = App.ParamGet("User parameter:BaseApp/Preferences/Mod/TechDraw/Files")
+template_dir = param.GetString("TemplateDir", default_dir)
+
+template_file = QtGui.QFileDialog.getOpenFileName(QtGui.QApplication.activeWindow(),
+                                                  "Select a Template File", 
+                                                  template_dir,
+                                                  "Template (*.svg)")
+                                                  
+page = doc.addObject("TechDraw::DrawPage", "Page")
+template = doc.addObject("TechDraw::DrawSVGTemplate", "Template")
+template.Template = template_file[0]
+page.Template = template
+
+doc.recompute()
+}}
+
+=== Editable text fields ===
+
+{{Emphasis|See also:}} [[TechDraw_Templates|TechDraw Templates]] for more information on creating templates.
+
+Once a new page has been created, its {{incode|Template}} attribute holds an {{incode|EditableTexts}} dictionary with the name of the editable fields (keys) and their textual values. Copy this dictionary to a variable, make changes, and then re-assign the dictionary to the {{incode|EditableTexts}} attribute to see the changes.
+
+{{Code|code=
+page = FreeCAD.ActiveDocument.Page
+texts = page.Template.EditableTexts
+
+for key, value in texts.items():
+    print("{0} = {1}".format(key, value))
+
+texts["FC-Title"] = "The title of my page"
+page.Template.EditableTexts = texts
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|[[TechDraw_PageDefault/ru|Вставить страницу по умолчанию]]
+|[[TechDraw_RedrawPage/ru|Перерисовать страницу]]
+|[[TechDraw_Workbench/ru|Верстак "TechDraw"]]
+|IconL=TechDraw_PageDefault.svg
+|IconR=TechDraw_RedrawPage.svg
+|IconC=Workbench_TechDraw.svg
+}}
+</div>
+
+{{TechDraw Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+{{clear}}

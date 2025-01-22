@@ -1,0 +1,86 @@
+<languages/>
+{{Docnav/pl
+|[[Part_ExplodeCompound/pl|Rozbij kształt złożony]]
+|[[Part_Boolean/pl|Operacja logiczna]]
+|[[Part_Workbench/pl|środowisko pracy Część]]
+|IconL=Part_ExplodeCompound.svg
+|IconR=Part_Boolean.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/pl
+|Name=Part Compound‏‎Filter
+|Name/pl=Część: Filtr złożeń
+|MenuLocation=Część → Złożenie → Filtr złożeń
+|Workbenches=[[Part_Workbench/pl|Część]]
+|Version=0.17
+}}
+
+[[File:CompoundFilter.png]]
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie '''Filtr złożeń''' może być użyte do wyodrębnienia poszczególnych części składowych wyniku np. operacji [[Part_Slice/pl|Krojenie]], za pomocą której podzielono obiekt.
+
+Umożliwia wyodrębnianie elementów podrzędnych na podstawie ich indeksów, testowanie elementów pod kątem kolizji z kształtem szablonu oraz filtrowanie elementów podrzędnych na podstawie ich właściwości, takich jak długość, powierzchnia czy objętość.
+
+Jeśli w wyniku znajduje się tylko jeden element podrzędny, wynikiem jest ten element podrzędny. Jeśli w wyniku jest więcej niż jeden element podrzędny, wynikiem jest nowe złożenie.
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wybierz pocięty obiekt
+# Zastosuj {{MenuCommand|Część → Złożenie → Filtr złożeń}}
+# Wybierz obiekt ''FiltrZłożeń'' w Widoku drzewa
+# W zakładce właściwości ustaw '''Typ Filtra''' na '''Wybrana pozycja'''.
+# Ustaw pozycję na elementy, które chcesz wyodrębnić
+## Dla pojedynczego elementu jest to liczba zaczynająca się od 0, tj. jeśli chcesz wyodrębnić pierwszy element, wpisz 0 w tym polu, 1 dla następnego elementu ...
+## Jeżeli chcesz wyodrębnić więcej niż jeden element na raz, oddziel liczby znakiem {{KEY|;}}, np. wartość {{Value|0;2}} spowoduje wyodrębnienie pierwszego i trzeciego elementu.
+## Ogólnie przyjętym przypadkiem - który obejmuje również możliwości wymienione powyżej - jest lista zakresów indeksów, określona w notacji Pythona, ale bez nawiasów. Przedziały można łączyć w łańcuchy za pomocą średnika. Na przykład:
+##* <tt>7:10</tt> pobierz elementy podrzędne o indeksach 7, 8 i 9 ''(indeksy numerowane są od zera; indeks od zakresu do indeksu jest wykluczony)''.
+##* <tt>1;2 </tt> pobierz elementy podrzędne o indeksach 1 i 2 ''(pierwszy indeks oznacza element podrzędny 2, drugi indeks to element 3, zakresy połączone średnikiem)'',
+##* <tt>0;-1</tt> weź pierwszy element podrzędny ''(indeks 0)'' i ostatni ''(indeks -1 oznacza ostatni element, -2 - jeden przedostatni itd.)'',
+##* <tt>1: </tt> weź wszystko poza pierwszym elementem ''(brak indeksu oznacza „do końca”)'',
+##* <tt>::-1</tt> pobierz wszystkie elementy podrzędne w odwrotnej kolejności.
+##* <tt>::2 </tt> pobierz wszystkie elementy z indeksami nieparzystymi, tj. indeksy, 1,3,5,..., które są elementami 2,4,6, ...
+##* <tt>:;: </tt> powiel dwa razy złożony element wejściowy
+# Jeśli chcesz wyodrębnić kolejny element, ponownie wybierz pocięty obiekt. Jest teraz umieszczony pod obiektem o nazwie '''CompoundFilter''' w Widoku drzewa
+# Powtórz procedurę wyboru od góry. Plasterek i jego elementy podrzędne zostaną wyświetlone pod obydwoma filtrami '''CompoundFilters'''. Oczywiście nie powtarzają się one w modelu. Bardzo szybkim sposobem wyodrębnienia kolejnego fragmentu jest skopiowanie obiektu ''CompoundFilter'''. Ale '''uważaj''': Zostaniesz zapytany, czy chcesz skopiować również elementy pod CompoundFilter, musisz odpowiedzieć '''nie''', nie chcesz ich kopiować, tylko się do nich odwołujesz.
+
+<span id="Properties"></span>
+==Właściwości==
+
+* {{PropertyData|Baza}}: Obiekt do filtrowania.
+* {{PropertyData|Typ Filtra}} opcje do wyboru:
+** '''Omiń''': brak filtra. Oryginalne złożenie jest wyprowadzane bez zmian.
+** '''Wybrana pozycja''': wyodrębnia elementy wymienione we właściwości '''pozycje'''.
+** '''kolizja-przebieg''': wyodrębnia elementy, które dotykają lub przecinają się z kształtem '''Wzór'''.
+** '''okno-objętość''': ''(domyślnie)'': wyodrębnia wszystkie elementy, które mają objętość między "Okno od" i "Okno do", gdzie 100% to największy element - a nie nieobcięty obiekt. Wartość 100% jest wartością referencyjną, która może zostać zastąpiona przez "Nadpisz wartość Max".
+** '''okno-obszar''': to samo co okno-objętość, gdzie wycięty obszar określa wybór zamiast objętości.
+** '''okno-długość''': to samo co okno-objętość, gdzie długość krawędzi określa wybór zamiast objętości.
+** '''okno-odległość''': wyodrębnia elementy podrzędne, których odległość od kształtu "Wzór" mieści się w oknie wartości, zdefiniowanym przez właściwości "Okno od", "Okno do", "Nadpisz wartość Max".
+* {{PropertyData|Odwróć}}: Jeśli wartość jest ustawiona na {{true|/pl}} lista opisana powyżej zostanie wykluczona zamiast uwzględniona.
+* {{PropertyData|Nadpisz wartość Max}}: Zakres okna wartości jest określony w procentach wartości maksymalnej. Wartość maksymalna jest obliczana zgodnie z następującym zestawem reguł:
+** jeśli parametr "Nadpisz wartość Max" jest niezerowy - użyj go.
+** w przeciwnym razie, jeśli podano łącze "Wzór" - oblicz odpowiednią wartość kształtu szablonu ''(nie dotyczy odległości okna "Typ Filtra")'',
+** w przeciwnym razie, weź maksymalną wartość z elementów podrzędnych w złożeniu, które ma zostać przefiltrowane.
+* {{PropertyData|Wzór}}: Link do kształtu szablonu. W przypadku filtrów typu "kolizja-przebieg" i "okno-odległość" szablon jest obiektem, względem którego testowana jest kolizja / odległość. W przypadku innych typów filtrów "okno-***" szablon jest używany do zapewnienia wartości odniesienia dla wartości procentowych okna ''(nadpisanie wartości maksymalnej)''. We wszystkich innych trybach "Wzór" jest ignorowany.
+* {{PropertyData|Okno Od}}: Górny próg procentowy wyboru elementów, wartość 100% odnosi się do największego elementu.
+* {{PropertyData|Okno Do}}: Dolny próg procentowy wyboru elementów, wartość 100% odnosi się do największego elementu.
+* {{PropertyData|Pozycja}}: Lista lub zakres elementów do wybrania, jeśli typ filtra to "określone elementy".
+
+
+
+{{Docnav/pl
+|[[Part_ExplodeCompound/pl|Rozbij kształt złożony]]
+|[[Part_Boolean/pl|Operacja logiczna]]
+|[[Part_Workbench/pl|środowisko pracy Część]]
+|IconL=Part_ExplodeCompound.svg
+|IconR=Part_Boolean.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+{{clear}}

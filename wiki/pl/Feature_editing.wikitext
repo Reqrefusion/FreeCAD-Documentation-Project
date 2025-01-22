@@ -1,0 +1,89 @@
+<languages/>
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Ta strona wyjaśnia podejście do edycji cech w środowisku pracy [[Image:Workbench_PartDesign.svg|32px]] [[PartDesign_Workbench/pl|Projekt Części]].
+
+<span id="Body"></span>
+==Zawartość==
+
+Praca w środowisku Projekt Części wymaga najpierw stworzenia obiektu [[File:PartDesign_Body.svg|16px]] '''[[PartDesign_Body/pl|Zawartości]]'''. Zawartość jest kontenerem przeznaczonym do przechowywania pojedynczej ciągłej bryły. Gdy Zawartość jest tworzona, automatycznie dodawany jest obiekt Origin, lokalny układ współrzędnych skłądający się ze standardowych płaszczyzn odniesienia (XY, XZ, YZ) i osi (X, Y, Z). Bryła jest następnie budowana poprzez dodawanie cech. Każda [[PartDesign_Feature/pl|cecha]] jest kulumatywna i dodaje lub odejmuje się od wyniku poprzedniej cechy.
+
+[[File:PartDesign_Feature_example.png|400px]]
+
+{{Caption|Edycja cech w praktyce. Od lewej do prawej:<br>
+Zawartość z cechą [[PartDesign_AdditiveBox/pl|prostopadłościan]].<br>
+Zawartość z cechami prostopadłościan i [[PartDesign_Chamfer/pl|sfazowanie]].<br>
+Zawartość z cechami prostopadłościan, sfazowanie i [[PartDesign_Pocket/pl|kieszeń]].}}
+
+Dokument może zawierać wiele Zawartości, ale tylko jedna może być aktywna. Nowe cechy są dodawane do aktywnej Zawartości. Zawartość można aktywować i dezaktywować klikając na niej dwukrotnie w [[Tree_view/pl|widoku drzewa]]. Aktywowana Zawartość jest podświetlona w widoku drzewa.
+
+[[File:PartDesign Body tree.png]]
+
+<span id="What_is_a_contiguous_solid?"></span>
+=== Czym jest ciągła bryła? ===
+
+Ciągła bryła to obiekt taki jak odlew lub coś obrobionego z jednego kawałka metalu. Jeśli obiekt wymaga użycia gwoździ, śrub lub kleju, nie jest wtedy ciągłą bryłą. Jako praktyczny przykład, drewniane krzesło byłoby wykonane z wielu Zawartości, po jednej dla każdej z jego części składowych ''(nogi, listwy, siedzisko, itp.)''.
+
+We FreeCAD 1.0 została wprowadzona eksperymentalna właściwość pozwalająca Zawartości na przechowywanie nieciągłych brył. Można to również ustawić w [[PartDesign_Preferences/pl#Ogólne|Preferencjach]] jako domyślne dla nowo utworzonych Zawartości. Nie jest to przeznaczone do użycia do budowania, jak w przykładzie, krzesła w jednej Zawartości. Ma to pozwolić na cechy, które mogą tworzyć rodzielone bryły, które zostaną uciąglone przez kolejne cechy.
+
+Gdy model wymaga wielu Zawartości, jak w poprzednim przykładzie z drewnianym krzesłem, można użyć [[Image:Std_Part.svg|16px]] [[Std_Part/pl|kontenera]] ogólnego przeznaczenia, może być on użyty do zgrupowania ich i poruszania całością jako jedną całością.
+
+<span id="Body_visibility_management"></span>
+===Zarządzanie widocznością Zawartości===
+
+Domyślnie Zawartość prezentuje na zewnątrz swoją najnowszą cechę. Ta cecha to Wierzchołek Zawartości. Wierzchołek oznacza też położenie, w którym dodawane są nowe cechy. Możliwe jest tymczasowe przedefiniowanie Wierzchołka do cechy w środku Zawartości aby wstawić tam nowe obiekty (cechy, szkice lub geometrię konstrukcyjną). Gdy nowa cecha jest dodawana do struktury, widoczność poprzedniej cechy jest wyłączana, a nowa cecha staje się Wierzchołkiem.
+
+W danym momencie może być widoczna tylko jedna cecha. Możliwe jest [[Std_ToggleVisibility/pl|przełączenie widoczności]] dowolnej cechy w Zawartości, przez wybranie jej w widoku drzewa i naciśnięcie klawisza {{KEY|Space}}, w efekcie cofając się w historii zawartości. Zauważ, że zmiana widoczności cechy nie zmienia Wierzchołka Zawartości.
+
+<span id="Moving_and_Reordering_Objects"></span>
+===Przesuwanie i zmiana kolejności obiektów===
+
+Cechy Zawartości mogą być przestawione lub przesunięte do innej Zawartości. Zaznacz cechę i kliknij prawym przyciskiem myszy, aby uzyskać menu kontekstowe, które oferuje obie opcje. Operacja może zostać uniemożliwiona, jeśli obiekt posiada zależności w bryle źródłowej, np. jest dołączony do powierzchni. Aby przenieść szkic do innej bryły, nie powinien on zawierać powiązań z zewnętrzną geometrią.
+
+[[Image:PartDesign_workflow.svg|400px]]
+
+{{Caption|Schematyczna reprezentacja przepływu pracy w środowisku Projekt Części.}}
+
+<span id="Datum_geometry"></span>
+==Odniesienie geometrii==
+
+Geometria odniesienia składa się z niestandardowych płaszczyzn, linii, punktów lub zewnętrznie powiązanych kształtów. Mogą one być tworzone jako odniesienie dla szkiców i elementów. Istnieje wiele możliwości [[Part_EditAttachment/pl|dołączania]] do obiektów odniesienia.
+
+W programie FreeCAD płaszczyzny odniesienia mają sens w przypadku umieszczania szkiców w niestandardowych orientacjach, to znaczy w płaszczyznach przesuniętych lub obróconych wokół trzech głównych osi. Ale ponieważ szkice można również umieszczać w niestandardowych orientacjach i mają takie same opcje dołączania jak płaszczyzny odniesienia, często nie ma potrzeby używania płaszczyzn odniesienia. Płaszczyzny odniesienia mają najwięcej sensu gdy jest więcej niż jeden szkic z taką samą niestandardową orientacją. Dostosowanie orientacji płaszczyzny odniesienia dostosuje wtedy wszystkie powiązane z nią szkice i cechy z nich utworzone.
+
+Chciaż wersja 1.0 programu FreeCAD ma już kod łagodzący [[Topological_naming_problem/pl|problem gubienia odniesień]], nadal najlepszą praktyką jest dołączanie zarówno szkiców jak i płaszczyzn konstrukcyjnych do płaszczyzn bazowych globalnego układu współrzędnych Zawartości gdy tylko jest to możliwe. Tworzenie odniesień do istniejącej geometrii (geometrii, która jest wynikiem operacji cechy, np. wyciągnięcia lub wycięcia) może skutkować mniejszą stabilnością modeli. Zobacz stronę [[#Porady_dotyczące_tworzenia_stabilnych_modeli|Porady dotyczące tworzenia stabilnych modeli]] poniżej.
+
+<span id="Advice_for_creating_stable_models"></span>
+==Porady dotyczące tworzenia stabilnych modeli==
+
+Idea modelowania parametrycznego zakłada, że można zmieniać wartości pewnych parametrów, a kolejne kroki są zmieniane zgodnie z nowymi wartościami. Jednakże, gdy dokonywane są poważne zmiany, model może zostać uszkodzony z powodu [[Topological_naming_problem/pl|problemu nazewnictwa topologicznego]]. Uszkodzenia można zminimalizować jeśli przestrzega się następujących zasad projektowania:
+
+* Unikaj dołączania szkiców i własnych geometri konstrukcyjnych do istniejącej geometrii, czyli jakiejkolwiek ściany, krawędzi lub wierzchołka bryły modelu. Zamiast tego dołączaj je do standardowych płaszczyzn/osi. Szkice dołączone do standardowych płaszczyzn/osi lub do geometrii konstrukcyjnej dołączonej do standardowych płaszczyzn/osi nie będą się niespodziewanie przestawiać na inne odniesienia. Używaj odsunięć dołączenia jeśli są potrzebne.
+* Używaj "szkicu głównego". Ponieważ szkic główny jest tworzony przed resztą modelu, może mieć odniesienia tylko do standardowych płaszczyzn/osi.
+** Szkic główny powinien być tak prosty jak to możliwe, zawierając podstawowe elementy geometryczne twojego modelu.
+** Możesz tworzyć odniesienia do elementów szkicu głównego modelując kolejne cechy.
+** Szkic główny może być pierwszym szkicem w Zawartości lub może być całkowicie poza zawartością. W pierwszym przypadku, można się do niego odnosić bezpośrednio przy pomocy geometrii zewnętrznej a w drugim można skorzystać z [[File:PartDesign_ShapeBinder.svg|16px]] [[PartDesign_ShapeBinder/pl|Łącznika kształtów]] lub [[File:PartDesign_SubShapeBinder.svg|16px]] [[PartDesign_SubShapeBinder/pl|Łącznika kształtów podrzędnych]].
+* Nie twórz łączników kształtów (podrzędnych) z istniejącej geometrii. Pamiętaj, że mogą one stanowić problem jeśli geometria zostanie usunięta ze szkicu, na którym jest oparta.
+* Zawsze najpierw próbuj odnosić się do szkicu lub geometrii szkicu zamiast do istniejącej (wygenerowanej) geometrii. Jeśli koniecznie musisz odnieść się do istniejącej geometrii, użyj pierwszej cechy, w której występuje element, do którego chcesz się odnieść. Wtedy zmiany w dalszych krokach nie zepsują modelu.
+* Używaj cech wykańczających, takich jak zaokrąglenia i sfazowania tak późno w drzewie cech jak to możliwe.
+
+<span id="Tutorials"></span>
+==Poradniki==
+
+Strona [[Tutorials/pl|Poradniki]] zawiera kilka przykładów użycia metody edycji cech w środowisku [[PartDesign_Workbench/pl|PartDesign_Workbench/pl]]. 
+* [[Creating_a_simple_part_with_PartDesign/pl|Projekt części: tworzenie podstawowych brył]]
+* [[Basic_Part_Design_Tutorial_019/pl|Poradnik: Podstawy dla Środowiska pracy Projekt Części 019]]
+* [[Basic_Attachment_Tutorial/pl|Poradnik: Podstawy dołączania]]
+
+<span id="Related"></span>
+==Powiązane==
+
+* [[Constructive_solid_geometry/pl|Konstrukcyjna geometria bryły]]
+
+
+{{PartDesign Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Common Questions{{#translation:}}]]

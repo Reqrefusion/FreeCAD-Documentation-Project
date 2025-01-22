@@ -1,0 +1,79 @@
+<languages/>
+
+{{Docnav/fr
+|[[Arch_MergeWalls/fr|Fusionner des murs]]
+|[[Arch_ToggleIfcBrepFlag/fr|Basculer en B-rep IFC]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_MergeWalls.svg
+|IconR=Arch_ToggleIfcBrepFlag.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|Cette commande fait partie de l'ensemble intégré de l'[[BIM_Workbench/fr|atelier BIM]] avec la V1.0<br>
+Cette page a été mise à jour pour cette version.}}
+
+{{GuiCommand/fr
+|Name=Arch Check
+|Name/fr=Arch Vérifier
+|MenuLocation=Utilitaires → Vérifier
+|Workbenches=[[BIM_Workbench/fr|BIM]]
+|SeeAlso=[[Arch_CloseHoles/fr|Arch Fermer les trous]]
+}}
+
+==Description==
+
+Cet outil vérifie que le document en cours ou les objets sélectionnés ne contiennent pas d'objets non solides des [[Part_Workbench/fr|Atelier Part]] ou [[BIM_Workbench/fr|Atelier BIM]], lesquels pourrait poser des problèmes, étant donné que la plupart des opérations de l'atelier BIM nécessitent des objets solides.
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Sélectionnez l'option {{MenuCommand|Utilitaires  → [[Image:Arch_Check.svg|16px]] Vérifier}} du menu.
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Voir aussi :}} [[Arch_API/fr|Arch API]] et [[FreeCAD_Scripting_Basics/fr|Débuter avec les scripts FreeCAD]].
+
+Cet outil peut être utilisé dans une [[Macros/fr|macro]] et utilisé dans la console [[Python/fr|Python]] en utilisant la fonction :
+{{Code|code=
+list_bad = check(objectslist, includehidden=False)
+}}
+
+* Vérifie si les objets donnés dans {{incode|objectslist}} ne contiennent que des solides.
+* Si {{incode|includehidden}} est {{incode|True}}, il inclura tous les objets cachés, sinon il les omettra de la recherche.
+* Retourne {{incode|list_bad}}, une liste avec les objets qui ne sont pas dérivés d'une {{incode|Part::Feature}}, ou des composants qui ne sont pas fermés, non valides, ne contiennent pas de solides ou qui contiennent des faces qui ne font partie d'aucun solide. Ceci est utilisé pour détecter des polylignes de [[BIM_Workbench/fr|BIM]] ou de [[Draft_Workbench/fr|Draft]] et des profils qui ne sont pas des solides.
+** Chaque élément de {{incode|list_bad}} est une autre liste {{incode|[object, message]}}, où {{incode|object}} est l'élément non solide détecté, et {{incode|message}} indique la raison pour laquelle il a été inclus dans cette liste.
+
+Exemple :
+
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 0, 0)
+baseline = Draft.makeLine(p1, p2)
+Wall1 = Arch.makeWall(baseline, length=None, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+Wall2 = Arch.makeWall(None, length=2000, width=200, height=1000)
+FreeCAD.ActiveDocument.recompute()
+
+Circle = Draft.makeCircle(450)
+Wire = Draft.makeWire([FreeCAD.Vector(1000, 0, 0), FreeCAD.Vector(1500, 1000, 0), FreeCAD.Vector(2500, -1000, 0)])
+
+list_bad = Arch.check([Wall1, Wall2, Circle, Wire], includehidden=True)
+print(list_bad)
+}}
+
+
+{{Docnav/fr
+|[[Arch_MergeWalls/fr|Fusionner des murs]]
+|[[Arch_ToggleIfcBrepFlag/fr|Basculer en B-rep IFC]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_MergeWalls.svg
+|IconR=Arch_ToggleIfcBrepFlag.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

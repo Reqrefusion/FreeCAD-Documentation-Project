@@ -1,0 +1,1282 @@
+<languages/>
+{{TOCright}}
+
+<span id="Overview"></span>
+==Informacje ogólne==
+
+Możliwe jest definiowanie właściwości za pomocą wyrażeń matematycznych. W GUI, pola wyboru lub pola wejściowe, które są powiązane z właściwościami pokazują niebieską ikonę [[Image:Bound-expression.svg|16px]], gdy są aktywowane. Kliknięcie ikony lub wpisanie znaku równości {{KEY|&#61;}} otwiera edytor wyrażeń dla danej właściwości. Jeśli pole wejściowe pokazuje przycisk {{Button|...}} zamiast ikony, edytor wyrażeń można otworzyć, klikając właściwość prawym przyciskiem myszy i wybierając {{MenuCommand|Wyrażenie ...}} z menu podręcznego.
+
+Wyrażenie FreeCAD jest wyrażeniem matematycznym zgodnym z notacją dla standardowych [[#Obsługiwane_operatory|operatorów]] matematycznych, [[#Obsługiwane_funkcje|funkcji]] oraz [[#Obsługiwane_stałe|predefiniowanych stałych]] opisanych poniżej. Dodatkowo, wyrażenie może odwoływać się do innych [[#Wyrażenia_warunkowe|wyrażeń warunkowych]], a także używać warunków. Liczby w wyrażeniu mogą mieć opcjonalnie dołączoną [[#Jednostki|jednostkę]].
+
+W liczbach można używać przecinka {{incode|,}} lub kropki dziesiętnej {{incode|.}} oddzielającej całe cyfry od części dziesiętnych.
+Gdy używany jest przecinek, po nim '''musi''' następować co najmniej jedna cyfra.  
+Zatem wyrażenia {{incode|1.+2.}} i {{incode|1,+2,}} są nieprawidłowe, ale {{incode|1.0 + 2.0}} i {{incode|1,0 + 2,0}} są już poprawne.
+
+Operatory i funkcje są świadome jednostek i wymagają poprawnych kombinacji jednostek, jeśli zostały podane. Na przykład, {{incode|2mm + 4mm}} jest poprawnym wyrażeniem, podczas gdy {{incode|2mm + 4}}. Dotyczy to również odwołań do właściwości obiektu, które mają jednostki, takie jak właściwości Długości. Tak więc {{incode|Pad001.Length + 1}} jest wyrażeniem nieprawidłowym, ponieważ dodaje czystą liczbę do właściwości z jednostkami długości, konieczne jest użycie {{incode|Pad001.Length + 1mm}}.
+
+Niektóre błędy związane z jednostkami mogą wydawać się nieintuicyjne, z wyrażeniami albo są odrzucane, albo dają wyniki, które nie pasują do jednostek ustawianej właściwości. Oto kilka przykładów:
+
+{{incode|1/2mm}} nie jest interpretowany jako pół milimetra, ale jako {{incode|1/(2mm)}}, co daje: {{incode|0,5 mm^-1}}.
+
+{{incode|sqrt(2)mm}} nie jest prawidłowe, ponieważ wywołanie funkcji nie jest liczbą. Należy to wprowadzić jako {{incode|sqrt(2) * 1mm}}.
+
+<span id="Function_arguments"></span>
+===Argumenty funkcji===
+
+Wiele argumentów funkcji może być oddzielonych średnikiem {{incode|;}} albo przecinkiem, <em>po którym następuje spacja</em> {{incode|, }}. W tym drugim przypadku, po wprowadzeniu przecinek jest konwertowany na średnik. Gdy używany jest średnik, spacja nie jest wymagana.
+
+Argumenty mogą zawierać odwołania do komórek w arkuszu kalkulacyjnym. Odwołanie do komórki składa się z wielkiej litery wiersza, po której następuje numer kolumny, na przykład {{incode|A1}}.  Można też odwołać się do komórki, używając jej aliasu, na przykład {{incode|Arkusz_kalkulacyjny.DługośćCzęści}}.
+
+<span id="Referencing_objects"></span>
+===Odwołania do obiektów===
+
+Jak pokazano powyżej, można odwoływać się do obiektu poprzez jego {{PropertyData/pl|Nazwa}}. Ale można również użyć jego  {{PropertyData/pl|Etykiety}}. W przypadku właściwości {{PropertyData/pl|Etykieta}}, musi ona być zamknięta w podwójnych symbolach {{incode|<<}} i {{incode|>>}}, na przykład {{incode|<<Etykieta>>}}.
+
+Można odwołać się do dowolnej właściwości obiektu. Na przykład, aby odwołać się do wysokości bryły walca, możesz użyć właściwości {{incode|Cylinder.Height}} lub {{incode|<<Etykieta_walca>>.Height}}.
+
+Więcej informacji na temat odwoływania się do obiektów znajdziesz w akapicie [[#Odwo.C5.82anie_do_danych_CAD|Odwołanie do danych CAD]].
+{{Top}}
+<span id="Supported_constants"></span>
+==Obsługiwane stałe==
+
+Obsługiwane są następujące stałe:
+
+{| class="wikitable"
+!style="width: 33%;"|Nazwa stałej
+!style="width: 66%;"|Opis
+|-
+| style="text-align:center;" | '''e'''
+| [https://pl.wikipedia.org/wiki/Sta%C5%82a_Eulera Liczba Eulera]
+|-
+| style="text-align:center;" | '''pi'''
+| [https://pl.wikipedia.org/wiki/Pi Pi]
+|}
+{{Top}}
+<span id="Supported_operators"></span>
+==Obsługiwane operatory==
+
+Obsługiwane są następujące operatory:
+
+{| class="wikitable"
+!style="width: 33%;"|Operator
+!style="width: 66%;"|Opis
+|-
+| style="text-align:center;" |'''+'''
+| [https://pl.wikipedia.org/wiki/Dodawanie Dodawanie]
+|-
+| style="text-align:center;" |'''-'''
+| [https://pl.wikipedia.org/wiki/Odejmowanie Odejmowanie]
+|-
+| style="text-align:center;" | '''*'''
+| [https://pl.wikipedia.org/wiki/Mno%C5%BCenie Mnożenie]
+|-
+| style="text-align:center;" | '''/'''
+| [https://pl.wikipedia.org/wiki/Dzielenie Dzielenie] zmiennoprzecinkowe
+|-
+| style="text-align:center;" | '''%'''
+| [https://pl.wikipedia.org/wiki/Modulo Modulo]
+|-
+| style="text-align:center;" | '''^'''
+| [https://pl.wikipedia.org/wiki/Pot%C4%99gowanie Potęgowanie]
+|}
+{{Top}}
+<span id="Supported_functions"></span>
+==Obsługiwane funkcje==
+
+<span id="General_mathematical_functions"></span>
+===Ogólne funkcje matematyczne===
+
+Obsługiwane są następujące funkcje matematyczne:
+
+<span id="Trigonometric_functions"></span>
+====Funkcje trygonometryczne====
+
+[https://pl.wikipedia.org/wiki/Funkcje_trygonometryczne Funkcje trygonometryczne] używają stopnia jako domyślnej jednostki. W przypadku miary radianowej, dodaj nazwę jednostki {{incode|rad}} za <em>pierwszą</em> wartością w wyrażeniu. Tak więc np. {{incode|cos(45)}} jest tym samym co {{incode|cos(pi rad / 4)}}.  W wyrażeniach w stopniach można używać albo nazwę jednostki {{incode|deg}} albo symbol jednostki {{incode|°}}, np. {{incode|360deg - atan2(3; 4)}} lub {{incode|360&deg; - atan2(3; 4)}}.  Jeśli wyrażenie nie ma jednostek i musi być przeliczone na stopnie lub radiany dla zgodności, pomnóż je przez {{incode|1deg}}, {{incode|1°}} lub {{incode|1rad}}, odpowiednio, np. {{incode|(360 - X) * 1deg}}; {{incode|(360 - X) * 1°}}; {{incode|(0,5 + pi / 2) * 1rad}}.
+
+{| class="wikitable"
+!style="width: 15%;"|Funkcja
+!style="width: 15%;"|Opis
+!style="width: 15%;"|Zakres wprowadzanych wartości
+|-
+| {{incode|acos(x)}}
+| [https://pl.wikipedia.org/wiki/Funkcje_cyklometryczne#Basic_properties Arc cosine]
+| -1 <= x <= 1 
+|-
+| {{incode|asin(x)}}
+| [https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Basic_properties Arc sine]
+| -1 <= x <= 1 
+|-
+| {{incode|atan(x)}}
+| [https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Basic_properties Arc tangent], zwraca wartość w zakresie > -90° do < 90°
+| cały
+|-
+| {{incode|atan2(y; x)}}
+| [https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Basic_properties Arc tangent] z "y/x" z uwzględnieniem kwadrantu, zwraca wartość w zakresie > -180° do <= 180°
+| cały, nieprawidłowe dane wejściowe x = y = 0, zwracają 0
+|-
+| {{incode|cos(x)}}
+| [https://en.wikipedia.org/wiki/Trigonometric_functions#Right-angled_triangle_definitions Cosine]
+| cały
+|-
+| {{incode|cosh(x)}}
+| [https://en.wikipedia.org/wiki/Hyperbolic_function#Trigonometric_definitions Hyperbolic cosine]
+| cały
+|-
+| {{incode|sin(x)}}
+| [https://en.wikipedia.org/wiki/Trigonometric_functions#Right-angled_triangle_definitions Sine]
+| cały
+|-
+| {{incode|sinh(x)}}
+| [https://en.wikipedia.org/wiki/Hyperbolic_function#Trigonometric_definitions Hyperbolic sine]
+| cały
+|-
+| {{incode|tan(x)}}
+| [https://en.wikipedia.org/wiki/Trigonometric_functions#Right-angled_triangle_definitions Tangent]
+| cały, z wyjątkiem x = n*90 przy n = nieparzysta liczba całkowita
+|-
+| {{incode|tanh(x)}}
+| [https://en.wikipedia.org/wiki/Hyperbolic_function#Trigonometric_definitions Hyperbolic tangent]
+| cały
+|-
+| {{incode|hypot(x; y)}}
+| [https://en.wikipedia.org/wiki/Pythagorean_addition dodatek Pitagorejski] ''('''hypot'''enuse)''. Np. hypot(4; 3) = 5.
+| x oraz y >= 0
+|-
+| {{incode|cath(x; y)}}
+| Biorąc pod uwagę przeciwprostokątną i jeden bok, zwraca drugi bok trójkąta. Np. cath(5; 3) = 4.
+| x oraz x >= y >= 0 
+|}
+
+<span id="Exponential_and_logarithmic_functions"></span>
+====Funkcje wykładnicze i logarytmiczne====
+
+{| class="wikitable"
+!style="width: 33%;"|Funkcja
+!style="width: 33%;"|Opis
+!style="width: 33%;"|Zakres wprowadzanych wartości
+|-
+| {{incode|exp(x)}}
+| [https://pl.wikipedia.org/wiki/Funkcja_wyk%C5%82adnicza Funkcja wykładnicza]
+| cały
+|-
+| {{incode|log(x)}}
+| [https://pl.wikipedia.org/wiki/Logarytm_naturalny Logarytm naturalny]
+| x > 0 
+|-
+| {{incode|log10(x)}}
+| [https://pl.wikipedia.org/wiki/Logarytm_dziesi%C4%99tny Logarytm dziesiętny]
+| x > 0 
+|-
+| {{incode|pow(x; y)}}
+| [https://pl.wikipedia.org/wiki/Pot%C4%99gowanie Potęgowanie]
+| cały
+|-
+| {{incode|sqrt(x)}}
+| [https://pl.wikipedia.org/wiki/Pierwiastek_kwadratowy Pierwiastek kwadratowy]
+| x >= 0
+|-
+| {{incode|cbrt(x)}} {{Version/pl|0.21}}
+| [https://pl.wikipedia.org/wiki/Pierwiastek_sze%C5%9Bcienny Pierwiastek sześcienny]
+| cały
+|}
+
+<span id="Rounding,_truncation_and_remainder_functions"></span>
+====Funkcje zaokrąglania, obcinania i reszty====
+
+{| class="wikitable"
+!style="width: 20%;"|Funkcja
+!style="width: 55%;"|Opis
+!style="width: 25%;"|Zakres wprowadzanych wartości
+|-
+| | {{incode|abs(x)}}
+| [https://pl.wikipedia.org/wiki/Warto%C5%9B%C4%87_bezwzgl%C4%99dna Wartość bezwzględna]
+| cały
+|-
+| {{incode|ceil(x)}}
+| [https://pl.wikipedia.org/wiki/Pod%C5%82oga_i_sufit Funkcja sufitu], najmniejsza wartość całkowita większa lub równa x
+| cały 
+|-
+| {{incode|floor(x)}}
+| [https://pl.wikipedia.org/wiki/Pod%C5%82oga_i_sufit Funkcja podłogi], największa wartość całkowita mniejsza lub równa x
+| cały 
+|-
+| {{incode|mod(x; y)}}
+| [https://pl.wikipedia.org/wiki/Reszta Reszta] po podzieleniu "'x'" przez "'y', znak wyniku to znak dywidendy.
+| cały, z wyjątkiem y = 0
+|-
+| {{incode|round(x)}}
+| [https://pl.wikipedia.org/wiki/Zaokr%C4%85glanie Zaokrąglanie] do najbliższej liczby całkowitej
+| cały
+|-
+| {{incode|trunc(x)}}
+| [https://pl.wikipedia.org/wiki/Obcinanie Obcinanie] do najbliższej liczby całkowitej w kierunku zera
+| cały
+|}
+{{Top}}
+<span id="Statistical_/_aggregate_functions"></span>
+===Funkcje statystyczne / agregujące===
+
+[https://en.wikipedia.org/wiki/Aggregate_function Funkcje agregujące] przyjmują jeden lub więcej argumentów.<br>
+
+Poszczególne argumenty funkcji agregujących mogą składać się z zakresów komórek.  Zakres komórek jest wyrażony jako dwa odwołania do komórek oddzielone dwukropkiem {{Incode|:}}, na przykład {{Incode|average(B1:B8)}} lub {{Incode|sum(A1:A4; B1:B4)}}.
+Odwołania do komórek mogą również wykorzystywać aliasy komórek, na przykład {{Incode|average(StartTemp:KoniecTemp)}}.
+
+Obsługiwane są następujące funkcje agregacji:
+
+{| class="wikitable"
+!style="width: 20%;"|Funkcja
+!style="width: 55%;"|Opis
+!style="width: 25%;"|Zakres wprowadzanych wartości
+|-
+| {{incode|average(a; b; c; ...)}}
+| [https://pl.wikipedia.org/wiki/%C5%9Arednia_arytmetyczna Średnia] wartość argumentów, tak samo jak sum(a; b; c; ...) / count(a; b; c; ...)
+| cały
+|-
+| {{incode|count(a; b; c; ...)}}
+| [https://en.wikipedia.org/wiki/Counting Zlicz] wartość argumentów, zwykle używane dla zakresów komórek
+| cały 
+|-
+| {{incode|max(a; b; c; ...)}}
+| [https://pl.wikipedia.org/wiki/Funkcje_minimum_i_maksimum Maksimum] wartość argumentów
+| cały 
+|-
+| {{incode|min(a; b; c; ...)}}
+| [https://pl.wikipedia.org/wiki/Funkcje_minimum_i_maksimum Minimum] wartość argumentów
+| cały
+|-
+| {{incode|stddev(a; b; c; ...)}}
+| [https://pl.wikipedia.org/wiki/Odchylenie_standardowe Odchylenie standardowe] wartości argumentów
+| cały
+|-
+| {{incode|sum(a; b; c; ...)}}
+| [https://pl.wikipedia.org/wiki/Sumowanie Suma] wartości argumentów, typowo stosowane dla zakresów komórek
+| cały
+|}
+{{Top}}
+<span id="String_manipulation"></span>
+===Operacje na ciągach znaków===
+
+<span id="String_identification"></span>
+====Rozpoznawanie łańcucha znaków====
+
+Łańcuchy są identyfikowane w wyrażeniach przez otoczenie ich podwójnymi daszkami otwierającymi/zamykającymi ''(podobnie jak etykiety)''.
+
+W poniższym przykładzie "TEXT" jest rozpoznawany jako ciąg znaków : {{incode|<<TEXT>>}}.
+
+<span id="String_concatenation"></span>
+====Łączenie łańcuchów znaków====
+
+Łańcuchy mogą być sumowane przy użyciu znaku {{KEY|+}}.
+
+Na przykład {{incode|<<Mój>> + <<TEKST>>}} będzie złączone do "MójTEKST".
+
+<span id="String_conversion"></span>
+====konwersja łańcuchów znaków====
+
+Wartości numeryczne można konwertować na ciągi za pomocą funkcji {{incode|str}}:
+
+{{incode|str(Box.Length.Value)}}
+
+<span id="String_formatting"></span>
+====Formatowanie łańcucha znaków====
+
+Formatowanie ciągów jest obsługiwane za pomocą ''(starego)'' sposobu środowiska Python w %-styl.
+
+Wszystkie specyfikatory % są zdefiniowane w [https://docs.python.org/3/library/stdtypes.html#printf-style-string-formatting dokumentacji] środowiska Python.
+
+Na przykład, zakładając, że masz sześcian o domyślnej długości boków 10mm o nazwie "Sześcian" ''(domyślne nazewnictwo FreeCAD)'', następujące wyrażenie {{incode|<<Długość sześcianu: %s>> % Box.Length}} zostanie rozwinięte do "Długość sześcianu: 10.0mm".
+
+Dla więcej niż jednego specyfikatora '''%''' należy użyć następującej składni: {{incode|<<długość sześcianu to %s, a szerokość to %s>> % tuple(Box.Length; Box.Width)}}. Można też użyć operacji łączenia: {{incode|<<Długość sześcianu wynosi %s>> % Box.Length + << a szerokość wynosi %s>> % Box.Width}} zostanie rozwinięte do "Długość sześcianu wynosi 10.0 mm a szerokość 10.0 mm".
+
+ [https://forum.freecadweb.org/viewtopic.php?f=8&t=58657 Na forum] dostępny jest przykładowy plik FreeCAD wykorzystujący formatowanie ciągów znaków.
+{{Top}}
+<span id="Object_creation_functions"></span>
+===Funkcje tworzenia obiektów===
+
+W wyrażeniach można tworzyć następujące obiekty za pomocą następujących funkcji:
+
+{| class="wikitable"
+! Typ
+! Funkcja
+! Opis
+|-
+| {{incode|Tuple}}
+| {{incode|tuple(a; b; ...)}}
+| Przykład: {{incode|tuple(2; 1; 2)}}
+|-
+| {{incode|List}}
+| {{incode|list(a; b; ...)}}
+| Przykład: {{incode|list(2; 1; 2)}}
+|-
+| rowspan="2" | [[Vector API|{{incode|Vector}}]]
+| {{incode|vector(x; y; z)}}
+| rowspan="2" | Utwórz wektor używając trzech wartości jednostkowych bez jednostek lub {{incode|Długości}}.
+Przykład: {{incode|vector(2; 1; 3)}}
+|-
+| {{incode|create(<<vector>>; x; y; z)}}
+|-
+| rowspan="2" | [[Matrix API|{{incode|Matrix}}]]
+|
+ matrix(
+   a<sub>11</sub>; a<sub>12</sub>; a<sub>13</sub>; a<sub>14</sub>;
+   a<sub>21</sub>; a<sub>22</sub>; a<sub>23</sub>; a<sub>24</sub>;
+   a<sub>31</sub>; a<sub>32</sub>; a<sub>33</sub>; a<sub>34</sub>;
+   a<sub>41</sub>; a<sub>42</sub>; a<sub>43</sub>; a<sub>44</sub>
+ )
+| rowspan="2" | Create a 4x4 matrix in [https://en.wikipedia.org/wiki/Row-_and_column-major_order row-major order]:
+<math>
+\begin{bmatrix}
+a_{11} & a_{12} & a_{13} & a_{14} \\
+a_{21} & a_{22} & a_{23} & a_{24} \\
+a_{31} & a_{32} & a_{33} & a_{34} \\
+a_{41} & a_{42} & a_{43} & a_{44} \\
+\end{bmatrix}
+</math>
+
+Można podać minimum 1 argument, np. {{incode|matrix(1)}}, który tworzy macierz tożsamości.
+
+Przykład: {{incode|matrix(1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15; 16)}}
+|-
+| {{incode|create(<<matrix>>; a<sub>11</sub>; a<sub>12</sub>; ...; a<sub>44</sub>)}}
+|-
+| rowspan="4" | {{incode|Rotation}}
+| {{incode|rotation(axis; angle)}}
+| rowspan="4" | Utwórz {{incode|Rotation}} określając jego {{incode|axis}}. ({{incode|Vector}}) i {{incode|angle}} ({{incode|Angle}} jednostkowy lub bezjednostkowy), lub trzy kąty Eulera. {{incode|α}}, {{incode|β}}, {{incode|γ}}.
+Przykład:
+* {{incode|rotation(vector(0; 1; 0); 45)}}
+* {{incode|create(<<rotation>>; 30; 30; 30)}}
+|-
+| {{incode|rotation(α; β; γ)}}
+|-
+| {{incode|create(<<rotation>>; axis; angle)}}
+|-
+| {{incode|create(<<rotation>>; α; β; γ)}}
+|-
+| rowspan="5" | [[Placement_API|{{incode|Placement}}]]
+| {{incode|placement(base; rotation)}}
+| rowspan="5" | Utwórz {{incode|Placement}} z różnymi parametrami, w tym:
+* {{incode|base}}: położenie podstawowe ({{incode|Vector}})
+* {{incode|center}}: położenie środka ({{incode|Vector}})
+* {{incode|rotation}}: {{incode|Rotation}}
+* {{incode|axis}}: oś obrotu ({{incode|Vector}})
+* {{incode|angle}}: kąt obrotu (unit-less or {{incode|Angle}} unit value)
+* {{incode|matrix}}: {{incode|Matrix}}
+
+Przykład:
+* {{incode|placement(vector(2; 1; 3); rotation(vector(0; 0; 1); 45))}}
+* {{incode|create(<<placement>>; create(<<vector>>; 2; 1; 2); create(<<rotation>>; create(<<vector>>; 0; 1; 0); 45))}}
+|-
+| {{incode|placement(base; rotation; center)}}
+|-
+| {{incode|placement(base; axis; angle)}}
+|-
+| {{incode|placement(matrix)}}
+|-
+| {{incode|create(<<placement>>; ...)}}
+|}
+{{Top}}
+<span id="Vector_functions"></span>
+===Funkcje wektorów===
+
+Funkcje: {{Version/pl|1.0}}.
+
+{| class="wikitable"
+! Funkcja / Operator
+! Opis
+|-
+| {{incode|v1 + v2}}
+| Dodaj dwa wektory.
+|-
+| {{incode|v1 - v2}}
+| Odejmowanie dwóch wektorów.
+|-
+| {{incode|v * s}}
+| Jednolite skalowanie wektora przez {{incode|s}}.
+|-
+| {{incode|vangle(v1; v2)}}
+| Kąt między dwoma wektorami w stopniach.
+|-
+| {{incode|vcross(v1; v2)}}
+| Iloczyn krzyżowy dwóch wektorów <math>v_1 \times v_2</math>.
+|-
+| {{incode|v1 * v2}}
+| rowspan="2" | Iloczyn kropkowy dwóch wektorów <math>v_1 \cdot v_2</math>.
+|-
+| {{incode|vdot(v1; v2)}}
+|-
+| {{incode|vlinedist(v1, v2, v3)}}
+| Odległość między wektorem {{incode|v1}} a linią przechodzącą przez {{incode|v2}} w kierunku {{incode|v3}}.
+|-
+| {{incode|vlinesegdist(v1; v2; v3)}}
+| Odległość między wektorem {{incode|v1}} a najbliższym punktem na odcinku linii od {{incode|v2}} do {{incode|v3}}.
+|-
+| {{incode|vlineproj(v1; v2; v3)}}
+| Rzutuj wektor {{incode|v1}} na linię przechodzącą przez {{incode|v2}} w kierunku {{incode|v3}}.
+|-
+| {{incode|vnormalize(v)}}
+| Normalizuje wektor do wektora jednostkowego.
+|-
+| {{incode|vplanedist(v1)}}
+| Odległość między wektorem {{incode|v1}} a płaszczyzną zdefiniowaną przez punkt {{incode|v2}} i normalną {{incode|v3}}.
+|-
+| {{incode|vplaneproj(v1)}}
+| Rzutuje wektor {{incode|v1}} na płaszczyznę zdefiniowaną przez punkt {{incode|v2}} i normalną {{incode|v3}}.
+|-
+| {{incode|vscale(v; sx; sy; sz)}}
+| rowspan="4" | Niejednolite skalowanie wektora przez {{incode|sx}} w kierunku X, {{incode|sy}} w kierunku Y i {{incode|sz}} w kierunku Z.
+|-
+| {{incode|vscalex(v; sx)}}
+|-
+| {{incode|vscaley(v; sy)}}
+|-
+| {{incode|vscalez(v; sz)}}
+|}
+{{Top}}
+<span id="Matrix_functions"></span>
+===Funkcje macierzy===
+
+{{incode|Rotation}} oraz {{incode|Placement}} może być reprezentowana przez {{incode|Matrix}}. Poniższe funkcje przyjmują {{incode|Matrix}}, {{incode|Rotation}} lub {{incode|Placement}} jako pierwszy parametr, oznaczony w poniższej tabeli przez {{incode|m}}. Typ zwracanego obiektu jest taki sam jak obiekt podany w pierwszym argumencie, z wyjątkiem użycia {{incode|mtranslate}} na {{incode|Rotation}}, w którym to przypadku zwrócony zostanie {{incode|Placement}}.
+
+{| class="wikitable"
+! Funkcja
+! Opis
+|-
+| {{incode|minvert(m)}}
+| Oblicz [https://en.wikipedia.org/wiki/Invertible_matrix Inverse matrix].
+|-
+| {{incode|mrotate(m; rotation)}}
+| rowspan="3" | [https://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2 Rotate] przez:
+* {{incode|Rotation}}
+* oś ({{incode|Vector}}) i kąt ({{incode|Angle}} jednostkowy lub bezjednostkowy)
+* trzy kąty Eulera {{incode|α}}, {{incode|β}}, {{incode|γ}}
+|-
+| {{incode|mrotate(m; axis; angle)}}
+|-
+| {{incode|mrotate(m; α; β; γ)}}
+|-
+| {{incode|mrotatex(m; angle)}}
+| [https://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2 Rotate] wokół osi X.
+|-
+| {{incode|mrotatey(m; angle)}}
+| [https://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2 Rotate] wokół osi Y.
+|-
+| {{incode|mrotatez(m; angle)}}
+| [https://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2 Rotate] wokół osi Z.
+|-
+| {{incode|mtranslate(m; vector)}}
+| rowspan="2" | [https://en.wikipedia.org/wiki/Translation_(geometry)#Matrix_representation Przekształć] za pomocą {{incode|vector}} ({{incode|Vector}}) lub wartości X, Y, Z. Jeśli przekształcenie dotyczy {{incode|Rotation}}, zwróconym obiektem jest {{incode|Placement}}.
+|-
+| {{incode|mtranslate(m; x; y; z)}}
+|-
+| {{incode|mscale(m; vector)}}
+| rowspan="2" | [https://en.wikipedia.org/wiki/Scaling_(geometry)#Matrix_representation Skaluj] za pomocą {{incode|vector}} ({{incode|Vector}}) lub wartości X, Y, Z.
+|-
+| {{incode|mscale(m; x; y; z)}}
+|}
+{{Top}}
+<span id="Conditional_expressions"></span>
+==Wyrażenia warunkowe==
+
+Wyrażenia warunkowe mają postać {{incode|condition ? resultTrue : resultFalse}}. Warunek jest zdefiniowany jako wyrażenie, które oblicza się jako {{incode|0}} ({{false/pl}}) lub niezerowe ({{true/pl}}).
+
+Zauważ, że aby użyć boolowskiej właściwości jako warunku, należy użyć następującej składni: {{incode|VarSet.MyBool &#61;&#61; 1 ? 10 mm : 15 mm}}.
+
+Zdefiniowane są następujące [https://en.wikipedia.org/wiki/Relational_operator#Standard_relational_operators operatory relacyjne]: 
+{| class="wikitable"
+!style="width: 33%;"|Operator
+!style="width: 66%;"|Opis
+|-
+| style="text-align:center;" | '''=='''
+| jest równy
+|-
+| style="text-align:center;" | '''!='''
+| nie jest równy
+|-
+| style="text-align:center;" | '''>'''
+| większy niż
+|-
+| style="text-align:center;" | '''<'''
+| mniejszy niż
+|-
+| style="text-align:center;" | '''>='''
+| większy lub równy
+|-
+| style="text-align:center;" | '''<='''
+| mniejszy lub równy
+|}
+{{Top}}
+<span id="Units"></span>
+==Jednostki==
+
+Jednostki mogą być używane bezpośrednio w wyrażeniach. Parser łączy je z poprzedzającą wartością. Tak więc wartość {{incode|2mm}} lub {{incode|2 mm}} jest zapisana poprawne, podczas gdy {{incode|mm}} jest niepoprawna, ponieważ nie ma poprzedzającego określenia wielkości / ilości.
+
+Wszystkie wartości muszą mieć swoją jednostkę. Dlatego musisz generalnie używać jednostki dla wartości w arkuszach kalkulacyjnych.<br/>
+W niektórych przypadkach działa to nawet bez jednostki, na przykład jeśli masz np. w komórce B1 arkusza kalkulacyjnego tylko liczbę {{incode|1.5}} i odnosisz się do niej jako do wysokości wyciągnięcia. Działa to tylko dlatego, że wysokość wyciągnięcia określa wstępnie jednostkę {{incode|mm}}, która jest używana, jeśli nie podano jednostki. Nie powiedzie się jednak, jeśli jako wysokości wyciągnięcia użyjesz np. {{incode|Szkic1.Constraints.Width - Arkusz_kalkulacyjny.B1}}, ponieważ {{incode|Szkic1.Constraints.Width}} ma określoną jednostkę, a {{incode|Arkusz_kalkulacyjny.B1}} nie.
+
+Jednostki z wykładnikami mogą być wprowadzane bezpośrednio. Tak więc np. {{incode|mm^3}} zostanie rozpoznane jako '''mm³''', a {{incode|m^3}} jako '''m³'''.
+
+Jeśli masz zmienną, której nazwa jest jednostką, musisz umieścić ją pomiędzy {{incode|<< >>}}, aby zapobiec rozpoznaniu jej jako jednostki. Na przykład, jeśli masz wymiar {{incode|Szkic.Constraints.A}} to zostałby on rozpoznany jako jednostka ampera. Dlatego musisz zapisać go w wyrażeniu jako {{incode|Szkic.Constraints.<<A>>}}.
+
+Parser wyrażeń rozpoznaje następujące jednostki:
+
+<span id="Amount_of_substance"></span>
+===Ilość materii===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| mmol
+| Milli[https://pl.wikipedia.org/wiki/Masa_molowa Masa molowa]
+|-
+| mol
+| [https://pl.wikipedia.org/wiki/Mol Mol]
+|}
+
+<span id="Angle"></span>
+===Kąt===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| °
+| [https://pl.wikipedia.org/wiki/Stopie%C5%84_(k%C4%85t) Stopień]; alternatywa dla jednostki deg
+|-
+| deg
+| [https://pl.wikipedia.org/wiki/Stopie%C5%84_(k%C4%85t) Stopień]; alternatywa dla jednostki °
+|-
+| rad
+| [https://pl.wikipedia.org/wiki/Radian Radian]
+|-
+| gon
+| [https://en.wikipedia.org/wiki/Gon_(unit) Gradian]
+|-
+| M
+| [https://pl.wikipedia.org/wiki/Minuta_k%C4%85towa Minuta kątowa], alternatywa dla jednostki '
+|-
+| ′
+| [https://pl.wikipedia.org/wiki/Minuta_k%C4%85towa Minuta kątowa]; alternatywa dla jednostki M
+|-
+| S
+| [https://en.wikipedia.org/wiki/Minute_and_second_of_arc Second of arc]; '''NIE DZIAŁA'''; alternatywa dla jednostki ″
+|-
+| ″
+| [https://en.wikipedia.org/wiki/Minute_and_second_of_arc Second of arc]; to jest podwójny znak prim (U+2033); alternatywa dla jednostki S
+|}
+
+<span id="Current"></span>
+===Prąd===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| mA
+| Milli[https://pl.wikipedia.org/wiki/Amper amper]
+|-
+| A
+| [https://pl.wikipedia.org/wiki/Amper Amper]
+|-
+| kA
+| Kilo[https://pl.wikipedia.org/wiki/Amper amper]
+|-
+| MA
+| Mega[https://pl.wikipedia.org/wiki/Amper amper]
+|}
+
+<span id="Electric_capacitance"></span>
+===Pojemność elektryczna===
+
+Pojemność elektryczna:
+{| class="wikitable float-right mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| pF
+| Piko[https://pl.wikipedia.org/wiki/Farad farad],
+|-
+| nF
+| Nano[https://pl.wikipedia.org/wiki/Farad farad],
+|-
+| uF
+| Mikro[https://pl.wikipedia.org/wiki/Farad farad]; alternatywa dla jednostki ''µF'',
+|-
+| µF
+| Mikro[https://pl.wikipedia.org/wiki/Farad farad]; alternatywa dla jednostki ''uF'',
+|-
+| mF
+| Milli[https://pl.wikipedia.org/wiki/Farad farad],
+|-
+| F
+| [https://pl.wikipedia.org/wiki/Farad Farad]; 1 F = 1 s^4·A^2/m^2/kg,
+|}
+
+<span id="Electric_charge"></span>
+===Ładunek elektryczny===
+
+Ładunek elektryczny:
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| C
+| [https://pl.wikipedia.org/wiki/Kulomb Kolumb]; 1 C = 1 A·s
+|}
+
+<span id="Electric_conductivity"></span>
+===Przewodnictwo elektryczne===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| uS
+| Micro[https://en.wikipedia.org/wiki/Siemens_(unit) siemens]; alternatywa dla jednostki µS
+|-
+| µS
+| Micro[https://en.wikipedia.org/wiki/Siemens_(unit) siemens]; alternatywa dla jednostki uS
+|-
+| mS
+| Milli[https://en.wikipedia.org/wiki/Siemens_(unit) siemens]
+|-
+| S
+| [https://en.wikipedia.org/wiki/Siemens_(unit) Siemens]; 1 S = 1 s^3·A^2/kg/m^2
+|-
+| kS
+| Kilo[https://en.wikipedia.org/wiki/Siemens_(unit) Siemens]
+|-
+| MS
+| Mega[https://en.wikipedia.org/wiki/Siemens_(unit) Siemens]
+|}
+
+<span id="Electric_inductance"></span>
+===Indukcyjność elektryczna===
+
+Indukcyjność elektryczna:
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| nH
+| Nano[https://pl.wikipedia.org/wiki/Henr henr],
+|-
+| uH
+| Mikro[https://pl.wikipedia.org/wiki/Henr henr]; alternatywa dla jednostki ''µH'',
+|-
+| µH
+| Mikro[https://pl.wikipedia.org/wiki/Henr henr]; alternatywa dla jednostki ''uH'',
+|-
+| mH
+| Milli[https://pl.wikipedia.org/wiki/Henr henr],
+| H
+| [v Henry]; 1 H = 1 kg·m^2/s^2/A^2,
+|}
+
+<span id="Electric_potential"></span>
+===Potencjał elektryczny===
+
+Potencjał elektryczny:
+{| class="wikitable float-right mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| mV
+| Milli[https://pl.wikipedia.org/wiki/Wolt wolt]
+|-
+| V
+| [https://pl.wikipedia.org/wiki/Wolt Wolt]
+|-
+| kV
+| Kilo[https://pl.wikipedia.org/wiki/Wolt wolt]
+|}
+
+<span id="Electric_resistance"></span>
+===Opór elektryczny===
+
+Rezystancja elektryczna:
+{| class="wikitable float-right mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| Ohm
+| [https://pl.wikipedia.org/wiki/Om_(jednostka) Om]; 1 Ohm = 1 kg·m^2/s^3/A^2,
+|-
+| kOhm
+| Kilo[https://pl.wikipedia.org/wiki/Om_(jednostka) om],
+|-
+| MOhm
+| Mega[https://pl.wikipedia.org/wiki/Om_(jednostka) om],
+|}
+
+<span id="Energy/work"></span>
+===Energia / praca===
+
+{| class="wikitable float-right mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| mJ
+| Milli[https://pl.wikipedia.org/wiki/D%C5%BCul Dżul]
+|-
+| J
+| [https://pl.wikipedia.org/wiki/D%C5%BCul Dżul]
+|-
+| kJ
+| Kilo[https://pl.wikipedia.org/wiki/D%C5%BCul Dżul]
+|-
+| eV
+| [https://pl.wikipedia.org/wiki/Elektronowolt Elektronowolt], 1 eV = 1.602176634e-19 J
+|-
+| keV
+| Kilo[https://pl.wikipedia.org/wiki/Elektronowolt Elektronowolt]
+|-
+| MeV
+| Mega[https://pl.wikipedia.org/wiki/Elektronowolt Elektronowolt]
+|-
+| kWh
+| [https://pl.wikipedia.org/wiki/Kilowatogodzina Kilowatogodzina], 1 kWh = 3.6e6 J
+|-
+| Ws
+| [https://pl.wikipedia.org/wiki/D%C5%BCul Watosekunda], alternatywa dla jednostki Dżul
+|-
+| VAs
+| [https://pl.wikipedia.org/wiki/D%C5%BCul Woltoamperosekunda], alternatywa dla jednostki Dżul
+|-
+| CV
+| [https://pl.wikipedia.org/wiki/D%C5%BCul Kulomb-wolt], alternatywa dla jednostki Dżul
+|-
+| cal
+| [https://pl.wikipedia.org/wiki/Kaloria Kaloria], 1 cal = 4.184 J
+|-
+| kcal
+| Kilo[https://pl.wikipedia.org/wiki/Kaloria Kaloria]
+|}
+
+<span id="Force"></span>
+===Siła===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| mN
+| Milli[https://pl.wikipedia.org/wiki/Niuton niuton]
+|-
+| N
+| [https://pl.wikipedia.org/wiki/Niuton Niuton]
+|-
+| kN
+| Kilo[https://pl.wikipedia.org/wiki/Niuton niuton]
+|-
+| MN
+| Mega[https://pl.wikipedia.org/wiki/Niuton niuton]
+|-
+| lbf
+| [https://pl.wikipedia.org/wiki/Funt-si%C5%82a Funt-siła]
+|}
+
+<span id="Length"></span>
+===Długość===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| nm
+| Nano[https://pl.wikipedia.org/wiki/Metr metr]
+|-
+| mu
+| Micro[https://pl.wikipedia.org/wiki/Metr metr], alternatywa dla jednostki µm
+|-
+| µm
+| Micro[https://pl.wikipedia.org/wiki/Metr metr], alternatywa dla jednostki mu
+|-
+| mm
+| Milli[https://pl.wikipedia.org/wiki/Metr metr]
+|-
+| cm
+| Centi[https://pl.wikipedia.org/wiki/Metr metr]
+|-
+| dm
+| Deci[https://pl.wikipedia.org/wiki/Metr metr]
+|-
+| m
+| [https://pl.wikipedia.org/wiki/Metr Metr]
+|-
+| km
+| Kilo[https://pl.wikipedia.org/wiki/Metr metr]
+|-
+| mil
+| [https://en.wikipedia.org/wiki/Thousandth_of_an_inch Tysięczne części cala], alternatywa dla jednostki thou
+|-
+| thou
+| [https://en.wikipedia.org/wiki/Thousandth_of_an_inch Tysięczne części cala], alternatywa dla jednostki mil
+|-
+| in
+| [https://pl.wikipedia.org/wiki/Cal Cal], alternatywa dla jednostki "
+|-
+| "
+| [https://en.wikipedia.org/wiki/Inch Cal], alternatywa dla jednostki in
+|-
+| ft
+| [https://pl.wikipedia.org/wiki/Stopa_(miara) Stopa], alternatywa dla jednostki '
+|-
+| '
+| [https://pl.wikipedia.org/wiki/Stopa_(miara) Stopa], alternatywa dla jednostki ft
+|-
+| yd
+| [https://pl.wikipedia.org/wiki/Jard Jard]
+|-
+| mi
+| [https://pl.wikipedia.org/wiki/Mila_(jednostka_d%C5%82ugo%C5%9Bci) Mila]
+|}
+
+<span id="Luminous_intensity"></span>
+===Natężenie światła===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| cd
+| [https://pl.wikipedia.org/wiki/Kandela Kandela]
+|}
+
+<span id="Magnetic_flux"></span>
+===Strumień magnetyczny===
+
+Strumień magnetyczny: 
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| Wb
+| [https://pl.wikipedia.org/wiki/Weber_(jednostka) Weber]; 1 Wb = 1 kg*m^2/s^2/A,
+|}
+
+<span id="Magnetic_flux_density"></span>
+===Gęstość strumienia magnetycznego===
+
+Gęstość strumienia magnetycznego:
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| G
+| [https://pl.wikipedia.org/wiki/Gaus Gaus]; 1 G = 1 e-4 T,
+|-
+| T
+| [https://pl.wikipedia.org/wiki/Tesla_(jednostka) Tesla]; 1 T = 1 kg/s^2/A,
+|}
+
+<span id="Mass"></span>
+===Masa===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| ug
+| Micro[https://pl.wikipedia.org/wiki/Gram gram], alternatywa dla jednostki µg
+|-
+| µg
+| Micro[https://pl.wikipedia.org/wiki/Gram gram], alternatywa dla jednostki ug
+|-
+| mg
+| Milli[https://pl.wikipedia.org/wiki/Gram gram]
+|-
+| g
+| [https://pl.wikipedia.org/wiki/Gram Gram]
+|-
+| kg
+| Kilo[https://pl.wikipedia.org/wiki/Gram gram]
+|-
+| t
+| [https://pl.wikipedia.org/wiki/Tona Tona]
+|-
+| oz
+| [https://pl.wikipedia.org/wiki/Uncja Uncja]
+|-
+| lb
+| [https://pl.wikipedia.org/wiki/Funt_(masa) Funt], alternatywa dla jednostki lbm
+|-
+| lbm
+| [https://pl.wikipedia.org/wiki/Funt_(masa) Funt], alternatywa dla jednostki lb
+|-
+| st
+| [https://pl.wikipedia.org/wiki/Kamie%C5%84_(miara) Kamień]
+|-
+| cwt
+| [https://pl.wikipedia.org/wiki/Kwintal Waga stu-kilowa ''(kwintał)'']
+|}
+
+<span id="Power"></span>
+===Siła===
+
+{| class="wikitablemw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| W
+| [https://pl.wikipedia.org/wiki/Wat Wat]
+|-
+| kW
+| Kilo[https://pl.wikipedia.org/wiki/Wat Wat]
+|}
+
+<span id="Pressure"></span>
+===Ciśnienie===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| Pa
+| [https://pl.wikipedia.org/wiki/Paskal Paskal]
+|-
+| kPa
+| Kilo[https://pl.wikipedia.org/wiki/Paskal paskal]
+|-
+| MPa
+| Mega[https://pl.wikipedia.org/wiki/Paskal paskal]
+|-
+| GPa
+| Giga[https://pl.wikipedia.org/wiki/Paskal paskal]
+|-
+| uTorr
+| Micro[https://pl.wikipedia.org/wiki/Tor_(jednostka) tor], alternatywa dla jednostki µTorr
+|-
+| µTorr
+| Micro[https://pl.wikipedia.org/wiki/Tor_(jednostka) tor], alternatywa dla jednostki uTorr
+|-
+| mTorr
+| Milli[https://pl.wikipedia.org/wiki/Tor_(jednostka) tor]
+|-
+| Torr
+| [https://pl.wikipedia.org/wiki/Tor_(jednostka) Tor]; 1 Torr = 133.32 Pa
+|-
+| psi
+| [https://pl.wikipedia.org/wiki/Psi_(jednostka) Funt na cal kwadratowy]; 1 psi = 6.895 kPa
+|-
+| kpsi
+| Kilo[https://pl.wikipedia.org/wiki/Psi_(jednostka) Funt na cal kwadratowy]
+|}
+
+<span id="Temperature"></span>
+===Temperatura===
+
+{| class="wikitablemw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| uK
+| Micro[https://pl.wikipedia.org/wiki/Kelwin kelwin], alternatywa dla jednostki µK
+|-
+| µK
+| Micro[https://pl.wikipedia.org/wiki/Kelwin kelwin], alternatywa dla jednostki uK
+|-
+| mK
+| Milli[https://pl.wikipedia.org/wiki/Kelwin kelwin]
+|-
+| K
+| [https://pl.wikipedia.org/wiki/Kelwin Kelwin]
+|}
+
+<span id="Time"></span>
+===Czas===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| s
+| [https://pl.wikipedia.org/wiki/Sekunda Second]
+|-
+| min
+| [https://pl.wikipedia.org/wiki/Minuta Minuta]
+|-
+| h
+| [https://pl.wikipedia.org/wiki/Godzina Godzina]
+|-
+| Hz (1/s)
+| [https://pl.wikipedia.org/wiki/Herc Herc]
+|-
+| kHz
+| Kilo[https://en.wikipedia.org/wiki/Hertz Herc],
+|-
+| MHz
+| Mega[https://pl.wikipedia.org/wiki/Herc Herc]
+|-
+| GHz
+| Giga[https://pl.wikipedia.org/wiki/Herc Herc]
+|-
+| THz
+| Tera[https://pl.wikipedia.org/wiki/Herc Herc]
+|}
+
+<span id="Volume"></span>
+===Objętość===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| ml
+| Milli[https://pl.wikipedia.org/wiki/Litr Litr]
+|-
+|-
+| l
+| [https://pl.wikipedia.org/wiki/Litr Litr]
+|-
+| cft
+| [https://en.wikipedia.org/wiki/Foot_(unit) Stopa] sześcienna
+|}
+
+<span id="Special_imperial_units"></span>
+===Specjalne jednostki brytyjskie===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Jednostka
+!style="width: 66%;"|Opis
+|-
+| mph
+| [https://pl.wikipedia.org/wiki/Mila_na_godzin%C4%99 Mila na godzinę]
+|-
+| sqft
+| [https://pl.wikipedia.org/wiki/Stopa_angielska Stopa kwadratowa]
+|}
+
+<span id="Unsupported_units"></span>
+===Jednostki nieobsługiwane===
+
+Poniższe powszechnie używane jednostki nie są jeszcze obsługiwane, dla niektórych podano alternatywę:
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 25%;"|Jednostka
+!style="width: 50%;"|Opis
+!style="width: 25%;"|Zamiennik
+|-
+| °C
+| [https://pl.wikipedia.org/wiki/Skala_Celsjusza Celsjusz ]
+| [°C] + 273.15 K
+|-
+| °F
+| [https://pl.wikipedia.org/wiki/Skala_Fahrenheita Fahrenheit];
+| ([°F] + 459.67) × ​5/9
+|-
+| u
+| [https://pl.wikipedia.org/wiki/Jednostka_masy_atomowej Jednostka masy atomowej], alternatywa dla jednostki Da
+| 1.66053906660e-27 kg
+|-
+| Da
+| [https://pl.wikipedia.org/wiki/Jednostka_masy_atomowej Dalton], alternatywa dla jednostki u
+| 1.66053906660e-27 kg
+|-
+| sr
+| [https://pl.wikipedia.org/wiki/Steradian Steradian]
+| nie bezpośrednio
+|-
+| lm
+| [https://pl.wikipedia.org/wiki/Lumen Lumen]
+| nie bezpośrednio
+|-
+| lx
+| [https://pl.wikipedia.org/wiki/Luks_(fotometria) Luks]
+| nie bezpośrednio
+|-
+| px
+| [https://pl.wikipedia.org/wiki/Piksel Piksel]
+| nie bezpośrednio
+|}
+{{Top}}
+<span id="Invalid_characters_and_names"></span>
+==Nieprawidłowe znaki i nazwy==
+
+Funkcja wyrażeń jest bardzo potężna, ale aby osiągnąć tę moc, ma pewne ograniczenia dotyczące niektórych znaków. Aby temu zaradzić, FreeCAD oferuje możliwość używania etykiet i odwoływania się do nich zamiast do nazw obiektów. W etykietach można używać prawie wszystkich znaków specjalnych.
+
+W przypadkach, w których nie można użyć etykiety, takich jak nazwa wiązań szkicu, należy być świadomym, których znaków nie wolno używać.
+
+<span id="Labels"></span>
+===Etykiety===
+
+Dla [[Object_name/pl#Etykieta|etykiet]] nie ma nieprawidłowych znaków, jednak niektóre znaki muszą być wyprowadzone:
+{| class="wikitable"
+!style="width: 33%;"|Znak
+!style="width: 66%;"|Opis
+|-
+| {{incode|'}}, {{incode|\}}, {{incode|"}}
+| Wymaga wyprowadzenia poprzez dodanie znaku poprzedzającego {{incode|\}}.
+|}
+
+Na przykład etykieta {{incode|Sketch\002}} musi być określona jako {{incode|<<Sketch\\002>>}}.
+
+<span id="Names"></span>
+===Nazwy===
+
+[[Object_name#Name|Nazwy]] obiektów takich jak wymiary, szkice itp. nie mogą posiadać znaków lub sekwencji znaków wymienionych poniżej, w przeciwnym razie nazwa jest niepoprawna:
+
+{| class="wikitable"
+!style="width: 33%;"|Znak / Ciąg znaków
+!style="width: 66%;"|Opis
+|-
+| '''+''', '''-''', '''*''', '''/''', '''^''', '''_''', '''<''', '''>''', '''(''', ''')''', '''{''', '''}''', '''[''', ''']''', '''.''', ''',''',  '''='''
+| Znaki, które są operatorami matematycznymi lub częścią konstrukcji matematycznych
+|-
+| '''A''', '''kA''', '''mA''', '''MA''', '''J''', '''K''', ''' ' ''', ''' ft ''', '''°''', i wiele więcej!
+| Znaki i ich ciągi, które są [[Expressions/pl#Jednostki|jednostkami]], ''(patrz akapit [[#Jednostki|Jednostki]])''
+|-
+| '''#''', '''!''', '''?''', '''§''', '''$''', '''%''', '''&''', ''':''', ''';''', '''\''', '''<nowiki>|</nowiki>''', '''~''', '''∆''', '''¿''', i wiele więcej!
+| Znaki używane jako symbol listy lub wyzwalają specjalne operacje
+|-
+| '''pi''', '''e'''
+| Stałe matematyczne
+|-
+| '''´''', '''`''', ''' ' ''', '''"'''
+| Znaki używane do akcentowania
+|-
+| spacja
+| Spacja określa koniec nazwy i dlatego nie może być użyta
+|}
+
+Na przykład, prawidłowa jest następująca nazwa: {{incode|<<Sketch>>.Constraints.T2üßµ@}}. Natomiast następujące nazwy są niepoprawne: {{incode|<<Sketch>>.Constraints.test\result_2}} ''(\r oznacza "powrót karetki")'' lub {{incode|<<Sketch>>.Constraints.mol}} ''(mol to jednostka)''.
+
+Ponieważ krótsze nazwy ''(zwłaszcza jeśli mają tylko jeden lub dwa znaki)'' mogą łatwo doprowadzić do nieprawidłowych nazw, rozważ użycie dłuższych nazw i / lub ustalenie odpowiedniej konwencji nazewnictwa.
+
+<span id="Cell_aliases"></span>
+===Przypisania do komórek===
+
+Zobacz stronę [[Spreadsheet_SetAlias/pl#U.C5.BCycie|Definiuj alias]].
+{{Top}}
+<span id="Reference_to_CAD_data"></span>
+==Odwołanie do danych CAD==
+
+Możliwe jest użycie danych z samego modelu w wyrażeniu. Aby odwołać się do właściwości użyj {{incode|object_name.property}} lub {{incode|<<object_label>>.property}}, etykiety muszą być zawarte w {{incode|<<}} i {{incode|>>}}. Jeśli chcesz używać etykiet, muszą one być unikalne.
+
+Wszystkie następne przykłady odwołują się do obiektu poprzez jego nazwę, ale we wszystkich przypadkach można również użyć etykiety obiektu.
+
+Jeśli właściwość jest złożeniem pól, dostęp do poszczególnych pól można uzyskać jako {{incode|object_name.property.field}}.
+
+Aby odwołać się do obiektów listy, użyj właściwości {{incode|<<Etykieta_obiektu>>.lista[index_listy]}} lub {{incode|Nazwa_obiektu.lista[index_listy]}}. Jeśli chcesz na przykład odwołać się do wiązania w szkicu, użyj właściwości {{incode|<<Nazwa_szkicu>>.Wiązanie[16]}}. Jeśli znajdujesz się w tym samym szkicu, możesz pominąć jego nazwę i po prostu użyć właściwości {{incode|Wiązanie[16]}}. 
+'''Uwaga:''' Numeracja indeksów zaczyna się od '''0''', dlatego ''Wiązanie17'' ma indeks {{incode|Wiązanie[16]}}.
+
+Aby odwołać się do samego obiektu, należy użyć pseudo-właściwości {{incode|_self}}: {{incode|object_name._self}}.
+
+Poniższa tabela przedstawia kilka przykładów:
+{|"
+ !dane CAD
+ !Odwołanie do wyrażenia
+ !Wynik
+ |-
+ |Parametr długości sześcianu środowiska pracy Część
+ |{{incode|Cube.Length}}
+ |Długość w mm
+ |-
+ |Objętość sześcianu
+ |{{incode|Cube.Shape.Volume}}
+ |Objętość w mm&sup3; bez jednostek
+ |-
+ |Typ kształtu sześcianu
+ |{{incode|Cube.Shape.ShapeType}}
+ |String: Bryła
+ |-
+ |Etykieta sześcianu
+ |{{incode|Cube.Label}}
+ |String: Etykieta
+ |-
+ |Współrzędna x środka masy sześcianu
+ |{{incode|Cube.Shape.CenterOfMass.x}}
+ |Współrzędna x w mm, bez jednostek
+ |-
+ |Składowa X osi obrotu umiejscowienia Sześcianu
+ |{{incode|Box.Placement.Rotation.Axis.x}}
+ |- Składowa X wektora jednostkowego w mm bez jednostek.
+ |-
+ |Kąt obrotu dla umiejscowienia Sześcianu
+ |{{incode|Box.Placement.Rotation.Angle}}
+ |Kąt obrotu w jednostkach (deg)
+ |-
+ |Pełny obiekt Sześcianu
+ |{{incode|Box._self}}
+ |Obiekt typu <Part::PartFeature>.
+ |-
+ |Wartość wiązania w szkicu
+ |{{incode|Constraints.Width}}
+ |Wartość numeryczna nazwanego wiązania {{incode|Width}} w szkicu, jeśli wyrażenie jest używane w samym szkicu.
+ |-
+ |Wartość wiązania w szkicu
+ |{{incode|MySketch.Constraints.Width}}
+ |Wartość numeryczna nazwanego wiązania {{incode|Width}} w szkicu, jeśli wyrażenie jest używane poza szkicem.
+ |-
+ |Wartość aliasu arkusza kalkulacyjnego
+ |{{incode|Spreadsheet.Depth}}
+ |Wartość aliasu {{incode|Depth}} w arkuszu kalkulacyjnym {{incode|Spreadsheet}}
+ |-
+ |Wartość lokalnej właściwości
+ |{{incode|Length}}
+ |Wartość właściwości {{PropertyData|Length}} np. w obiekcie Pad, jeżeli wyrażenie jest użyte np. w {{PropertyData|Length2}} w tym samym obiekcie.
+ |}
+
+<span id="Cyclic_dependencies"></span>
+===Zależności cykliczne===
+
+FreeCAD sprawdza zależności na podstawie relacji między obiektami dokumentu, a nie właściwościami. Oznacza to, że nie można dostarczyć danych do obiektu i zapytać tego samego obiektu o wyniki. Na przykład, nawet jeśli nie ma cyklicznych zależności, gdy brane są pod uwagę same właściwości, nie można mieć obiektu, który pobiera swoje wymiary z arkusza kalkulacyjnego, a następnie wyświetla objętość tego obiektu w tym samym arkuszu kalkulacyjnym. Musisz użyć dwóch arkuszy kalkulacyjnych, jednego do obsługi modelu, a drugiego do raportowania.
+
+Jako obejście można wyświetlić zakres komórek z drugiego arkusza kalkulacyjnego w pierwszym ''(lub odwrotnie)'', tworząc [[Spreadsheet_Workbench/pl#Powiązanie_komórek|komórki powiązane]] opcją {{MenuCommand|Ukryj zależność powiązań}}.
+
+Innym sposobem na obejście zależności cyklicznych jest ukrycie odniesienia za pomocą funkcji {{incode|href}} lub {{incode|hiddenref}} dla poszczególnych wyrażeń, na przykład: {{incode|href(Box.Length)}}.
+
+Należy pamiętać, że oba wspomniane obejścia powinny być stosowane z ostrożnością i że nie działają, jeśli raportowane właściwości zależą od wymiarów, które są sterowane z tego samego arkusza kalkulacyjnego.
+{{Top}}
+<span id="Document-wide_global_variables"></span>
+==Zmienne globalne w obrębie dokumentu==
+
+W tej chwili w programie FreeCAD nie ma koncepcji zmiennych globalnych. Zamiast tego zmienne mogą być definiowane jako komórki w arkuszu kalkulacyjnym za pomocą środowiska roboczego [[Spreadsheet_Workbench/pl|Arkusz kalkulacyjny]], a następnie można im nadać nazwę za pomocą właściwości aliasu dla komórki ''(kliknij prawym przyciskiem myszy na komórkę)''. Następnie można się do nich odwoływać z dowolnego wyrażenia, tak jak do innych właściwości obiektu.
+{{Top}}
+<span id="Cross-document_linking"></span>
+==Powiązania między dokumentami==
+
+Możliwe jest ''(z ograniczeniami)'' zdefiniowanie właściwości obiektu w bieżącym dokumencie ''(plik ".FCstd")'' za pomocą Wyrażenia odwołującego się do właściwości obiektu znajdującego się w innym dokumencie ''(plik ".FCstd")''. Na przykład, komórka w arkuszu kalkulacyjnym lub właściwość {{PropertyData/pl|Długość}} sześcianu środowiska Część itp. w jednym dokumencie mogą być zdefiniowane przez Wyrażenie, które odwołuje się do wartości X Umiejscowienia lub innej właściwości obiektu znajdującego się w innym dokumencie.
+
+Nazwa dokumentu jest używana do odwoływania się do jego zawartości z innych dokumentów. Przy pierwszym zapisie dokumentu wybieramy nazwę pliku, która zazwyczaj różni się od początkowej domyślnej nazwy "Nienazwany1". Aby uniknąć utraty linków w przypadku zmiany nazwy dokumentu głównego przy zapisie, zaleca się najpierw utworzenie dokumentu głównego, utworzenie w nim arkusza kalkulacyjnego i zapisanie go. Następnie można nadal wprowadzać zmiany w pliku i jego arkuszu kalkulacyjnym, ale nie należy modyfikować jego nazwy.
+
+Po utworzeniu i zapisaniu ''(nazwaniu)'' dokumentu głównego z arkuszem kalkulacyjnym można bezpiecznie tworzyć dokumenty zależne. Na przykład, zakładając, że nazwiesz dokument główny {{incode|master}}, arkusz kalkulacyjny {{incode|modelConstants}} i nadasz komórce alias nazwy {{incode|Length}}, możesz następnie uzyskać dostęp do wartości jako:
+
+{{incode|master#modelConstants.Length}}
+
+Należy pamiętać, że dokument źródłowy musi być wczytany, aby wartości z dokumentu źródłowego były dostępne dla dokumentu powiązanego.
+
+Oczywiście, to do Ciebie zależy, czy wczytasz odpowiednie dokumenty później, gdy będziesz chciał coś zmienić.
+{{Top}}
+<span id="Known_issues_/_remaining_tasks"></span>
+==Znane problemy / niezrealizowane zadania==
+
+* FreeCAD nie ma jeszcze wbudowanego menedżera wyrażeń, w którym wszystkie wyrażenia w dokumencie są wymienione i mogą być tworzone, usuwane, odpytywane itp. Dostępny jest jednak dodatek: [https://github.com/gbroques/fcxref fcxref expression manager].
+* Otwarte zgłoszenia błędów dla wyrażeń można znaleźć na stronie [https://github.com/FreeCAD/FreeCAD/labels/Topic%3A%20Expressions GitHub].
+{{Top}}
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.ActiveDocument
+box = doc.addObject("Part::Box", "Box")
+cyl = doc.addObject("Part::Cylinder", "Cylinder")
+cyl_name = cyl.Name
+
+box.setExpression("Height", f"{cyl_name}.Height / 2")
+box.setExpression("Length", f"{cyl_name}.Radius * 2")
+box.setExpression("Width", "Length")
+
+doc.recompute()
+
+# Expressions are stored in the ExpressionEngine property:
+for prop, exp in box.ExpressionEngine:
+    val = getattr(box, prop)
+    print(f"Property: '{prop}' -- Expression: '{exp}' -- Current value: {val}")
+}}
+{{Top}}
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Spreadsheet{{#translation:}}]]

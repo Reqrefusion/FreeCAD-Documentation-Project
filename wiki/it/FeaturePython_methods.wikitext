@@ -1,0 +1,69 @@
+<languages/>
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Introduzione==
+
+Questa pagina funge da riferimento per i metodi sovrascrivibili disponibili negli [[Create_a_FeaturePython_object_part_I/it|Creare oggetti FeaturePython parte I]] o [[Scripted_objects/it|Oggetti creati da script]].
+
+==Riferimento primario==
+I metodi seguenti rappresentano circa il 99% dei casi d'uso che gli utenti esperti possono avere per le classi proxy Python.
+
+{| class="wikitable" cellpadding="5px" width="100%"
+|style="width:25%" | {{incode|execute(self, obj)}}
+|style="width:25%" | Chiamato durante il ricalcolo del documento
+|style="width:50%" | Non chiamare {{incode|recompute()}} da questo metodo (o qualsiasi metodo chiamato da {{incode|execute()}}) poiché ciò provoca un ricalcolo nidificato.
+|-
+| {{incode|onBeforeChange(self, obj, prop)}}
+| Chiamato prima che il valore di una proprietà venga modificato
+| {{incode|prop}} è il nome della proprietà da modificare, non l'oggetto proprietà stesso. Le modifiche alla proprietà non possono essere annullate.  I valori delle proprietà precedente/successiva non sono disponibili contemporaneamente per il confronto.
+|-
+| {{incode|onChanged(self, obj, prop)}}
+| Chiamato dopo la modifica di una proprietà
+| {{incode|prop}} è il nome della proprietà da modificare, non l'oggetto proprietà stesso.
+|-
+| {{Incode|onDocumentRestored(self, obj)}}
+| Chiamato dopo il ripristino di un documento o la copia di un oggetto FeaturePython.
+| Occasionalmente, i riferimenti all'oggetto FeaturePython dalla classe o alla classe dall'oggetto FeaturePython potrebbero essere interrotti, poiché il metodo della classe {{incode|__init__()}} non viene chiamato quando l'oggetto viene ricostruito. L'aggiunta di {{incode|self.Object <nowiki>=</nowiki> obj}} o {{incode|obj.Proxy <nowiki>=</nowiki> self}} spesso risolve questi problemi.
+|}
+
+Non è raro incontrare una situazione in cui i callback Python non vengono attivati ​​come dovrebbero. I principianti in questa situazione possono essere certi che il sistema di callback FeaturePython non è fragile o corrotto. Invariabilmente quando i callback non vengono eseguiti è perché un riferimento è perso o non è definito nel codice sottostante. Se, tuttavia, i callback sembrano non funzionare senza alcuna spiegazione, fornire riferimenti a oggetti/proxy nel callback {{incode|onDocumentRestored()}} (come indicato nella prima tabella sopra) può alleviare questi problemi. Finché non ci si sente a proprio agio con il sistema di callback, potrebbe essere utile aggiungere istruzioni print in ogni callback per stampare messaggi sulla console durante lo sviluppo.
+
+==Metodi aggiuntivi==
+I metodi seguenti sono per l'uso '''avanzato''' delle classi proxy Python e normalmente non ci sarà bisogno di usarli.
+
+* mustExecute
+* getViewProviderName
+* getSubObject
+* getSubObjects
+* getLinkedObject
+* hasChildElement
+* isElementVisible
+* canLinkProperties
+* allowDuplicateLabel
+* redirectSubName
+* canLoadPartial
+* onBeforeChangeLabel
+
+==Determinazione dei metodi Python disponibili==
+All'interno della [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L161-L351 FeaturePython Template Class] esistono varie <code>imp-><method name>()</code> chiamate.
+
+Ognuna di queste corrisponde a un metodo Python associato disponibile.
+
+Ad esempio, <code>imp->execute()</code> [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L193 alla riga 193] indica che il metodo <code>execute</code> è disponibile.
+
+Nota, <code>getPyObject()</code> e <code>init()</code> sono casi speciali e non seguono l'euristica di cui sopra.
+
+<span id="See_also"></span>
+==Vedere anche==
+
+* [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L44-L86 FreeCAD GitHub: FeaturePython.h - public API]
+* [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L167 FreeCAD GitHub: FeaturePythonT template class]
+* [https://forum.freecadweb.org/viewtopic.php?f=22&t=49194 FreeCAD Forum Discussion: Scripted Objects Complete Method Reference]
+
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}

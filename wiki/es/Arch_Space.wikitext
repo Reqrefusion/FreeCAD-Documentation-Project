@@ -1,0 +1,159 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{docnav/es
+|[[Arch_Roof/es|Roof]]|[[Arch_Stairs/es|Stairs]]
+|[[Arch_Workbench/es|Arch]]
+|IconL=Arch_Roof.svg
+|IconC=Workbench_Arch.svg
+|IconR=Arch_Stairs.svg
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/es
+|Name=Arch Space|Name/es=Arch Espacio
+|MenuLocation=Arch → Space
+|Workbenches=[[Arch_Workbench/es|Arch]]
+|Shortcut={{KEY|S}} {{KEY|P}}
+|Version=0.14
+|SeeAlso=[[Arch Wall/es]], [[Arch Structure/es]]
+}}
+</div>
+
+==Description==
+
+<div class="mw-translate-fuzzy">
+== Descripción ==
+La herramienta Espacio le permite definir un volumen vacío, ya sea basado en una forma sólida, o definiendo sus límites, o una combinación de ambos. Si se basa únicamente en los límites, el volumen se calcula comenzando desde el cuadro delimitador de todos los límites dados, y restando los espacios detrás de cada límite. El objeto espacio siempre define un volumen sólido. El área del suelo de un objeto espacio, calculado mediante la intersección de un plano horizontal en el centro de masa del volumen del espacio, también se puede visualizar, configurando el modo de visualización del objeto espacial a "detallado".
+</div>
+
+[[Image:Arch Space example.jpg|640px]]
+
+<div class="mw-translate-fuzzy">
+''En la imagen de arriba, un objeto espacial se crea a partir de un objeto sólido existente, luego se agregan dos caras de muro como límites, y el modo de visualización se establece en "detallado" para mostrar el área del piso.''
+</div>
+
+<span id="Usage"></span>
+<div class="mw-translate-fuzzy">
+==Utilización==
+</div>
+
+<div class="mw-translate-fuzzy">
+# Seleccione un objeto sólido existente o caras en objetos de contorno
+# Presione el botón {{KEY | [[Image: Arch_Space.png | 16px]] [[Arch Space]]}}, o presione las teclas {{KEY | S}}, {{KEY | P}}
+</div>
+
+<span id="Limitations"></span>
+<div class="mw-translate-fuzzy">
+==Limitaciones==
+</div>
+
+<div class="mw-translate-fuzzy">
+* No disponible antes de la versión 0.14 de FreeCAD
+* Las propiedades de límites actualmente no se pueden editar a través de GUI
+* Ver el [http://forum.freecadweb.org/viewtopic.php?f=9&t=4275 anuncio del foro]
+</div>
+
+<span id="Properties"></span>
+==Propiedades==
+
+<div class="mw-translate-fuzzy">
+* {{PropertyData/es|Base}}: El objeto base, si lo hay (debe ser un sólido)
+* {{PropertyData/es|Boundaries}}: Una lista de elementos de límite opcionales
+</div>
+
+* {{PropertyView|Text}}: The text to show. Use $area, $label, $tag, $floor, $walls, $ceiling to insert the respective data
+* {{PropertyView|FontName}}: The name of the font
+* {{PropertyView|TextColor}}: The color of the text
+* {{PropertyView|FontSize}}: The size of the text
+* {{PropertyView|FirstLine}}: The size of the first line of text (multiplies the font size. 1 = same size, 2 = double size, etc..)
+* {{PropertyView|LineSpacing}}: The space between the lines of text
+* {{PropertyView|TextPosition}}: The position of the text. Leave (0,0,0) for automatic position
+* {{PropertyView|TextAlign}}: The justification of the text
+* {{PropertyView|Decimals}}: The number of decimals to use for calculated texts
+* {{PropertyView|ShowUnit}}: Show the unit suffix or not
+
+==Options==
+
+* To create zones that group several spaces, use an [[Arch_BuildingPart|Arch BuildingPart]] and set its IFC type to "Spatial Zone".
+* The Space object has the same display modes as other Arch and Part objects, with one more, called '''Footprint''', that displays only the bottom face of the space.
+
+==Scripting==
+
+<div class="mw-translate-fuzzy">
+==Programación==
+</div>
+
+<div class="mw-translate-fuzzy">
+La herramienta de espacio se puede usar en scripts de Python y [[macros/es]] usando la siguiente función:
+</div>
+
+{{Code|code=
+Space = makeSpace(objects=None, baseobj=None, name="Space")
+}}
+
+<div class="mw-translate-fuzzy">
+* Crea un objeto espacio a partir de los objetos dados.
+* Los objetos pueden ser un objeto de documento, en cuyo caso se convierte en la forma básica del objeto de espacio, o una lista de objetos de selección como se devuelve por FreeCADGui.Selection.getSelectionEx(), o una lista de tuplas (object, subobjectname).
+* Devuelve el objeto espacial recién creado.
+</div>
+
+Ejemplo:
+
+{{Code|code=
+import FreeCAD, Arch
+
+Box = FreeCAD.ActiveDocument.addObject("Part::Box", "Box")
+Box.Length = 1000
+Box.Width = 1000
+Box.Height = 1000
+
+Space = Arch.makeSpace(Box)
+Space.ViewObject.LineWidth = 2
+FreeCAD.ActiveDocument.recompute()
+}}
+
+<div class="mw-translate-fuzzy">
+Después de crear un objeto espacio, se pueden agregar caras seleccionadas con la siguiente función:
+</div>
+
+{{Code|code=
+import FreeCAD, FreeCADGui, Draft, Arch
+
+points = [FreeCAD.Vector(-500, 0, 0), FreeCAD.Vector(1000, 1000, 0)]
+Line = Draft.makeWire(points)
+Wall = Arch.makeWall(Line, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+# Select a face of the wall
+selection = FreeCADGui.Selection.getSelectionEx()
+Arch.addSpaceBoundaries(Space, selection)
+}}
+
+<div class="mw-translate-fuzzy">
+Los límites también se pueden eliminar con:
+</div>
+
+{{Code|code=
+selection = FreeCADGui.Selection.getSelectionEx()
+Arch.removeSpaceBoundaries(Space, selection)
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{docnav/es
+|[[Arch_Roof/es|Roof]]
+|[[Arch_Stairs/es|Stairs]]
+|[[Arch_Workbench/es|Arch]]
+|IconL=Arch_Roof.svg
+|IconC=Workbench_Arch.svg
+|IconR=Arch_Stairs.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

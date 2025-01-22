@@ -1,0 +1,69 @@
+<languages/>
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Ta strona służy jako odniesienie do dostępnych nadpisywalnych metod w [[Create_a_FeaturePython_object_part_I/pl|Tworzenie obiektów FeaturePython - część I]] lub [[Scripted_objects/pl|Obiekty tworzone skryptami]].
+
+==Podstawowe odniesienie==
+Poniższe metody stanowią około 99% przypadków użycia, jakie mogą mieć zaawansowani użytkownicy w przypadku klas proxy Pythona.
+
+{| class="wikitable" cellpadding="5px" width="100%"
+|style="width:25%" | {{incode|execute(self, obj)}}
+|style="width:25%" | Wywoływana podczas ponownego obliczania dokumentu
+|style="width:50%" | Nie wywołuj {{incode|recompute()}} z tej metody ''(lub jakiejkolwiek metody wywołanej z {{incode|execute()}})'', ponieważ spowoduje to zagnieżdżenie ponownego obliczenia.
+|-
+| {{incode|onBeforeChange(self, obj, prop)}}
+| Wywoływana przed zmianą wartości właściwości
+| {{incode|prop}} to nazwa właściwości, która ma być zmieniona, a nie obiekt właściwości sam w sobie. Zmiany właściwości nie mogą być anulowane. Poprzednie / następne wartości właściwości nie są jednocześnie dostępne do porównania.
+|-
+| {{incode|onChanged(self, obj, prop)}}
+| Wywoływana po zmianie właściwości
+| {{incode|prop}} to nazwa właściwości, która została zmieniona, a nie obiekt właściwości sam w sobie.
+|-
+| {{incode|onDocumentRestored(self, obj)}}
+| Wywoływana po przywróceniu dokumentu lub skopiowaniu obiektu FeaturePython.
+| Czasami odwołania do obiektu FeaturePython z klasy lub klasy z obiektu FeaturePython mogą być utracone, ponieważ metoda {{incode|__init__()}} klasy nie jest wywoływana podczas odtwarzania obiektu. Dodanie {{incode|self.Object <nowiki>=</nowiki> obj}} lub {{incode|obj.Proxy <nowiki>=</nowiki> self}} często rozwiązuje te problemy.
+|}
+
+Nie jest rzadkością, że w sytuacji, gdy wywołania zwrotne w Pythonie nie są wywoływane tak, jak powinny. Początkujący w tej dziedzinie mogą być pewni, że system wywołań zwrotnych FeaturePython nie jest łamliwy ani uszkodzony. Zazwyczaj gdy wywołania zwrotne nie są uruchamiane, dzieje się tak dlatego, że odwołanie jest utracone lub niezdefiniowane w kodzie źródłowym. Jeśli jednak wydaje się, że wywołania zwrotne przestają działać bez wyjaśnienia, przekazywanie odwołań do obiektów/proksów w wywołaniu {{incode|onDocumentRestored()}} ''(jak zaznaczono w pierwszej tabeli powyżej)'' może złagodzić te problemy. Dopóki nie poczujesz się komfortowo z systemem wywołań zwrotnych, może być przydatne dodawanie instrukcji print w każdym wywołaniu zwrotnym, aby drukować komunikaty do konsoli podczas rozwoju.
+
+==Dodatkowe metody==
+Poniższe metody są przeznaczone do '''zaawansowanego''' korzystania z klas proxy Pythona i przez większość czasu nie będą potrzebne.
+
+* mustExecute
+* getViewProviderName
+* getSubObject
+* getSubObjects
+* getLinkedObject
+* hasChildElement
+* isElementVisible
+* canLinkProperties
+* allowDuplicateLabel
+* redirectSubName
+* canLoadPartial
+* onBeforeChangeLabel
+
+==Określanie dostępnych metod w środowisku Python==
+Wewnątrz [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L161-L351 Klasy Szablonu FeaturePython] istnieją różne wywołania <code>imp-><method name>()</code>.
+
+Każdy z nich odpowiada dostępnej powiązanej metodzie Python.
+
+Na przykład <code>imp->execute()</code> [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L193 linia 193] oznacza dostęponą metodę <code>execute</code>.
+
+Uwaga, <code>getPyObject()</code> and <code>init()</code> są szczególnymi przypadkami i nie są zgodne z powyższą heurystyką.
+
+<span id="See_also"></span>
+==Zobacz również==
+
+* [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L44-L86 FreeCAD GitHub: FeaturePython.h - public API]
+* [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L167 FreeCAD GitHub: FeaturePythonT template class]
+* [https://forum.freecadweb.org/viewtopic.php?f=22&t=49194 FreeCAD Forum dyskusyjne: Pełne odniesienie do metod obiektów skryptowych]
+
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}

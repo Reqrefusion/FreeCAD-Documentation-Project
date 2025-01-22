@@ -1,0 +1,109 @@
+<languages/>
+
+{{Docnav/it
+|[[Part_Common/it|Intersezione]]
+|[[Part_JoinEmbed/it|Incorpora oggetto]]
+|[[Part_Workbench/it|Part]]
+|IconL=Part_Common.svg
+|IconR=Part_JoinEmbed.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/it
+|Name=Part JoinConnect
+|Name/it=Part Congiungi
+|MenuLocation=Part → Giunzione → Congiungi oggetti
+|Workbenches=[[Part_Workbench/it|Part]]
+|SeeAlso=[[Part_JoinEmbed/it|Incorpora oggetto]], [[Part_JoinCutout/it|Ritaglio per l'oggetto]], [[Part_Boolean/it|Operazioni booleane]], [[Part_Thickness/it|Spessore]]
+}}
+
+<span id="Description"></span>
+==Descrizione== 
+
+Lo strumento [[Image:Part_JoinConnect.svg|24px]] '''Part Congiungi'''  unisce due oggetti vuoti internamente, ad esempio dei tubi. Si possono anche unire gusci (shell) e wire.
+
+[[image:JoinFeatures_Connect.png|600px]]
+
+<span id="Usage"></span>
+==Utilizzo== 
+
+# Selezionare due oggetti da unire. L'ordine di selezione non è importante. È sufficiente selezionare una qualsiasi sotto-forma di ciascun oggetto (ad esempio, delle facce). È inoltre possibile selezionare un composto contenente tutte le forme da collegare, ad esempio una [[Draft_OrthoArray/it|Serie ortogonale]].
+# Esistono diversi modi per richiamare lo strumento:
+#* Premere il pulsante {{Button|[[Image:Part_JoinConnect.svg|16px]] [[Part_JoinConnect/it|Congiungi oggetti]]}}.
+#* Selezionare l'opzione {{MenuCommand|Part → Giunzione → [[Image:Part_JoinConnect.svg|16px]] Congiungi oggetti}} dal menu.
+# Viene creato un oggetto parametrico Connect. Gli oggetti originali vengono nascosti e il risultato della connessione viene mostrato nella [[3D_view/it|Vista 3D]].
+
+<span id="Properties"></span>
+==Proprietà== 
+
+{{TitleProperty|Connect}}
+
+* {{PropertyData|Objects}}: Elenco degli oggetti da collegare. In generale, sono necessari almeno due oggetti, ma va bene anche un singolo composto contenente le forme da collegare. (Da FreeCAD v0.17.8053, questa proprietà non viene visualizzata nell'[[Property_editor/it|editor delle proprietà]], e si può accedere solo tramite [[Part_JoinConnect/it#Script|Python]]).
+* {{PropertyData|Refine}}: Stabilisce se alla forma finale deve applicare l'operazione [[Part_RefineShape/it|Affina]], oppure no. Il valore di default è stabilito dalla casella di controllo 'Affina automaticamente la forma dopo l'operazione booleana' nelle [[PartDesign_Preferences/it|preferenze di PartDesign]].
+* {{PropertyData|Tolerance}}: valore di "confusione". Questa è una tolleranza supplementare da applicare durante la ricerca di intersezioni, oltre alle tolleranze memorizzate nelle forme di ingresso.
+
+<span id="Example"></span>
+==Esempio== 
+
+# Creare un tubo applicando uno [[Part_Thickness/it|Spessore]] a un [[Part_Cylinder/it|cilindro]]: <br />[[image:JoinFeatures_Example_step1.png|320px]]
+# Creare un nuovo tubo di diametro inferiore e [[Placement/it|posizionarlo]] in modo da perforare la parete del primo tubo: <br />[[image:JoinFeatures_Example_step2.png|320px]]
+# Selezionare il primo tubo, poi il secondo tubo (l'ordine di selezione non è importante), infine selezionare l'opzione 'Congiungi oggetti' dalla barra degli strumenti a discesa degli strumenti di Giunzione. <br />[[image:JoinFeatures_Example_step3_Connect.png|320px]]
+# Per visualizzare gli interni, utilizzare uno degli strumenti di sezione: [[Std_ToggleClipPlane/it|Piano di taglio]] del menu Visualizza, [[Arch_SectionPlane/it|Piano di sezione]] di Arch, o  [[Arch_CutPlane/it|Piano di taglio]] di Arch. Nell'immagine seguente, è stato utilizzato il Piano si sezione di Arch.<br />[[image:JoinFeatures_Example_step4_Connect.png|320px]]
+
+<span id="Algorithm"></span>
+==Algoritmo==
+
+Gli algoritmi sottostanti agli strumenti di Giunzione sono abbastanza semplici, ed è importante comprenderli per utilizzarli correttamente. L'algoritmo di Connect, in particolare, è un po' più complesso di altri, ma generalmente è sufficiente pensarlo come una variante simmetrica dell'algoritmo di [[Part_JoinEmbed/it#Algoritmo|Incorpora]]
+
+1. Ogni oggetto è diviso in pezzi dagli incroci con altri oggetti. (vedere [[Part_BooleanFragments/it|Part Frammenti booleani]]) 
+
+2. Di tutte le parti di un oggetto, viene conservata solo la più grande; tutto il resto viene scartato.
+
+3. I pezzi delle intersezione che toccano almeno due oggetti vengono aggiunti ai risultati. Quindi, i pezzi sono uniti insieme per formare il risultato di Connect.
+
+<span id="Notes"></span>
+===Note=== 
+
+* Se al passo 1 ogni oggetto rimane in un unico pezzo, il risultato di Congiungi è equivalente a una [[Part_Fuse|unione]] di oggetti.
+* Ora, tutti i composti sono esplosi prima della congiunzione. Ciò significa che i composti che si intersecano, che non sono validi per tutte le altre operazioni booleane, sono validi per Congiungi. (Questo può essere modificato in futuro.)
+* Il pezzo "più grande" è quello che ha la massa maggiore. Cioè, per i solidi sono confrontati i volumi, per i gusci e le facce sono confrontate le zone, e così via.
+* Da FreeCAD v0.17.8053, e con la versione 6.9.0 di OCC, Congiungi è quasi veloce come tutte le altre operazioni booleane. Per le versioni precedenti, Congiungi è circa 5 volte più lento di una normale operazione booleana, e funziona solo su solidi.
+
+<span id="Scripting"></span>
+==Script==
+
+Gli strumenti di Giunzione possono essere utilizzati in [[Macros/it|macro]] e dalla [[Python_console|Console Python]] utilizzando la seguente funzione:
+
+ '''BOPTools.JoinFeatures.makeConnect(name)'''
+
+* Crea una funzione Connect vuota (o altra funzione Join, secondo la modalità passata). La proprietà  'Objects' deve essere assegnata in modo esplicito, in seguito.
+* Restituisce l'oggetto appena creato.
+
+Connect può essere applicato anche a forme piane, senza la necessità di avere un oggetto documento, tramite:
+
+ '''Part.BOPTools.JoinAPI.connect(list_of_shapes, tolerance = 0.0)'''
+
+Questo può essere utile per creare funzioni personalizzate con script Python.
+
+Esempio:
+
+{{code|code=
+import Part
+j = Part.BOPTools.JoinFeatures.makeConnect(name= 'Connect')
+j.Objects = FreeCADGui.Selection.getSelection()
+}}
+
+Lo strumento è implementato in Python, vedere {{FileName|/Mod/Part/BOPTools/JoinFeatures.py}} ([https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/Part/BOPTools/JoinFeatures.py Github link]) in cui è installato FreeCAD.
+
+
+{{Docnav/it
+|[[Part_Common/it|Intersezione]]
+|[[Part_JoinEmbed/it|Incorpora oggetto]]
+|[[Part_Workbench/it|Part]]
+|IconL=Part_Common.svg
+|IconR=Part_JoinEmbed.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

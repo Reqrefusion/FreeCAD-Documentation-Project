@@ -1,0 +1,110 @@
+<languages/>
+
+{{Docnav/fr
+|[[FEM_ConstraintRigidBody/fr|Contrainte de corps rigide]]
+|[[FEM_ConstraintContact/fr|Contrainte de contact]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_ConstraintRigidBody.svg
+|IconR=FEM_ConstraintContact.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommandContainer
+|
+{{GuiCommand/fr
+|Name=FEM ConstraintDisplacement
+|Name/fr=FEM Condition limite de déplacement
+|MenuLocation=Modèle → Conditions limites et charges mécaniques → Condition limite de déplacement
+|Workbenches=[[FEM_Workbench/fr|FEM]]
+|Shortcut=
+|SeeAlso=[[FEM_tutorial/fr|FEM Tutoriel]]
+}}
+{{GuiCommandFemInfo/fr
+|Solvers=CalculiX, Elmer
+}}
+}}
+
+==Description==
+
+Crée une condition limite FEM pour un déplacement donné d'un objet sélectionné pour les degrés de liberté spécifiés.
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Soit vous appuyez sur le bouton {{Button|[[Image:FEM_ConstraintDisplacement.svg|16px]] [[FEM_ConstraintDisplacement/fr|Condition limite de déplacement]]}}, soit vous sélectionnez le menu {{MenuCommand|Modèle → Conditions limites et charges mécaniques → [[Image:FEM_ConstraintDisplacement.svg|16px]] Condition limite de déplacement}}.
+# Appuyez sur le bouton {{Button|Ajouter}}.
+# Dans la [[3D_view/fr|vue 3D]], sélectionnez l'objet auquel la condition de limite doit être appliquée, qui peut être un sommet, une arête ou une face (mais tous les objets sélectionnés doivent être du même type). Pour supprimer des objets de la liste, appuyez sur le bouton {{Button|Supprimer}} et cliquez dessus.
+# Cochez les cases à côté des degrés de liberté que vous souhaitez utiliser. Par défaut, ils sont fixés à zéro (fixe) mais n'importe quelle valeur ({{Version/fr|0.21}} : ou une formule pour Elmer) peut être spécifiée. Les rotations n'ont de sens que pour les éléments poutre et coque.
+
+<span id="Formulas"></span>
+==Formules==
+
+{{Version/fr|0.21}}
+
+<span id="General"></span>
+===Général===
+
+Pour le [[Image:FEM_SolverElmer.svg|32px]] [[FEM_SolverElmer/fr|solveur Elmer]], il est possible de définir le déplacement sous la forme d'une formule. Dans ce cas, le solveur définit le déplacement en fonction de la variable de la formule rentrée.
+
+Prenons par exemple le cas où nous voulons effectuer une [[FEM_SolverElmer_SolverSettings/fr#Pas_de_temps_(analyses_transitoires)|analyse transitoire]]. Pour chaque pas de temps, le déplacement <math>d</math> doit être augmenté de 6 mm :
+
+<math>\quad
+d(t)=0.006\cdot t
+</math>
+
+entrez ce qui suit dans le champ ''Formula'' :</br>
+{{incode| Variable "time"; Real MATC "0.006*tx"}}
+
+Ce code a la syntaxe suivante :
+* le préfixe ''Variable'' spécifie que le déplacement n'est pas une constante mais une variable
+* la variable est l'heure en cours
+* les valeurs de déplacement sont renvoyées sous forme de valeurs ''Real'' (virgule flottante)
+* ''MATC'' est un préfixe pour le solveur Elmer indiquant que le code suivant est une formule
+* ''tx'' est toujours le nom de la variable dans les formules ''MATC'', peu importe que ''tx'' dans notre cas soit en fait ''t''
+
+===Rotations===
+
+Elmer n'utilise que les champs '''Displacement *''' de la condition limite. Pour définir les rotations, nous avons besoin d'une formule.
+
+Si, par exemple, une face doit être pivotée en fonction de cette condition :
+
+<math>\quad
+\begin{align}
+d_{x}(t)= & \left(\cos(\phi)-1\right)x-\sin(\phi)y\\
+d_{y}(t)= & \left(\cos(\phi)-1\right)y+\sin(\phi)x
+\end{align}
+</math>
+
+Il faut alors entrer pour '''Déplacement en X'''</br>
+{{incode|  Variable "time, Coordinate"
+Real MATC "(cos(tx(0)*pi)-1.0)*tx(1)-sin(tx(0)*pi)*tx(2)}}
+
+et pour '''Déplacement en Y'''</br>
+{{incode|  Variable "time, Coordinate"
+Real MATC "(cos(tx(0)*pi)-1.0)*tx(2)+sin(tx(0)*pi)*tx(1)}}
+
+Ce code a la syntaxe suivante :
+* nous avons 4 variables, le temps et toutes les coordonnées possibles (x, y z)
+* ''tx'' est un vecteur, ''tx(0)'' se réfère à la première variable, le temps, tandis que ''tx(1)'' est la première coordonnée ''x''
+* ''pi'' désigne <math>\pi</math> et a été ajouté pour qu'après <math>t=1\rm\, s</math> une rotation de 180° soit effectuée
+
+<span id="Notes"></span>
+==Remarques==
+
+Pour le [[Image:FEM_SolverCalculixCxxtools.svg|32px]] [[FEM_SolverCalculixCxxtools/fr|solveur CalculiX]] :
+* Cet outil utilise le [https://web.mit.edu/calculix_v2.7/CalculiX/ccx_2.7/doc/ccx/node163.html jeu de paramètres *BOUNDARY].
+* Fixer un degré de liberté est expliqué à l'adresse http://web.mit.edu/calculix_v2.7/CalculiX/ccx_2.7/doc/ccx/node164.html.
+* Imposer un déplacement pour un degré de liberté est expliqué à l'adresse http://web.mit.edu/calculix_v2.7/CalculiX/ccx_2.7/doc/ccx/node165.html.
+
+
+{{Docnav/fr
+|[[FEM_ConstraintRigidBody/fr|Contrainte de corps rigide]]
+|[[FEM_ConstraintContact/fr|Contrainte de contact]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_ConstraintRigidBody.svg
+|IconR=FEM_ConstraintContact.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

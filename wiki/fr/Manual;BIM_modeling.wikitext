@@ -1,0 +1,154 @@
+<languages/>
+
+{{Docnav/fr
+|[[Manual:Generating_2D_drawings/fr|Génération de dessins 2D]]
+|[[Manual:Using_spreadsheets/fr|Utilisation de feuilles de calcul]]
+|[[Manual:Introduction/fr|Début du manuel]]
+|IconL=
+|IconR=
+|IconC=Crystal_Clear_manual.png
+}}
+
+{{Manual:TOC}}
+
+BIM signifie [https://fr.wikipedia.org/wiki/Building_information_modeling Building Information Modeling]. C'est un processus utilisé en architecture, ingénierie et construction pour créer et gérer des représentations numériques de structures physiques. Il intègre non seulement la géométrie en 3D, mais aussi des données essentielles telles que les matériaux, les coûts et les calendriers, ce qui permet une analyse avancée et une collaboration tout au long du cycle de vie d'un projet.
+
+Dans FreeCAD, la fonction BIM a évolué de manière significative, en particulier avec la version 1.0, où les ateliers Arch et BIM, auparavant séparés, ont été fusionnés en un atelier BIM intégré. Cette consolidation rationalise les flux de travail, permettant aux utilisateurs de modéliser, de documenter et de gérer les projets de construction plus efficacement dans un environnement unique.
+
+Une avancée majeure introduite dans FreeCAD v1.0 est l'adoption du concept IFC natif. Auparavant, comme la plupart des applications BIM, FreeCAD traduisait les données dans les deux sens entre son modèle de données interne et le format de fichier IFC (Industry Foundation Classes), ce qui entraînait une perte potentielle de données au cours des processus d'ouverture et d'enregistrement. Avec Native IFC, les utilisateurs de FreeCAD peuvent désormais ouvrir, manipuler et enregistrer directement des fichiers IFC, le fichier IFC lui-même servant de structure de données. Cette approche élimine la traduction inutile des données et garantit que les modifications sont enregistrées sans réécrire l'intégralité du fichier, ce qui la rend compatible avec les systèmes de contrôle de version tels que Git et offre un flux de travail plus transparent et plus précis pour la manipulation des fichiers IFC.
+
+Dans ce chapitre, nous verrons comment modéliser ce petit bâtiment :
+
+[[File:FreeCAD BIMHouse.png]]
+
+* Créez un nouveau document et passez à l’[[File:Workbench_BIM.svg|16px]] [[BIM_Workbench/fr|atelier BIM]].
+* Depuis le menu {{MenuCommand|Edition → Préférences → Draft → Grille et aimantation}} et réglez:
+** '''Lignes principales toutes les''' {{incode|10}}.
+** '''Espacement de la grille''' {{incode|1000mm}} pour avoir une grille d'un mètre, ce qui convient à la taille de notre bâtiment.
+** '''Taille de la grille''' {{incode|100 lignes}}.
+* Sur la barre d'outils '''Aimantation''', assurez-vous que le bouton [[Image:Draft_Snap_Grid.svg|16px]] [[Draft_Snap_Grid/fr|Aimantation Grille]] soit activé, afin que nous puissions utiliser la grille autant que possible.
+* Si vous ne voyez pas les axes, cliquez sur le bouton [[Image:Draft_ToggleGrid.svg|16px]] [[Draft_ToggleGrid/fr|Basculer la grille]].
+* Réglez le [[Draft_SelectPlane/fr|Plan de travail]] sur le plan '''XY'''
+* Dessinez quatre lignes avec l'outil [[Image:Draft_Line.svg|16px]] [[Draft_Line/fr|Draft Ligne]]. Vous pouvez entrer les coordonnées manuellement ou simplement sélectionner les points sur la grille avec la souris. Nous utiliserons des mètres pour nos dimensions :
+** Du point (0,0) au point (0,3)
+** Du point (0,3) au point (4,3)
+** Du point (4,3) au point (4,0)
+** Du point (4,0) au point (0,0)
+
+[[Image:Exercise_arch_03.jpg|600px]]
+
+Remarquez que nous avons toujours tracé les lignes dans le même sens (sens des aiguilles d'une montre). Bien que cela ne soit pas obligatoire, cela permet de s'assurer que les murs que nous construirons ensuite seront orientés de la même manière à gauche et à droite. Vous vous demandez peut-être pourquoi nous n'avons pas simplement dessiné un rectangle, ce qui aurait été plus simple. Cependant, l'utilisation de quatre lignes distinctes nous permet de présenter d'autres fonctions de BIM, comme la combinaison de plusieurs objets en un seul, qui est un élément essentiel du flux de travail.
+
+* Une fois que vous avez créé les lignes, vérifiez leurs points de départ et d'arrivée et ajustez-les si nécessaire pour les obtenir exactement.
+
+[[Image:Manual-BIM_Modeling_-_Adjusting_Lines.png]]
+
+* Sélectionnez les quatre lignes, puis appuyez sur le bouton [[Image:Arch_Wall.svg|16px]] [[Arch Wall/fr|Arch Mur]].
+* Définissez la '''Hauteur''' des murs à 3m (par défaut).
+* Définissez la propriété '''Alignement''' à '''gauche''' En définissant la propriété Alignement à gauche, vous vous assurez que les murs que vous créez seront positionnés à gauche des lignes que vous avez tracées. Dans le BIM Workbench de FreeCAD, les murs sont généralement générés sur la base d'une ligne de référence, et l'alignement gauche ou droit indique de quel côté de la ligne le mur sera placé.
+Si vous n'avez pas tracé les lignes dans l'ordre indiqué (dans le sens des aiguilles d'une montre), l'orientation de certains murs peut être inversée, ce qui signifie qu'ils peuvent être placés de l'autre côté de la ligne (à droite au lieu de gauche). Dans ce cas, vous devrez ajuster l'alignement à droite pour ces murs spécifiques afin de vous assurer qu'ils sont tous alignés de manière cohérente. Une fois ce réglage effectué correctement, vous obtiendrez quatre murs qui se croisent aux angles, positionnés à l'intérieur de la ligne de base, formant ainsi la disposition souhaitée.
+
+[[Image:Exercise_arch_04.jpg|600px]]
+
+Après avoir créé des murs, l'étape suivante consiste à les joindre pour qu'ils se croisent correctement. Cette opération est nécessaire lorsque les murs ne se connectent pas proprement à leurs intersections. Pour ce faire, vous sélectionnez un mur en tant qu'« hôte » et vous ajoutez les autres murs en tant qu'« ajouts », en fusionnant leur géométrie avec celle de l'hôte. Tous les objets de l'atelier BIM peuvent avoir plusieurs ajouts (qui ajoutent de la géométrie) ou soustractions (qui enlèvent de la géométrie). Ces relations peuvent être gérées à tout moment en double-cliquant sur l'objet dans l'arborescence, ce qui permet de procéder à des ajustements souples pour garantir une intégration harmonieuse des murs et des autres éléments architecturaux.
+* Sélectionnez les quatre murs en appuyant sur la touche {{KEY|Ctrl}}, le dernier étant le mur que vous avez choisi de devenir l'hôte.
+* Appuyez sur le bouton [[Image:Arch_Add.svg|16px]] [[Arch Add/fr|Arch Ajouter]]. Les quatre murs ont maintenant été transformés en un seul :
+
+[[Image:Exercise_arch_05.jpg|600px]]
+
+Les parois individuelles sont cependant toujours accessibles, en développant l'objet mur dans l'arborescence (petite flèche).
+
+* Plaçons maintenant une porte en appuyant sur l'outil [[Image:BIM_Door.svg|16px]] [[BIM_Door/fr|Porte]].
+* Commencez par sélectionner le mur. Bien que cette étape ne soit pas obligatoire, c'est une habitude utile à prendre. Si un objet est sélectionné avant de commencer une opération, l'opération s'appliquera automatiquement à cette entité par défaut. 
+* Définissez le [[Image:View-axonometric.svg|16px]] [[Draft_SelectPlane/fr|plan de travail]] à '''auto''' pour ne pas être limité au plan du sol.
+* Appuyez sur le bouton [[Image:BIM_Door.svg|16px]] [[BIM_Door/fr|Porte]].
+* Dans le panneau de création de la porte, sélectionnez le préréglage '''Porte en verre''' et réglez sa '''Largeur''' à 1 m et sa '''Hauteur''' à 2,1m. Vous remarquerez que vous pouvez choisir entre différents types de portes et les paramétrer comme vous le souhaitez. Dans FreeCAD, une porte est dérivée par une opération de [[Arch_Window/fr|fenêtre]].
+* Assurez-vous que L'option [[Image:Draft_Snap_Near.svg|16px]] [[Draft_Snap_Near/fr|Aimantation Au plus proche]] est activée, pour que nous puissions cliquer sur les visages.
+* Placez votre porte à peu près au milieu de la face avant du mur :
+
+[[File:FreeCAD BIMDoor.png]]
+
+* Nous pouvons maintenant définir l'emplacement précis en développant le mur et les objets de la fenêtre dans l'arborescence et en changeant la propriété de '''Placement''' de l'esquisse de base de notre porte. Réglez sa position sur '''x = 0.5 m, y = 0, z = 0'''. Notre porte est maintenant exactement là où nous le voulons :
+
+[[File:FreeCAD BIMDoorPos.png]]
+
+* Plaçons une fenêtre à côté de notre porte. Sélectionnez le mur, appuyez sur l'outil [[Image:Arch_Window.svg|16px]] [[Arch_Window/fr|Fenêtre]], sélectionnez le préréglage '''Open 2-pane''', et placez une fenêtre '''1m x 1m''' sur la même face que la porte. Définissez le placement de l'esquisse sous-jacente à la position '''x = 0, y = 0, z = 1,1m''', de sorte que la ligne supérieure de la fenêtre soit alignée sur le haut de la porte.
+
+[[File:FreeCAD BIMWindow.png]]
+
+Les fenêtres sont toujours basées sur des esquisses. Vous pouvez facilement créer des fenêtres personnalisées en dessinant d'abord une esquisse sur une face, puis en transformant cette esquisse en fenêtre en la sélectionnant et en cliquant sur le bouton de fenêtre. Vous pouvez ensuite définir les paramètres de la fenêtre (par exemple, les parties de l'esquisse qui doivent être extrudées et leur quantité) en double-cliquant sur la fenêtre dans l'arborescence. Passons maintenant à la création d'une dalle :
+
+* Réglez le [[Draft_SelectPlane/fr|Draft Plan de travail]] sur le plan '''XY'''.
+* Créez un [[Image:Draft_Rectangle.svg|16px]] [[Draft_Rectangle/fr|Draft Rectangle]] avec une '''longueur''' de 5m, une '''hauteur''' de 4m et placez-le à la position '''x: -0.5m, y: -0.7m, z: 0'''.
+* Sélectionnez le rectangle.
+* Cliquez sur l'outil [[Image:BIM_Slab.svg|16px]] [[BIM_Slab/fr|Dalle]] pour créer une dalle à partir du rectangle.
+* Gardez les valeurs par défaut de 0.2m pour la propriété '''height''' et définissez la '''direction''' normale à (0,0,-1), afin que l'extrusion aille vers le bas. Nous aurions pu déplacer l'objet de 0,2 m vers le bas, mais c'est une bonne pratique de garder les objets extrudés alignés avec leur profil de base pour maintenir la cohérence et la précision du modèle.
+* Définissez la propriété '''Ifc Type''' de la dalle sur '''slab''' (dalle). Ceci n'est pas nécessaire dans FreeCAD, mais il est important pour l'exportation IFC car il garantira que l'objet est exporté avec le type IFC correct.
+
+[[File:FreeCAD BIMSlab.png]]
+
+* Mettons un toit au-dessus de nos têtes. Nous pouvons facilement le faire en utilisant l'outil [[Image:Arch_Roof.svg|16px]] [[Arch_Roof/fr|Toit]].
+* Appuyez sur l'outil [[Image:Draft_Snap_WorkingPlane.svg|16px]] [[Draft_Snap_WorkingPlane/fr|Aimantation Plan de travail]] pour activer l'ébauche sur tous les plans.
+* En choisissant l'une des faces supérieures de notre maison, appuyez sur l'option [[Image:Draft_SelectPlane.svg|16px]] [[Draft_SelectPlane/fr|Sélectionner un plan]] pour activer le dessin sur tous les plans. Le plan de travail est maintenant défini sur cette face.
+* Créer un [[Image:Draft_Rectangle.svg|16px]] [[Draft_Rectangle/fr|rectangle]] s'accrochant à deux points opposés des murs :
+* Dans l'onglet '''Données''' du toit, mettez le paramètre '''Runs''' à 1600. 
+* Si vous souhaitez changer la couleur du toit, vous pouvez le faire dans l'onglet ''Vue''.
+
+[[File:FreeCAD BIMHouseg.png]] 
+
+Notre modèle est maintenant complet. L'étape suivante consiste à l'organiser correctement pour s'assurer qu'il s'exporte correctement au format IFC. Les fichiers IFC exigent que tous les éléments de construction soient regroupés au sein d'un objet '''bâtiment''' et, éventuellement, au sein d'un '''étage''' spécifique. En outre, tous les bâtiments doivent être situés sur un « site ». Cependant, l'exportateur IFC de FreeCAD génère automatiquement un site par défaut s'il n'y en a pas, de sorte que nous n'avons pas besoin de l'ajouter manuellement. Il est important de structurer correctement le modèle pour respecter les normes IFC, afin d'assurer une collaboration fluide et la compatibilité avec d'autres logiciels BIM. Une bonne organisation permet également d'éviter toute perte de données ou erreur lors du processus d'exportation.
+
+* Sélectionnez les murs, la dalle et le toit.
+* Appuyez sur le bouton [[Image:Arch_Floor.svg|16px]] [[Arch_Floor/fr|Arch Niveaux]].
+* Sélectionnez le niveau que nous venons de créer.
+* Appuyez sur le bouton [[Image:Arch_Building.svg|16px]] [[Arch_Building/fr|Arch Bâtiment]].
+
+Notre modèle est maintenant prêt à exporter :
+
+[[File:FreeCAD BIMExport.png]]
+
+Le [https://en.wikipedia.org/wiki/Industry_Foundation_Classes format IFC] est l'un des atouts les plus précieux dans un monde BIM gratuit, car il permet l'échange de données entre toute application et acteur du monde de la construction, de manière ouverte (le format est ouvert, gratuit et maintenu par un consortium indépendant). L'exportation de vos modèles BIM comme IFC garantit que tout le monde peut les voir et les analyser, peu importe l'application utilisée.
+
+* Sélectionnez l'objet de niveau supérieur que vous souhaitez exporter, c'est-à-dire l'objet Bâtiment.
+* Sélectionnez le menu '''Fichier -> Exporter -> Industry Foundation Classes''' et enregistrez votre fichier.
+* Le fichier IFC résultant peut maintenant être ouvert dans un large éventail d'applications et de visionneuses (l'image ci-dessous montre le fichier ouvert dans la visionneuse gratuite [http://www.ifcquery.com/ IfcPlusPlus]). Il est important de vérifier le fichier exporté dans une telle application de visualisation avant de le distribuer à d'autres personnes afin de vérifier que toutes les données contenues dans le fichier sont correctes. FreeCAD lui-même peut également être utilisé pour rouvrir le fichier IFC résultant.
+
+[[File:FreeCAD BIMIFC.png]]
+
+Nous pouvons utiliser l'[[Image:Workbench_TechDraw.svg|16px]] [[TechDraw_Workbench/fr|atelier TechDraw]] pour créer un dessin de notre bâtiment. Le processus est similaire à ce qui a été montré dans la section précédente, nous n'entrerons donc pas trop dans les détails ici. Il suffit de créer une nouvelle vue en utilisant le [[File:TechDraw_PageDefault.svg|16px]]. [[TechDraw_PageDefault/fr|insérer une page par défaut]], puis sélectionnez la vue que vous souhaitez afficher dans le dessin et ajoutez des dimensions si nécessaire. Cela nous permettra de créer une représentation 2D professionnelle du modèle 3D à des fins de documentation ou de présentation.
+
+[[File:FreeCAD BIMHouseDrawing.png]]
+
+Notre page est maintenant prête, et nous pouvons l'exporter vers les formats SVG ou DXF, ou l'imprimer. Le format SVG vous permet d'ouvrir le fichier en utilisant des applications d'illustration telles que [http://www.inkscape.org Inkscape], avec lesquelles vous pouvez rapidement améliorer les dessins techniques et les transformer en dessins de présentation beaucoup plus agréable. Il offre beaucoup plus de possibilités que le format DXF.
+
+<span id="Downloads"></span>
+== Téléchargements ==
+
+* Le fichier produit lors de cet exercice: https://github.com/yorikvanhavre/FreeCADmanual/Blob/master/files/house.FCStd 
+* Le fichier IFC exporté à partir du fichier ci-dessus: https://github.com/yorikvanhavre/FreeCADmanual/Blob/master/files/house.ifc 
+* Le fichier SVG exporté à partir du fichier ci-dessus: https://github.com/yorikvanhavre/FreeCADmanual/Blob/master/files/house.svg
+
+<span id="Related"></span>
+== En relation ==
+
+* [[BIM Workbench|Atelier BIM]]
+* [[Arch_Workbench/fr|Atelier Arch]]
+* [[Draft_SelectPlane/fr|Draft Plan de travail]]
+* [[Draft_Snap/fr|Draft Aimantation]]
+* [[Expressions/fr|Expressions]]
+* [https://fr.wikipedia.org/wiki/Industry_Foundation_Classes Le format IFC]
+* [http://ifcopenshell.org/ IfcOpenShell]
+* [http://ifcplusplus.com/ IfcPlusPlus]
+* [http://www.inkscape.org Inkscape]
+
+{{Docnav/fr
+|[[Manual:Generating_2D_drawings/fr|Génération de dessins 2D]]
+|[[Manual:Using_spreadsheets/fr|Utilisation de feuilles de calcul]]
+|[[Manual:Introduction/fr|Début du manuel]]
+|IconL=
+|IconR=
+|IconC=Crystal_Clear_manual.png
+}}
+
+
+{{BIM_Tools_navi{{#translation:}}}}

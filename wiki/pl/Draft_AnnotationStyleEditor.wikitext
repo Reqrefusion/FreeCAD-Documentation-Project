@@ -1,0 +1,149 @@
+<languages/>
+
+{{Docnav/pl
+|[[Draft_Label/pl|Etykieta]]
+|[[Draft_Move/pl|Przesuń]]
+|[[Draft_Workbench/pl|środowisko pracy Rysunek Roboczy]]
+|IconL=Draft_Label.svg 
+|IconR=Draft_Move.svg 
+|IconC=Workbench_Draft.svg
+}}
+
+{{GuiCommand/pl
+|Name=Draft AnnotationStyleEditor
+|Name/pl=Rysunek Roboczy: Edytor stylu opisu
+|MenuLocation=Opis → Edytor stylu opisu ...<br>Zarządzaj → Edytor stylu opisu... 
+|Workbenches=[[Draft_Workbench/pl|Rysunek Roboczy]], [[BIM_Workbench|BIM]]
+|SeeAlso=[[Draft_Text/pl|Tekst]], [[Draft_Label/pl|Etykieta]], [[Draft_Dimension/pl|Wymiar]]
+|Version=0.19
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Polecenie [[Image:Draft_AnnotationStyleEditor.svg|24px]] '''Edytor stylu opisu''' umożliwia definiowanie stylów, które wpływają na właściwości wizualne obiektów podobnych do adnotacji, takich jak te tworzone za pomocą poleceń [[Draft_Text/pl|Tekst]], [[Draft_Dimension/pl|Wymiar]] i [[Draft_Label/pl|Etykieta]].
+
+[[File:Draft_AnnotationStyleEditor_Dialog.png]]
+{{Caption|Okno dialogowe Edytor stylu opisu.}}
+
+<span id="Usage"></span>
+==Użycie==
+
+# Polecenie można wywołać na kilka sposobów:
+#* [[Draft_Workbench/pl|Środowisko pracy Rysunek Roboczy]]: Naciśnij przycisk {{Button|[[Image:Draft_AnnotationStyleEditor.svg|16px]] '''Edytor stylu opisu'''}}.
+#* Rysunek Roboczy: Wybierz opcję z menu {{MenuCommand|Opisy → [[Image:Draft_AnnotationStyleEditor.svg|16px]] Edytor stylu opisu ...}}.
+#* [[BIM_Workbench/pl|Środowisko pracy BIM]]: Wybierz opcję {{MenuCommand|Zarządzaj → [[Image:Draft_AnnotationStyleEditor.svg|16px]] Edytor stylu opisu...}} z menu.
+# Otworzy się okno dialogowe {{MenuCommand|Edytor stylów opisów}}.
+# Wybierz styl z listy rozwijanej {{MenuCommand|Nazwa stylu}} lub wybierz {{Value|Dodaj nowy ...}}, aby zdefiniować nowy styl.
+# Opcjonalnie dostosuj właściwości stylu.
+# Opcjonalnie naciśnij przycisk {{Button|[[File:Accessories-text-editor.svg|16px]] Zmień nazwę}}, aby zmienić nazwę stylu.
+# Opcjonalnie naciśnij przycisk {{Button|[[File:Edit_Cancel.svg|16px]] Usuń}}, aby usunąć styl.
+# Opcjonalnie naciśnij przycisk {{Button|[[File:Std_Import.svg|16px]]}}, aby zaimportować wszystkie style z pliku {{FileName|.json}}. Spowoduje to nadpisanie istniejących stylów o tej samej nazwie.
+# Opcjonalnie naciśnij przycisk {{Button|[[File:Std_Export.svg|16px]]}}, aby wyeksportować wszystkie style do pliku {{FileName|.json}}.
+# Naciśnij przycisk {{Button|OK}}, aby zamknąć okno dialogowe i zakończyć polecenie.
+
+<span id="Apply"></span>
+== Zastosuj ==
+
+Aby zastosować styl opisu, zmień właściwość {{PropertyView|Annotation Style}} obiektów opisu. Można ją znaleźć w zakładce {{MenuCommand|Widok}} [[Property_editor/pl|Edytora właściwości]].
+
+[[File:Draft_AnnotationStyleEditor_Apply.png]]
+{{Caption|Wybieranie stylu opisu}}
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Zobacz również stronę: [https://freecad.github.io/SourceDoc/ Dokumentacja API generowana automatycznie] oraz [[FreeCAD_Scripting_Basics/pl|Podstawy pisania skryptów dla FreeCAD]].
+
+Style adnotacji są zapisywane jako serializowane słowniki w atrybucie {{incode|Meta}} dokumentu. Atrybut ten jest sprawdzany przez edytor stylów adnotacji po jego otwarciu.
+
+{{Code|code=
+>>> print(App.ActiveDocument.Meta["Draft_Style_Text red"])
+{"ArrowSize": 2.0, "ArrowType": 0, "Decimals": 2, "DimOvershoot": 4.0, "ExtLines": 0.0, "ExtOvershoot": 4.0, "FontName": "DejaVu Sans", "FontSize": 10.0, "LineColor": 255, "LineSpacing": 1.0, "LineWidth": 2, "ScaleMultiplier": 1.0, "ShowLine": true, "ShowUnit": false, "TextColor": 4278190335, "TextSpacing": 3.0, "UnitOverride": ""}
+}}
+
+Każdy styl pojawiający się w edytorze jest wewnętrznie zapisywany z nazwą stylu poprzedzoną {{incode|Draft_Style_}}; zapobiegnie to kolizji nazw z innymi kluczami, które mogą być zapisane w {{incode|Meta}}, który może przechowywać dowolne informacje.
+
+Możesz zdefiniować dowolny nowy styl, dodając niezbędne informacje do klucza zaczynającego się od {{incode|Draft_Style_}}. Odpowiednią wartością tego klucza musi być słownik serializowany przy użyciu {{incode|json}}.
+
+{{Code|code=
+import json
+
+meta = App.ActiveDocument.Meta
+props = {"ArrowSize": 7.0, "LineWidth": 6}
+meta["Draft_Style_Thick_lines"] = json.dumps(props)
+App.ActiveDocument.Meta = meta
+}}
+
+Niewprowadzone właściwości zostaną wypełnione automatycznie po wybraniu tego stylu w edytorze stylów i naciśnięciu przycisku {{Button|OK}}.
+
+W podobny sposób, każdy serializowany słownik może zostać rozpakowany do edycji.
+
+{{Code|code=
+import json
+
+meta = App.ActiveDocument.Meta
+new_dict = json.loads(meta["Draft_Style_Thick_lines"])
+}}
+
+Właściwości muszą mieć następujące typy:
+
+Ciąg znaków:
+
+{{Code|code=
+props = {
+    "FontName": "DejaVu Sans",
+    "UnitOverride": ""
+}
+}}
+
+Liczby zmiennoprzecinkowe ''(muszą być podawane z kropką dziesiętną)'':
+
+{{Code|code=
+props = {
+    "ArrowSize": 2.0,
+    "DimOvershoot": 4.0,
+    "ExtLines": 0.0,
+    "ExtOvershoot": 4.0
+    "FontSize": 10.0,
+    "LineSpacing": 1.0,
+    "ScaleMultiplier": 1.0,
+    "TextSpacing": 3.0
+}
+}}
+
+Liczby całkowite:
+
+{{Code|code=
+props = {
+    "ArrowType": 0,
+    "Decimals": 2,
+    "LineColor": 255,
+    "LineWidth": 2,
+    "TextColor": 4278190335
+}
+}}
+
+{{Incode|KolorTekstu}} i {{Incode|KolorLinii}} odpowiadają 32-bitowej liczbie całkowitej, z której można wyodrębnić poszczególne wartości RGBA. {{Incode|TypStrzałki}} jest typem listy.
+
+Wartości logiczne:
+
+{{Code|code=
+props = {
+    "ShowLine": true
+    "ShowUnit": false,
+}
+}}
+
+
+{{Docnav/pl
+|[[Draft_Label/pl|Etykieta]]
+|[[Draft_Move/pl|Przesuń]]
+|[[Draft_Workbench/pl|środowisko pracy Rysunek Roboczy]]
+|IconL=Draft_Label.svg 
+|IconR=Draft_Move.svg 
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

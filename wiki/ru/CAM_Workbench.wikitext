@@ -1,0 +1,359 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[PartDesign_Workbench/ru|Верстак PartDesign]]
+|[[Points_Workbench/ru|Верстак Points]]
+|IconL=Workbench_PartDesign.svg
+|IconR=Workbench_Points.svg
+}}
+</div>
+
+[[Image:Workbench_CAM.svg|thumb|128px|Логотип верстака Path]]
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+== Введение ==
+
+[[Image:Workbench_CAM.svg|24px]] [[Path Workbench/ru|Верстак Path]] используется для создания машинных инструкций для [https://en.wikipedia.org/wiki/CNC_router станков с ЧПУ] из 3D-моделей FreeCAD. Это позволяет изготавливать реальные вещи на станках с ЧПУ, таких как: фрезерные, токарные станки, лазерные резаки и тому подобном оборудовании. Обычно эти инструкции на языке [https://en.wikipedia.org/wiki/G-code G-кодов]. Здесь представлен [https://www.ange-softs.com/SIMULCNCHTML/index.html общий пример моделирования траектории движения инструмента на токарном станке с ЧПУ].
+
+[[Image:pathwb.png|600px]]
+
+<div class="mw-translate-fuzzy">
+ Рабочий процесс создания инструкций в верстаке FreeCAD Path выглядит следующим образом:
+* 3D-модель - это базовый объект, обычно созданный с использованием одного или нескольких верстаков [[PartDesign Workbench|Part Design]], [[Part Workbench|Part]] или [[Draft Workbench|Draft]].
+* В верстаке Path создается [[CAM_Job/ru|Задание]]. Оно содержит всю информацию, необходимую для генерации G-кода для обработки на станке с ЧПУ: там определен материал, станок имеет определенный [[CAM_ToolBitLibraryOpen|набор инструментов]] и выполняет команды, контролирующие скорость и перемещения (обычно G-Code).
+* Инструменты выбираются в соответствии с требованиями Рабочих Операций.
+* Операции обработки задаются с использованием, например, [[CAM_Profile/ru|Контуров]] и [[CAM_Pocket_3D|Вырезов]]. Эти Операции обработки используют внутренний диалект FreeCAD G-Code, независимо от станка с ЧПУ.
+* Экспортируйте задание в g-код, соответствующий вашему станку. Этот шаг называется «постобработка», доступны разные постпроцессоры.
+</div>
+
+<span id="General_concepts"></span>
+== Основные понятия ==
+
+<div class="mw-translate-fuzzy">
+Верстак Path генерирует G-код, определяющий траектории движения фрезы, необходимую для фрезерования проекта, представленного 3D-моделью на [https://www.freecadweb.org/wiki/Path_scripting#FreeCAD.27s_internal_GCode_format FreeCAD диалекте G-Кода], который впоследствии переводится на соответствующий диалект для целевого контроллера ЧПУ путем выбора соответствующего постпроцессора.
+</div>
+
+<div class="mw-translate-fuzzy">
+G-код генерируется из директив и операций, содержащихся в Задании на обработку. Job Workflow перечисляет их в порядке их выполнения. Список заполняется путем добавления Path Operations, Path Dressups, Path Partial Commands и Path Modifications из Path меню или кнопок GUI.
+</div>
+
+<div class="mw-translate-fuzzy">
+Верстак Path предоставляет диспетчер инструментов (библиотека и таблица инструментов), инструменты проверки G-кода и симуляции обработки. Он содержит постпроцессор и позволяет импортировать и экспортировать шаблоны заданий.
+</div>
+
+<div class="mw-translate-fuzzy">
+Верстак Path имеет внешние зависимости, включая:
+# Единицы измерения 3D-модели FreeCAD определены в {{MenuCommand | Правка → Предпочтения → Общие → Настройки единиц измерения на вкладке Единицы Измерения}}. Конфигурация Postprocessor определяет единицы измерения результирующего G-кода.
+# Путь к файлу макроса и геометрические допуски определяются на вкладке {{MenuCommand | Правка → Параметры → Путь → Параметры задания}}.
+# Цвета определяются на вкладке {{MenuCommand | Правка → Настройки → Путь → Цвета пути}}.
+# Содержащие параметры тега определены на вкладке {{MenuCommand | Правка → Настройки → Путь → Dressups}}.
+# То, что качество базовой 3D-модели соответствует требованиям Path WB, проходит проверку геометрии.
+</div>
+
+<span id="Limitations"></span>
+== Ограничения ==
+
+<div class="mw-translate-fuzzy">
+Некоторые текущие ограничения, о которых вам следует знать:
+* Большинство инструментов Path Tools не являются настоящими 3D-инструментами, поскольку поддерживают только 2.5D-обработку. Это означает, что они фактически обрабатывают плоскую форму, но могут вырезать ее до заданной глубины. Однако есть два инструмента, которые создают истинные трехмерные пути: {{KEY|[[Image:CAM_3DPocket.svg|24px]] [[CAM_Pocket_3D|3D Pocket]]}} и {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}} (он все еще является [[CAM_experimental|экспериментальной функцией]] по состоянию на ноябрь 2020 г.). 
+* Большая часть верстака Path разработана для простых, стандартных 3-осевых (xyz) фрезерных станков и роутеров с ЧПУ, но операции для токарной обработки находятся в разработке в версии 0.19_pre.
+* Большинство операций в верстаке Path будут создавать пути, основанные лишь на стандартной концевой фрезе, независимо от типа инструмента , назначенного в данном контроллере инструмента, за исключением {{KEY|[[Image:CAM_Engrave.svg|24px]] [[CAM_Engrave|Engrave]]}} и {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}}.
+* Операции в верстаке Path не знают о зажимных механизмах, используемых для закрепления заготовки на вашем станке. Следовательно, внимательно просмотрите и симулируйте пути, которые вы создаете, перед отправкой кода на ваш станок. При необходимости смоделируйте свои зажимные механизмы в FreeCAD, чтобы лучше проверять создаваемые пути. Ищите возможные столкновения с зажимами или другими препятствиями на пути движения инструмента.
+</div>
+
+<span id="Units"></span>
+==Единицы измерения==
+
+<div class="mw-translate-fuzzy">
+Обработка единиц измерения в Path может быть запутанной. Есть несколько моментов, которые нужно понять:
+# Базовыми единицами FreeCAD для длины и времени являются «мм» и «с» соответственно. Скорость, таким образом, измеряется в «мм/с». Это внутренний формат хранения FreeCAD 
+# В схеме единиц измерения по умолчанию используются единицы измерения по умолчанию. Если вы используете схему по умолчанию и вводите скорость подачи без единиц измерения, она будет восприниматься как «мм/с»
+# Большинство станков с ЧПУ предполагает, что скорость подачи будет в «мм/мин» или «дюйм/мин». Большинство постпроцессоров автоматически конвертируют единицы при генерации gcode.
+</div>
+
+<div class="mw-translate-fuzzy">
+Схемы:
+# Изменение схемы в настройках изменяет строку по умолчанию для полей ввода. Если вы являетесь пользователем Path и предпочитаете проектировать в метрической системе настоятельно рекомендуется использовать схему «Метрические мелкие детали и ЧПУ». Если вы проектируете в единицах США, то будет работать Imperial Decimal и Building US
+# Изменение предпочитаемой схемы объекта не повлияет на вывод, но поможет избежать ошибок ввода
+</div>
+
+<div class="mw-translate-fuzzy">
+Вывод:
+# Генерация правильной единицы измерения в выходном файле является обязанностью постпроцессора и выполняется только в это время.
+# Единица измерения на выходе полностью не зависимо от выбранной схемы единиц измерения
+# Постпроцессоры выдают либо метрический (G21) выход, либо Imperial (G20), либо настраиваемый.
+# Конфигурируемые постпроцессоры по умолчанию для метрики (G21)
+# Если вы хотите, чтобы ваш настраиваемый постпроцессор выводил имперский gcode (G20), задайте правильный аргумент в конфигурации вывода задания (т.е. --дюймы для linuxcnc). Это может быть сохранено в шаблоне работы и установлено в качестве шаблона по умолчанию, чтобы сделать его автоматическим для всех будущих работ
+</div>
+
+<div class="mw-translate-fuzzy">
+Проверка траектории:
+# Если вы используете инструмент Path Inspect для просмотра g-кода, вы увидите подачу в «мм/с», потому что он не подвергается пост-обработке
+</div>
+
+<span id="Heights_and_depths"></span>
+== Высоты и глубины ==
+
+Многие из команд имеют различные высоты и глубины:
+
+[[Image:Path-DepthsAndHeights_ru.gif]]
+{{Caption|Визуальное отображение некоторых параметров обработки (для настроек)}}
+
+<span id="Commands"></span>
+== Команды ==
+
+Некоторые команды являются экспериментальными и недоступны по умолчанию. Для их включения, см. [[CAM_experimental|CAM experimental]].
+
+<span id="Project_Commands"></span>
+=== Команды проекта ===
+
+* [[Image:CAM_Job.svg|32px]] [[CAM_Job|Проект]]: Создаёт новую программу для ЧПУ
+
+* [[Image:CAM_Post.svg|32px]] [[CAM_Post|Постобработка]]: Экспортирует проект в G-код
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Sanity.svg|32px]] [[CAM_Sanity|Проверить задание на наличие распространенных ошибок]]: проверяет выбранное задание на отсутствие значений.[[CAM_experimental|{{Emphasis|Experimental}}]]. {{Version|0.19}}
+</div>
+
+* [[Image:CAM_ExportTemplate.svg|32px]] [[CAM_ExportTemplate|Экспорт шаблона]]: Экспортирует текущий проект в качестве шаблона
+
+<span id="Tool_Commands"></span>
+=== Инструментальные команды ===
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Inspect.svg|32px]] [[CAM_Inspect|Inspect G-code]]: Показывает G-код для проверки
+</div>
+
+* [[Image:CAM_Simulator.svg|32px]] [[CAM_Simulator|CAM Simulator]]: Показывает операции фрезерной обработки, эмулируя станок
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_SimulatorGL.svg|32px]] [[CAM_SimulatorGL|CAM SimulatorGL]]: Enables the new, improved CAM simulator. {{Version|1.0}}
+</div>
+
+* [[Image:CAM_SelectLoop.svg|32px]] [[CAM_SelectLoop|Finish Selecting Loop]]: Завершает петлю между двумя выбранными кромками.
+
+* [[Image:CAM_OpActiveToggle.svg|32px]] [[CAM_OpActiveToggle|Toggle the Active State of the Operation]]: Активирует или деактивирует операцию.
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_ToolBitLibraryOpen.svg|32px]] [[CAM_ToolBitLibraryOpen|ToolBit Library editor]]: Открывает редактор для управления библиотеками инструментов ToolBit. {{Version|0.19}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_ToolBitDock.svg|32px]] [[CAM_ToolBitDock|ToolBit Dock]]: Открывает панель ToolBit. {{Version|0.19}}
+</div>
+
+<span id="Basic_Operations"></span>
+=== Основные операции ===
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Profile.svg|32px]] [[CAM_Profile|Profile]]: Создает операцию обработки профиля для всей модели или для одной или нескольких выбранных граней или кромок. {{Version|0.19}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Pocket_Shape.svg|32px]] [[CAM_Pocket_Shape|Pocket Shape]]: Создает операцию обработки кармана для одного или нескольких выбранных карманов.
+</div>
+
+* [[Image:CAM_Drilling.svg|32px]] [[CAM_Drilling|Drilling]]: Создает цикл сверления.
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Face.svg|32px]] [[CAM_MillFace|Face]]: Создает путь обработки поверхности.
+</div>
+
+* [[Image:CAM_Helix.svg|32px]] [[CAM_Helix|Helix]]: Создает спиральную траекторию.
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Adaptive.svg|32px]] [[CAM_Adaptive|Adaptive]]: Creates an adaptive clearing and profiling operation.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Slot.svg|32px]] [[CAM_Slot|Slot]]: Creates a slotting operation from selected features or custom points. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Engrave.svg|32px]] [[CAM_Engrave|Engrave]]: Creates an engraving path.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Deburr.svg|32px]] [[CAM_Deburr|Deburr]]: Creates a deburr path.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Vcarve.svg|32px]] [[CAM_Vcarve|Vcarve]]: Creates an engraving path using a V tool shape.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== 3D Operations ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Pocket_3D.svg|32px]] [[CAM_Pocket_3D|3D Pocket]]: Creates a path for a 3D pocket.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Surface.svg|32px]] [[CAM_Surface|3D Surface]]: Creates a path for a 3D surface. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Waterline.svg|32px]] [[CAM_Waterline|Waterline]]: Creates a waterline path for a 3D surface. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Path Dressup ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupAxisMap.svg|32px]] [[CAM_DressupAxisMap|Axis Map]]: Remaps one axis to another.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupPathBoundary.svg|32px]] [[CAM_DressupPathBoundary|Boundary]]: Adds a boundary dressup modification to a selected path.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupDogbone.svg|32px]] [[CAM_DressupDogbone|Dogbone]]: Adds a dogbone dressup modification to a selected path.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupDragKnife.svg|32px]] [[CAM_DressupDragKnife|DragKnife]]: Adds a dragknife dressup modification to a selected path.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupLeadInOut.svg|32px]] [[CAM_DressupLeadInOut|LeadInOut]]: Adds a lead-in and/or lead-out point to a selected path.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupRampEntry.svg|32px]] [[CAM_DressupRampEntry|RampEntry]]: Adds ramp entry dressup modification to a selected path.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupTag.svg|32px]] [[CAM_DressupTag|Tag]]: Adds a holding tag dressup modification to a selected path.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupZCorrect.svg|32px]] [[CAM_DressupZCorrect|Z Depth Correction]]: Corrects the Z depth using Probe Map.
+</div>
+
+<span id="Supplemental_Commands"></span>
+=== Дополнительные команды ===
+
+* [[Image:CAM_Fixture.svg|32px]] [[CAM_Fixture|Крепление]]: Изменяет позицию крепления
+
+* [[Image:CAM_Comment.svg|32px]] [[CAM_Comment|Comment]]: Вставляет комментарий в G-код.
+
+* [[Image:CAM_Stop.svg|32px]] [[CAM_Stop|Stop]]: Вставить команду полной остановки станка.
+
+* [[Image:CAM_Custom.svg|32px]] [[CAM_Custom|Custom]]: Вставляет пользовательский G-код.
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Probe.svg|32px]] [[CAM_Probe|Probe]]: Creates a Probing Grid from a job stock.
+</div>
+
+* [[Image:CAM_Shape.svg|32px]] [[CAM_Shape|From Shape]]: Создаёт траекторию из существующего объекта Part [[CAM_experimental|{{Emphasis|Experimental}}]].
+
+<span id="Path_Modification"></span>
+<div class="mw-translate-fuzzy">
+=== Модификация траектории ===
+</div>
+
+* [[Image:CAM_Copy.svg|32px]] [[CAM_Copy|Copy the operation in the job]]: Создает параметрическую копию выбранного объекта траектории.
+
+* [[Image:CAM_Array.svg|32px]] [[CAM_Array|Array]]: Создает массив путем дублирования выбранного участка траектории.
+
+* [[Image:CAM_SimpleCopy.svg|32px]] [[CAM_SimpleCopy|Simple Copy]]: Создает непараметрическую копию выбранного объекта траектории.
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Specialty Operations ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_ThreadMilling.svg|32px]] [[CAM_ThreadMilling|Thread Milling]]: Creates a CAM Thread Milling operation from features of a base object. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Miscellaneous ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Area.svg|32px]] [[CAM_Area|Area]]: Creates a feature area from selected objects. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Area_Workplane.svg|32px]] [[CAM_Area_Workplane|Area workplane]]: Creates a feature area workplane. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== ToolBit architecture ==
+</div>
+
+<div class="mw-translate-fuzzy">
+Управляйте инструментами и библиотекой инструментов. Основано на архитектуре ToolBit. {{Version|0.19}}
+</div>
+
+* [[CAM_Tools|CAM Tools]]
+* [[CAM_ToolShape|CAM ToolShape]]
+* [[CAM_ToolBit|CAM ToolBit]]
+* [[CAM_ToolBit_Library|CAM ToolBit Library]]
+* [[CAM_ToolController|CAM ToolController]]
+
+<span id="Other"></span>
+== Прочее ==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[CAM_FAQ|CAM FAQ]]: The CAM Workbench shares many concepts with other CAM software packages but has its own peculiarities. If something seems wrong this is a good place to start.
+* [[CAM_SetupSheet|CAM SetupSheet]]: You can use a SetupSheet to customize how various property values for operations are calculated.
+* [[CAM_Postprocessor_Customization|CAM Postprocessor Customization]]: If you have a special machine which cannot use one of the available post-processors you may need to write your own post-processor.
+* [[CAM_fourth_axis|CAM fourth axis]]: Experimental four axis milling.
+</div>
+
+<span id="Preferences"></span>
+== Настройки ==
+
+<div class="mw-translate-fuzzy">
+* [[Image:Preferences-path.svg|32px]] [[CAM_Preferences|Настройки...]]: Настройки, доступные для верстака Path.
+</div>
+
+<span id="Scripting"></span>
+== Скриптование ==
+
+Смотри [[Part scripting/ru|Создание сценариев (скриптов) модуля Part]]
+
+<span id="Tutorials"></span>
+== Руководства ==
+
+<div class="mw-translate-fuzzy">
+* [[CAM_Walkthrough_for_the_Impatient|CAM Walkthrough for the Impatient]]: краткое руководство для ознакомления с верстаком Path.
+</div>
+
+<span id="Videos"></span>
+== Видео ==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [https://www.youtube.com/playlist?list=PLEuOia-QxyFKgzAeTyH62GKqWKVURiWJL FreeCAD Path: Custom paths with Python - Part 1 - 5]: A playlist with a series of 5 videos in English by sliptonic. This series shows how to work with the [[CAM_Workbench|CAM Workbench]]. 
+* [https://www.youtube.com/playlist?list=PLUrr_kHPp4vhGdLlj6IemtF-OPUlRvSTC  FreeCAD CAM Path Workbench]: A playlist with a series of 7 videos in English by CAD CAM Lessons.
+* [https://www.youtube.com/playlist?list=PLUrr_kHPp4vh2n6DcIlegK4dEKIFjmISJ FreeCAD CAM CNC]: A playlist with a series of 8 videos in English by CAD CAM Lessons.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Roadmap ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[CAM_Development_Roadmap|CAM Development Roadmap]]: Read this if you are a developer and want to contribute to CAM.
+</div>
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[PartDesign_Workbench/ru|Верстак PartDesign]]
+|[[Points_Workbench/ru|Верстак Points]]
+|IconL=Workbench_PartDesign.svg
+|IconR=Workbench_Points.svg
+}}
+</div>
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Workbenches{{#translation:}}]]

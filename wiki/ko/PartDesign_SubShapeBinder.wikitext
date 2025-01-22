@@ -1,0 +1,130 @@
+<languages/>
+
+{{Docnav
+|[[PartDesign_ShapeBinder/ko|형상 점착제 생성]]
+|[[PartDesign_Clone/ko|복제본 생성]]
+|[[PartDesign_Workbench/ko|부품설계 작업대]]
+|IconL=PartDesign_ShapeBinder.svg
+|IconR=PartDesign_Clone.svg
+|IconC=Workbench_PartDesign.svg
+}}
+
+{{GuiCommand
+|Name=PartDesign SubShapeBinder
+|Workbenches=[[PartDesign_Workbench/ko|부품설계 작업대]]
+|MenuLocation=Part Design → Create a sub-object(s) shape binder
+|Version=0.19
+|SeeAlso=[[PartDesign_Clone/ko|복제]]
+}}
+
+<span id="Description"></span>
+==설명==
+
+부품설계 작업대의'''하위형상 점착제''' 도구는 하나 이상의 상위 개체의 형상을 참조하는 형상 점착제를 만듭니다. 하위형상 점착제는 일반적으로 [[PartDesign_Body/ko|몸통]] 내부에서 몸통 외부의 형상을 참조하는 데 사용됩니다. 몸통에서 직접 외부 형상을 사용하는 것은 허용되지 않으며 범위를 벗어나는 오류가 발생합니다. But a 하위형상 점착제 can also be used without being nested in a Body.
+
+A SubShapeBinder will track the relative placement of the referenced geometry, which is useful in the context of creating [[Assembly|assemblies]], but on top of that also has its own placement.
+
+참조되는 도형은 하나 이상의 요소로 구성될 수 있습니다. 각 요소는 개별 객체(예: [[PartDesign_Body/ko|몸통]]), 하위 객체(예: [[Std_Part/ko|부품]] 내부의 [[Part_Box/ko|상자]] 또는 몸통 내부의 [[PartDesign_NewSketch/ko|스케치]] 또는 [[PartDesign_Feature/ko|도형특징]]), 또는 하위 요소(면, 모서리, 꼭지점)가 될 수 있습니다. 어떤 도형을 선택해야 하는지는 하위형상 점착제의 의도된 목적에 따라 달라집니다. 부울 연산의 경우 고체를 선택해야 하고, [[PartDesign_Pad/ko|깔판생성]]작업의 경우 면, 스케치 또는 와이어를 사용할 수 있습니다. 그리고 스케치의 [[Sketcher_External/ko|외부 도형]]의 경우 또는 스케치를 부착하려면 하위 요소의 조합이 적절할 수 있습니다. 요소는 여러 부모 객체에 속할 수 있으며, 하위형상 점착제가 중첩된 몸통에 속할 수도 있습니다. 하위형상 점착는 [[Std LinkMake/ko|링크 기반]]이므로 참조된 도형은 외부 문서에 속할 수도 있습니다.
+
+[[File:PartDesign_SubShapeBinder_example_1.png|x300px]] [[File:PartDesign_SubShapeBinder_example_2.png|x300px]]
+{{Caption|On the left two solids created in two separate [[PartDesign_Body|Bodies]].<br>
+On the right two SubShapeBinders referencing geometry from the first Body, nested in the second Body, and moved to a different position.}}
+
+[[File:PartDesign_SubShapeBinder_example_3.png|x300px]]
+{{Caption|The two SubShapeBinders are used to create a [[PartDesign_Boolean|Boolean cut]] and a [[PartDesign_Pad|Pad]] in the second Body.}}
+
+==Usage==
+
+=== Same document ===
+
+# If there are multiple Bodies in the document: optionally [[PartDesign_Body#Active_status|activate the Body]] the SubShapeBinder should be nested in.
+# Select the required geometry. Subelements can only be selected in the [[3D_view|3D view]].
+# There are several ways to invoke the tool:
+#* Press the {{Button|[[Image:PartDesign_SubShapeBinder.svg|16px]] [[PartDesign_SubShapeBinder|PartDesign SubShapeBinder]]}} button.
+#* Select the {{MenuCommand|Part Design → [[Image:PartDesign_SubShapeBinder.svg|16px]] Create a sub-object(s) shape binder}} option from the menu.
+# The SubShapeBinder is created.
+# If there is only one Body in the document the SubShapeBinder is automatically added to it and the Body is activated. If this is the case and the SubShapeBinder should not be nested, it can be dragged out of the Body and dropped onto the [[Image:Document.svg|16px]] document node in the [[Tree_view|Tree view]].
+
+=== External document ===
+
+# If required open the source document (the external document) and the target document. Both documents must have been saved at least once.
+# If there are multiple Bodies in the target document: optionally activate the Body the SubShapeBinder should be nested in.
+# Select the required geometry in the source document. Subelements can only be selected in the [[3D_view|3D view]].
+# Switch to the target document by clicking its tab in the [[Main_view_area|Main view area]].
+# Invoke the tool as described above.
+
+=== Start with empty SubShapeBinder ===
+
+# Follow the instructions described under [[#Same_document|Same document]] above but without selecting geometry.
+# An empty SubShapeBinder is created.
+# Select the required geometry. Subelements can only be selected in the [[3D_view|3D view]].
+# In the [[Tree_view|Tree view]] drag and drop the selection onto the SubShapeBinder. If you have selected subelements their parent objects are highlighted in the [[Tree_view|Tree view]], indicating the objects to be dragged.
+# Optionally add more geometry in the same manner.
+# To replace already referenced geometry hold down {{KEY|Ctrl}} during the drag and drop operation.
+
+== Notes ==
+
+* 2D offsetting is supported for some shape types, included planar faces, edges and wires. Because offsetting is a difficult operation for the software it does not always succeed.
+* A SubShapeBinder that is not nested in a Body can be used as the [[PartDesign_Body#Base_Feature|Base Feature]] for a new Body.
+* The {{PropertyData|Support}} property contains the links to the referenced geometry. The property is read only by default, but can be changed by following the instructions described under [[#Start_with_empty_SubShapeBinder|Start with empty SubShapeBinder]].
+* A SubShapeBinder created from a sketch can have an opposite "tool direction". For example a [[PartDesign_Pad|Pad]] created from the sketch may extend in the +Y direction, while a [[PartDesign_Pad|Pad]], with the same properties, created from the SubShapeBinder extends in the -Y direction. Toggling the {{PropertyData|Reversed}} property (or checkbox) will solve this.
+
+== PartDesign SubShapeBinder vs. PartDesign ShapeBinder ==
+
+See [[PartDesign_ShapeBinder#PartDesign_SubShapeBinder_vs._PartDesign_ShapeBinder|PartDesign ShapeBinder]].
+
+== Properties ==
+
+A PartDesign SubShapeBinder object is derived from a [[Part_Feature|Part Feature]] object and inherits all its properties. It also has the following additional properties:
+
+=== Data ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyData|Support|XLinkSubList}}: support for the geometry.
+* {{PropertyData|Fuse|Bool}}: if it is {{TRUE}} it will fuse the solid linked shapes.
+* {{PropertyData|Make Face|Bool}}: if it is {{TRUE}} it will created a face for the linked wires.
+* {{PropertyData|Claim Children|PropertyBool}}: if it is {{TRUE}} it will claim the linked objects as children in the [[Tree_view|tree view]].
+* {{PropertyData|Relative|Bool}}: if it is {{TRUE}} it will enable relative sub-object linking.
+* {{PropertyData|Bind Mode|Enumeration}}: binding mode, {{value|Synchronized}}, {{Value|Frozen}}, {{Value|Detached}}.
+* {{PropertyData|Partial Load|Bool}}: if it is {{TRUE}} it will enable partial loading of the objects.
+* {{PropertyData|Context|XLink|hidden}}: container object of this binder object.
+* {{PropertyData|Bind Copy On Change|Enumeration}}
+* {{PropertyData|Refine|Bool}}: if {{TRUE}} redundant edges will be removed (for example after a boolean operation).
+* {{PropertyData|_ Version|Integer|hidden}}: version of this type of object.
+* {{PropertyData|_ Copied Link|XLinkSub|hidden}}
+
+{{TitleProperty|Cache}}
+
+* {{PropertyData|Cache_*|Matrix|hidden}}: unity matrix (separate property for each object in {{PropertyData|Support}}).
+
+{{TitleProperty|Offsetting}}
+
+* {{PropertyData|Offset}}: 2D offset to apply. If Offset = 0, then no offset is applied. If Offset < 0, then the offset is applied inward.
+* {{PropertyData|Offset Join Type}}: Join method of offsetting non-tangent joints. The method can be {{Value|Arcs}}, {{Value|Tangent}} or {{Value|Intersection}}.
+* {{PropertyData|Offset Fill|Bool}}: If {{TRUE}}, a face is made between the new wire and the original wire. See also the {{PropertyData|Make Face}} property.
+* {{PropertyData|Offset Open Result|Bool}}: Affects the way open wires are processed. If {{FALSE}}, an open wire is made. If {{TRUE}}, a closed wire is made from a double-sided offset, with rounds around open vertices.
+* {{PropertyData|Offset Intersection|Bool}}: Affects the way compounds are processed. If {{FALSE}}, all children are processed independently. If {{TRUE}}, and children are edges and wires, the children are offset in a collective manner.
+
+=== View ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyView|Use Binder Style|Bool}}: If {{TRUE}} the colors of the binder object depend on the [[Fine-tuning#PartDesign_Workbench|fine-tuning]] parameter '''DefaultDatumColor'''. If {{FALSE}}, normal shape colors are applied.
+
+== Links ==
+
+* [https://forum.freecadweb.org/viewtopic.php?t=41450 New Sublink Link Feature], usage explanation with video.
+
+
+{{Docnav
+|[[PartDesign_ShapeBinder|Create a shape binder]]
+|[[PartDesign_Clone|Create a clone]]
+|[[PartDesign_Workbench|PartDesign]]
+|IconL=PartDesign_ShapeBinder.svg
+|IconR=PartDesign_Clone.svg
+|IconC=Workbench_PartDesign.svg
+}}
+
+{{PartDesign_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

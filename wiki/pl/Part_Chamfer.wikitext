@@ -1,0 +1,167 @@
+<languages/>
+
+{{Docnav/pl
+|[[Part_Fillet/pl|Zaokrąglenie]]
+|[[Part_MakeFace/pl|Utwórz ścianę z linii łamanych]]
+|[[Part_Workbench/pl|środowisko pracy Część]]
+|IconL=Part_Fillet.svg
+|IconR=Part_MakeFace.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/pl
+|Name=Part Chamfer
+|Name/pl=Część: Sfazowanie
+|MenuLocation=Część → Sfazowanie ...
+|Workbenches=[[Part_Workbench/pl|Część]]
+|SeeAlso=[[Part_Fillet/pl|Zaokrąglenie]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie '''Sfazowanie''' ścina wybraną krawędź obiektu. Okno dialogowe pozwala wybrać krawędź do pracy, jak również modyfikować różne parametry fazowania.
+
+[[Image:Chamfer-example.png|Przykład utworzenia fazki]]
+
+<span id="Usage"></span>
+==Użycie== 
+
+# Istnieje kilka sposobów aby wywołać polecenie '''Fazuj wybrane krawędzie''':
+#* Naciśnij przycisk {{Button|[[Image:Part_Chamfer.svg|24px]]}}.
+#* Użyj pozycji w menu {{MenuCommand|Część → Fazka}}.
+# Wybierz kształt do wykonania fazek z menu okna dialogowego.
+# Wybierz krawędzie do fazowania, zaznaczając odpowiednie pole w oknie dialogowym fazy lub wybierając je bezpośrednio na modelu. 
+# Edycja parametrów fazy.
+# Naciśnij przycisk {{Button|OK}}, aby zamknąć okno dialogowe fazy i nanieść fazki.
+
+<span id="Options"></span>
+==Opcje==
+
+[[Image:Dialog-chamfer.png|Okienko dialogowe funkcji fazowania]]
+* Podczas wybierania krawędzi w modelu, masz możliwość wyboru według krawędzi lub według ściany. Wybranie według ściany spowoduje wybranie wszystkich krawędzi granicznych.
+* Fazowanie o stałej długości lub fazowanie o zmiennej długości.
+** Faza o stałej długości utworzy fazę o krawędziach równych odległości od oryginalnej krawędzi w podanej odległości.
+** Faza o zmiennej długości będzie miała krawędzie, które mogą być ustawione w różnych odległościach od oryginalnej krawędzi, co pozwala na utworzenie fazy pod zmiennym kątem.
+
+<span id="Properties"></span>
+==Właściwości==
+
+[[Image:Part_Chamfer-Properties.png|left|Właściwości funkcji Fazka w środowisku pracy Część]]
+{{clear}}
+
+{{Properties_Title|Podstawowe}}
+
+*{{PropertyData|Podstawowe}}: Kształt, na którym ma być zastosowana fazka.
+*{{PropertyData|Umiejscowienie}}: Określa orientację i położenie kształtu w przestrzeni 3D.
+*{{PropertyData|Etykieta}}: Etykieta nadana obiektowi. Zmień ją według własnych potrzeb.
+{{clear}}
+
+<span id="Limitations"></span>
+==Ograniczenia==
+
+Fazowanie może się nie powieść, jeśli wynik dotknie lub przekroczy następną sąsiednią krawędź. Więc jeśli nie otrzymasz oczekiwanego rezultatu, spróbuj z mniejszą wartością. To samo dotyczy funkcji [[Image:Part_Fillet.svg|24px]] [[Part_Fillet/pl|Zaokrąglij wybrane krawędzie ...]] środowiska Część.
+
+Zwróć również uwagę, że na funkcję fazowania części wpływa na [[Topological_naming_problem/pl|Topologiczny problem nazewnictwa]], gdy jakakolwiek zmiana jest dokonywana na wcześniejszym etapie modelowania w łańcuchu, który wpływa na liczbę powierzchni lub wierzchołków. Może to spowodować nieprzewidywalny rezultat. Do czasu rozwiązania tego problemu zaleca się stosowanie operacji Fazowania i [[Part_Fillet/pl|Zaokrąglania]] na ostatnich etapach łańcucha.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Narzędzie fazowania może być używane w [[Macros/pl|makrodefinicjach]] i z konsoli środowiska [[Python/pl|Python]] poprzez dodanie obiektu fazowania do dokumentu.
+
+'''Przykład skryptu:'''
+
+{{Code|code=
+import Part
+cube = FreeCAD.ActiveDocument.addObject("Part::Feature", "myCube")
+cube.Shape = Part.makeBox(5, 5, 5)
+chmfr = FreeCAD.ActiveDocument.addObject("Part::Chamfer", "myChamfer")
+chmfr.Base = FreeCAD.ActiveDocument.myCube
+myEdges = []
+myEdges.append((1, 1.5, 1.25)) # (edge number, chamfer start length, chamfer end length)
+myEdges.append((2, 1.5, 1.25))
+myEdges.append((3, 1.5, 1.25))
+myEdges.append((4, 1.5, 1.25))
+myEdges.append((5, 1.5, 1.25))
+myEdges.append((6, 1.5, 1.25))
+myEdges.append((7, 1.5, 1.25))
+myEdges.append((8, 1.5, 1.25))
+myEdges.append((9, 1.5, 1.25))
+myEdges.append((10, 1.5, 1.25))
+myEdges.append((11, 1.5, 1.25))
+myEdges.append((12, 1.5, 1.25))
+chmfr.Edges = myEdges
+FreeCADGui.ActiveDocument.myCube.Visibility = False
+FreeCAD.ActiveDocument.recompute()
+}}
+
+'''Przykładowe objaśnienie skryptu:'''
+
+{{Code|code=
+import Part
+cube = FreeCAD.ActiveDocument.addObject("Part::Feature", "myCube")
+cube.Shape = Part.makeBox(5, 5, 5)
+}}
+
+*Tworzy sześcian o boku 5 mm, na który będziemy nakładać sfazowane krawędzie. Zobacz stronę [[Part_API/pl|Part_API]] aby uzyskać wyjaśnienie metody '''makeBox'''.
+
+{{Code|code=
+chmfr = FreeCAD.ActiveDocument.addObject("Part::Chamfer", "myChamfer")
+}}
+
+*Dodaje do dokumentu nowy obiekt typu Fazka ''(pochodzący z modułu Część)'' z etykietą "myChamfer".
+
+{{Code|code=
+chmfr.Base = FreeCAD.ActiveDocument.myCube
+}}
+
+*Określa, że podstawowym kształtem obiektu fazki powinien być "myCube".
+
+{{Code|code=
+myEdges = []
+myEdges.append((1, 1.5, 1.25)) # (edge number, chamfer start length, chamfer end length)
+myEdges.append((2, 1.5, 1.25))
+myEdges.append((3, 1.5, 1.25))
+myEdges.append((4, 1.5, 1.25))
+myEdges.append((5, 1.5, 1.25))
+myEdges.append((6, 1.5, 1.25))
+myEdges.append((7, 1.5, 1.25))
+myEdges.append((8, 1.5, 1.25))
+myEdges.append((9, 1.5, 1.25))
+myEdges.append((10, 1.5, 1.25))
+myEdges.append((11, 1.5, 1.25))
+myEdges.append((12, 1.5, 1.25))
+}}
+
+*Tworzy pustą tablicę "myEdges", a następnie dodaje do niej parametry fazy każdej krawędzi.
+*Składnia dla każdego elementu powinna być następująca ''(krawędź#, długość początkowa fazy, długość końcowa fazy)''.
+
+{{Code|code=
+chmfr.Edges = myEdges
+}}
+*Ustawia atrybut Krawędzie naszego obiektu Fazka odpowiadający tablicy, którą właśnie utworzyliśmy.
+
+{{Code|code=
+FreeCADGui.ActiveDocument.myCube.Visibility = False
+}}
+
+*Ta linia po prostu ukrywa "myCube" tak, aby nasz nowo utworzony obiekt "myChamfer" był jedynym widocznym.
+
+{{Code|code=
+FreeCAD.ActiveDocument.recompute()
+}}
+
+*Ponownie oblicza wszystkie zmienione elementy na ekranie i odświeża widok.
+
+
+{{Docnav/pl
+|[[Part_Fillet/pl|Zaokrąglenie]]
+|[[Part_MakeFace/pl|Utwórz ścianę z linii łamanych]]
+|[[Part_Workbench/pl|środowisko pracy Część]]
+|IconL=Part_Fillet.svg
+|IconR=Part_MakeFace.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

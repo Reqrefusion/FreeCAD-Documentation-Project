@@ -1,0 +1,230 @@
+<languages/>
+[[File:SpaceNavigator.jpg|200px|thumb|right|3Dconnexion SpaceNavigator]]
+
+{{TOCright}}
+
+== Driver installation ==
+
+=== Linux ===
+
+FreeCAD supports drivers from project [http://spacenav.sourceforge.net/ Spacenav]. This is a project aiming to create an open-sourced driver which is compatible with the proprietary drivers from 3Dconnexion.
+
+==== Install from repo ====
+
+===== Ubuntu =====
+
+{{Code|code=
+sudo apt-get install spacenavd
+}}
+
+Note, however, that version 0.6 available on Ubuntu 20.04 (and probably older ones) does not seem to work. You then have to compile spacenavd from source as explained below.
+
+===== Fedora =====
+
+{{Code|code=
+sudo yum install spacenavd
+}}
+
+===== Debian =====
+
+{{Code|code=
+apt-get install spacenavd libspnav-dev
+}}
+
+Spacenav needs these permissions:
+
+:{{Code|code=
+cp ~/.Xauthority /root/
+}}
+
+Restart spnavd and FreeCAD
+
+:{{Code|code=
+/usr/bin/spnavd_ctl x11 stop
+/usr/bin/spnavd_ctl x11 start
+}}
+
+===== openSUSE =====
+
+{{Code|code=
+sudo zypper install spacenavd
+}}
+
+==== Compile Spacenav from source ====
+
+This is recommended if your distribution might provide an outdated version. 
+
+*Download the following files:
+**[https://sourceforge.net/projects/spacenav/files/latest/download spacenavd] (latest version)
+**[https://sourceforge.net/projects/spacenav/files/spacenav%20library%20%28SDK%29/ libspnav] (get latest libspnav version) 
+**[https://sourceforge.net/projects/spacenav/files/spacenavd%20config%20gui/ spnavcfg] (get latest libspnav version)
+*Unpack the archives into a folder in your home directory.
+*Enter the spacenavd-x.x directory and run the following commands:
+
+:{{Code|code=
+./configure
+make
+}}
+
+* If this was successful, run the following commands '''as root''' (or prefix with sudo.)
+
+:{{Code|code=
+make install
+./setup_init
+/etc/init.d/spacenavd start
+}}
+
+*This installs the spacenav daemon, configures it to automatically load on system boot, and starts the daemon without having to reboot.
+*Now it is time to check that your device is properly detected. With your device unplugged, run the following command and then plug it in.
+
+:{{Code|code=
+tail -n100 -f /var/log/spnavd.log 
+}}
+
+*If the output looks something like this, you can continue.
+
+:{{Code|code=
+Device detection, parsing /proc/bus/input/devices
+trying alternative detection, querying /dev/input/eventX device names...
+  trying "/dev/input/event1" ... Power Button
+  trying "/dev/input/event2" ... 3Dconnexion SpaceNavigator
+using device: /dev/input/event2
+device name: 3Dconnexion SpaceNavigator
+}}
+
+*Now enter the directory named libspnav-x.x.x and run the following commands:
+
+:{{Code|code=
+./configure
+make
+}}
+
+*If make fails with the following error: ...
+
+:{{Code|code=
+fatal error: gtk/gtk.h: No such file or directory
+}}
+
+* ... then you need to install '''libgtkmm-2.4-dev'''. Under Ubuntu, this is done like this:
+
+:{{Code|code=
+sudo apt-get install libgtkmm-2.4-dev
+}}
+
+*When make has completed successfully, run the following command '''as root''' (or prefix with sudo.)
+
+:{{Code|code=
+make install
+}}
+
+*Look in the directory libspnav-x.x.x/examples/. If you want to test your device, compile and run either one of the two examples.
+
+*Follow the same pattern to compile and install '''spnavcfg'''. Make sure to run spnavcfg as root, or no settings will be saved!
+
+==== Starting spacenavd as a systemd service at boot ====
+
+If you want to start spacenavd at boot using systemd, do the following:
+
+* Go to the directory where you clone the spacenavd repository (to the root of the repository)
+* "sudo cp contrib/systemd/spacenavd.service /usr/lib/systemd/system/spacenavd-local.service".
+* "sudo systemctl enable spacenavd-local.service".
+* "sudo systemctl start spacenavd-local.service", if you want to start it right away.
+
+This is only necessary for the installation from source.
+
+==== Restarting spacenavd ====
+
+If sometimes SpaceNavigator stops working, it is good to restart driver. To restart it, go to Terminal and execute:
+
+{{Code|code=
+sudo xhost +
+sudo /etc/init.d/spacenavd restart
+}}
+
+After that restart FreeCAD. On some distros this is necessary at each boot.
+
+==== Known Issues ====
+
+A user reported on the [https://forum.freecadweb.org/viewtopic.php?p=341327#p341327 forum] they saw the following:
+  Spacenav daemon 0.6
+  failed to open config file /etc/spnavrc: No such file or directory. using defaults.
+  adding device.
+  device name: 3Dconnexion SpacePilot
+  using device: /dev/input/event5
+  No protocol specified
+  failed to open X11 display ":0.0" 
+The workaround that worked for them:
+
+{{Code|code= 
+sudo cp ~/.Xauthority /root/
+sudo spnavd_ctl x11 start
+sudo systemctl restart spacenavd 
+}}
+
+=== MacOS ===
+
+3Dconnexion input devices are supported on macOS, provided FreeCAD is built and used on a system with the 3Dconnexion drivers installed. You may need 3DxWare 10.7.2 or greater for macOS 12 Monterey.
+
+=== Windows ===
+
+As of version 0.13, 3D mouse is supported under Windows. You need to have 3Dconnexion drivers installed. In FreeCAD version 1.0 a [https://github.com/FreeCAD/FreeCAD/pull/12929 new integration with 3Dconnexion devices] has been introduced. If compiled with that integration, only recent hardware is supported: to support older devices users will need to self-compile with the FREECAD_3DCONNEXION_SUPPORT cMake variable set to "Raw Input". Windows users should be aware that 3Dconnexion's driver (''not'' the code in FreeCAD) contains a telemetry package that communicates information about your installed software back to 3Dconnexion.
+
+==== Known Issues ====
+
+* In FreeCAD version 1.0 and later changing settings in the 3DX config window may not have the expected results ([https://github.com/FreeCAD/FreeCAD/issues/14044 issue]). To fix this:
+*# Stop the driver (by running Stop 3DxWare).
+*# Go to {{FileName|..<user>\AppData\Roaming\3Dconnexion\3DxWare\Cfg}} and delete the {{FileName|FreeCAD.xml}} file.
+*# Start the driver (by running Start 3DxWare).
+*# Run FreeCAD and check if you can change the [[#Spaceball_Motion|Spaceball Motion]] settings.
+
+== Setting up FreeCAD ==
+
+{{VersionPlus|1.0}}: The 3Dconnexion manipulator can be set up in its driver app (3DxWare software).
+
+{{VersionMinus|0.21}}: If a Spaceball is detected the following tabs in the [[Interface_Customization|Customize dialog]] can be used to change settings:
+
+[[File:Spaceball_Motion.png|450px]]
+[[File:Spaceball_Buttons.png|450px]]
+
+=== Spaceball Motion ===
+
+In this tab you have ability to set up some of general SpaceMouse settings. They include:
+* Global Sensitivity - Slider with ability to set global sensitivity
+* Dominant - if you enable dominant mode, only axes with highest move will be considered
+* Flip YZ - This option enables you to flip Y and Z axes on 3D mouse
+* Enable Translations - easy way to enable/disable translations
+* Enable Rotations - easy way to enable/disable rotations
+* Calibrate - enables you to calibrate space navigator. It is pressed while space navigator is not moved.
+* Set To Default - removes all settings and sets them to default.
+
+Other than this, for each axes you have ability to set:
+* Enabled - Enable/Disable axes
+* Reverse - Reverse movement on axes
+* Sensitivity - slider with ability to set sensitivity
+
+=== Spaceball Buttons ===
+
+When you open this tab for the first time, it will be empty and unavailable. To activate it, you must press one of your SpaceMouse buttons. After you do, list of buttons will appear on the left side, and list of commands will be available on the right side.
+
+To connect certain command with a button, select button on the left side, and it's command on the right side.
+To clear commands from button, press "Clear".
+
+=== Troubleshooting ===
+
+Check if your FreeCAD installation links to the spacenav library. The best way to check this is by running FreeCAD from the command line terminal {{incode|FreeCAD --log-file /tmp/freecad.log}} and close it immediately again. Then open the file {{FileName|/tmp/freecad.log}} and search for the messages:
+
+{{incode|Connected to spacenav daemon}}
+
+or
+
+{{incode|Couldn't connect to spacenav daemon. Please ignore if you don't have a spacemouse.}}
+
+If none of them appears then your FreeCAD build doesn't link to the spacenav library. If the former message appears then it basically works. The latter message means there is probably a problem with the spacenav daemon.
+
+== Related ==
+
+* Forum thread [https://forum.freecadweb.org/viewtopic.php?f=3&t=51023 spacenav on Windows]
+* Forum thread [https://forum.freecadweb.org/viewtopic.php?f=8&t=57188 Space navigator axis confusion]
+
+[[Category:User Documentation{{#translation:}}]]
+[[Category:3rd Party{{#translation:}}]]

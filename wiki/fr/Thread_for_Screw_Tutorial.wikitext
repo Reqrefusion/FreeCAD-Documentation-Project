@@ -1,0 +1,256 @@
+<languages/>
+
+{{TutorialInfo/fr
+|Topic=Conception de produit
+|Level=Avancé
+|Time=60 minutes
+|Author=[[User:DeepSOIC|DeepSOIC]], [[User:Murdic|Murdic]], vocx
+|FCVersion=0.19
+|Files=[https://forum.freecad.org/viewtopic.php?f=36&t=44668 Updated: Thread for screw tutorial]
+}}
+
+== Introduction ==
+
+Ce tutoriel est un ensemble de techniques pour modéliser les filetages de vis dans FreeCAD. Il a été mis à jour pour la v0.19, bien que le processus général soit essentiellement le même depuis la v0.14, lorsque le tutoriel a été écrit à l'origine. Le contenu mis à jour se concentre sur l'[[File:Workbench_PartDesign.svg|24px]] [[PartDesign Workbench/fr|atelier PartDesign]] pour créer le filetage. Il n'utilise pas le [[File:PartDesign_AdditiveHelix.svg|24px]] [[PartDesign_AdditiveHelix/fr|PartDesign Hélice additive]], cet outil ayant été introduit plus tard.
+
+Dans les systèmes de CAO traditionnels, la modélisation des filetages de vis est déconseillée car elle impose une charge importante sur le noyau de modélisation, ainsi que sur le rendu des formes. Dans les systèmes traditionnels, un fil n'a pas besoin d'être représenté directement dans l'espace 3D, car il peut être indiqué avec ses caractéristiques requises dans le dessin technique 2D envoyé pour la fabrication. Cependant, avec la vulgarisation de la fabrication additive (impression 3D), il existe désormais un réel besoin de modéliser les fils 3D, afin de les imprimer exactement comme prévu. C'est à cela que sert ce didacticiel.
+
+De nombreuses techniques présentées ici ont été collectées à partir de différents fils de discussion :
+* [https://forum.freecad.org/viewtopic.php?f=3&t=12593 Gathering thread modeling techniques]
+* [https://forum.freecad.org/viewtopic.php?f=3&t=6506 Creating a thread: Unexpected results]
+
+Voir aussi des vidéos utiles :
+* [https://forum.freecad.org/viewtopic.php?f=8&t=44259 Introducing a strategy for designing a bolt without the commonly found problems.]
+
+N'oubliez pas que les formes de filetages prennent beaucoup de mémoire et que le fait d'avoir un seul filetage dans un document peut augmenter considérablement la taille du fichier, il est donc conseillé à l'utilisateur de créer des filetages uniquement lorsque cela est absolument nécessaire.
+
+<span id="Method_1._Using_utilities_and_parts_from_workbenches"></span>
+== Méthode 1. Utilisation des utilitaires et des pièces des ateliers ==
+
+Utiliser des utilitaires et des pièces que d'autres personnes ont créés est facile et permet de gagner du temps. Voir la page [[External_workbenches/fr|ateliers externes]] pour plus d'informations sur les outils externes.
+
+En particulier, trois ressources sont recommandées et peuvent être installées à partir du [[Std_AddonMgr/fr|Gestionnaire des extensions]] :
+* [[Fasteners_Workbench/fr|Atelier Fasteners]], pour ajouter/fixer diverses fixations aux pièces. Les vis et les écrous ne présentent pas de filetage par défaut, mais cela peut être réglé avec une option.
+* [[BOLTSFC_Workbench/fr|Atelier BOLTSFC]], pour placer des fixations de la bibliothèque BOLTS.
+* [[ThreadProfile_Workbench/fr|Atelier ThreadProfile]], pour créer des filetages courants.
+
+[[File:T13_00_Threads_fasteners.png|x300px]]
+{{Caption|Diverses vis standard insérées avec l'atelier Fasteners. Une option permet de contrôler si l'objet montre le véritable filetage ou seulement un simple cylindre.}}
+
+<span id="Method_2._Using_macros_(deprecated)"></span>
+== Méthode 2. Utilisation de macros (obsolète) ==
+
+Dans le passé, la [[Macro_BOLTS/fr|macro BOLTS]] était utilisée pour insérer les pièces de la bibliothèque BOLTS. Ceci est désormais obsolète. Utilisez plutôt l'[[BOLTSFC_Workbench/fr|Atelier BOLTSFC]].
+
+* Par le passé, la macro [[Macro_screw_maker1_2/fr|Screw Maker]], par ulrich1a, était utilisée pour créer des boulons, des vis et des rondelles. Elle est désormais obsolète. L'[[Fasteners_Workbench/fr|Atelier Fasteners]], par shaise, comprend la macro complète de vissage, ainsi qu'une interface graphique pour sélectionner le bon composant.
+
+<span id="Method_3._Fake_threads:_non-helical"></span>
+== Méthode 3. Faux filetages non hélicoïdaux ==
+
+Dans de nombreux cas, nous n'avons pas besoin de vrais filetages, nous avons juste besoin d'une indication visuelle que les filetages seront là.
+
+Nous pouvons créer un faux filetage en utilisant un chemin non hélicoïdal, par exemple en tournant un profil en dents de scie, ou en empilant des disques avec des bords effilés. Ce faux filetage est difficile à distinguer du vrai fil hélicoïdal par une simple inspection. Cette méthode est bonne pour visualiser un objet semblable à un filetage, mais elle n'est pas utile si nous devons imprimer en 3D un fil réel.
+
+[[File:T13_01_Threads_comparison_fake_real.png|x300px]]
+{{Caption|A gauche : un simple boulon avec un faux filetage non hélicoïdal. A droite : un simple boulon avec un vrai filetage hélicoïdal. Lorsque l'impression 3D n'est pas nécessaire, un filetage simulé est souvent suffisant pour la visualisation.}}
+
+<span id="Revolving_sawtooth_profile"></span>
+=== Profil tournant en dents de scie ===
+
+# Cliquer sur {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body/fr|PartDesign Corps]]}}.
+# Cliquer sur {{Button|[[File:PartDesign_NewSketch.svg|16px]] [[PartDesign_NewSketch/fr|PartDesign Nouvelle esquisse]]}}. Sélectionnez {{Value|XZ_Plane}}.
+# Dessinez une esquisse fermée avec le diamètre intérieur requis {{Value|10 mm}}, le diamètre extérieur autour de {{Value|12.6 mm}}, le pas {{Value|3 mm}}, le nombre de dents {{Value|8}} et la hauteur totale {{Value|30 mm}}.
+# Sélectionnez l'esquisse, puis cliquez sur {{Button|[[File:PartDesign_Revolution.svg|16px]] [[PartDesign_Revolution/fr|PartDesign Révolution]]}}. Sélectionnez {{Value|Vertical sketch axis}} et appuyez sur {{Button|OK}}.
+
+[[File:T13_02_Threads_Sawtooth_sketch_profile.png|x300px]]
+{{Caption|Profil utilisé pour créer la révolution qui simulera un filetage.}}
+
+[[File:T13_03_Threads_Sawtooth_revolution_1.png|x300px]] [[File:T13_04_Threads_Sawtooth_revolution_2.png|x300px]]
+{{Caption|Vue en coupe du filetage non hélicoïdal résultant produit par rotation du profil en dents de scie autour de l'axe vertical.}}
+
+<span id="Stacking_discs"></span>
+=== Disques empilables ===
+
+# Répétez les deux premières étapes de la section précédente.
+# Dessinez une esquisse fermée avec le diamètre intérieur requis {{Value|10 mm}}, le diamètre extérieur de {{Value|12.6 mm}} et le pas {{Value|3 mm}} mais dessinez qu'une seule dent de la dent de scie.
+# Sélectionnez l'esquisse, puis cliquez sur {{Button|[[File:PartDesign_Revolution.svg|16px]] [[PartDesign_Revolution/fr|PartDesign Révolution]]}}. Sélectionnez {{Value|Axe vertical de l'esquisse}} puis appuyez sur {{Button|OK}}.
+# Sélectionnez {{Value|Révolution}} puis cliquez sur {{Button|[[File:PartDesign_LinearPattern.svg|16px]] [[PartDesign_LinearPattern/fr|PartDesign Répétition linéaire]]}}. Sélectionnez {{Value|Vertical sketch axis}}. Pour un faux filetage avec un pas de {{Value|3 mm}}, définissez {{MenuCommand|Longueur}} sur {{Value|3}} et {{MenuCommand|Occurrences}} sur {{Value|2}} puis appuyez sur {{Button|OK}}. Cela créera deux disques, l'un au-dessus de l'autre.
+# Vous pouvez ajouter plus de disques en augmentant la valeur {{MenuCommand|Occurrences}} dans la répétition linéaire et en augmentant la {{MenuCommand|Longueur}} qui est la longueur totale du faux filetage.
+
+{{MenuCommand|Longueur}} et {{MenuCommand|Occurrences}} sont liés. Si la longueur est trop grande mais que le nombre d'occurrences n'est pas assez élevé, vous aurez des disques déconnectés et le calcul du Corps (Body) échouera car l'objet résultant doit toujours être un [[PartDesign_Body/fr|un seul solide contigu]]. Par exemple, pour obtenir une hauteur totale de {{Value|30 mm}}, définissez {{MenuCommand|Longueur}} sur {{Value|27 mm}} et {{MenuCommand|Occurrences}} sur {{Value|10}}.
+
+Si vous le souhaitez, vous pouvez ajouter un {{Button|[[File:PartDesign_AdditiveCylinder.svg|16px]] [[PartDesign_AdditiveCylinder/fr|PartDesign Cylindre additif]]}} avec un diamètre égal au diamètre intérieur des disques et aussi haut que la hauteur totale du filetage. Cela réunira tous les disques en un seul solide, garantissant ainsi qu'il n'y aura pas de disques déconnectés.
+
+[[File:T13_05_Threads_Stacked_discs_sketch.png|x300px]]
+{{Caption|Profil utilisé pour créer un disque de révolution qui sera utilisé pour simuler un filetage.}}
+
+[[File:T13_06_Threads_Stacked_discs_1.png|x300px]] [[File:T13_07_Threads_Stacked_discs_2.png|x282px]]
+{{Caption|A gauche: disque unique créé par révolution. A droite: plusieurs disques placés dans un motif linéaire dans la direction Z simulant un filetage hélicoïdal.}}
+
+<span id="Method_4._Sweeping_a_vertical_profile"></span>
+== Méthode 4. Balayage d'un profil vertical ==
+
+<span id="PartDesign_Workbench"></span>
+=== Atelier PartDesign ===
+
+Un vrai filetage consiste à faire suivre un profil fermé le long d'une courbe hélicoïde (hélice)
+
+# Dans l'[[File:Workbench_Part.svg|24px]] [[Part_Workbench/fr|Atelier Part]], cliquez sur {{Button|[[File:Part_Primitives.svg|16px]] [[Part_Primitives/fr|Part Primitives]]}} pour créer une {{Button|[[File:Part_Helix.svg|16px]] [[Part_Helix/fr|Part Hélice]]}}. Donnez-lui les valeurs appropriées pour le {{MenuCommand|Pas}} {{Value|3 mm}}, la {{MenuCommand|Hauteur}} {{Value|23 mm}} et un {{MenuCommand|Rayon}} {{Value|10 mm}}.
+# Basculez vers l'[[File:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/fr|Atelier PartDesign]] et cliquez sur {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body/fr|PartDesign Corps]]}}.
+# Cliquez sur {{Button|[[File:PartDesign_NewSketch.svg|16px]] [[PartDesign_NewSketch/fr|PartDesign Nouvelle esquisse]]}}. Sélectionnez {{Value|XZ_Plane}}.
+# Dessinez une esquisse fermée avec le profil requis pour les dents du filet, normalement une forme triangulaire. Dans ce cas, nous utiliserons une hauteur de {{Value|2.9 mm}}, qui est légèrement inférieure au pas {{Value|3.0 mm}} utilisé pour la trajectoire de l'hélice. Le profil ne doit pas créer d'auto-intersections lorsqu'il est déplacé le long de l'hélice, ni entre les corbures, ni au milieu. L'esquisse présentée pour l'empilement des disques ne peut donc pas être utilisée.
+# Sélectionnez l'esquisse, puis cliquez sur {{Button|[[File:PartDesign_AdditivePipe.svg|16px]] [[PartDesign_AdditivePipe/fr|PartDesign Balayage additif]]}}. Dans {{MenuCommand|Chemin le long duquel effectuer le balayage}}, cliquez sur {{MenuCommand|Objet}} et choisissez l'objet hélice précédemment créé. Changez ensuite {{MenuCommand|Mode d'orientation}} en {{Value|Frenet}} afin que le profil balaie la trajectoire sans se tordre, puis appuyez sur {{Button|OK}}.
+# Lorsque le dialogue demande une référence, choisissez {{Value|Créer une référence croisée}}.
+# La bobine hélicoïdale est créée, mais il n'y a ni corps central ni arbre.
+# Cliquez sur {{Button|[[File:PartDesign_AdditiveCylinder.svg|16px]] [[PartDesign_AdditiveCylinder/fr|PartDesign Cylindre additif]]}} avec le {{MenuCommand|Rayon}} approprié. {{Value|10 mm}} et {{MenuCommand|Hauteur}} {{Value|29.9 mm}} pour toucher le reste du fil hélicoïdal et fusionner automatiquement avec lui.
+# D'autres opérations booléennes sont nécessaires pour façonner les extrémités abruptes de la bobine. Par exemple, vous pouvez utiliser des fonctions additives pour fournir une tête à la vis, et une pointe.
+
+[[File:T13_08_Threads_Helical_thread_profile.png|x300px]] [[File:T13_09_Threads_Helical_thread_path.png|x300px]]
+{{Caption|A gauche : profil pour un filetage hélicoïdal. À droite : trajectoire hélicoïdale qui sera utilisée pour créer un balayage.}}
+
+[[File:T13_10_Threads_Helical_thread_coil.png|x300px]] [[File:T13_11_Threads_Helical_thread_coil_sliced.png|x300px]]
+{{Caption|A gauche : bobine hélicoïdale résultant de l'opération de balayage du profil fermé le long de la trajectoire hélicoïdale. A droite : vue en coupe de la bobine produite par le balayage.}}
+
+[[File:T13_12_Threads_Helical_thread_cylinder.png|x300px]] [[File:T13_13_Threads_Helical_thread_finished.png|x300px]]
+{{Caption|À gauche : bobine hélicoïdale fusionnée à un cylindre central pour former le corps de la vis. À droite : d'autres éléments, une tête et une pointe, ajoutés pour améliorer la forme de la vis.}}
+
+<span id="Part_Workbench"></span>
+=== Atelier Part ===
+
+Ce processus peut également être effectué à l'aide des outils de l'[[Part_Workbench/fr|Atelier Part]].
+# Dans l'[[File:Workbench_Part.svg|24px]] [[Part_Workbench/fr|Atelier Part]], cliquez sur {{Button|[[File:Part_Primitives.svg|16px]] [[Part_Primitives/fr|Part Primitives]]}} pour créer une {{Button|[[File:Part_Helix.svg|16px]] [[Part_Helix/fr|Part Hélice]]}}. Donnez-lui les valeurs appropriées pour le {{MenuCommand|Pas}} {{Value|3 mm}}, la {{MenuCommand|Hauteur}} {{Value|23 mm}} et le {{MenuCommand|Rayon}} {{Value|10 mm}}.
+# Dans ce cas, vous n'avez pas besoin d'un {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body/fr|PartDesign Corps]]}}. Passez à l'[[File:Workbench_Sketcher.svg|24px]] [[Sketcher_Workbench/fr|Atelier Sketcher]], puis cliquez sur {{Button|[[File:Sketcher_NewSketch.svg|16px]] [[Sketcher_NewSketch/fr|Sketcher Nouvelle esquisse]]}} et choisissez le plan global XZ.
+# Ensuite, retournez dans l'[[File:Workbench_Part.svg|24px]] [[Part_Workbench/fr|Atelier Part]] et utilisez {{Button|[[File:Part_Sweep.svg|16px]] [[Part_Sweep/fr|Part Balayage]]}}.
+# Sélectionnez l'esquisse appropriée dans {{MenuCommand|Profil disponible}} et cliquez sur la flèche pour la faire passer dans {{MenuCommand|Profils sélectionnés}}.
+# Cliquez sur {{Button|Chemin de balayage}} et choisissez toutes les arêtes de l'hélice existante dans la [[3D_view/fr|vue_3D]]. Cliquez sur {{Button|Fait}}.
+# Assurez-vous de cocher {{CheckBox|TRUE|Créer un solide}} et {{CheckBox|TRUE|Frenet}}. L'obtention d'un solide est la clé pour pouvoir effectuer des [[Part_Boolean/fr|Part Opérations booléennes]] avec la bobine résultante, sinon seule une surface sera produite.
+# Cliquez sur {{Button|OK}} pour quitter le dialogue et créer la bobine.
+
+Vous pouvez maintenant ajouter d'autres primitives comme des {{Button|[[File:Part_Cylinder.svg|16px]] [[Part_Cylinder/fr|Part Cylindres]]}} ou d'autres formes, afin d'exécuter des {{Button|[[File:Part_Fuse.svg|16px]] [[Part_Fuse/fr|Part Unions]]}} et des {{Button|[[File:Part_Cut.svg|16px]] [[Part_Cut/fr|Part Soustractions]]}} pour terminer la construction de la vis.
+
+[[File:T13_14_Threads_components.png|x300px]]
+{{Caption|Création d'un filetage par balayage d'un profil vertical, (1) le [[sketch/fr|profil de l'esquisse]], (2) la trajectoire de balayage [[Part_Helix/fr|hélicoïdale]], et (3) le résultat du [[Part_Sweep/fr|balayage]].}}
+
+<span id="Tips_for_success"></span>
+=== Les clés du succès ===
+
+* {{Emphasis|Règle 1.}} Lorsque le profil balaie l'hélice, la bobine solide résultante ne doit pas se toucher ou s'auto-intersecter, car il s'agirait d'un solide invalide. Ceci est valable pour le profil se déplaçant le long de l'hélice, ainsi que pour les intersections au centre de l'hélice. Les tentatives d'effectuer des opérations booléennes avec elle (fusionner ou couper) ont de grandes chances d'échouer. Vérifiez la qualité de l'hélice avec {{Button|[[File:Part_CheckGeometry.svg|16px]] [[Part_CheckGeometry/fr|Part Vérifier la géométrie]]}} ; si des auto-intersections sont signalées, vous devez augmenter le pas de l'hélice.
+
+[[File:T13_15_Threads_self_intersection.png|x300px]] [[File:T13_16_Threads_no_self_intersections_OK.png|x300px]]
+{{Caption|A gauche : balayage invalide généré par l'utilisation d'un très petit pas de l'hélice par rapport à la hauteur du profil triangulaire. A droite : pas suffisamment grand qui ne provoque pas d'auto-intersections.}}
+
+* {{Emphasis|Règle 2.}} Lorsqu'un cylindre est ajouté à une bobine pour former l'arbre principal d'une vis, le cylindre ne doit pas être tangent au profil de la bobine. Autrement dit, le cylindre ne doit pas avoir le même rayon que le rayon intérieur du filet, car cela risque fort de faire échouer une opération de fusion. En général, il faut éviter les géométries coïncidant avec des éléments du balayage, comme les faces tangentes, ou les arêtes tangentes à des faces auxquelles elles ne sont pas reliées. Afin de produire une bonne union booléenne, la bobine balayée et le cylindre doivent se croiser. Vérifiez la qualité de la fusion avec {{Button|[[File:Part_CheckGeometry.svg|16px]] [[Part_CheckGeometry/fr|Part Vérifier la géométrie]]}} ; si des faces coplanaires sont signalées, augmentez légèrement le rayon du cylindre.
+* Si la bobine et le cylindre sont tangents, même si la première fusion réussit, elle peut échouer dans les opérations booléennes suivantes avec un troisième solide.
+* C'est une limitation du noyau OpenCASCADE Technology (OCCT) ; en général, il ne gère pas bien les opérations entre surfaces coplanaires.
+
+[[File:T13_17_Threads_tangent_faces.png|x300px]] [[File:T13_18_Threads_no_tangent_faces_OK.png|x300px]]
+{{Caption|À gauche : le cylindre solide est tangent au rayon intérieur du fil ; cela peut donner lieu à une union booléenne invalide. À droite : le cylindre a un rayon légèrement plus grand, de sorte que les deux solides se croisent ; il en résultera une fusion valide.}}
+
+* {{Emphasis|Règle 3.}} Le cylindre intérieur a une ligne de couture. Vous devez éviter de placer le début de l'hélice le long de cette ligne de couture. Tournez l'hélice ou le cylindre de quelques degrés.
+
+
+* {{Emphasis|Astuce 1.}} Le rayon de la trajectoire hélicoïdale n'a pas d'importance, sauf si l'hélice est effilée. Tout ce qui compte, c'est le pas et la hauteur de l'hélice. Cela signifie que vous pouvez utiliser un seul {{Button|[[File:Part_Helix.svg|16px]] [[Part_Helix/fr|Part Hélice]]}} pour générer plusieurs filetages à pas égal. Ce qui détermine la position de la bobine résultante est la position du profil de l'[[Sketch/fr|esquisse]].
+
+* {{Emphasis|Astuce 2.}} Gardez le filetage court, c'est-à-dire avec un faible nombre de tours. Les filetages longs ont tendance à échouer avec les opérations booléennes. Si vous devez ajouter de nombreux tours, pensez à créer d'abord un fil court, puis à utiliser {{Button|[[File:Draft_OrthoArray.svg|16px]] [[Draft_OrthoArray/fr|Draft Réseau orthogonal]]}} pour dupliquer plusieurs fois le même motif.
+
+* {{Emphasis|Astuce 3.}} Pour la visualisation et l'impression 3D, il peut être acceptable de laisser le cylindre et le filetage non fusionnés, c'est-à-dire avec des intersections entre les deux solides. En réduisant le nombre d'opérations booléennes, on réduit la consommation de mémoire et la taille des fichiers.
+
+<span id="Pros_and_cons"></span>
+=== Avantages et inconvénients ===
+
+* [[File:Edit_OK.svg|24px]] Facile à comprendre.
+* [[File:Edit_OK.svg|24px]] Manière très naturelle de définir un profil de filetage.
+* [[File:Edit_OK.svg|24px]] Aucun problème avec le maillage de l'objet résultant, contrairement à la méthode 5.
+
+* [[File:Edit_Cancel.svg|24px]] En raison de l'invalidité des balayages auto-entrecroisés, il est presque impossible de générer un filetage sans espace entre chaque dent, c'est-à-dire sans face cylindrique droite sur les côtés intérieurs du filetage.
+* [[File:Edit_Cancel.svg|24px]] Les opérations booléennes sont nécessaires pour obtenir un unique solide contigu. Les opérations booléennes prennent un temps relativement long à calculer et échouent souvent.
+* [[File:Edit_Cancel.svg|24px]] Filetages avec un nombre élevé de tours sont problématiques.
+
+<span id="Method_5._Sweeping_a_horizontal_profile"></span>
+== Méthode 5. Balayage d'un profil horizontal ==
+
+<span id="General"></span>
+=== Généralités ===
+
+L'idée est de balayer un profil horizontal le long d'une hélice. Le problème principal est de déterminer le profil à utiliser pour obtenir un tel filetage.
+
+[[File:thread-by-horz-profile.png|600px]]
+
+Si on utilise un cercle en guise de profil horizontal (le cercle doit être décentré par rapport à son origine, ce décentrage définissant la profondeur du filetage), le profil du filetage sera sinusoïdal. 
+
+Pour obtenir un profil standard en dent de scie, une paire de spirale d’Archimède doivent être fusionnées. La figure résultante est une forme cardioïde, qui est difficilement différentiable d'un cercle quand la profondeur du filet est faible comparée à son diamètre (c'est pourquoi un filetage "épais" est présenté sur la figure ci dessus).
+
+<span id="Generating_the_profile"></span>
+=== Génération du profil ===
+
+Déterminer le profil horizontal pour obtenir un certain profil vertical n'est pas facile. Pour les cas simples comme les triangulaires ou les trapézoïdaux, on peut le construire manuellement. On peut aussi le construire en créant un filetage court avec la méthode 4, et en obtenant une tranche de celui-ci en faisant une [[Part_Common/fr|Part Intersection]] entre une face plane horizontale et le filetage.
+
+<span id="Profile_for_triangular_thread"></span>
+==== Profil pour un filetage triangulaire ====
+
+# Créer une spirale (d’Archimède) dans le plan XY.
+## fixer le nombre de tours à 0.5.
+## fixer le rayon du rayon interne du filetage, le rayon externe sera ce dernier plus la profondeur de coupe.
+## fixer la croissance pour doubler la profondeur de coupe du filetage.
+# [[Part_Mirror/fr|mettre en miroir]] la spirale par rapport au plan XY.
+# [[Part_Fuse/fr|unir]] la spirale et son objet en miroir pour obtenir une polyligne fermée en forme de cœur.
+
+<span id="Profile_for_arbitrary_cross-section"></span>
+==== Profil pour une section quelconque ====
+
+[[File:thread-by-horz-profile-profileMake.png|1000px]]
+
+# Faites un profil de coupe vertical. Assurez-vous que la hauteur de l'esquisse correspond au pas du filetage dont vous avez besoin.
+# Faites une hélice1 avec une hauteur identique au pas et un pas identique au pas du filetage, et un rayon d'hélice de 0.42*diamètre nominal du filetage.
+# Balayez le profil de coupe le long de l'hélice1. Définissez {{CheckBox|TRUE|Create solid}} et {{CheckBox|TRUE|Frenet}}.
+# Faire un cercle de rayon nominal du filetage dans le plan XY.
+# Créez une face à partir du cercle. Ceci peut être fait avec {{Button|[[File:Part_Builder.svg|16px]] [[Part_Builder/fr|Part Générateur de formes]]}} ou {{Button|[[File:Draft_Upgrade.svg|16px]] [[Draft_Upgrade/fr|Draft Agréger]]}}, puis réglez {{PropertyData|MakeFace}} sur {{TRUE}}.
+# Découpez la face avec le profil de balayage.
+# Faites un {{Button|[[File:Draft_Clone.svg|16px]] [[Draft_Clone/fr|Draft Clone]]}} à partir de la découpe.
+# Utilisez {{Button|[[File:Draft_Downgrade.svg|16px]] [[Draft_Downgrade/fr|Draft Désagréger]]}} sur le clone afin d'obtenir un filetage. Ce filetage est le profil horizontal nécessaire pour cette méthode.
+# Faites une hélice dont le rayon est le rayon nominal du filetage et le pas du filetage et la hauteur du filetage nécessaire.
+# Balayez le filetage le long de l'hélice.  Définissez {{CheckBox|TRUE|Create solid}} et {{CheckBox|TRUE|Frenet}}.
+# Vous avez terminé.
+
+Le guide étape par étape est tiré de ce [http://forum.freecad.org/viewtopic.php?f=3&t=6506#p52558 message du forum par Ulrich1a] ("Creating a thread : Unexpected results"), légèrement modifié.
+
+Les étapes sont également montrées en action sur [http://www.youtube.com/watch?v=fxKxSOGbDYs cette vidéo par Gaurav Prabhudesai] ("FreeCAD : How to make threads").
+
+<span id="Pros_and_cons"></span>
+=== Avantages et inconvénients ===
+
+* [[File:Edit_OK.svg|24px]] une forme solide prête à l'emploi est créée par le balayage directement sur la tige. 
+* [[File:Edit_OK.svg|24px]] moins d'opérations booléennes, voire aucune, sont nécessaires, la vitesse de génération est donc très élevée par rapport à la méthode 4.
+* [[File:Edit_OK.svg|24px]] les extrémités des filetages sont tout de suite bien coupées.
+* [[File:Edit_OK.svg|24px]] les longs filetages ne sont pas un problème, sauf si une opération booléenne est nécessaire. Sinon, ce ne sera pas beaucoup mieux que la méthode 4.
+* [[File:Edit_OK.svg|24px]] les filetages sans espace ne sont pas un problème.
+
+* [[File:Edit_Cancel.svg|24px]] définir le profil du filetage est compliqué.
+* [[File:Edit_Cancel.svg|24px]] l'utilisation du mailleur standard avec un filetage créé de cette manière génère des maillages moches, ce qui peut entraîner des problèmes. D'autres mailleurs sont meilleurs, par exemple, Mefisto semble donner les meilleurs résultats.
+* [[File:Edit_Cancel.svg|24px]] grande empreinte mémoire selon [http://forum.freecad.org/viewtopic.php?f=3&t=12593&start=10#p101197 Techniques de modélisation des filets de collecte].
+
+<span id="Method_6._Lofting_between_helical_extruded_faces"></span>
+=== Méthode 6. Lissage entre les faces extrudées hélicoïdales ===
+
+<span id="General"></span>
+=== Généralités ===
+
+Les splines hélicoïdales extrudent les faces coaxiales pouvant être lobées, contrairement à l'hélice paramétrique de FreeCAD. Deux splines hélicoïdales sont nécessaires pour définir un taraudage. Ces deux éléments peuvent être mis à l'échelle à partir d'une spline de bibliothèque, puis localisés et extrudés de manière appropriée pour obtenir le bon formulaire. 
+
+Les hélices paramétriques de FreeCAD ne sont pas vraiment hélicoïdales, mais les b-splines hélicoïdales ne sont pas difficiles à tracer. Une méthode manuelle consiste à aligner des dodécagones (polygones à 12 côtés) avec des intervalles de rayon de 5 mm/diamètre de 10 mm à des intervalles de 1/12 mm (0,08333.mm) et à tracer des splines d'un sommet à l'autre dans l'ordre croissant et rotatif. disons 10 tours, de sorte que cette spline puisse être réutilisée en tant que fichier de bibliothèque pour l'importation et la réutilisation. Il est pratique d’utiliser un pas de 10 mm de diamètre/1 mm pour faciliter la mise à l’échelle. Si vous le faites manuellement, dessiner un Dwire puis le convertir en b-spline est plus facile que de dessiner une spline. Les courbures ne sont pas calculées pendant le tracé, elles suivent donc le curseur et se cassent plus docilement.
+
+Une fois que les splines sont redimensionnées à la bonne taille et situées de manière à ce que le loft ait le bon angle inclus entre les flancs du filetage, elles sont extrudées le long de leur axe, ce qui correspond à la longueur d'un pas pour la spline interne, le pas externe/8.
+
+[[File:splineextrudeloft.png|912px]] 
+
+Les filets ISO et autres ont été allégés, c'est-à-dire que les bords intérieurs et extérieurs sont plutôt plats que nets, ce qui convient parfaitement aux utilisateurs de FreeCAD, car nous pouvons appliquer un lissage à la face hélicoïdale à la taille nominale de la fixation, alors qu'une face interne ne peut pas être loft une spline de bord externe car une face est un profil fermé, une spline est ouverte. La norme ISO indique que la taille nominale des filetages externes a un pas de largeur de face/8. L'image montre comment la géométrie est arrangée et les faces hélicoïdales qui en résultent. Ensuite, lissez entre les faces, puis un cylindre qui donne la face hélicoïdale interne, que ISO met à la hauteur/4 de la largeur, est ajouté aux filets. 
+
+[[File:Threadform.PNG|761PX]]
+
+Cette méthode produit des solides fiables qui "booléen" correctement. Bien qu'il ne produise pas de filetage de vis "paramétrique" dans les tailles standard, c'est-à-dire qu'il permet d'accéder facilement à la forme par taille de fixation, il constitue un moyen simple de produire une bibliothèque précise à réutiliser, ainsi que des modèles de formes spécialisées telles que ACME ou des vis Archimédien. , sont également simples comme des one-offs.
+
+
+{{Part Tools navi{{#translation:}}}}
+{{PartDesign Tools navi{{#translation:}}}}
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,133 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Arch_Equipment/ru|Оборудование]]
+|[[Arch_Fence/ru|Ограждение]]
+|[[Arch_Workbench/ru|Архитектурный верстак "Arch"]]
+|IconL=Arch_Equipment.svg
+|IconR=Arch_Fence.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/ru
+|Name/ru=Каркас
+|Name=Arch_Frame
+|MenuLocation=Arch → Каркас
+|Workbenches=[[Arch_Workbench/ru|Arch]]
+|Shortcut={{KEY|F}} {{KEY|R}}
+|SeeAlso=[[Arch_Wall/ru|Стена]], [[Arch_Structure/ru|Структура]]
+}}
+</div>
+
+<span id="Description"></span>
+==Описание==
+
+<div class="mw-translate-fuzzy">
+Инструмент «Рамка» используется для создания всех видов объектов фрейма на основе профиля и макета. Профиль экструдируется по краям макета, который может быть любым 2D-объектом, таким как  [[Sketcher_Workbench|sketch]] или [[Draft_Workbench|draft object]]. Особенно полезно создавать перила или стены рамы. Объекты кадра затем могут быть легко превращены в объекты  [[Arch Wall|wall]] или [[Arch Structure|structure]] .
+</div>
+
+[[Image:Arch Frame example.jpg|640px]]
+<div class="mw-translate-fuzzy">
+''На приведенном выше рисунке  [[Draft Line|line]] была преобразована в [[Draft_OrthoArray|массива]], а объект фрейма был создан с использованием массива как макета, а [[Draft Circle|circle]] как профиль.''
+</div>
+
+<span id="Usage"></span>
+==Применение==
+
+# Create a layout object and a profile object, for example with the [[Draft_Workbench|Draft Workbench]] or the [[Sketcher_Workbench|Sketcher Workbench]].
+# Select the layout object first, then, with {{KEY|Ctrl}} pressed, select the profile object.
+# Press the {{Button|[[Image:Arch Frame.svg|16px]] [[Arch_Frame|Frame]]}} button, or press {{KEY|F}} then {{KEY|R}} keys.
+
+<span id="Options"></span>
+==Опции==
+
+* Frames share the common properties and behaviours of all [[Arch_Component|Arch Components]]
+* The frame object can be placed at a certain distance from the layout object, by setting its Offset property
+* The profile will be copied at the base of each edge of the layout object, then extruded along it. You can control how the profile is placed at the base of each edge with the Align and Rotation properties.
+
+<span id="Properties"></span>
+==Свойства==
+
+===Data===
+
+{{TitleProperty|Component}}
+
+* {{PropertyData|Base|Link}}: The layout this frame is based on.
+
+For the other properties in the group see [[Arch_Component#Properties|Arch Component]].
+
+{{TitleProperty|Frame}}
+
+* {{PropertyData|Align|Bool}}: Specifies if the profile must be rotated to have its normal axis aligned with each edge.
+* {{PropertyData|Base Point|Integer}}: Zero-based index indicating the crossing point of the path on the profile:
+** {{Value|0}}: The '''Base''' of the '''Placement''' of the profile. This point is also used in case of an invalid index.
+** {{Value|1}}: The midpoint of the 1st edge of the profile.
+** {{Value|2}}: The endpoint of the 1st edge of the profile.
+** {{Value|3}}: The midpoint of the 2nd edge of the profile.
+** {{Value|4}}: The endpoint of the 2nd edge of the profile.
+** ...
+** {{Value|n*2-1}}: The midpoint of the nth edge of the profile.
+** {{Value|n*2}}: The endpoint of the nth edge of the profile.
+* {{PropertyData|Edges|Enumeration}}: The type of edges to consider. The options are:
+** {{Value|All edges}}
+** {{Value|Vertical edges}}
+** {{Value|Horizontal edges}}
+** {{Value|Bottom horizontal edges}}: Based of the global Z coordinate of the center of mass of the edge.
+** {{Value|Top horizontal edges}}: Idem.
+* {{PropertyData|Fuse|Bool}}: If true, overlapping solids are fused.
+* {{PropertyData|Offset|VectorDistance}}: An optional distance between the layout object and the frame object.
+* {{PropertyData|Profile|Link}}: The profile this frame is based on.
+* {{PropertyData|Profile Placement|Placement}}: An optional additional placement to add to the profile before extruding it. Only the '''Rotation''' of the '''Placement''' is used. Ignored if {{PropertyData|Align}} is {{TRUE}}.
+* {{PropertyData|Rotation|Angle}}: The rotation of the profile around its extrusion axis.
+
+<span id="Scripting"></span>
+==Программирование==
+
+<div class="mw-translate-fuzzy">
+==Программирование==
+{{Emphasis|См. так же:}} [[Arch API/ru|Arch API]] и [[FreeCAD Scripting Basics/ru|Основы составления скриптов FreeCAD]].
+</div>
+
+The Frame tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following function:
+
+{{Code|code=
+Frame = makeFrame(baseobj, profile)
+}}
+
+* Creates a {{incode|Frame}} object from the given {{incode|baseobj}} and {{incode|profile}}.
+** {{incode|baseobj}} is any object containing wires, like a [[Draft_Wire|Draft Wire]], or a [[Draft_OrthoArray|Draft OrthoArray]] with a collection of them.
+** {{incode|profile}} is an extrudable 2D object containing faces or closed wires.
+
+Пример:
+
+{{Code|code=
+import Draft, Arch
+
+Line = Draft.makeLine(FreeCAD.Vector(0, 0, 0), FreeCAD.Vector(0, 0, 2000))
+baseobj = Draft.makeArray(Line, FreeCAD.Vector(1000, 0, 0), FreeCAD.Vector(0, 1, 0), 6, 1)
+
+profile = Draft.makeCircle(200)
+Frame = Arch.makeFrame(baseobj, profile)
+FreeCAD.ActiveDocument.recompute()
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Arch_Equipment/ru|Оборудование]]
+|[[Arch_Fence/ru|Ограждение]]
+|[[Arch_Workbench/ru|Архитектурный верстак "Arch"]]
+|IconL=Arch_Equipment.svg
+|IconR=Arch_Fence.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

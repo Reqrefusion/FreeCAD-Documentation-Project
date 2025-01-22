@@ -1,0 +1,123 @@
+<languages/>
+
+{{TutorialInfo/fr
+|Topic=Sketcher
+|Level=Débutant
+|Author=Mark Stephen ([[User:Quick61|Quick61]]) et vocx
+|Time=Moins de 15 minutes
+|FCVersion=0.19
+|Files=[https://forum.freecadweb.org/viewtopic.php?f=36&p=371659#p371659 Sketcher Constraints practices]
+}}
+
+== Introduction ==
+
+Ce tutoriel a été écrit à l'origine par Quick61 et a été écrit et illustré par vocx.
+
+Ce tutoriel est conçu pour aider le nouvel utilisateur à se familiariser avec les meilleures pratiques de contrainte d'une [[Sketch/fr|Esquisse]] dans le flux de travail de l'[[File:Workbench_Sketcher.svg|24px]] [[Sketcher Workbench|atelier Sketcher]].
+
+Il existe une règle générale avec des contraintes : moins il y a de {{Emphasis|contraintes de données}} (dimensions), mieux c'est.
+
+Il est préférable d'utiliser une {{Emphasis|contrainte géométrique}} à la place d'une dimensionnelle si possible. Cela a à voir avec le fonctionnement interne du solveur de contraintes de l'esquisse.
+
+<span id="Setup"></span>
+== Installation ==
+
+1. Ouvrez FreeCAD, créez un nouveau document vide avec {{MenuCommand|Fichier → [[File:Std_New.svg|16px]] [[Std_New/fr|Nouveau]]}}.
+:1.1. Basculez vers l'[[Sketcher_Workbench/fr|atelier Sketcher]] depuis le [[Std_Workbench/fr|sélecteur d'atelier]] ou le {{MenuCommand|[[Std_View_Menu/fr|menu affichage]] → Atelier → Sketcher}}.
+
+Quelques actions à retenir :
+* Appuyez sur le bouton droit de la souris ou appuyez une fois sur {{KEY|Echap}} sur le clavier pour désélectionner l'outil actif en mode édition.
+* Pour quitter le mode d'édition d'esquisse, appuyez sur le bouton {{Button|Fermer}} dans le [[Task_Panel/fr|panneau des tâches]] ou appuyez deux fois sur {{KEY|Echap}} au le clavier.
+* Pour entrer à nouveau en mode édition, double-cliquez sur l'esquisse dans la [[Tree_view/fr|vue en arborescence]] ou sélectionnez-la puis cliquez sur {{Button|[[File:Sketcher_EditSketch.svg|16px]] [[Sketcher_EditSketch/fr|Sketcher Modifier une esquisse]]}}.
+
+<span id="Create_a_sketch"></span>
+== Créer une esquisse ==
+
+2. Cliquez sur {{Button|[[Image:Sketcher_NewSketch.svg‎‎|16px]] [[Sketcher_NewSketch/fr|Nouvel esquisse]]}}.
+:2.1. Choisissez l'orientation de l'esquisse, c'est-à-dire l'un des plans de base XY, XZ ou YZ. Nous utiliserons le plan et les options par défaut.
+:2.2. Cliquez sur {{Button|OK}} pour commencer à construire l'esquisse.
+
+{{Emphasis|Remarque :}} dans le [[Task_Panel/fr|Panneau des tâches]] développez la section {{MenuCommand|Edit controls}} et assurez-vous que l'option {{MenuCommand|Contraintes automatiques}} est désactivée. Désactivez également l'accrochage à la grille et masquez la grille.
+
+<span id="First_approach:_datum_constraints"></span>
+== Première approche : les contraintes numériques ==
+
+3. Nous allons dessiner un carré entièrement contraint, centré à l'origine.
+:3.1. Cliquez sur {{Button|[[Image:Sketcher_CreatePolyline.svg‎‎|16px]] [[Sketcher_CreatePolyline/fr|Créer une polyligne]]}} puis tracez quatre lignes en forme générale de rectangle autour de l'origine.
+
+[[File:01a_Sk02_Sketcher_Rectangle_unconstrained.png|x400px]]
+{{Caption|Esquisse rectangulaire sans contrainte.}}
+
+:3.2. Sélectionnez une ligne horizontale et appuyez sur {{Button|[[File:Constraint_HorizontalDistance.svg|16px]] [[Sketcher_ConstrainDistanceX/fr|Distance horizontale]]}} puis entrez {{Value|20 mm}}.
+:3.3. Sélectionnez l'autre ligne horizontale et répétez la contrainte avec la même distance.
+:3.4. Sélectionnez une ligne verticale et appuyez sur {{Button|[[File:Constraint_VerticalDistance.svg|16px]] [[Sketcher_ConstrainDistanceY/fr|Distance verticale]]}} puis entrez {{Value|20 mm}}.
+:3.5. Sélectionnez l'autre ligne verticale et répétez la contrainte avec la même distance.
+:3.6. Sélectionnez un point d'angle inférieur (a) et l'origine de l'esquisse, puis appuyez sur {{Button|[[File:Constraint_HorizontalDistance.svg|16px]] [[Sketcher_ConstrainDistanceX/fr|Distance horizontale]]}} puis entrez {{Value|10 mm}}.
+:3.7. Sélectionnez le point d'angle supérieur (b) au-dessus du point d'angle précédent (a) et l'origine de l'esquisse et répétez la contrainte horizontale avec la même distance.
+:3.8. Sélectionnez l'autre coin inférieur (c) et l'origine de l'esquisse, puis appuyez sur {{Button|[[File:Constraint_VerticalDistance.svg|16px]] [[Sketcher_ConstrainDistanceY/fr|Distance verticale]]}} puis saisissez {{Value|10 mm}}.
+:3.9. Sélectionnez de nouveau le point d'angle supérieur (b) et l'origine de l'esquisse, puis répétez la contrainte verticale avec la même distance.
+
+[[File:01b_Sk02_Sketcher_Rectangle_constrained_lengths_1.png|x400px]] [[File:01c_Sk02_Sketcher_Rectangle_constrained_lengths_2.png|x400px]]
+{{Caption|A gauche : contraintes de référence pour les côtés. À droite : contraintes de référence supplémentaires pour les distances intérieures.}}
+
+En regardant la section {{MenuCommand|Constraints}} du [[Task_Panel/fr|Panneau des tâches]], nous voyons que les contraintes sont trop nombreuses. Ils encombrent également la vue du croquis. Ces contraintes sont également gourmandes en calcul pour le solveur bien que ce ne soit pas un problème avec une forme simple, il peut le devenir avec des formes plus complexes.
+
+<span id="A_better_way:_datum_and_geometric_constraints"></span>
+== Une meilleure façon : numériques et contraintes géométriques ==
+
+4. Nous allons dessiner le même carré entièrement contraint et centré à l'origine. Lorsque vous créez la nouvelle esquisse, assurez-vous que l'option {{MenuCommand|Auto constraints}} est désactivée.
+:4.1. Cliquez sur {{Button|[[Image:Sketcher_CreatePolyline.svg‎‎|16px]] [[Sketcher_CreatePolyline/fr|Créer une polyligne]]}}, puis tracez quatre lignes en forme générale de rectangle autour de l'origine.
+:4.2. Sélectionnez une ligne horizontale et appuyez sur {{Button|[[File:Constraint_Horizontal.svg|16px]] [[‎Sketcher_ConstrainHorizontal/fr| Horizontal]]}}.
+:4.3. Sélectionnez l'autre ligne horizontale et répétez la contrainte.
+: 4.4. Sélectionnez une ligne verticale et appuyez sur {{Button|[[File:Constraint_Vertical.svg|16px]] [[‎Sketcher_ConstrainVertical/fr| Vertical]]}}.
+:4.5. Sélectionnez l'autre ligne verticale et répétez la contrainte.
+
+[[File:02a_Sk02_Sketcher_Rectangle_constrained_horizontal-vertical.png|x400px]]
+{{Caption|Contraintes géométriques horizontales et verticales.}}
+
+:4.6. Sélectionnez une ligne horizontale et appuyez sur {{Button|[[File:Constraint_HorizontalDistance.svg|16px]] [[Sketcher_ConstrainDistanceX/fr|Distance horizontale]]}} puis entrez {{Value|20 mm}}. Nous voyons que l'autre ligne horizontale change de taille en même temps.
+:4.7. Sélectionnez une ligne verticale et appuyez sur {{Button|[[File:Constraint_VerticalDistance.svg|16px]] [[Sketcher_ConstrainDistanceY/fr|Distance verticale]]}} puis entrez {{Value|20 mm}}. Nous voyons que l'autre ligne verticale change de taille en même temps.
+:4.8. Sélectionnez un point d'angle inférieur (a) et l'origine de l'esquisse, puis appuyez sur {{Button|[[File:Constraint_HorizontalDistance.svg|16px]] [[Sketcher_ConstrainDistanceX/fr|Distance horizontale]]}}, puis entrez  {{Value|10 mm}}.
+:4.9. Sélectionnez le point d'angle supérieur (b) au-dessus du point d'angle précédent (a) et l'origine de l'esquisse, puis appuyez sur {{Button|[[File:Constraint_VerticalDistance.svg|16px]] [[Sketcher_ConstrainDistanceY/fr|Distance verticale]]} }, puis entrez  {{Value|10 mm}}.
+
+[[File:02b_Sk02_Sketcher_Rectangle_constrained_lengths_1.png|x400px]] [[File:02c_Sk02_Sketcher_Rectangle_constrained_lengths_2.png|x400px]]
+{{Caption|A gauche : contraintes de référence pour seulement deux côtés. A droite : contraintes de référence supplémentaires pour seulement deux distances intérieures.}}
+
+Il s'agit d'une esquisse mieux contrainte que la première. Les contraintes géométriques horizontales et verticales nous permettent d'utiliser moins de contraintes de référence, de sorte que notre esquisse semble moins encombrée.
+
+<span id="Optimum_scheme:_mostly_geometric_constraints"></span>
+== Esquisse optimale : principalement des contraintes géométriques ==
+
+5. Nous allons dessiner le même carré entièrement contraint et centré à l'origine. Lorsque vous créez la nouvelle esquisse, assurez-vous que l'option {{MenuCommand|Auto constraints}} est désactivée.
+:5.1. Cliquez sur {{Button|[[Image:Sketcher_CreatePolyline.svg‎‎|16px]] [[Sketcher_CreatePolyline/fr|Créer une polyligne]]}}, puis tracez quatre lignes en forme générale de rectangle autour de l'origine.
+:5.2. Sélectionnez une ligne horizontale et appuyez sur {{Button|[[File:Constraint_Horizontal.svg|16px]] [[‎Sketcher_ConstrainHorizontal/fr|Horizontal]]}}.
+:5.3. Sélectionnez l'autre ligne horizontale et répétez la contrainte.
+:5.4. Sélectionnez une ligne verticale et appuyez sur {{Button|[[File:Constraint_Vertical.svg|16px]] [[‎Sketcher_ConstrainVertical/fr|Vertical]]}}.
+:5.5. Sélectionnez l'autre ligne verticale et répétez la contrainte.
+
+[[File:03a_Sk02_Sketcher_Rectangle_constrained_horizontal-vertical.png|x400px]]
+{{Caption|Contraintes géométriques horizontales et verticales.}}
+
+:5.6. Sélectionnez un point d'angle inférieur (a) puis le point d'angle supérieur qui est diagonalement opposé, puis l'origine de l'esquisse; puis appuyez sur {{Button|[[File:Constraint_Symmetric.svg|16px]] [[Sketcher_ConstrainSymmetric/fr|Symmétrie]]}}. Les deux points sélectionnés seront équidistants de l'origine.
+:5.7. Sélectionnez deux côtés adjacents du rectangle (connectés à un coin) et appuyez sur {{Button|[[File:Constraint_EqualLength.svg|16px]] [[Sketcher_ConstrainEqual/fr|Longueur égale]]}}. Notez qu'en raison de la symétrie des points d'angle, tous les côtés sont désormais de la même taille.
+
+[[File:03b_Sk02_Sketcher_Rectangle_constrained_symmetric.png|x400px]] [[File:03c_Sk02_Sketcher_Rectangle_constrained_equal_length.png|x400px]]
+{{Caption|A gauche : contrainte symétrique pour seulement deux points d'angle. A droite : distances de longueur égale supplémentaires pour seulement deux côtés adjacents.}}
+
+:5.8. Sélectionnez une ligne horizontale et appuyez sur {{Button|[[File:Constraint_HorizontalDistance.svg|16px]] [[Sketcher_ConstrainDistanceX/fr|Distance horizontale]]}} puis entrez {{Value|20 mm}}. En raison des contraintes symétriques et d'égalité de longueur précédemment ajoutées, nous voyons que tous les côtés deviennent égaux en même temps.
+
+[[File:03d_Sk02_Sketcher_Rectangle_constrained_length.png|x400px]]
+{{Caption|Toutes les contraintes géométriques appliquées et une seule contrainte de référence pour un côté.}}
+
+C'est la meilleure manière de contraindre cette esquisse car nous n'avons utilisé qu'une seule contrainte de référence (dimensionnelle).
+
+<span id="Additional_resources"></span>
+== Ressources additionnelles == 
+
+* [[Basic_Sketcher_Tutorial/fr|Tutoriel d'introduction à Sketcher]]
+* [[Sketcher_Lecture/fr|Manuel de référence pour Sketcher]]
+* [[Sketcher_Tutorial/fr|Tutoriel Sketcher]]
+
+
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

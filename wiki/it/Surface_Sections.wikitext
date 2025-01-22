@@ -1,0 +1,128 @@
+<languages/>
+
+{{Docnav/it
+|[[Surface_GeomFillSurface/it|GeomFillSurface]]
+|[[Surface_ExtendFace/it|ExtendFace]]
+|[[Surface_Workbench/it|Surface]]
+|IconL=Surface_GeomFillSurface.svg
+|IconC=Workbench_Surface.svg
+|IconR=Surface_ExtendFace.svg
+}}
+
+{{GuiCommand/it
+|Name=Surface_Sections
+|Name/it=Surface Sections
+|MenuLocation=Surface → Sections
+|Workbenches=[[Surface_Workbench/it|Surface]]
+|Version=0.19
+}}
+
+<span id="Description"></span>
+==Descrizione==
+
+Lo strumento [[File:Surface_Sections.svg|16px]] [[Surface_Sections/it|Surface Sections]] viene utilizzato per creare una superficie dai bordi che rappresentano sezioni trasversali di una superficie.
+
+[[File:Surface_Sections_edges_example.png|x250px]] [[File:Surface_Sections_example.png|x250px]]
+
+{{Caption|A sinistra: i bordi di controllo (sezioni trasversali). A destra: la superficie prodotta da questi bordi.}}
+
+<span id="Usage"></span>
+==Utilizzo==
+
+# Assicurarsii di avere almeno due bordi o curve nello spazio. Questi bordi possono essere creati con gli strumenti di [[File:Workbench_Draft.svg|16px]] [[Draft_Workbench/it|Draft]] o di [[File:Workbench_Sketcher.svg|16px]] [[Sketcher_Workbench/it|Sketcher]].
+# Premere il pulsante {{Button|[[File:Surface_Sections.svg|16px]] [[Surface_Sections/it|Surface sections]]}}.
+# Premere {{Button|Add edge}}.
+# Usare il puntatore per selezionare i bordi desiderati nella [[3D_view/it|vista 3D]]; verrà visualizzata un'anteprima della forma finale dopo aver selezionato due bordi validi.
+# Premere {{Button|OK}} per completare l'operazione.
+
+<span id="Options"></span>
+== Opzioni ==
+
+* {{Button|Add edge}}: press once to start picking edges in the [[3D_view|3D view]]. Individual lines such as {{Button|[[File:Draft_BSpline.svg|16px]] [[Draft_BSpline|Draft BSplines]]}} and {{Button|[[File:Sketcher_CreateBSpline.svg|16px]] [[Sketcher_CreateBSpline|Sketcher BSplines]]}} can be chosen, as well as any edge from solid objects, like those of {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body|PartDesign Bodies]]}} and {{Button|[[File:Part_Primitives.svg|16px]] [[Part_Primitives|Part Primitives]]}}.
+* {{Button|Remove edge}}: press once to start picking edges in the [[3D_view|3D view]]; these must be edges that were previously picked with {{Button|Add edge}}.
+* {{KEY|Right mouse button}}: open the context menu and select {{Button|Remove}}, or press {{KEY|Del}} in the keyboard, to remove the currently selected edge in the list.
+* {{MenuCommand|Drag}}: drag the currently selected element in the list in order to change the order in which it will be processed; the list is processed from top to bottom.
+* Press {{Button|Cancel}} or {{KEY|Esc}} to abort the current operation.
+
+<span id="Properties"></span>
+==Proprietà==
+
+Una [[Surface_Sections/it|Surface Sections]] (classe {{incode|Surface::Sections}}) è derivato dalla base [[Part_Feature/it|Part Feature]] (classe {{incode|Part::Feature}}, attraverso la sottoclasse {{incode|Part::Spline}}), quindi condivide tutte le proprietà di quest'ultima.
+
+Oltre alle proprietà descritte in [[Part Feature/it|Part Feature]], Surface Sections ha le seguenti proprietà nell'[[property editor/it|editor delle proprietà]].
+
+<span id="Data"></span>
+===Dati===
+
+{{TitleProperty|Sections}}
+
+<div class="mw-translate-fuzzy">
+* {{PropertyData|NSections|LinkSubList}}: un elenco di bordi che verranno utilizzati per costruire la curva.
+</div>
+
+<span id="View"></span>
+===Vista=== 
+
+{{TitleProperty|Base}}
+
+* {{PropertyView|Control Points|Bool}}: il valore predefinito è {{incode|FALSE}}; se impostato su {{incode|TRUE}}, mostrerà una sovrapposizione con i punti di controllo della superficie.
+
+== Twisting of the surface ==
+
+The shape of the surface depends on the direction of the chosen edges; if edges are selected and the result is a surface that "twists" on itself, one of the edges may need its list of vertices in the reverse order. See the information in {{Button|[[File:Surface_GeomFillSurface.svg|16px]] [[Surface_GeomFillSurface|GeomFillSurface]]}} for a more complete explanation.
+
+[[File:Surface_twisting_example_smooth.png|330px]] [[File:Surface_twisting_example_twisted.png|330px]]
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Vedere anche:}} [[FreeCAD Scripting Basics/it|Script di base per FreeCAD]]
+
+The Surface Sections tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by adding the {{incode|Surface::Sections}} object.
+* The edges to be used to define the surface must be assigned as a [[FeaturePython_Custom_Properties#App::PropertyLinkSubList|LinkSubList]] to the {{incode|NSections}} property of the object.
+* All objects with edges need to be computed before they can be used as input for the properties of the Sections object.
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+pl1 = App.Placement()
+obj1 = Draft.make_circle(50, placement=pl1, face=False, startangle=0, endangle=180)
+
+pl2 = App.Placement(App.Vector(0, 0, 25), App.Rotation())
+obj2 = Draft.make_circle(30, placement=pl2, face=False, startangle=0, endangle=180)
+
+points3 = [App.Vector(18, -10, 50),
+           App.Vector(12, 10, 50),
+           App.Vector(-12, 10, 50),
+           App.Vector(-18, -10, 50)]
+obj3 = Draft.make_bspline(points3)
+
+points4 = [App.Vector(15, -20, 100),
+           App.Vector(0, 6, 100),
+           App.Vector(-15, -20, 100)]
+obj4 = Draft.make_bspline(points4)
+doc.recompute()
+
+surf = doc.addObject("Surface::Sections", "Surface")
+surf.NSections = [(obj1, "Edge1"),
+                  (obj2, "Edge1"),
+                  (obj3, "Edge1"),
+                  (obj4, "Edge1")]
+doc.recompute()
+}}
+
+
+{{Docnav/it
+|[[Surface_GeomFillSurface/it|GeomFillSurface]]
+|[[Surface_ExtendFace/it|ExtendFace]]
+|[[Surface_Workbench/it|Surface]]
+|IconL=Surface_GeomFillSurface.svg
+|IconC=Workbench_Surface.svg
+|IconR=Surface_ExtendFace.svg
+}}
+
+{{Surface Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

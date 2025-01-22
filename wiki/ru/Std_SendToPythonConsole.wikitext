@@ -1,0 +1,96 @@
+<languages/>
+
+{{Docnav/ru
+|[[Std_Delete/ru|Команда "Удалить"]]
+|[[Std_Placement/ru|Команда "Расположение..."]]
+|[[Std_Edit_Menu/ru|Меню "Правка"]]
+|IconL=Std_Delete.svg
+|IconR=Std_Placement.svg
+|IconC=Freecad.svg
+}}
+
+{{GuiCommand/ru
+|Name/ru=Отправить в консоль Python
+|Name=Std_SendToPythonConsole
+|MenuLocation=Правка → Отправить в консоль Python
+|Workbenches=Все
+|Shortcut={{KEY|Ctrl}}+{{KEY|Shift}}+{{KEY|P}}
+|Version=0.19
+}}
+
+<span id="Description"></span>
+==Описание==
+
+The '''Std SendToPythonConsole''' command creates variables in the [[Python_console|Python console]] referencing a selected object and its selected subshapes, along with some other useful references. The variables and the code involved can be used in the development of Python code.
+
+В зависимости от выбранного объекта и входящих в его состав выбранных форм, создаются следующие переменные:
+
+{| class="wikitable"
+|-
+! Название переменной !! Пояснение
+|-
+| {{Incode|doc}} || Документ в котором содержится вбранный объект
+|-
+| {{Incode|lnk}} || Выбранный объект ссылки (создается только в том случае, если выбранный объект является ссылкой)
+|-
+| {{Incode|obj}} || В зависимости от выбранного объекта:<br>
+Сам выбранный объект (если выбранный объект не является ссылкой)<br>
+Связанный объект (если выбранный объект является ссылкой)<br>
+|-
+| {{Incode|shp}} || Зависит от типа {{Incode|obj}}:<br>
+{{Incode|Shape}} свойство {{Incode|obj}} (для объектов унаследованных от {{Incode|Part::Feature}} класса)<br>
+{{Incode|Mesh}} свойство {{Incode|obj}} (для Mesh объектов)<br>
+{{Incode|Points}} свойство {{Incode|obj}} (для Points объектов)
+|-
+| {{Incode|sub}} || Первая выбранная вложенная фигура (создается только в том случае, если выбрана хотя бы одна вложенная фигура)
+|-
+| {{Incode|subs}} || Список, содержащий все вложенные фигуры (создается только в том случае, если выбраны две или более вложенных фигур)
+|}
+
+ >>> ### Begin command Std_SendToPythonConsole
+ >>> try:
+ >>>     del(doc,lnk,obj,shp,sub,subs)
+ >>> except Exception:
+ >>>     pass
+ >>> 
+ >>> doc = App.getDocument("Unnamed")
+ >>> lnk = doc.getObject("Link")
+ >>> obj = lnk.getLinkedObject()
+ >>> shp = obj.Shape
+ >>> sub = obj.getSubObject("Edge10")
+ >>> subs = [obj.getSubObject("Edge10"),obj.getSubObject("Face3"),obj.getSubObject("Vertex5"),]
+ >>> ### End command Std_SendToPythonConsole
+{{Caption|Example output: an edge, a face, and a vertex of a [[Std_LinkMake|Link]] to a [[Part_Box|Part Box]] were selected}}
+
+<span id="Usage"></span>
+==Применение==
+
+# Select a single object or one or more subshapes belonging to a single object.
+# There are several ways to invoke the command:
+#* Select the {{MenuCommand|Edit → [[Image:Std_SendToPythonConsole.svg|16px]] Send to Python Console}} option from the menu.
+#* Select the {{MenuCommand|[[Image:Std_SendToPythonConsole.svg|16px]] Send to Python Console}} option from the [[Tree_view|Tree view]] context menu or [[3D_view|3D view]] context menu.
+#* Use the keyboard shortcut: {{KEY|Ctrl}}+{{KEY|Shift}}+{{KEY|P}}.
+# If required the [[Python_console|Python console]] opens.
+# The [[Python_console|Python console]] receives the keyboard focus.
+
+<span id="Notes"></span>
+==Примечания==
+
+* Все ранее созданные переменные удаляются (перезаписываются новыми значениями) при каждом запуске команды.
+
+* If the selected object is a Link ({{Incode|App::Link}}) and the Linked object is derived from the {{Incode|Part::Feature}} class, the {{Incode|shp}} variable will be the shape of the Linked object. If the Link has been transformed or scaled and you want to access the scaled/transformed shape, you can do so with this code:
+
+: {{Code|code=lnk_shp = Part.getShape(lnk)}}
+
+
+{{Docnav/ru
+|[[Std_Delete/ru|Команда "Удалить"]]
+|[[Std_Placement/ru|Команда "Расположение..."]]
+|[[Std_Edit_Menu/ru|Меню "Правка"]]
+|IconL=Std_Delete.svg
+|IconR=Std_Placement.svg
+|IconC=Freecad.svg
+}}
+
+{{Std_Base_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

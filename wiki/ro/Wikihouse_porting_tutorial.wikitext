@@ -1,0 +1,171 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{TutorialInfo/ro
+|Topic= Wikihouse porting tutorial
+|Level= Intermediate/Advanced
+|Time= 60 minutes
+|Author=
+|FCVersion=
+|Files=
+}}
+</div>
+
+== Introduction ==
+
+<div class="mw-translate-fuzzy">
+Acest tutorial vă va arăta cum să convertiți fișiere [http://www.sketchup.com/ SketchUp] utilizate de către proiectul  [http://wikihouse.cc/ WikiHouse] în FreeCAD, utilizând instrumentul [[Arch Panel]] în FreeCAD. Rezultatul este o copie completă a fișierului original SketchUp, cu excepția faptului că acesta a devenit complet parametric. Nivelul de parametrizare al fișierului final depinde de efortul pe care o consacrați, așa cum se explică mai jos. Dar este cu totul posibil să faceți lucrurile pas cu pas și să reconstruiești fișierul Wikihouse destul de repede și să lasați conversia mai lungă de la profile de bază în schițe pentru mai târziu.
+</div>
+
+<div class="mw-translate-fuzzy">
+This tutorial will require intermediate knowledge of FreeCAD, that is, you are able to find your way between the different workbenches and tools, are already able to model simple objects, and, above all, are comfortable with [[Draft Move]] and [[Draft Rotate]]. It will use mostly Draft and Arch tools, but knowledge of the Sketcher will become necessary when converting the base profiles to sketches.
+</div>
+
+Since the Wikihouse project is open by nature, files are easy to find on the project website, but also on the [https://3dwarehouse.sketchup.com/search.html?q=wikihouse&backendClass=both SketchUp 3D Warehouse] or in the project's [https://github.com/wikihouseproject github repositories]. The preferred format used by the project is Sketchup, so most of the files you'll find are in that format.
+
+In the following tutorial we used the [https://github.com/wikihouseproject/Microhouse/blob/master/microhouse_0.5_chassis.skp Chassis] file from Wikihouse's Microhouse subproject.
+
+== Preparing the Sketchup file ==
+
+The first thing you will need to do is to open the file in SketchUp and delete everything you don't want to export. We will only export one section of the Microhouse, so everything else must be deleted.
+
+[[Image:Arch_Wikihouse_05.jpg]]
+
+The Wikihouse elements, in SketchUp, are made in a specific way: By adding small "pieces" together in order to create the different components:
+
+[[Image:Arch_Wikihouse_06.jpg]]
+
+<div class="mw-translate-fuzzy">
+This is not how we will proceed in FreeCAD. Since one of the most powerful features of FreeCAD is [[Sketcher_Workbench|Constrained Sketches]], we'd better take advantage of this, and base all our Wikihouse elements on Sketches. That way, modifying any part can be done in the Sketcher, which is much more comfortable.
+</div>
+
+<div class="mw-translate-fuzzy">
+In order to turn our SketchUp objects into FreeCAD sketches, which can then be used to create [[Arch Panel]] objects, we need to extract one, flat face from each wikihouse piece. The thickness will be re-added later, in FreeCAD, directly in the Arch Panel properties. This way, we will keep it parametric as well. To turn each wikihouse component into a single, flat face, enter each component by double-clicking it, then select each sub-component, and right-click → Explode, until all sub-components are exploded, and your component is composed only of faces and edges:
+</div>
+
+[[Image:Arch_Wikihouse_08.jpg]]
+
+Once this is done, select everything in your component, and unselect, by Shift + double-clicking them, each frontal face of your component. Be sure to double-click instead of single-click, because otherwise you will only unselect the face and not its border edges (which we will need to keep as well). After that, we will have unselected everything we want to keep, so we only need to press the delete key. Now our component is only one big flat face.
+
+[[Image:Arch_Wikihouse_07.jpg]]
+
+Repeat this for each component. Since many are duplicated, this is not as huge a task as it looks. Besides, if you are not familiar with the Wikihouse system, this step will give you a pretty good understanding of how it works.
+
+<div class="mw-translate-fuzzy">
+When our piece of house is fully made of flat elements, we can select everything and export it to a .dae file, and then import this file into FreeCAD. Be sure to mark the "triangulate all
+</div>
+
+== Solving the double faces bug ==
+
+There is a nasty problem for which I haven't found a better solution: Meshes exported from SketchUp to the .dae format have their faces duplicated. Each face becomes actually two faces. The easiest way I have found so far is to open the exported file in [http://www.blender.org Blender] for repair:
+
+<div class="mw-translate-fuzzy">
+# Open the dae file in Blender (File → Import → Collada)
+# Select a component, and hit TAB to enter edit mode
+# Press A to deselect everything, then A again to select everything
+# Press W → Remove doubles
+# Press TAB to exit edit mode
+# Repeat for all the components
+# Save a new dae file (File → Export → Collada)
+</div>
+
+Normally the above operation shouldn't change the scale, but it is always wise to verify, using the measuring tools, that the imported geometry is at correct scale before going further. You might need to tweak Blender's Collada export settings if needed.
+
+== Importing and converting to wires ==
+
+<div class="mw-translate-fuzzy">
+Note that it might be easier to go by parts and treat + export objects group by group, as we did below, we exported only the first layer, made of yellow elements in SketchUp. These elements will come into FreeCAD as [[Mesh Workbench|Mesh]] objects:
+</div>
+
+[[Image:Arch_Wikihouse_09.jpg]]
+
+<div class="mw-translate-fuzzy">
+The next step is to create wires from each of our meshes. There is a convenient Macro named [[Macro Extract Wires from Mesh]] that does just that. Install it (Refer to the [[Macros]] page for instructions), then one by one (you can do them all at once, but this macro takes some time), convert all our meshes to wire objects:
+</div>
+
+[[Image:Arch_Wikihouse_10.jpg]]
+
+<div class="mw-translate-fuzzy">
+We could now already make [[Arch Panel]] objects from each of these wire-like objects, simply by selecting them and pressing the [[Arch Panel]] button. However, their base shape wouldn't be parametric. We now have several options: We could turn each component into a sketch, using the [[Draft Draft2Sketch]] tool, but these will be rather heavy sketches, and might not be very manageable on a slow machine, or we could turn each individual wire (the outline and each hole) of the sketch into a separate sketch. This would allow us, for example, to reuse a typical hole, make it only once, then duplicate it with [[Draft Clone]] to make the other holes. This way, you would only need to edit one to edit them all.
+</div>
+
+<div class="mw-translate-fuzzy">
+The Extract Wires from Mesh macro also sometimes fails in finding closed wires inside a mesh, which will not produce correct Panels. An easy procedure to recompose the wires of a component is this:
+</div>
+
+<div class="mw-translate-fuzzy">
+# Select the component, optionally hide everything else to see better
+# [[Draft Downgrade]] it. It will be exploded into a series of individual edges
+# Start selecting the holes with Ctrl or by using Shift + B to box-select
+# Press [[Draft Upgrade]] to turn back each hole into an individual wire
+# Finally select all the remaining individual edges in the tree, which form the outline, and [[Draft Upgrade]] them
+# Select '''Part → make Compound''' to join back all these wires into one object
+# Select the compound and press the [[Arch Panel]] button
+</div>
+
+[[Image:Arch_Wikihouse_11.jpg]]
+
+<div class="mw-translate-fuzzy">
+There are many possible strategies here, depending on how editable and precise you need the result. The [[Arch Panel]] object needs a base object made of wires. It doesn't matter how this object is made, if it is a single sketch, or, like in the example above, a compound of different sketches or draft object.
+</div>
+
+== Converting to Sketches ==
+
+It is also possible to do that part later, you could already create Panels from each of the component, but let's see already how to to convert a wire-like object to a sketch:
+
+<div class="mw-translate-fuzzy">
+# Create a copy of your wire-like object with Ctrl+C, Ctrl+V. This si so we can modify it but still keep one in its correct location
+# Move and rotate it so it lies in the XY plane, using [[Draft Move]] and [[Draft Rotate]]. This is not indispensable, but the next point sometimes fails otherwise
+# Use [[Draft Draft2Sketch]] to turn the wire into a sketch. Be warned, this can fail or take a very long time for huge wires. It is best to decompose your object into individual wires as shown above.
+# If the command above fails, using [[Draft Upgrade]] twice on a wire-like object, to convert it to a Face then to a [[Draft Wire]], before using [[Draft Draft2Sketch]], usually works better, because the Draft Wire keeps a better track of the order of vertices inside a wire.
+# Curves are made of several small segments. They can be left as is, but they introduce a lot of endpoint constraints. It is better to replace them by arcs. It is fairly easy to do, just delete the small segments and replace them by an arc. The arc can then be made tangential to the neighbouring segments, but make sure the position of those segments is locked before doing this, as this operation will make them move.
+# If you worked with several sketches, make a [[Part_Compound|Part Compound]] of them
+# Create an [[Arch Panel]] from it
+# Rotate/move it back into position with [[Draft Move]] and [[Draft Rotate]]
+</div>
+
+[[Image:Arch_Wikihouse_12.jpg]]
+
+<div class="mw-translate-fuzzy">
+== Rebuilding the wikihouse and exporting cut sheets ==
+</div>
+
+<div class="mw-translate-fuzzy">
+Also, make sure you don't redo any duplicated part. Instead, select the [[Draft Clone]] tool to duplicate parts based on the same profile, so they will all share one same profile object. Then, since we have the outline at the correct place to use as a guide, it is fairly easy to rotate and move the clone into its correct position with [[Draft Rotate]] and [[Draft Move]].
+</div>
+
+After a while, all our Microhouse section is done.
+
+[[Image:Arch_Wikihouse_01.jpg]]
+
+<div class="mw-translate-fuzzy">
+We can now easily create the cut sheets, which are DXF files that will be sent to the shop that will cut the actual panels. The easiest way to do this is to select everything in your document with Ctrl+A, and then use the [[Arch Panel Cut]] tool. This will produce one Panel Cut object for each Panel object found in the selection. By moving them apart, we get a clear view of all our pieces:
+</div>
+
+[[Image:Arch_Wikihouse_02.jpg]]
+
+We must then "nest" our pieces, that is, move and rotate them so they occupy as much as possible to space of a given panel, to generate as little material loss as possible. This operation unfortunately needs to be done by hand, but if you are using a Wikihouse project that already has produced cut sheets, copying them goes pretty fast:
+
+<div class="mw-translate-fuzzy">
+# To make sure everything will stay in the XY plane, it is advised to set the [[Draft SelectPlane|Workign Plane]] to XY (top)
+# Create an [[Arch Panel Sheet]]
+# Give it the desired width and height values (Wikihouses are typically printed on 122x244cm plywood sheets)
+# Move it to a convenient place with [[Draft Move]]
+# Optionally, set its margin values to help you position the cut pieces
+# Move and rotate the individual [[Arch Panel Cut]] objects so they fit inside the Panel Sheet
+# When you are more or less ready, select the Panel Sheet, and double click it in the tree view to enter Edit mode
+# Select all the Panel Cuts you wish to insert in it (you may want to switch the tree view to the "project" tab to select in the tree)
+# Select the "group" section in the Panel Sheet's Task view
+# Press the "Add" button
+# Press the "OK" button
+</div>
+
+In the Panel Sheet's Task view, there is also a button that allows you to move the individual Panel Cuts after they've been inserted inside the sheet. After a while, we have our sheets ready:
+
+[[Image:Arch_Wikihouse_03.jpg]]
+
+The last step is simply to select all the sheets, then export them to DXF from menu File → Export. The sheets contents will be exported separated in different layers, with the same color coding commonly used by the Wikihouse project:
+
+[[Image:Arch_Wikihouse_04.jpg]]
+
+Aceste fișiere sunt gata pentru a fi trimise la atelierele care vor efectua așchierea propriu-zisă. Este posibil de generat codul G-Code și de trimis direct la mașina CNC de la FreeCAD de asemenea, dar aceasta este materia pentru un alt tutorial.

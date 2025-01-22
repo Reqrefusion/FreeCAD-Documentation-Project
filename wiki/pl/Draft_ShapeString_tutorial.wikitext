@@ -1,0 +1,186 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic=Projekt produktu
+|Level=początkujący
+|Time=30 minut
+|Author=r-frank oraz vocx
+|FCVersion=0.17 i nowszy
+|Files=[https://github.com/FreeCAD/Examples/blob/master/Draft_Shapestring_Tutorial_Examples/Draft_Shapestring_Tutorial_Text.FCStd?raw=true Draft_Shapestring_Text]
+}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Ten poradnik został pierwotnie napisany przez Rolanda Franka ''(†2017, r-frank)'', a następnie przepisany i zilustrowany przez vocx.
+
+Ten samouczek opisuje metodę tworzenia tekstu 3D i używania go z obiektami bryłowymi w [[File:Workbench_Part.svg|24px]] środowiska [[Part_Workbench/pl|Część]]. Omówimy jak
+* wstawiać obrysowany tekst za pomocą narzędzia {{Button|[[Image:Draft_ShapeString.svg|16px]] [[Draft_ShapeString/pl|kształt z tekstu]]}},
+* wyciągnięcie go do postaci bryły 3D za pomocą narzędzia {{Button|[[File:Part_Extrude.svg|16px]] [[Part_Extrude/pl|Wyciągnij]]}},
+* pozycjonować go w przestrzeni 3D za pomocą [[Placement|umiejscowienia]], oraz {{Button|[[File:Draft_Move.svg|16px]] [[Draft_Move/pl|przesunięcie]]}} ''(używa szkicu jako geometrii pomocniczej)'', oraz
+* wygrawerować tekst poprzez zastosowanie funkcji logicznej {{Button|[[File:Part_Cut.svg|16px]] [[Part_Cut/pl|Wytnij]]}}.
+
+Aby użyć funkcji Kształt z tekstu wewnątrz środowiska pracy [[File:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/pl|Projekt Części]], proces jest zasadniczo taki sam jak w przypadku środowiska pracy Część, ale Kształt z tekstu jest umieszczany wewnątrz [[PartDesign_Body/pl|Zawartości]] środowiska Projekt Części w celu jego wyciągnięcia. Przejdź do końca tego samouczka, aby uzyskać więcej informacji.
+
+[[File:08_T04_Part_ShapesString_Extrude_final_cut.png]]
+{{Caption|Ostateczny model wygrawerowanego tekstu.}}
+
+Środowisko pracy [[Sketcher_Workbench/pl|Szkicownik]] jest krótko używane do narysowania linii pomocniczej. Więcej informacji o narzędziach tego środowiska pracy można znaleźć na stronach:
+* [[Basic_Sketcher_Tutorial/pl|Podstawy dla środowiska pracy Szkicownik]]
+* [[Sketcher_Lecture/pl|Poradnik do szkicownika]]
+
+<span id="Setup"></span>
+==Sposób postępowania==
+
+1. Otwórz FreeCAD, utwórz nowy pusty dokument za pomocą {{MenuCommand|Plik → [[File:Std_New.svg|16px]] [[Std_New/pl|Nowy]]}} i przejdź do środowiska pracy [[Part_Workbench/pl|Część]].
+:1.1. Naciśnij przycisk {{Button|[[File:Std_ViewIsometric.svg|16px]] [[Std_ViewIsometric/pl|Widok izometryczny]]}} lub naciśnij {{KEY|0}} na klawiaturze numerycznej, aby zmienić widok na izometryczny w celu lepszej wizualizacji brył 3D.
+:1.2. Naciśnij przycisk {{Button|[[File:Std_ViewFitAll.svg|16px]] [[Std_ViewFitAll/pl|Dopasuj wszystko]]}} za każdym razem, gdy dodajesz obiekty, aby przesuwać i powiększać [[3D_view/pl|widok 3D]] tak, aby wszystkie elementy były widoczne w widoku.
+:1.3. Przytrzymaj {{KEY|Ctrl}} podczas klikania, aby zaznaczyć wiele elementów. Jeśli wybrałeś coś źle lub chcesz usunąć zaznaczenie, kliknij na puste miejsce w oknie [[3D_view/pl|widoku 3D]].
+
+<span id="Create_the_basic_shape"></span>
+==Utwórz kształt podstawowy==
+
+2. Wstaw prostopadłościan, klikając {{Button|[[Image:Part_Box.svg|16px]] [[Part_Box/pl|Sześcian]]}}.
+:2.1. Wybierz obiekt {{incode|Sześcian}} w [[Tree_view/pl|widoku drzewa]].
+:2.2. Zmień wymiary w zakładce {{MenuCommand|Dane}} [[Property_editor/pl|edytora właściwości]].
+:2.3. Zmień wartość {{MenuCommand|Szerokość}} na {{incode|31 mm}}.
+
+3. Utwórz fazę.
+:3.1. Wybierz górną krawędź ({{Incode|Edge6}}) na przedniej powierzchni {{Incode|sześcianu}} w oknie [[3D_view/pl|widoku 3D]].
+:3.2. Naciśnij {{Button|[[Image:Part_Chamfer.svg|16px]] [[Part_Chamfer/pl|Sfazowanie ...]]}}.
+:3.3. W [[Task_panel/pl|panelu zadań]] {{MenuCommand|Fazowanie krawędzi}} przejdź do {{MenuCommand|Zaznaczenie}}, wybierz {{MenuCommand|Wybierz krawędzie}}. Jako {{MenuCommand|Typ sfazowania}} wybierz {{Incode|Wymiary równe}}, a następnie ustaw {{MenuCommand|Długość}} na {{Incode|5 mm}}.
+:3.4. Naciśnij {{Button|OK}}. Spowoduje to utworzenie obiektu {{Incode|Chamfer}}.
+:3.5. W [[Tree_view/pl|widoku drzewa]] wybierz obiekt {{incode|Chamfer}}, w zakładce {{MenuCommand|Widok}} zmień wartość {{MenuCommand|Szerokość linii}} na {{incode|2.0}}.
+
+[[File:01_T04_Part_Cube_base_long.png]]
+{{Caption|Obiekt bazowy utworzony z sześcianu i operacji fazowania.}}
+
+<span id="Insert_the_ShapeString"></span>
+==Wstaw obiekt kształt z tekstu==
+
+4. Przełącz się do środowiska [[Draft_Workbench/pl|Rysunek Roboczy]].
+:4.1. Upewnij się, że nic nie jest zaznaczone w oknie [[Tree_view/pl|widoku drzewa]].
+:4.2. Ustal płaszczyznę roboczą na XY ''(Góra)'' klikając na {{Button|[[File:Draft_SelectPlane.svg|16px]] [[Draft_SelectPlane/pl|Wyborze płaszczyzny roboczej]]}} i naciskając {{Button|[[File:View-top.svg|16px]] [[Std_ViewTop/pl|Widok od góry (XY)]]}}.
+
+5. Wstaw tekst "FreeCAD".
+:5.1. Kliknij {{Button|[[File:Draft_ShapeString.svg|16px]] [[Draft_ShapeString/pl|Kształt z tekstu]]}}.
+:5.2. Zmień {{MenuCommand|X}} na {{incode|0 mm}}.
+:5.3. Zmień {{MenuCommand|Y}} na {{incode|0 mm}}.
+:5.4. Zmień {{MenuCommand|Z}} na {{incode|0 mm}}.
+:5.5. Lub naciśnij {{Button|Zresetuj współrzędne punktu}}.
+:5.6. Zmień {{MenuCommand|Ciąg znaków}} na {{incode|FreeCAD}}. Zmień {{MenuCommand|Wysokość}} na {{incode|5 mm}}. Zmień {{MenuCommand|Śledzenie}} na {{incode|0 mm}}.
+:5.7. Upewnij się, że {{MenuCommand|Plik czcionki}} wskazuje na prawidłową czcionkę (np. {{incode|/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf}} lub {{incode|C:/Windows/Fonts/arial.ttf}}). Naciśnij przycisk wielokropka {{Button|…}}, aby otworzyć okno dialogowe systemu operacyjnego w celu znalezienia czcionki.
+::{{Emphasis|Uwaga:}} Więcej szczegółów na temat pracy z czcionkami można znaleźć na stronie [[Draft_ShapeString/pl#Opcje|Kształt z tekstu]]. 
+:5.8. Naciśnij {{Button|OK}}. Spowoduje to utworzenie obiektu {{incode|Kształt z tekstu}}.
+:5.9. Ponownie przelicz dokument, naciskając {{Button|[[File:Std_Refresh.svg|16px]] [[Std_Refresh/pl|Odśwież]]}}.
+:5.10. W [[Tree_view/pl|widoku drzewa]] wybierz obiekt {{incode|Kształt z tekstu}}, w zakładce {{MenuCommand|Widok}} zmień wartość {{MenuCommand|Szerokość linii}} na {{incode|2.0}}.
+:5.11. W oknie [[Tree_view/pl|widoku drzewa]] wybierz obiekt {{incode|Chamfer}}, w zakładce {{MenuCommand|Widok}} zmień wartość {{MenuCommand|Widoczność}} na {{false/pl}} lub naciśnij {{KEY|Spacje}} na klawiaturze. Spowoduje to ukrycie obiektu, dzięki czemu będzie lepiej widoczny obiekt {{Incode|Kształt z tekstu}}.
+:5.12. Aby zobaczyć Kształt z tekstu z góry, zmień widok, naciskając {{Button|[[File:View-top.svg|16px]] [[Std_ViewTop/pl|Od góry (XY)]]}}, lub {{KEY|2}} na klawiaturze.
+:5.13. Aby przywrócić widok izometryczny, naciśnij {{Button|[[File:Std_ViewIsometric.svg|16px]] [[Std_ViewIsometric/pl|Widok izometryczny]]}} lub {{KEY|0}} na klawiaturze.
+
+[[File:02_T04_Part_ShapeString.png]]
+{{Caption|Tekst utworzony jako obiekt Kształt z tekstu, czyli jako zbiór krawędzi na płaszczyźnie.}}
+
+<span id="Create_the_solid_3D_text"></span>
+==Utwórz bryłę tekstu 3D==
+
+6. Przełącz się z powrotem do środowiska [[Part_Workbench/pl|Część]].
+:6.1. W oknie [[Tree_view/pl|widoku drzewa]] wybierz obiekt {{incode|Kształt z tekstu}}, a następnie naciśnij {{Button|[[File:Part_Extrude.svg|16px]] [[Part_Extrude/pl|Wyciągnij ...]]}}.
+:6.2. W [[Task_panel/pl|Panelu zadań]] {{MenuCommand|Wyciągnięcie}} przejdź do sekcji {{MenuCommand|Kierunek}}, wybierz {{MenuCommand|Wzdłuz wektora normalnej}}. W sekcji {{MenuCommand|Długość}} ustaw {{MenuCommand|Wzdłuż}} na {{incode|1 mm}}. Zaznacz też opcję {{MenuCommand|Utwórz bryłę}}.
+:6.3. Naciśnij {{Button|OK}}. Spowoduje to utworzenie obiektu {{incode|Wyciągnięcie}}.
+:6.4. W [[Tree_view/pl|widok drzewa]] wybierz {{incode|Wyciągnięcie}}, w zakładce {{MenuCommand|Widok}} zmień wartość {{MenuCommand|Szerokość linii}} na {{incode|2.0}}.
+
+[[File:03_T04_Part_ShapeString_Extrude.png]]
+{{Caption|Tekst utworzony jako Kształt z tekstu i przekształcony w bryłę przez wyciągnięcie.}}
+
+<span id="Insert_auxiliary_sketch_for_positioning"></span>
+==Wstaw szkic pomocniczy do pozycjonowania==
+
+Teraz narysujemy prosty szkic, który zostanie użyty jako geometria pomocnicza do pozycjonowania obiektu wytłoczenia kształtu z tekstu.
+
+7. W oknie [[Tree_view/pl|widoku drzewa]] wybierz obiekt {{incode|Wyciągnięcie}} i naciśnij {{KEY|Spacje}} na klawiaturze, aby uczynić go niewidocznym.
+
+8. Przejdź do środowiska pracy [[Sketcher_Workbench/pl|Szkicownik]].
+
+9. W oknie [[Tree_view/pl|widoku drzewa]] wybierz obiekt {{Incode|Wyciągnięcie}} i naciśnij {{KEY|Spacja}} na klawiaturze, aby go wyświetlić.
+:9.1. Wybierz nachyloną powierzchnię utworzoną przez operację fazowania ({{incode|Face3}}).
+:9.2. Kliknij {{Button|[[File:Sketcher_NewSketch.svg|16px]] [[Sketcher_NewSketch/pl|Utwórz szkic]]}}. W oknie dialogowym {{MenuCommand|Dołączenie szkicu}} wybierz {{incode|Płaska powierzchnia}} i naciśnij {{Button|OK}}.
+:9.3. Widok powinien automatycznie dostosować się tak, aby ujęcie widoku było równoległe do wybranej ściany.
+:9.4. Narysuj poziomą linię w ogólnym położeniu na górze ściany. Długość nie jest ważna, interesuje nas tylko jej położenie.
+:9.5. Zwiąż lewy punkt końcowy tak, aby znajdował się {{incode|2.5 mm}} od lokalnej osi X i od lokalnej osi Y, używając {{Button|[[File:Sketcher_ConstrainDistanceX.svg|16px]] [[Sketcher_ConstrainDistanceX/pl|Zwiąż w poziomie]]}} i {{Button|[[File:Sketcher_ConstrainDistanceY.svg|16px]] [[Sketcher_ConstrainDistanceY/pl|Zwiąż w pionie]]}}.
+:9.6. Ponieważ szkic jest tylko obiektem pomocniczym, nie musimy go w pełni wiązać. Możesz to zrobić, jeśli chcesz, przypisując stałą odległość, powiedzmy {{incode|20 mm}}, ponownie za pomocą {{Button|[[File:Sketcher_ConstrainDistanceX.svg|16px]] [[Sketcher_ConstrainDistanceX/pl|Zwiąż w poziomie]]}}.
+:9.7. Zamknij szkic.
+
+[[File:04_T04_Part_ShapeString_support_sketch.png|500px]]
+{{Caption|Linia z wiązaniami tworzona za pomocą szkicownika.}}
+
+[[File:05_T04_Part_ShapeString_support_sketch_3D.png|500px]]
+{{Caption|Linia szkicu utworzona na górnej powierzchni bryły, używana jako odniesienie do pozycjonowania wyciągniętego tekstu.}}
+
+<span id="Positioning_the_solid_text_in_3D_space"></span>
+==Pozycjonowanie bryły tekstu w przestrzeni 3D==
+
+10. W oknie [[Tree_view/pl|widoku drzewa]] wybierz obiekt {{incode|Wyciągnięcie}} i naciśnij {{KEY|Spacje}} na klawiaturze, aby uczynić go niewidocznym.
+
+11. Po zaznaczeniu obiektu {{Incode|Wyciągnięcie}}, w zakładce {{MenuCommand|Dane}} [[Property_editor/pl|edytora właściwości]], kliknij na wartość {{MenuCommand|Umiejscowienie}}, aby po prawej stronie pojawił się przycisk trzykropka {{Button|…}} i kliknij na ten przycisk.
+:11.1. Zaznacz opcję {{MenuCommand|Zastosuj zmiany przyrostowe}}.
+:11.2. Zmień {{MenuCommand|Obrót}} na {{incode|Oś obrotu z zadanym kątem}}; {{MenuCommand|Oś}} na {{incode|Z}} (ustawiając wartości {{incode|X}}, {{incode|Y}} i {{incode|Z}} pól wprowadzania wartości dla osi odpowiednio na {{incode|0}}, {{incode|0}} i {{incode|1}}, {{incode|Z}} jest trzecim polem wprowadzania) i {{MenuCommand|Kąt}} na {{incode|90°}}, a następnie kliknij {{Button|Zastosuj}}. Spowoduje to zastosowanie obrotu wokół osi Z i wyzerowanie pola {{MenuCommand|Kąt}}.
+:11.3. Zmień {{MenuCommand|Obrót}} na {{incode|Oś obrotu z zadanym kątem}}; {{MenuCommand|Oś}} na {{incode|Y}} (ustawiając wartości {{incode|X}}, {{incode|Y}} i {{incode|Z}} pól wprowadzania osi odpowiednio na {{incode|0}}, {{incode|1}} i {{incode|0}}) oraz {{MenuCommand|Kąt}} na {{incode|45°}}, a następnie kliknij {{Button|Zastosuj}}. Spowoduje to zastosowanie obrotu wokół osi Y i wyzerowanie pola {{MenuCommand|Kąt}}.
+:11.4. Kliknij przycisk {{Button|OK}}, aby zamknąć okno dialogowe.
+
+12. Przełącz się ponownie do środowiska [[Draft_Workbench/pl|Rysunek Roboczy]].
+:12.1. Przełącz na styl rysowania "Szkieletowy" za pomocą pozycji z menu {{MenuCommand|Widok → [[Std_DrawStyle/pl|Styl kreślenia]] → [[File:DrawStyleWireFrame.svg|16px]] Szkieletowy}}, lub naciśnij przycisk {{Button|[[File:DrawStyleWireFrame.svg|16px]] [[Std_DrawStyle/pl|Szkieletowy]]}} na pasku narzędzi. Pozwoli to zobaczyć obiekty znajdujące się za innymi obiektami.
+:12.2. Upewnij się, że metoda [[Draft_Snap/pl|przyciągania]] "Przyciągnij do punktu końcowego" jest aktywna. Można to zrobić z menu {{MenuCommand|Rysunek Roboczy → Przyciąganie → [[File:Draft_Snap_Lock.svg|16px]] [[Draft_Snap_Lock/pl|Przełącz przyciąganie]]}}, a następnie {{MenuCommand| → [[File:Draft_Snap_Endpoint.svg|16px]] [[Draft_Snap_Endpoint/pl|Przyciągnij do punktu końcowego]]}}, lub naciskając przycisk {{Button|[[File:Draft_Snap_Lock.svg|16px]] [[Draft_Snap_Lock/pl|Przełącz przyciąganie]]}} i {{Button|[[File:Draft_Snap_Endpoint.svg|16px]] [[Draft_Snap_Endpoint/pl|Przyciągnij do punktu końcowego]]}} na pasku narzędzi przyciągania.
+
+13. W oknie [[Tree_view/pl|widoku drzewa]] wybierz {{incode|Wyciągnięcie}}.
+:13.1. Kliknij {{Button|[[File:Draft_Move.svg|16px]] [[Draft_Move/pl|Przesuń]]}}.
+:13.2. W oknie [[3D_view/pl|widoku 3D]] kliknij w lewy górny róg obiektu {{incode|Wyciągnięcia}} ''(1)'', a następnie kliknij w skrajny lewy punkt linii narysowanej szkicownikiem ''(2)''.
+:13.3. Jeśli opcja {{Button|[[File:Draft_Snap_Endpoint.svg|16px]] [[Draft_Snap_Endpoint/pl|Przyciągnij do punktu końcowego]]}} jest aktywna, gdy tylko zbliżysz kursor do wierzchołka, powinieneś zobaczyć, że dokładnie do niego przylega.
+{{Emphasis|Uwaga:}} jeśli masz problemy z przyciąganiem do wierzchołków, upewnij się, że aktywne jest tylko narzędzie {{Button|[[File:Draft_Snap_Endpoint.svg|16px]] [[Draft_Snap_Endpoint/pl|Przyciągnij do punktu końcowego]]}}. Posiadanie wielu metod przyciągania aktywnych w tym samym czasie może utrudnić wybór właściwej funkcji.
+:13.4. Wyciągnięty tekst powinien teraz znajdować się wewnątrz obiektu {{incode|Sfazowanie}}.
+
+[[File:06_T04_Part_ShapeString_move.svg]]
+{{Caption|Wytłoczony kształt z tekstu powinien zostać przesunięty do pozycji naszkicowanej linii, która leży na powierzchni Zawartości podstawy.}}
+
+[[File:07_T04_Part_ShapesString_Extrude_in_place.png]]
+{{Caption|Wyciągnięty Kształt z tekstu umieszczony w obiekcie {{incode|Sfazowanie}}.}}
+
+<span id="Creating_engraved_text"></span>
+==Tworzenie wygrawerowanego tekstu==
+
+14. Przełącz się z powrotem do środowiska pracy [[Part_Workbench/pl|Część]].
+:14.1. Przełącz na styl rysowania "Domyślny" za pomocą {{MenuCommand|Widok → [[Std_DrawStyle/pl|Styl kreślenia]] → [[File:DrawStyleAsIs.svg|16px]] Domyślny}}, lub naciśnij przycisk {{Button|[[File:DrawStyleAsIs.svg|16px]] [[Std_DrawStyle/pl|Domyślny]]}} na pasku narzędzi widoku. Spowoduje to wyświetlenie wszystkich obiektów z normalnym cieniowaniem i kolorem.
+:14.2. W oknie [[Tree_view/pl|widoku drzewa]] zaznacz {{incode|Szkic}} i naciśnij klawisz {{KEY|Spacja}} na klawiaturze, aby uczynić go niewidocznym.
+
+15. W oknie [[Tree_view/pl|widoku drzewa]] wybierz najpierw obiekt {{incode|Sfazowanie}}, a następnie {{incode|Wyciągnięcie}}.
+:15.1. Następnie wciśnij {{Button|[[File:Part_Cut.svg|16px]] [[Part_Cut/pl|Wytnij]]}}. Spowoduje to utworzenie obiektu {{incode|Wycięcie}}. To jest ostateczny obiekt.
+Kolejność zaznaczania obiektów jest ważna dla operacji cięcia. Obiekt bazowy jest zaznaczany jako pierwszy, a obiekt odejmowany na końcu.
+:15.2. W oknie [[Tree_view/pl|widoku drzewa]] wybierz obiekt {{incode|Wycięcie}}, w zakładce {{MenuCommand|Widok}} zmień wartość {{MenuCommand|Szerokość Linii}} na {{incode|2.0}}.
+
+[[File:08_T04_Part_ShapesString_Extrude_final_cut.png]]
+{{Caption|Końcowy model zaokrąglonego sześcianu z wyrzeźbionym tekstem utworzonym z operacji Kształt z tekstu, Wyciągnięcie i Wycięcie funkcją logiczną.}}
+
+<span id="Engraving_3D_text_with_the_PartDesign_Workbench"></span>
+==Grawerowanie tekstu 3D za pomocą środowiska Projekt Części==
+
+Podobny proces do opisanego powyżej można wykonać za pomocą środowiska pracy [[PartDesign_Workbench/pl|Projekt Części]].
+
+# Najpierw utwórz obiekt {{Button|[[File:Draft_ShapeString.svg|16px]] [[Draft_ShapeString/pl|Kształt z tekstu]]}} jako pierwszy.
+# Utwórz {{Button|[[File:PartDesign_Body_Tree.svg|16px]] [[PartDesign_Body/pl|Zawartość]]}} środowiska pracy Projekt Części, uaktywnij ją i dodaj bryłę bazową poprzez dodanie Bryły pierwotnej lub użycie Szkicu i wyciągnięcie go za pomocą narzędzia {{Button|[[File:PartDesign_Pad.svg|16px]] [[PartDesign_Pad/pl|Wyciągnij]]}} środowiska Projekt Części.
+# Przenieś obiekt {{Incode|Kształt z tekstu}} do aktywnej zawartości.
+# Dołącz obiekt {{Incode|Kształt z tekstu}} do jednej ze ścian bryły lub {{Button|[[File:PartDesign_Plane.svg|16px]] [[PartDesign Plane/pl|Płaszczyzny]]}}, używając narzędzia {{Button|[[File:Part_EditAttachment.svg|16px]] [[Part_EditAttachment/pl|Dołączenie]]}}.
+# Teraz utwórz {{Button|[[File:PartDesign_Pad.svg|16px]] [[PartDesign_Pad/pl|Wyciągnięcie]]}} lub {{Button|[[File:PartDesign_Pocket.svg|16px]] [[PartDesign_Pocket/pl|Kieszeń]]}} z obiektu {{incode|Kształt z tekstu}}, w celu wytworzenia odpowiednio dodającej lub odejmującej [[PartDesign_Feature/pl|cechy]] podstawowej bryły.
+
+Zobacz wątek na forum, [https://forum.freecadweb.org/viewtopic.php?f=3&t=36623 Jak używać obiektu Kształt z tekstu w środowisku Projekt Części].
+
+<span id="Notes"></span>
+==Uwagi==
+
+* Aby utworzyć zakrzywiony tekst można użyć makropolecenia [[File:FCCircularTextButtom.png|32px]] [[Macro_FCCircularText/pl|FCCircularText]].
+* Aby zaimportować tekst z pliku SVG, zapoznaj się z poradnikiem [[Import_text_and_geometry_from_Inkscape/pl|Import tekstu i geometrii z programu Inkscape]].
+
+
+{{Part Tools navi{{#translation:}}}}
+{{PartDesign Tools navi{{#translation:}}}}
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

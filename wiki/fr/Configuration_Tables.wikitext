@@ -1,0 +1,89 @@
+<languages/>
+
+{{TutorialInfo
+|Topic=Utilisation de tableaux de configuration
+|Level=Débutant
+|Time=30 minutes
+|Author=Gbroques
+|FCVersion=0.20
+|Files=[https://forum.freecad.org/download/file.php?id=270593 ConfigurationTableExample.FCStd]
+}}
+
+<span id="Introduction"></span>
+== Introduction ==
+
+Avec la sortie de [[Release_notes_0.20/fr#Atelier_Spreadsheet|FreeCAD V0.20]], deux nouvelles fonctions puissantes ont été introduites : ''[[Std_LinkMake/fr|Liens]] variants'' et ''[https://forum.freecadweb.org/viewtopic.php?f=17&t=42183 Configuration Tables]''. Les tables de configuration sont un type spécial de lien variant. Elles permettent de faire varier des ensembles de paramètres prédéfinis pour un objet donné.
+
+Auparavant, il était possible de paramétrer des objets à l'aide de techniques telles que les feuilles de calcul, mais plusieurs instances variées de cet objet ne pouvaient pas exister en même temps, à moins de recourir à des techniques telles que la copie de fichiers ou d'objets, ce qui pose des problèmes de maintenance. Les tables de configuration permettent de gérer ces variantes et de passer facilement de l'une à l'autre.
+
+Ce tutoriel suppose que vous êtes familiarisé avec l'[[PartDesign_Workbench/fr|atelier PartDesign]] et l'[[Sketcher_Workbench/fr|atelier Sketcher]]. Vous devez également être familiarisé avec la [[Tree_view/fr|vue en arborescence]] et l'[[Property_editor/fr|éditeur de propriétés]].
+
+Il existe également une [https://www.youtube.com/watch?v=m9C_ahIVKOI version vidéo de ce tutoriel].
+
+<span id="Example"></span>
+==Exemple==
+
+Pour mieux comprendre les tables de configuration, prenons l'exemple suivant.
+
+Imaginez un simple écrou hexagonal d'un diamètre "principal" de 10 mm (M10).
+
+Nous pouvons réutiliser le même dessin, créer un lien, puis varier certains paramètres pour créer un écrou hexagonal M12.
+
+Pour notre exemple, nous décrirons les différences entre ces deux variantes avec 3 paramètres :
+# diamètre du trou central
+# largeur entre les coins
+# et l'épaisseur.
+
+Les valeurs particulières des paramètres de nos variantes sont décrites dans ce tableau :
+
+{| class="wikitable"
+|-
+! Variant !! Diameter !! WidthAcrossCorners !! Thickness
+|-
+| M10 || style="text-align:right;" | 10 || style="text-align:right;" | 18.48 || style="text-align:right;" | 8.4
+|-
+| M12 || style="text-align:right;" | 12 || style="text-align:right;" | 20.78 || style="text-align:right;" | 10.8
+|}
+
+<span id="Instructions"></span>
+== Instructions ==
+
+# Créez une nouvelle [[Spreadsheet_CreateSheet/fr|feuille de calcul]] avec une ligne d'en-tête. Laissez la deuxième ligne vide. Cette ligne contiendra la configuration actuelle et sera automatiquement remplie plus tard. Ajoutez les paramètres pour M10 et M12 dans les lignes 3 et 4 : <p>[[File:Variant-link-spreadsheet-table-example-before-configuration-table.png]]</p>
+# Utilisez l'[[PartDesign_Workbench|atelier PartDesign]] pour créer un [[PartDesign_Body/fr|corps]] et une [[PartDesign_NewSketch/fr|esquisse]] pour l'écrou hexagonal. La contrainte dimensionnelle sera ajoutée dans une étape ultérieure. <p>[[File:Variant-link-example-hex-nut-sketch-unconstrained.png]].</p>
+# Faites une [[PartDesign_Pad/fr|protrusion]] de l'esquisse. Accepter la valeur par défaut de la longueur.
+# Cliquez avec le bouton droit de la souris sur la cellule A2 de la feuille de calcul et sélectionnez {{MenuCommand|Table de configuration...}} dans le menu contextuel.
+# La fenêtre de dialogue {{MenuCommand|Table de configuration}} s'ouvre.
+# Saisissez ce qui suit : <p>[[File:Variant-link-example-setup-configuration-table.png]]</p> Ceci remplit la deuxième ligne du tableau, ajoute une nouvelle propriété {{PropertyData|Configuration}} au corps et y lie la table de configuration.
+# Appuyez sur le bouton {{Button|OK}}.
+# Si la cellule A2 affiche {{Value|#PENDING}}, vous pouvez cliquer avec le bouton droit de la souris sur la feuille de calcul dans la [[Tree_view/fr|vue en arborescence]] et choisir {{MenuCommand|Recompute object}} pour afficher la valeur correcte.
+# Définissez un alias pour les 3 cellules de la ligne 2 sous <u>Diameter</u>, <u>WidthAcrossCorners</u> et <u>Thickness</u>. Chaque alias doit correspondre à l'en-tête de colonne de la cellule. <p>[[File:Variant-link-spreadsheet-table-example.png]]</p>[[File:Variant-link-spreadsheet-table-example.png]].
+# Contraignez l'esquisse avec deux contraintes et liez les [[Expressions/fr|expressions]] {{Value|Spreadsheet.Diameter}} et {{Value|Spreadsheet.WidthAcrossCorners}} : <p>[[File:Variant-link-example-hex-nut-sketch.png]]</p>
+# Lier {{Value|Spreadsheet.Thickness}} à la {{PropertyData|Length}} de la protrusion.
+# Créez une [[PartDesign_SubShapeBinder/fr|sous forme liée]].
+# Dans la [[Tree_view/fr|vue en arborescence]], faites glisser le Binder hors du corps et déposez-le sur le nœud Document.
+# Déposez le corps sur le Binder pour définir sa propriété {{PropertyData|Support}} sur le corps. Le dépôt est nécessaire car cette propriété est en lecture seule par défaut.
+# Définissez la {{PropertyData|Bind Copy on Change}} à {{Value|Enabled}} du Binder.
+# Sélectionnez {{Value|M12}} pour la propriété {{PropertyData|Configuration}} du Binder.
+# Définissez {{PropertyView|Use Binder Style}} à {{FALSE}} du Binder.
+# Changez {{PropertyData|Placement}} du Binder pour qu'il soit éloigné du corps. 
+# Une fois terminé, vous devriez avoir quelque chose comme ce qui suit : <p>[[File:Variant-link-finished-example-document.png|500px]]</p>.
+
+<span id="Use_Std_Link_instead_of_PartDesign_SubShapeBinder"></span>
+===Utiliser Std Lien au lieu de PartDesign Sous forme liée===
+
+Pour le lien variant, vous pouvez également utiliser un [[Std_LinkMake/fr|Std Lien]] au lieu d'un [[PartDesign_SubShapeBinder/fr|PartDesign Sous forme liée]] :
+# Les étapes préparatoires 1 à 10 mentionnées ci-dessus sont les mêmes.
+# Créez un lien vers le corps.
+# Passez la {{PropertyData|Link Copy On Change}} à {{Value|Enabled}} sur le lien.
+# Suivez les étapes 16, 18 et 19 mentionnées ci-dessus.
+
+<span id="Key_considerations"></span>
+==Points clés et considérations==
+
+* Comme dit, un lien variant peut être créé à l'aide d'un [[Std_LinkMake/fr|Std Lien]] ou d'une [[PartDesign_SubShapeBinder/fr|PartDesign PartDesign Sous forme liée]]. Realthunder explique la différence [https://forum.freecadweb.org/viewtopic.php?f=17&t=42183 ici] : <p>{{quote|text=Au lieu de dupliquer l'objet lié avec toute sa hiérarchie, la [[PartDesign_SubShapeBinder/fr|sous forme liée]] fera une copie aplatie de l'objet muté. Une autre différence avec le lien est que la [[PartDesign_SubShapeBinder|sous forme liée]] synchronisera toutes les modifications de l'objet original avec la copie, même si les configurations sont différentes, alors que pour le lien, une fois copiés, les deux objets deviennent indépendants.}}</p>
+* Bien que construits sur des liens, les liens variants ne sont pas "bon marché" comme les liens normaux, car ils créent des copies de l'objet original. Des conseils sont fournis par Realthunder [https://forum.freecadweb.org/viewtopic.php?p=532130#p532130 ici] et [https://forum.freecadweb.org/viewtopic.php?p=358582#p358582 ici] : <p>{{quote|text=[Lorsque] vous utilisez un lien pour des configurations alternatives, vous devez savoir qu'il crée une copie de l'objet original... il serait préférable de créer un seul lien "variant" pour chaque [variant] afin d'éviter les doublons inutiles. Ou mieux, utilisez une sous forme liée... Et encore une fois, créez une [[PartDesign_SubShapeBinder/fr|sous forme liée]] pour chaque configuration.}}</p>
+
+
+{{Clear}}
+[[Category:PartDesign{{#translation:}}]]
+[[Category:Spreadsheet{{#translation:}}]]

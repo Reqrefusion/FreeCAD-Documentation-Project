@@ -1,0 +1,114 @@
+<languages/>
+
+{{Docnav/fr
+|[[FEM_EquationElectricforce/fr|Équation de force électrique]]
+|[[FEM_EquationMagnetodynamic2D/fr|Équation magnétodynamique 2D]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_EquationElectricforce.svg
+|IconR=FEM_EquationMagnetodynamic2D.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommand/fr
+|Name=FEM EquationMagnetodynamic
+|Name/fr=FEM Équation magnétodynamique
+|MenuLocation=Résolution → Équations électromagnétiques → Équation magnétodynamique
+|Workbenches=[[FEM_Workbench/fr|FEM]]
+|Version=0.21
+|SeeAlso=[[FEM_EquationMagnetodynamic2D/fr|FEM Équation magnétodynamique 2D]]
+}}
+
+==Description==
+
+Cette équation effectue des analyses en utilisant les [https://fr.wikipedia.org/wiki/%C3%89quations_de_Maxwell équations de Maxwell].
+
+Pour plus d'informations sur les mathématiques de l'équation, voir le [http://www.elmerfem.org/blog/documentation/ Manuel des modèles d'Elmer (en)], section ''Computation of Magnetic Fields in 3D''.
+
+S'il est possible de calculer en 2D, des mathématiques plus simples peuvent être utilisées, ce qui permet des temps de résolution plus rapides. Pour le 2D, FreeCAD prend donc en charge l'[[FEM_EquationMagnetodynamic2D/fr|équation magnétodynamique 2D]] d'Elmer.
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Après avoir ajouté un solveur Elmer comme décrit [[FEM_SolverElmer/fr#Équations|ici]], sélectionnez-le dans la [[Tree_view/fr|vue en arborescence]].
+# Utilisez maintenant le bouton de la barre d'outils [[Image:FEM_EquationMagnetodynamic.svg|24px]] ou le menu {{MenuCommand|Résolution → Équations électromagnétiques → Équation magnétodynamique}}.
+# Modifiez les [[#Paramètres_du_solveur|paramètres du solveur de l'équation]] ou les [[FEM_SolverElmer_SolverSettings/fr|paramètres généraux du solveur]] si nécessaire.
+# Il est recommandé de définir dans les [[FEM_SolverElmer_SolverSettings/fr#Système_linéaire|paramètres du solveur de systèmes linéaires]], {{PropertyData|Linear Iterative Method}} à '''BiCGStabl''', {{PropertyData|BiCGstabl Degree}} à '''4''' et {{PropertyData|Linear Preconditioning}} à '''None'''. Cela garantit que l'équation peut être résolue dans la plupart des cas. Si c'est le cas, ces paramètres peuvent être modifiés si nécessaire.
+
+<span id="Solver_Settings"></span>
+==Paramètres du solveur==
+
+Pour les paramètres généraux du solveur, voir les [[FEM_SolverElmer_SolverSettings/fr|paramètres du solveur Elmer]].
+
+L'équation magnétodynamique fournit ces paramètres spéciaux :
+
+<span id="Linear_System"></span>
+===Système linéaire===
+
+* {{PropertyData|Linear System Refactorize}} :  refactorise la matrice du système.
+
+<span id="Magnetodynamic"></span>
+===Magnétodynamique===
+
+* {{PropertyData|Angular Frequency}} : fréquence d'actionnement harmonique. Elle n'est utilisée que si {{PropertyData|Is Harmonic}} est réglé à ''true''.
+* {{PropertyData|Automated Source Projection BCs}} : voir le [http://www.elmerfem.org/blog/documentation/ Manuel des modèles d'Elmer (en)], section ''Computation of Magnetic Fields in 3D'' pour plus d'informations.
+* {{PropertyData|FixInput Current Density}} : assure l'absence de divergence de la densité de courant.
+* {{PropertyData|Is Harmonic}} : si la force motrice est actionnée de manière harmonique (courant alternatif). Si elle est définie à ''true'', {{PropertyData|Angular Frequency}} doit avoir une valeur > 0.
+* {{PropertyData|Lagrange Gauge Penalization Coefficient}} : voir le [http://www.elmerfem.org/blog/documentation/ Manuel des modèles d'Elmer (en)], section ''Computation of Magnetic Fields in 3D'' pour plus d'informations.
+* {{PropertyData|Quadratic Approximation}} : permet une approximation de second ordre du courant d'entraînement.</br>Remarque : l'ordre par défaut des [[FEM_MeshGmshFromShape/fr|maillages de Gmsh]] dans FreeCAD est de 2ème ordre. Lorsque vous utilisez des maillages de 2ème ordre, il est obligatoire de mettre cette option à ''true''. Sinon vous obtiendrez cette erreur : ''ERROR:: GetEdgeBasis: Can't handle but linear elements, sorry.''.</br>Cependant, pour la plupart des applications, un maillage d'ordre 1 est suffisant. Une exception est le cas où un filtre Isocontour doit être appliqué pour visualiser les résultats. Dans ce cas, il est recommandé d'utiliser un maillage d'ordre 2 et donc de définir {{PropertyData|Quadratic Approximation}} à ''true''.
+* {{PropertyData|Static Conductivity}} : voir le [http://www.elmerfem.org/blog/documentation/ Manuel des modèles d'Elmer (en)], section ''Computation of Magnetic Fields in 3D'' pour plus d'informations.
+* {{PropertyData|Use Lagrange Gauge}} : voir le [http://www.elmerfem.org/blog/documentation/ Manuel des modèles d'Elmer (en)], section ''Computation of Magnetic Fields in 3D'' pour plus d'informations.
+* {{PropertyData|Use Piola Transform}} : doit être ''true'' si les fonctions de base pour l'interpolation des éléments arête sont sélectionnés pour être des membres de la famille optimale des éléments de bord ou si une approximation de second ordre est utilisée.
+* {{PropertyData|Use Tree Gauge}} : voir le [http://www.elmerfem.org/blog/documentation/ Manuel des modèles d'Elmer (en)], section ''Computation of Magnetic Fields in 3D'' pour plus d'informations. Sera ignoré si {{PropertyData|Use Piola Transform}} est à ''true''.
+
+<span id="Results"></span>
+===Résultats===
+
+* {{PropertyData|Calculate Current Density}} : calcule la [https://fr.wikipedia.org/wiki/Densit%C3%A9_de_courant densité de courant].
+* {{PropertyData|Calculate Electric Field}} : calcule le [https://fr.wikipedia.org/wiki/Champ_%C3%A9lectrique champ vectoriel électrique].
+* {{PropertyData|Calculate Elemental Fields}} : calcule les champs électromagnétiques pour chaque élément du maillage. Ceci est utile pour voir les discontinuités dans les mailles.</br>'''Remarque''' : pour le moment FreeCAD ne peut pas afficher ces résultats correctement. C'est pourquoi il n'est pour l'instant d'aucune utilité pratique.
+* {{PropertyData|Calculate Harmonic Loss}} : calcule la perte de puissance harmonique linéaire et quadratique. Voir le [http://www.elmerfem.org/blog/documentation/ Manuel des modèles d'Elmer (en)], section ''Loss Estimation Using the Fourier Series'' pour plus de détails.
+* {{PropertyData|Calculate Joule Heating}} : calcule l'[https://fr.wikipedia.org/wiki/Effet_Joule effet Joule].
+* {{PropertyData|Calculate Magnetic Strength}} : calcule l'[https://fr.wikipedia.org/wiki/Champ_magn%C3%A9tique intensité du champ magnétique].
+* {{PropertyData|Calculate Maxwell Stress}} : calcule le champ du [https://fr.wikipedia.org/wiki/Tenseur_des_contraintes_de_Maxwell tenseur de contrainte de Maxwell].
+* {{PropertyData|Calculate Nodal Fields}} : calcule les champs pour chaque noeud du maillage. La valeur par défaut est ''true''. Si aucune autre {{PropertyData|Calculate *}} n'est définie à ''true'', il calcule uniquement la densité de flux magnétique.
+* {{PropertyData|Calculate Nodal Forces}} : calcule les forces pour chaque nœud du maillage. Les résultats peuvent être utilisés pour une analyse mécanique ultérieure.
+* {{PropertyData|Calculate Nodal Heating}} : calcule le champ scalaire de la chaleur par effet Joule pour chaque noeud de la maille.
+
+<span id="Analysis_Feature_Information"></span>
+==Informations sur les caractéristiques d'analyse==
+
+L'équation magnétodynamique prend en compte les caractéristiques d'analyse suivantes si elles sont définies :
+
+* [[Image:FEM_ConstraintElectrostaticPotential.svg|24px]] [[FEM_ConstraintElectrostaticPotential/fr|Potentiel électrostatique]]
+* [[Image:FEM_ConstraintCurrentDensity.svg|24px]] [[FEM_ConstraintCurrentDensity/fr|Densité de courant]]
+* [[Image:FEM_ConstraintMagnetization.svg|24px]] [[FEM_ConstraintMagnetization/fr|Magnétisation]]
+* [[Image:FEM_ConstantVacuumPermittivity.svg|24px]] [[FEM_ConstantVacuumPermittivity/fr|Constante de permittivité du vide]]
+
+<span id="Results"></span>
+==Résultats==
+
+Les résultats disponibles dépendent des [[#Paramètres_du_solveur|paramètres du solveur]]. Si aucun des paramètres {{PropertyData|Calculate *}} n'a été réglé à ''true'', seul le potentiel électrique (appelé '''av''' dans les résultats) est calculé. Sinon, les résultats correspondants seront également disponibles.
+
+Les résultats possibles sont :
+* Densité de courant en <math>\rm A/m^2</math>
+* Valeurs du vecteur champ électrique en <math>\rm V/m</math>.
+* Puissance harmonique perdue en <math>\rm W</math>.
+* Densité du flux magnétique en <math>\rm T</math>.
+* Valeurs du tenseur des contraintes de Maxwell en <math>\rm As/m^3</math>.
+* Intensité du champ magnétique en <math> \rm A/m</math>.
+* Force nodale en <math>\rm N</math>
+* Effet Joule en <math>\rm J</math>
+* Potentiel en <math>\rm V</math>
+
+
+{{Docnav/fr
+|[[FEM_EquationElectricforce/fr|Équation de force électrique]]
+|[[FEM_EquationMagnetodynamic2D/fr|Équation magnétodynamique 2D]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_EquationElectricforce.svg
+|IconR=FEM_EquationMagnetodynamic2D.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

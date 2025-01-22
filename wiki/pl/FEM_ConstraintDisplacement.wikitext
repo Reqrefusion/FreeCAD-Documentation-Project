@@ -1,0 +1,111 @@
+<languages/>
+
+{{Docnav
+|[[FEM_ConstraintRigidBody/pl|Wiązanie ciała sztywnego]]
+|[[FEM_ConstraintContact/pl|Wiązanie kontaktu]]
+|[[FEM_Workbench/pl|MES]]
+|IconL=FEM_ConstraintRigidBody.svg
+|IconR=FEM_ConstraintContact.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommandContainer|
+{{GuiCommand/pl
+|Name=FEM ConstraintDisplacement
+|Name/pɬMES Warunek brzegowy przemieszczenia
+|MenuLocation=Model → Warunki brzegowe i obciążenia mechaniczne → Warunek brzegowy przemieszczenia
+|Workbenches=[[FEM_Workbench/pl|MES]]
+|Shortcut=
+|SeeAlso=[[FEM_tutorial/pl|Poradnik MES]]
+}}
+{{GuiCommandFemInfo/pl
+|Solvers=CalculiX, Elmer
+}}
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Tworzy warunek brzegowy MES przemieszczenia wybranego obiektu dla określonego stopnia swobody.
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wciśnij przycisk {{Button|[[Image:FEM_ConstraintDisplacement.svg|16px]] [[FEM_ConstraintDisplacement/pl|Warunek brzegowy przemieszczenia]]}} lub wybierz opcję {{MenuCommand|Model → Warunki brzegowe i obciążenia mechaniczne → [[Image:FEM_ConstraintDisplacement.svg|16px]] Warunek brzegowy przemieszczenia}}.
+# Wciśnij przycisk {{Button|Dodaj}}.
+# W [[3D_view/pl|widoku 3D]] wybierz obiekt, do którego ma być przyłożony warunek brzegowy. Może to być wierzchołek, krawędź lub ściana (ale wszystkie wskazane obiekty muszą być tego samego typu). Aby usunąć obiekty z listy, wciśnij przycisk {{Button|Usuń}} i kliknij na nich.
+# Zaznacz pola przy stopniach swobody, których chcesz użyć. Domyślnie są one ustawione na zero (blokada stopnia swobody), ale może zostać wprowadzona dowolna wartość ({{Version/pl|0.21}}: lub równanie dla Elmera). Obroty mają znaczenie tylko w przypadku elementów belkowych i powłokowych.
+
+<span id="Formulas"></span>
+==Równania==
+
+{{Version/pl|0.21}}
+
+<span id="General"></span>
+===Ogólne===
+
+Dla [[Image:FEM_SolverElmer.svg|32px]] [[FEM_SolverElmer/pl|solvera Elmer]] istnieje możliwość zdefiniowania przemieszczenia jako formuły. W tym przypadku solver ustawia przemieszczenia zgodnie z wprowadzoną zmienną równania.
+
+Załóżmy, że chcemy przeprowadzić [[FEM_SolverElmer_SolverSettings#Timestepping_(transient_analyses)|analizę ze zmiennością w czasie]]. Dla każdego kroku czasowego, przemieszczenie <math>d</math> powinno być zwiększane o 6 mm:
+
+<math>\quad
+d(t)=0.006\cdot t
+</math>
+
+wprowadź to w polu ''Wzór'':</br>
+{{incode| Variable "time"; Real MATC "0.006*tx"}}
+
+Ten kod ma następującą składnię:
+* przedrostek ''Variable'' określa, że przemieszczenie nie jest stałą tylko zmienną
+* zmienną jest bieżący czas
+* wartości przemieszczenia są zwracane jako wartości ''Real'' (rzeczywiste zmiennoprzecinkowe)
+* ''MATC'' to przedrostek dla solvera Elmer oznaczający, że następujący kod jest równaniem
+* ''tx'' jest zawsze nazwą zmiennej w równaniach ''MATC'', mimo że w naszym przypadku ''tx'' to ''t''
+
+<span id="Rotations"></span>
+===Obroty===
+
+Elmer korzysta tylko z pól warunku brzegowego '''Przemieszczenie *'''. Aby zdefiniować obroty, potrzebne jest równanie.
+
+Przykładowo, jeśli ściana powinna być obrócona zgodnie z tym warunkiemː
+
+<math>\quad
+\begin{align}
+d_{x}(t)= & \left(\cos(\phi)-1\right)x-\sin(\phi)y\\
+d_{y}(t)= & \left(\cos(\phi)-1\right)y+\sin(\phi)x
+\end{align}
+</math>
+
+to należy wprowadzić jako '''Przemieszczenie x'''</br>
+{{incode|  Variable "time, Coordinate"
+Real MATC "(cos(tx(0)*pi)-1.0)*tx(1)-sin(tx(0)*pi)*tx(2)}}
+
+a jako '''Przemieszczenie y'''</br>
+{{incode|  Variable "time, Coordinate"
+Real MATC "(cos(tx(0)*pi)-1.0)*tx(2)+sin(tx(0)*pi)*tx(1)}}
+
+Ten kod ma następującą składnię:
+* mamy 4 zmienne - czas i wszystkie możliwe współrzędne (x, y z)
+* ''tx'' jest wektorem, ''tx(0)'' odnosi się do pierwszej zmiennej - czasu, podczas gdy ''tx(1)'' odnosi się do pierwszej współrzędnej - ''x''
+* ''pi'' oznacza <math>\pi</math> i zostało dodane aby po <math>t=1\rm\, s</math> został przeprowadzony obrót o 180°
+
+<span id="Notes"></span>
+==Uwagi==
+
+Dla [[Image:FEM_SolverCalculixCxxtools.svg|32px]] [[FEM_SolverCalculixCxxtools/pl|solvera CalculiX]]:
+* To narzędzie korzysta ze [https://web.mit.edu/calculix_v2.7/CalculiX/ccx_2.7/doc/ccx/node163.html słowa kluczowego *BOUNDARY].
+* Blokowanie stopnia swobody jest wyjaśnione na stronie http://web.mit.edu/calculix_v2.7/CalculiX/ccx_2.7/doc/ccx/node164.html
+* Zadawanie wartości przemieszczenia dla stopnia swobody jest opisane na stronie http://web.mit.edu/calculix_v2.7/CalculiX/ccx_2.7/doc/ccx/node165.html
+
+
+{{Docnav
+|[[FEM_ConstraintRigidBody/pl|Wiązanie ciała sztywnego]]
+|[[FEM_ConstraintContact/pl|Wiązanie kontaktu]]
+|[[FEM_Workbench/pl|MES]]
+|IconL=FEM_ConstraintRigidBody.svg
+|IconR=FEM_ConstraintContact.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

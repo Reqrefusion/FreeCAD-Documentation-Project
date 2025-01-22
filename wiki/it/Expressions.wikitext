@@ -1,0 +1,1276 @@
+<languages/>
+{{TOCright}}
+
+<span id="Overview"></span>
+==Descrizione==
+
+È possibile definire le proprietà utilizzando espressioni matematiche. Nella GUI, le caselle di selezione o i campi di input associati alle proprietà mostrano un'icona blu [[Image:Bound-expression.svg|16px]] quando sono attivati. Facendo clic sull'icona o digitando il segno uguale {{KEY|&#61;}} si apre l'editor delle espressioni per quella particolare proprietà. Se il campo di input mostra un pulsante {{Button|...}} invece di un'icona, l'editor delle espressioni può essere aperto facendo clic con il pulsante destro del mouse sulla proprietà e selezionando {{MenuCommand|Expression...}} dal menu contestuale.
+
+Un'espressione di FreeCAD è un'espressione matematica che utilizza gli [[#Operatori_supportati|operatori]], le [[#Funzioni_supportate|funzioni]] e le [[#Costanti_supportate|costanti]] standard come descritto di seguito. Inoltre, l'espressione può fare riferimento a proprietà dell'oggetto e utilizzare anche [[#Espressioni_condizionali|espressioni condizionali]]. I numeri in un'espressione possono avere una [[#Unità|unità]] facoltativa allegata.
+
+I numeri possono utilizzare una virgola {{incode|,}} o un punto decimale {{incode|.}} per separare le cifre intere dai decimali. Quando viene utilizzato il marcatore decimale, ''deve'' essere seguito da almeno una cifra. Pertanto, le espressioni {{incode|1.+2.}} e {{incode|1,+2,}} non sono valide, ma {{incode|1.0 + 2.0}} e {{incode|1,0 + 2 ,0}} sono validi.
+
+Gli operatori e le funzioni sono unit-aware (consapevoli delle unità), e richiedono combinazioni di unità valide, se sono necessarie. Ad esempio, {{incode|2mm + 4mm}} è un'espressione valida, mentre {{incode|2mm + 4}} non lo è. Questo vale anche per i riferimenti alle proprietà dell'oggetto che hanno unità, come la proprietà Length. Pertanto {{incode|Pad001.Length + 1}} non è valido poiché aggiunge un numero puro a una proprietà con una unità di lunghezza, si richiede {{incode|Pad001.Length + 1mm}}.
+
+Alcuni errori relativi alle unità possono sembrare non intuitivi, con espressioni respinte o che producono risultati che non corrispondono alle unità della proprietà impostata. Ecco alcuni esempi:
+
+{{incode|1/2mm}} non viene interpretato come mezzo millimetro ma come {{incode|1/(2mm)}}, risultante in: {{incode|0.5 mm^-1}}.
+
+{{incode|sqrt(2)mm}} non è valido perché la chiamata alla funzione non è un numero. Questo deve essere inserito come {{incode|sqrt(2) * 1mm}}.
+
+<span id="Function_arguments"></span>
+===Argomenti delle funzioni===
+
+Quando una funzione accetta più argomenti, questi possono essere separati da un punto e virgola {{incode|;}} o da una virgola <em>seguita da uno spazio</em> {{incode|, }}. In quest'ultimo caso, la virgola viene convertita in un punto e virgola dopo la voce. Quando si utilizza un punto e virgola, non è necessario terminare la riga con uno spazio.
+
+Gli argomenti possono includere riferimenti a celle in un foglio di calcolo. Un riferimento di cella è costituito dalla lettera maiuscola della riga della cella seguita dal suo numero di colonna, ad esempio {{incode|A1}}. È anche possibile fare riferimento a una cella utilizzando l'alias della cella, ad esempio {{incode|Spreadsheet.MyPartWidth}}.
+
+<span id="Referencing_objects"></span>
+===Riferimenti a oggetti===
+
+Come già mostrato sopra,S si può fare riferimento a un oggetto tramite il suo {{PropertyData|Name}}. Ma si può anche usare la sua {{PropertyData|Label}}. Nel caso di una {{PropertyData|Label}}, essa deve essere racchiusa tra i simboli {{incode|<<}} e {{incode|>>}}, come questa: {{incode|<<Label>>}}.
+
+È possibile fare riferimento a qualsiasi proprietà di un oggetto. Ad esempio, per fare riferimento all'altezza di un cilindro, è possibile utilizzare {{incode|Cylinder.Height}} o {{incode|<<Label_of_cylinder>>.Height}}
+
+Per ulteriori informazioni sui riferimenti agli oggetti, vedere [[#Riferimento_ai_dati_CAD|Riferimento ai dati CAD]].
+{{Top}}
+<span id="Supported_constants"></span>
+== Costanti supportate ==
+
+Sono supportate le seguenti costanti:
+
+{| class="wikitable"
+!style="width: 33%;"|Constante
+!style="width: 66%;"|Descrizione
+|-
+| style="text-align:center;" | '''e'''
+| [https://en.wikipedia.org/wiki/E_(mathematical_constant) Numero di Eulero]
+|-
+| style="text-align:center;" | '''pi'''
+| [https://en.wikipedia.org/wiki/Pi Pi greco]
+|}
+{{Top}}
+<span id="Supported_operators"></span>
+== Operatori supportati ==
+
+Sono supportati i seguenti operatori:
+
+{| class="wikitable"
+!style="width: 33%;"|Operatore
+!style="width: 66%;"|Descrizione
+|-
+| style="text-align:center;" |'''+'''
+| [https://en.wikipedia.org/wiki/Addition Addizione]
+|-
+| style="text-align:center;" |'''-'''
+| [https://en.wikipedia.org/wiki/Subtraction Sottrazione]
+|-
+| style="text-align:center;" | '''*'''
+| [https://en.wikipedia.org/wiki/Multiplication Multiplicazione]
+|-
+| style="text-align:center;" | '''/'''
+| [https://en.wikipedia.org/wiki/Division_(mathematics) Divisione] virgola mobile
+|-
+| style="text-align:center;" | '''%'''
+| [https://en.wikipedia.org/wiki/Remainder Resto]
+|-
+| style="text-align:center;" | '''^'''
+| [https://en.wikipedia.org/wiki/Exponentiation Potenze]
+|}
+{{Top}}
+<span id="Supported_functions"></span>
+== Funzioni supportate ==
+
+<span id="General_mathematical_functions"></span>
+=== Funzioni matematiche generali ===
+
+Sono supportate le seguenti funzioni matematiche:
+
+<span id="Trigonometric_functions"></span>
+==== Funzioni trigonometriche ====
+
+[https://en.wikipedia.org/wiki/Trigonometric_functions Le funzioni trigonometriche] usano il grado come unità predefinita. Per i radianti, aggiungere {{incode|rad}} dopo il <em>primo</em> valore in un'espressione. Quindi ad es. {{incode|cos(45)}} è uguale a {{incode|cos(pi rad / 4)}}. Le espressioni in gradi possono utilizzare {{incode|deg}} o {{incode|°}}, ad es. {{incode|360deg - atan2(3; 4)}} o {{incode|360&deg; - atan2(3; 4)}}. Se un'espressione è senza unità e deve essere convertita in gradi o radianti per compatibilità, moltiplicare per {{incode|1deg}}, {{incode|1°}} o {{incode|1rad}} in modo appropriato, ad es. {{incode|(360 - X) * 1deg}}; {{incode|(360 - X) * 1°}}; {{incode|(0.5 + pi / 2) * 1rad}}.
+
+{| class="wikitable"
+!style="width: 15%;"|Funzione
+!style="width: 55%;"|Descrizione
+!style="width: 30%;"|Intervallo di valori
+|-
+| {{incode|acos(x)}}
+| [https://it.wikipedia.org/wiki/Funzione_trigonometrica_inversa Arco seno]
+| -1 <= x <= 1 
+|-
+| {{incode|asin(x)}}
+| [https://it.wikipedia.org/wiki/Funzione_trigonometrica_inversa Arco coseno]
+| -1 <= x <= 1 
+|-
+| {{incode|atan(x)}}
+| [https://it.wikipedia.org/wiki/Funzione_trigonometrica_inversa Arco tangente], restituisce un valore con -90° < valore < 90°
+| tutti
+|-
+| {{incode|atan2(y; x)}}
+| [https://it.wikipedia.org/wiki/Funzione_trigonometrica_inversa Arco tangente 2] con ''y/x'' tenendo conto del quadrante, restituisce un valore con -180° < valore <= 180°
+| tutti, l'input non valido x = y = 0 restituisce 0
+|-
+| {{incode|cos(x)}}
+| [https://it.wikipedia.org/wiki/Funzione_trigonometrica#Definizioni_tramite_triangoli_rettangoli Coseno]
+| tutti
+|-
+| {{incode|cosh(x)}}
+| [https://it.wikipedia.org/wiki/Funzioni_iperboliche#Definizioni Coseno iperbolico]
+| tutti
+|-
+| {{incode|sin(x)}}
+| [https://it.wikipedia.org/wiki/Funzione_trigonometrica#Definizioni_tramite_triangoli_rettangoli Seno]
+| tutti
+|-
+| {{incode|sinh(x)}}
+| [https://it.wikipedia.org/wiki/Funzioni_iperboliche#Definizioni Seno iperbolico]
+| tutti
+|-
+| {{incode|tan(x)}}
+| [https://it.wikipedia.org/wiki/Funzione_trigonometrica#Definizioni_tramite_triangoli_rettangoli Tangente]
+| tutti, eccetto x = n*90 con = intero dispari
+|-
+| {{incode|tanh(x)}}
+| [https://it.wikipedia.org/wiki/Funzioni_iperboliche#Definizioni Tangente iperbolica]
+| tutti
+|-
+| {{incode|hypot(x; y)}}
+| [https://en.wikipedia.org/wiki/Pythagorean_addition Addizione pitagorica] (utilizzo di '''hypot'''), e.g. hypot(4; 3) = 5
+| x e y >= 0
+|-
+| {{incode|cath(x; y)}}
+| Data l'ipotenusa e un lato, restituisce l'altro lato del triangolo rettangolo, per esempio cath(5; 3) = 4
+| x >= y >= 0
+|}
+
+<span id="Exponential_and_logarithmic_functions"></span>
+==== Funzioni esponenziali e logaritmiche ====
+
+{| class="wikitable"
+!style="width: 33%;"|Funzione
+!style="width: 33%;"|Descrizione
+!style="width: 33%;"|Intervallo di valori
+|-
+| {{incode|exp(x)}}
+| [https://it.wikipedia.org/wiki/Funzione_esponenziale#Definizioni Esponenziale]
+| tutti
+|-
+| {{incode|log(x)}}
+| [https://it.wikipedia.org/wiki/Logaritmo_naturale Logaritmo naturale]
+| x > 0 
+|-
+| {{incode|log10(x)}}
+| [https://it.wikipedia.org/wiki/Logaritmo Logaritmo in base 10]
+| x > 0 
+|-
+| {{incode|pow(x; y)}}
+| [https://it.wikipedia.org/wiki/Potenza_(matematica) Potenza]
+| tutti
+|-
+| {{incode|sqrt(x)}}
+| [https://it.wikipedia.org/wiki/Radice_quadrata Radice quadrata]
+| x >= 0
+|-
+| {{incode|cbrt(x)}} {{Version/it|0.21}}
+| [https://it.wikipedia.org/wiki/Radicale_(matematica) Radice cubica]
+| tutti
+|}
+
+<span id="Rounding,_truncation_and_remainder_functions"></span>
+==== Funzioni di arrotondamento, troncamento e resto ====
+
+{| class="wikitable"
+!style="width: 20%;"|Funzione
+!style="width: 55%;"|Descrizione
+!style="width: 25%;"|Intervallo di valori
+|-
+| {{incode|abs(x)}}
+| [https://it.wikipedia.org/wiki/Valore_assoluto Valore assoluto]
+| tutti
+|-
+| {{incode|ceil(x)}}
+| [https://en.wikipedia.org/wiki/Floor_and_ceiling_functions Approssimazione per difetto], valore intero più piccolo maggiore o uguale a x
+| tutti 
+|-
+| {{incode|floor(x)}}
+| [https://en.wikipedia.org/wiki/Floor_and_ceiling_functions Approssimazione in eccesso], valore intero più grande minore o uguale a x
+| tutti 
+|-
+| {{incode|mod(x; y)}}
+| [https://it.wikipedia.org/wiki/Resto Resto] dopo aver diviso ''x'' per ''y'', il segno del risultato è quello del dividendo.
+| tutti, eccetto y = 0
+|-
+| {{incode|round(x)}}
+| [https://it.wikipedia.org/wiki/Arrotondamento Arrotondamento] all'intero più vicino
+| tutti
+|-
+| {{incode|trunc(x)}}
+| [https://it.wikipedia.org/wiki/Troncamento_(matematica) Troncamento] all'intero più vicino nella direzione dello zero
+| tutti
+|}
+{{Top}}
+<span id="Statistical_/_aggregate_functions"></span>
+=== Funzioni statistiche / aggregate ===
+
+Le [https://it.wikipedia.org/wiki/Funzione_di_aggregazione funzioni di aggregazione] prendono uno o più argomenti.<br>
+
+I singoli argomenti per le funzioni di aggregazione possono essere costituiti da intervalli di celle. Un intervallo di celle è espresso come due riferimenti di cella separati da due punti {{Incode|:}}, ad esempio {{Incode|average(B1:B8)}} o {{Incode|sum(A1:A4; B1:B4 )}}.
+I riferimenti di cella possono anche utilizzare alias di cella, ad esempio {{Incode|average(StartTemp:EndTemp)}}.
+
+Sono supportate le seguenti funzioni di aggregazione:
+
+{| class="wikitable"
+!style="width: 20%;"|Funzione
+!style="width: 55%;"|Descrizione
+!style="width: 25%;"|Intervallo di valori
+|-
+| {{incode|average(a; b; c; ...)}}
+| [https://it.wikipedia.org/wiki/Media_(statistica)#Media_aritmetica Media aritmetica] del valore degli argomenti, calcolato come sum(a; b; c; ...) / count(a; b; c; ...)
+| tutti
+|-
+| {{incode|count(a; b; c; ...)}}
+| [https://it.wikipedia.org/wiki/Statistica Conteggio] degli argomenti, generalmente utilizzato su intervalli di celle
+| tutti 
+|-
+| {{incode|max(a; b; c; ...)}}
+| [https://it.wikipedia.org/wiki/Massimo_e_minimo_di_una_funzione Massimo] valore tra gli argomenti
+| tutti 
+|-
+| {{incode|min(a; b; c; ...)}}
+| [https://it.wikipedia.org/wiki/Massimo_e_minimo_di_una_funzione Minimo] valore tra gli argomenti
+| tutti
+|-
+| {{incode|stddev(a; b; c; ...)}}
+| [https://it.wikipedia.org/wiki/Scarto_quadratico_medio Deviazione standard] dei valori degli argomenti
+| tutti
+|-
+| {{incode|sum(a; b; c; ...)}}
+| [https://it.wikipedia.org/wiki/Sommatoria Sommatoria] dei valori degli argomenti, tipicamente utilizzato su intervalli di celle
+| tutti
+|}
+{{Top}}
+<span id="String_manipulation"></span>
+=== Manipolazione delle stringhe ===
+
+<span id="String_identification"></span>
+==== Identificazione della stringa ====
+
+Le stringhe sono identificate nelle espressioni con doppi chevron di apertura/chiusura (così come le etichette).
+
+Nell'esempio seguente, "TEXT" è riconosciuto come una stringa: {{incode|<<TEXT>>}}
+
+<span id="String_concatenation"></span>
+==== Concatenazione di stringhe ====
+
+Le stringhe possono essere concatenate utilizzando il segno '+'.
+
+L'esempio seguente {{incode|<<MY>> + <<TEXT>>}} sarà concatenato a "MYTEXT".
+
+<span id="String_conversion"></span>
+==== Conversione di stringhe ====
+
+I valori numerici possono essere convertiti in stringhe con la funzione {{incode|str}}:
+
+{{incode|str(Box.Length.Value)}}
+
+<span id="String_formatting"></span>
+==== Formattazione della stringa ====
+
+La formattazione delle stringhe è supportata utilizzando il (vecchio) stile Python col %.
+
+Tutti gli %-specifiers come definiti nella [https://docs.python.org/3/library/stdtypes.html#printf-style-string-formatting documentazione di Python].
+
+Ad esempio, supponendo di avere un cubo predefinito di 10 mm di lato denominato 'Box' (denominazione predefinita di FreeCAD), la seguente espressione {{incode|<<Cube length : %s>> % Box.Length}} si espanderà in "Cube length: 10,0 mm"
+
+Per più di uno specificatore % utilizzare la seguente sintassi: {{incode|<<La lunghezza del cubo è %s e la larghezza è %s>> % tuple(Box.Length; Box.Width)}}. Oppure usa la concatenazione: {{incode|<<La lunghezza del cubo è %s>> % Box.Length + << e la larghezza è %s>> % Box.Width}}. Entrambi si espandono in "La lunghezza del cubo è 10,0 mm e la larghezza è 10,0 mm".
+
+È disponibile un file di esempio di FreeCAD che utilizza la formattazione delle stringhe [https://forum.freecadweb.org/viewtopic.php?f=8&t=58657 nel forum]
+{{Top}}
+<span id="Object_creation_functions"></span>
+=== Funzioni per la creazione di oggetti ===
+
+I seguenti oggetti possono essere creati nelle espressioni utilizzando le seguenti funzioni:
+
+{| class="wikitable"
+! Tipo
+! Funzione
+! Descrizione
+|-
+| {{incode|Tuple}}
+| {{incode|tuple(a; b; ...)}}
+| Esempio: {{incode|tuple(2; 1; 2)}}
+|-
+| {{incode|List}}
+| {{incode|list(a; b; ...)}}
+| Esempio: {{incode|list(2; 1; 2)}}
+|-
+| rowspan="2" | [[Vector API|{{incode|Vector}}]]
+| {{incode|vector(x; y; z)}}
+| rowspan="2" | Crea un vettore senza unità o utilizzando tre valori con unità di {{incode|Lunghezza}}.
+Esempio: {{incode|vector(2; 1; 3)}}
+|-
+| {{incode|create(<<vector>>; x; y; z)}}
+|-
+| rowspan="2" | [[Matrix API|{{incode|Matrix}}]]
+|
+ matrix(
+   a<sub>11</sub>; a<sub>12</sub>; a<sub>13</sub>; a<sub>14</sub>;
+   a<sub>21</sub>; a<sub>22</sub>; a<sub>23</sub>; a<sub>24</sub>;
+   a<sub>31</sub>; a<sub>32</sub>; a<sub>33</sub>; a<sub>34</sub>;
+   a<sub>41</sub>; a<sub>42</sub>; a<sub>43</sub>; a<sub>44</sub>
+ )
+| rowspan="2" | Crea una matrice 4x4 [https://en.wikipedia.org/wiki/Row-_and_column-major_order ordinata per riga]:
+<math>
+\begin{bmatrix}
+a_{11} & a_{12} & a_{13} & a_{14} \\
+a_{21} & a_{22} & a_{23} & a_{24} \\
+a_{31} & a_{32} & a_{33} & a_{34} \\
+a_{41} & a_{42} & a_{43} & a_{44} \\
+\end{bmatrix}
+</math>
+
+È possibile fornire un minimo di 1 argomento come {{incode|matrix(1)}} che crea una matrice identità.
+
+Esempio: {{incode|matrix(1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15; 16)}}
+|-
+| {{incode|create(<<matrix>>; a<sub>11</sub>; a<sub>12</sub>; ...; a<sub>44</sub>)}}
+|-
+| rowspan="4" | {{incode|Rotation}}
+| {{incode|rotation(axis; angle)}}
+| rowspan="4" | Crea una {{incode|Rotation}} specificando il suo {{incode|axis}} ({{incode|Vector}}) e {{incode|angle}} ({{incode|Angle}} senza unità o con unità), o i tre angoli di Eulero {{incode|α}}, {{incode|β}}, {{incode|γ}}.
+Esempi:
+* {{incode|rotation(vector(0; 1; 0); 45)}}
+* {{incode|create(<<rotation>>; 30; 30; 30)}}
+|-
+| {{incode|rotation(α; β; γ)}}
+|-
+| {{incode|create(<<rotation>>; axis; angle)}}
+|-
+| {{incode|create(<<rotation>>; α; β; γ)}}
+|-
+| rowspan="5" | [[Placement_API|{{incode|Placement}}]]
+| {{incode|placement(base; rotation)}}
+| rowspan="5" | Crea un {{incode|Placement}} con vari parametri, inclusi:
+* {{incode|base}}: posizione di base ({{incode|Vector}})
+* {{incode|center}}: posizione centrale ({{incode|Vector}})
+* {{incode|rotation}}: {{incode|Rotation}}
+* {{incode|axis}}: asse di rotazione ({{incode|Vector}})
+* {{incode|angle}}: angolo di rotazione (senza unità o con unità {{incode|Angle}})
+* {{incode|matrix}}: {{incode|Matrix}}
+
+Esempi:
+* {{incode|placement(vector(2; 1; 3); rotation(vector(0; 0; 1); 45))}}
+* {{incode|create(<<placement>>; create(<<vector>>; 2; 1; 2); create(<<rotation>>; create(<<vector>>; 0; 1; 0); 45))}}
+|-
+| {{incode|placement(base; rotation; center)}}
+|-
+| {{incode|placement(base; axis; angle)}}
+|-
+| {{incode|placement(matrix)}}
+|-
+| {{incode|create(<<placement>>; ...)}}
+|}
+{{Top}}
+<span id="Vector_functions"></span>
+=== Funzioni vettoriali ===
+
+Funzioni: {{Version/it|1.0}}.
+
+{| class="wikitable"
+! Funzione / Operatore
+! Descrizzione
+|-
+| {{incode|v1 + v2}}
+| Somma vettoriale.
+|-
+| {{incode|v1 - v2}}
+| Sottrazione vettoriale.
+|-
+| {{incode|v * s}}
+| Prodotto scalare per {{incode|s}}.
+|-
+| {{incode|vangle(v1; v2)}}
+| Angolo tra due vettori in gradi.
+|-
+| {{incode|vcross(v1; v2)}}
+| Prodotto vettoriale tra due vettori <math>v_1 \times v_2</math>.
+|-
+| {{incode|v1 * v2}}
+| rowspan="2" | Prodotto scalare tra due vettori <math>v_1 \cdot v_2</math>.
+|-
+| {{incode|vdot(v1; v2)}}
+|-
+| {{incode|vlinedist(v1; v2; v3)}}
+| Distanza tra {{incode|v1}} e una linea attraverso {{incode|v2}} in direzione di {{incode|v3}}.
+|-
+| {{incode|vlinesegdist(v1; v2; v3)}}
+| Distanza tra il vettore {{incode|v1}} e il punto più vicino su un segmento di linea da {{incode|v2}} a {{incode|v3}}.
+|-
+| {{incode|vlineproj(v1; v2; v3)}}
+| Proiezione di un vettore {{incode|v1}} su una linea attraverso {{incode|v2}} in direzione {{incode|v3}}.
+|-
+| {{incode|vnormalize(v)}}
+| Normalizza un vettore in un vettore unitario.
+|-
+| {{incode|vplanedist(v1)}}
+| Distanza tra il vettore {{incode|v1}} e un piano definito da un punto {{incode|v2}} e una normale {{incode|v3}}.
+|-
+| {{incode|vplaneproj(v1)}}
+| Proietta il vettore {{incode|v1}} su un piano definito da un punto {{incode|v2}} e una normale {{incode|v3}}.
+|-
+| {{incode|vscale(v; sx; sy; sz)}}
+| rowspan="4" | Ridimensiona in modo non uniforme un vettore di {{incode|sx}} nella direzione X, {{incode|sy}} nella direzione Y e {{incode|sz}} nella direzione Z.
+|-
+| {{incode|vscalex(v; sx)}}
+|-
+| {{incode|vscaley(v; sy)}}
+|-
+| {{incode|vscalez(v; sz)}}
+|}
+{{Top}}
+<span id="Matrix_functions"></span>
+=== Funzioni matriciali ===
+
+{{incode|Rotation}} e {{incode|Placement}} possono essere rappresentati ciascuno da una {{incode|Matrix}}. Le seguenti funzioni accettano tutte {{incode|Matrix}}, {{incode|Rotation}} o {{incode|Placement}} come primo parametro indicato nella tabella seguente da {{incode|m}}. Il tipo dell'oggetto restituito è lo stesso dell'oggetto fornito nel primo argomento tranne quando si utilizza {{incode|mtranslate}} su {{incode|Rotation}}, nel qual caso sarà restituito {{incode|Placement}}.
+
+{| class="wikitable"
+! Funzione
+! Descrizione
+|-
+| {{incode|minvert(m)}}
+| Calcola la [https://it.wikipedia.org/wiki/Matrice_invertibile Matrice inversa].
+|-
+| {{incode|mrotate(m; rotation)}}
+| rowspan="3" | [https://it.wikipedia.org/wiki/Matrice_di_trasformazione Rotazione] con:
+* una {{incode|Rotazione}}
+* un asse ({{incode|Vettore}}) e un angolo ({{incode|Angolo}} con unità o adimensionale)
+* i tre angoli di Eulero {{incode|α}}, {{incode|β}}, {{incode|γ}}
+|-
+| {{incode|mrotate(m; axis; angle)}}
+|-
+| {{incode|mrotate(m; α; β; γ)}}
+|-
+| {{incode|mrotatex(m; angle)}}
+| [https://it.wikipedia.org/wiki/Matrice_di_trasformazione Rotazione] attorno all'asse X.
+|-
+| {{incode|mrotatey(m; angle)}}
+| [https://it.wikipedia.org/wiki/Matrice_di_trasformazione Rotazione] attorno all'asse Y.
+|-
+| {{incode|mrotatez(m; angle)}}
+| [https://it.wikipedia.org/wiki/Matrice_di_trasformazione Rotazione] attorno all'asse Z.
+|-
+| {{incode|mtranslate(m; vector)}}
+| rowspan="2" | [https://it.wikipedia.org/wiki/Traslazione_(geometria)#Rappresentazione_con_matrici Traslazione] con un {{incode|vector}} ({{incode|Vector}}) o con i valori X, Y, Z. Se una {{incode|Rotazione}} è anche traslata, l'oggetto restituito è un {{incode|Placement}}.
+|-
+| {{incode|mtranslate(m; x; y; z)}}
+|-
+| {{incode|mscale(m; vector)}}
+| rowspan="2" | [https://en.wikipedia.org/wiki/Scaling_(geometry)#Matrix_representation Scala] per un {{incode|vector}} ({{incode|Vector}}) o per i valori X, Y, Z.
+|-
+| {{incode|mscale(m; x; y; z)}}
+|}
+{{Top}}
+<span id="Conditional_expressions"></span>
+== Espressioni condizionali ==
+
+Le espressioni condizionali hanno la forma {{incode|condizione ? resultTrue : resultFalse}}. La condizione è definita come un'espressione che restituisce {{incode|0}} (false) o diverso da zero (true).
+
+Tenere presente che per utilizzare una proprietà booleana come condizione è necessario utilizzare questa sintassi: {{incode|VarSet.MyBool &#61;&#61; 1? 10 mm: 15 mm}}.
+
+Sono definiti i seguenti [https://en.wikipedia.org/wiki/Relational_operator#Standard_relational_operators operatori relazionali]:
+{| class="wikitable"
+!style="width: 33%;"|Operatore
+!style="width: 66%;"|Descrizione
+|-
+| style="text-align:center;" | '''=='''
+| uguale 
+|-
+| style="text-align:center;" | '''!='''
+| diverso
+|-
+| style="text-align:center;" | '''>'''
+| maggiore 
+|-
+| style="text-align:center;" | '''<'''
+| minore
+|-
+| style="text-align:center;" | '''>='''
+| maggiore o uguale
+|-
+| style="text-align:center;" | '''<='''
+| minore o uguale
+|}
+{{Top}}
+<span id="Units"></span>
+==Unità==
+
+Le unità possono essere utilizzate direttamente nelle espressioni. Il parser le collega al valore precedente. Quindi {{incode|2mm}} o {{incode|2 mm}} è valido mentre {{incode|mm}} non è valido perché non esiste un valore precedente.
+
+Tutti i valori devono avere un'unità. Pertanto, in generale è necessario utilizzare un'unità per i valori nei fogli di calcolo. <br/>
+In alcuni casi funziona anche senza un'unità, ad esempio se nella cella B1 del foglio di calcolo si ha solo il numero {{incode|1.5}} e si fa riferimento ad esso per l'altezza del pad. Questo funziona perché l'altezza del pad predispone l'unità {{incode|mm}} che viene utilizzata quando non viene fornita alcuna unità. Però fallisce se si utilizza per l'altezza del pad, ad es. {{incode|Sketch1.Constraints.Width - Spreadsheet.B1}} perché {{incode|Sketch1.Constraints.Width}} ha un'unità e {{incode|Spreadsheet.B1}} no.
+
+Le unità con esponenti possono essere inserite direttamente. Quindi ad es. {{incode|mm^3}} viene riconosciuto come mm³ e {{incode|m^3}} viene riconosciuto come m³.
+
+Se si ha una variabile il cui nome è quello di un'unità di misura, si deve inserire la variabile tra {{incode|<< >>}} per evitare che venga riconosciuta come un'unità di misura. Ad esempio, la dimensione {{incode|Sketch.Constraints.A}} verrebbe riconosciuta come l'unità ampere. Quindi è necessario scriverla nell'espressione come {{incode|Sketch.Constraints.<<A>>}}.
+
+Il parser delle espressioni riconosce le seguenti unità:
+
+<span id="Amount_of_substance"></span>
+=== Quantità di sostanza ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| mmol
+| Milli[https://en.wikipedia.org/wiki/Mole_(unit) mole]
+|-
+| mol
+| [https://en.wikipedia.org/wiki/Mole_(unit) Mole]
+|}
+
+<span id="Angle"></span>
+=== Angolo ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| °
+| [https://en.wikipedia.org/wiki/Degree_(angle) Degree]; alternativa all'unità deg
+|-
+| deg
+| [https://en.wikipedia.org/wiki/Degree_(angle) Degree]; alternativa all'unità °
+|-
+| rad
+| [https://en.wikipedia.org/wiki/Radian Radiante]
+|-
+| gon
+| [https://en.wikipedia.org/wiki/Gon_(unità) Gradianti]
+|-
+| M
+| [https://en.wikipedia.org/wiki/Minute_and_second_of_arc Minuto d'arco]; alternativa all'unità ′
+|-
+| '
+| [https://en.wikipedia.org/wiki/Minute_and_second_of_arc Minuto d'arco]; questo è il simbolo primo (U+2032); alternativa all'unità M
+|-
+| S
+| [https://en.wikipedia.org/wiki/Minute_and_second_of_arc Secondo d'arco]; '''NON FUNZIONA'''; alternativa all'unità″
+|-
+| "
+| [https://en.wikipedia.org/wiki/Minute_and_second_of_arc Secondo d'arco]; questo è il simbolo del doppio primo (U+2033); alternativa all'unità S
+|}
+
+<span id="Current"></span>
+=== Corrente ===
+
+{| class="wikitable float-right mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| mA
+| Milli[https://it.wikipedia.org/wiki/Ampere ampere]
+|-
+| A
+| [https://it.wikipedia.org/wiki/Ampere ampere]
+|-
+| kA
+| Kilo[https://it.wikipedia.org/wiki/Ampere ampere]
+|-
+| MA
+| Mega[https://it.wikipedia.org/wiki/Ampere ampere]
+|}
+
+<span id="Electric_capacitance"></span>
+=== Capacità elettrica ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| pF
+| Pico[https://it.wikipedia.org/wiki/Farad farad]
+|-
+| nF
+| Nano[https://it.wikipedia.org/wiki/Farad farad]
+|-
+| uF
+| Micro[https://it.wikipedia.org/wiki/Farad farad]; alternativa all'unità µF
+|-
+| µF
+| Micro[https://it.wikipedia.org/wiki/Farad farad]; alternativa all'unità uF
+|-
+| mF
+| Milli[https://it.wikipedia.org/wiki/Farad farad]
+|-
+| F
+| [https://it.wikipedia.org/wiki/Farad Farad]; 1 F = 1 s^4·A^2/m^2/kg
+|}
+
+<span id="Electric_charge"></span>
+=== Carica elettrica ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| C
+| [https://it.wikipedia.org/wiki/Coulomb coulomb]; 1 C = 1 A*s
+|}
+
+<span id="Electric_conductivity"></span>
+=== Conducibilità elettrica ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| uS
+| Micro[https://it.wikipedia.org/wiki/Siemens_(unit%C3%A0_di_misura) siemens]; alternative to the unit µS
+|-
+| µS
+| Micro[https://it.wikipedia.org/wiki/Siemens_(unit%C3%A0_di_misura) siemens]; alternative to the unit uS
+|-
+| mS
+| Milli[https://it.wikipedia.org/wiki/Siemens_(unit%C3%A0_di_misura) siemens]
+|-
+| S
+| [https://it.wikipedia.org/wiki/Siemens_(unit%C3%A0_di_misura) siemens]; 1 S = 1 s^3·A^2/kg/m^2
+|-
+| kS
+| Kilo[https://it.wikipedia.org/wiki/Siemens_(unit%C3%A0_di_misura) siemens]
+|-
+| MS
+| Mega[https://it.wikipedia.org/wiki/Siemens_(unit%C3%A0_di_misura) siemens]
+|}
+
+<span id="Electric_inductance"></span>
+=== Induttanza elettrica ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| nH
+| Nano[https://it.wikipedia.org/wiki/Henry_(unit%C3%A0_di_misura) henry]
+|-
+| uH
+| Micro[https://it.wikipedia.org/wiki/Henry_(unit%C3%A0_di_misura) henry]; alternativa all'unità µH
+|-
+| µH
+| Micro[https://it.wikipedia.org/wiki/Henry_(unit%C3%A0_di_misura) henry]; alternativa all'unità uH
+|-
+| mH
+| Milli[https://it.wikipedia.org/wiki/Henry_(unit%C3%A0_di_misura) henry]
+|-
+| H
+| [https://it.wikipedia.org/wiki/Henry_(unit%C3%A0_di_misura) henry]; 1 H = 1 kg·m^2/s^2/A^2
+|}
+
+<span id="Electric_potential"></span>
+=== Potenziale elettrico ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| mV
+| Milli[https://it.wikipedia.org/wiki/Volt volt]
+|-
+| V
+| [https://it.wikipedia.org/wiki/Volt volt]
+|-
+| kV
+| Kilo[https://it.wikipedia.org/wiki/Volt volt]
+|}
+
+<span id="Electric_resistance"></span>
+=== Resistenza elettrica ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| ohm
+| [https://it.wikipedia.org/wiki/Ohm ohm]; 1 ohm = 1 kg·m^2/s^3/A^2
+|-
+| kohm
+| Kilo[https://it.wikipedia.org/wiki/Ohm ohm]
+|-
+| Mohm
+| Mega[https://it.wikipedia.org/wiki/Ohm ohm]
+|}
+
+<span id="Energy/work"></span>
+=== Energia/lavoro ===
+
+{| class="wikitable float-right mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| mJ
+| Milli[https://en.wikipedia.org/wiki/Joule joule]
+|-
+| J
+| [https://en.wikipedia.org/wiki/Joule joule]
+|-
+| kJ
+| Kilo[https://en.wikipedia.org/wiki/Joule joule]
+|-
+| eV
+| [https://en.wikipedia.org/wiki/Electronvolt Elettronvolt]; 1 eV = 1.602176634e-19 J
+|-
+| keV
+| Kilo[https://en.wikipedia.org/wiki/Electronvolt elettronvolt]
+|-
+| MeV
+| Mega[https://en.wikipedia.org/wiki/Electronvolt elettronvolt]
+|-
+| kWh
+| [https://en.wikipedia.org/wiki/Kilowatt_hour kilowattora]; 1 kWh = 3.6e6 J
+|-
+| Ws
+| [https://en.wikipedia.org/wiki/Joule#Watt_second Watt secondo]; alternativa all'unità ''Joule''
+|-
+| VAs
+| [https://en.wikipedia.org/wiki/Joule volt-ampere-secondo]; alternativa all'unità ''Joule''
+|-
+| CV
+| [https://en.wikipedia.org/wiki/Joule coulomb-volt]; alternativa all'unità ''Joule''
+|-
+| cal
+| [https://en.wikipedia.org/wiki/Calorie calorie]; 1 cal = 4.184 J
+|-
+| kcal
+| Kilo[https://en.wikipedia.org/wiki/Calorie calorie]
+|}
+
+<span id="Force"></span>
+=== Forza ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| mN
+| Milli[https://en.wikipedia.org/wiki/Newton_(unit) newton]
+|-
+| N
+| [https://en.wikipedia.org/wiki/Newton_(unit) newton]
+|-
+| kN
+| Kilo[https://en.wikipedia.org/wiki/Newton_(unit) newton]
+|-
+| MN
+| Mega[https://en.wikipedia.org/wiki/Newton_(unit) newton]
+|-
+| lbf
+| [https://en.wikipedia.org/wiki/Pound_(force) Libbra forza]
+|}
+
+<span id="Length"></span>
+=== Lunghezza ===
+
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| nm
+| Nano[https://en.wikipedia.org/wiki/Metre metro]
+|-
+| um
+| Micro[https://en.wikipedia.org/wiki/Metre metro]; alternativa all'unità µm
+|-
+| µm
+| Micro[https://en.wikipedia.org/wiki/Metre metro]; alternativa all'unità ''mu''
+|-
+| mm
+| Milli[https://en.wikipedia.org/wiki/Metre metro]
+|-
+| cm
+| Centi[https://en.wikipedia.org/wiki/Metre metro]
+|-
+| dm
+| Deci[https://en.wikipedia.org/wiki/Metre metro]
+|-
+| m
+| [https://en.wikipedia.org/wiki/Metre metro]
+|-
+| km
+| Kilo[https://en.wikipedia.org/wiki/Metre metro]
+|-
+| mil
+| [https://en.wikipedia.org/wiki/Thousandth_of_an_inch Thousandth of an inch]; alternativa all'unità thou
+|-
+| thou
+| [https://en.wikipedia.org/wiki/Thousandth_of_an_inch Thousandth of an inch]; alternativa all'unità mil
+|-
+| in
+| [https://en.wikipedia.org/wiki/Inch Inch]; alternativa all'unità "
+|-
+| ft
+| [https://en.wikipedia.org/wiki/Foot_(unit) Foot]; alternativa all'unità '
+|-
+| '
+| [https://en.wikipedia.org/wiki/Foot_(unit) Foot]; alternativa all'unità ''ft''
+|-
+| yd
+| [https://en.wikipedia.org/wiki/Yard Yard]
+|-
+| mi
+| [https://en.wikipedia.org/wiki/Mile Mile]
+|}
+
+<span id="Luminous_intensity"></span>
+=== Intensità luminosa ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| cd
+| [https://en.wikipedia.org/wiki/Candela candela]
+|}
+
+<span id="Magnetic_flux"></span>
+=== Flusso magnetico ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| Wb
+| [https://en.wikipedia.org/wiki/Weber_(unit) weber]; 1 Wb = 1 kg*m^2/s^2/A
+|}
+
+<span id="Magnetic_flux_density"></span>
+=== Densità del flusso magnetico ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| G
+| [https://en.wikipedia.org/wiki/Gauss_(unit) gauss]; 1 G = 1 e-4 T
+|-
+| T
+| [https://en.wikipedia.org/wiki/Tesla_(unit) tesla]; 1 T = 1 kg/s^2/A
+|}
+
+<span id="Mass"></span>
+=== Massa ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| ug
+| Micro[https://it.wikipedia.org/wiki/Grammo grammo]; alternativa all'unità µg
+|-
+| µg
+| Micro[https://it.wikipedia.org/wiki/Grammo grammo]; alternativa all'unità ug
+|-
+| mg
+| Milli[https://it.wikipedia.org/wiki/Grammo grammo]
+|-
+| g
+| [https://it.wikipedia.org/wiki/Grammo grammo]
+|-
+| kg
+| Kilo[https://it.wikipedia.org/wiki/Grammo grammo]
+|-
+| t
+| [https://it.wikipedia.org/wiki/Tonnellata Tonnellata]
+|-
+| oz
+| [https://en.wikipedia.org/wiki/Ounce Ounce]
+|-
+| lb
+| [https://en.wikipedia.org/wiki/Pound_(mass) Pound]; alternativa all'unità lbm
+|-
+| lbm
+| [https://en.wikipedia.org/wiki/Pound_(mass) Pound]; alternativa all'unità lb
+|-
+| st
+| [https://en.wikipedia.org/wiki/Stone_(weight) Stone]
+|-
+| cwt
+| [https://en.wikipedia.org/wiki/Hundredweight Hundredweight]
+|}
+
+<span id="Power"></span>
+=== Potenza ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| W
+| [https://en.wikipedia.org/wiki/Watt watt]
+|-
+| kW
+| Kilo[https://en.wikipedia.org/wiki/Watt watt], {{Version/it|0.19}}
+|-
+| VA
+| [https://en.wikipedia.org/wiki/Volt-ampere volt-ampere]
+|}
+
+<span id="Pressure"></span>
+=== Pressione ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| Pa
+| [https://it.wikipedia.org/wiki/Pascal_(unit%C3%A0_di_misura) pascal]
+|-
+| kPa
+| Kilo[https://it.wikipedia.org/wiki/Pascal_(unit%C3%A0_di_misura) pascal]
+|-
+| MPa
+| Mega[https://it.wikipedia.org/wiki/Pascal_(unit%C3%A0_di_misura) pascal]
+|-
+| GPa
+| Giga[https://it.wikipedia.org/wiki/Pascal_(unit%C3%A0_di_misura) pascal]
+|-
+| uTorr
+| Micro[https://it.wikipedia.org/wiki/Torr torr]; alternativa all'unità µTorr
+|-
+| µTorr
+| Micro[https://it.wikipedia.org/wiki/Torr torr]; alternativa all'unità uTorr
+|-
+| mTorr
+| Milli[https://it.wikipedia.org/wiki/Torr torr]
+|-
+| Torr
+| [https://it.wikipedia.org/wiki/Torr Torr]; 1 Torr = 133.32 Pa
+|-
+| psi
+| [https://it.wikipedia.org/wiki/Psi_(unit%C3%A0_di_misura) Libbra-forza per pollice quadrato]; 1 psi = 6.895 kPa
+|-
+| ksi
+| Kilo[https://it.wikipedia.org/wiki/Psi_(unit%C3%A0_di_misura) Libbra-forza per pollice quadrato]
+|}
+
+<span id="Temperature"></span>
+=== Temperatura ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| uK
+| Micro[https://it.wikipedia.org/wiki/Kelvin kelvin]; alternativa all'unità µK
+|-
+| µK
+| Micro[https://it.wikipedia.org/wiki/Kelvin kelvin]; alternativa all'unità uK
+|-
+| mK
+| Milli[https://it.wikipedia.org/wiki/Kelvin kelvin]
+|-
+| K
+| [https://it.wikipedia.org/wiki/Kelvin Kelvin]
+|}
+
+<span id="Time"></span>
+=== Tempo ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| s
+| [https://it.wikipedia.org/wiki/Secondo secondo]
+|-
+| min
+| [https://it.wikipedia.org/wiki/Minuto minuto]
+|-
+| h
+| [https://it.wikipedia.org/wiki/Ora ora]
+|-
+| Hz (1/s)
+| [https://it.wikipedia.org/wiki/Hertz Hertz]
+|-
+| kHz
+| Kilo[https://it.wikipedia.org/wiki/Hertz hertz]
+|-
+| MHz
+| Mega[https://it.wikipedia.org/wiki/Hertz hertz]
+|-
+| GHz
+| Giga[https://it.wikipedia.org/wiki/Hertz hertz]
+|-
+| THz
+| Tera[https://it.wikipedia.org/wiki/Hertz hertz]
+|}
+
+=== Volume ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| ml
+| Milli[https://en.wikipedia.org/wiki/Litre litro]
+|-
+| l
+| [https://en.wikipedia.org/wiki/Litre litro]
+|-
+| cft
+| Cubic[https://en.wikipedia.org/wiki/Foot_(unit) foot] (piede cubico)
+|}
+
+<span id="Special_imperial_units"></span>
+=== Unità imperiali speciali ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|Unità
+!style="width: 66%;"|Descrizione
+|-
+| mph
+| [https://en.wikipedia.org/wiki/Miles_per_hour Miles per hour]
+|-
+| sqft
+| [https://en.wikipedia.org/wiki/Square_foot Square foot]
+|}
+
+<span id="Unsupported_units"></span>
+=== Unità non supportate ===
+
+Le seguenti unità di uso comune non sono ancora supportate, per alcune viene fornita un'alternativa:
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 25%;"|Unità
+!style="width: 50%;"|Descrizione
+!style="width: 25%;"|Alternativa
+|-
+| °C
+| [https://it.wikipedia.org/wiki/Grado_Celsius Grado Celsius]
+| [°C] + 273.15 K
+|-
+| °F
+| [https://it.wikipedia.org/wiki/Grado_Fahrenheit Grado Fahrenheit];
+| ([°F] + 459.67) × ​5/9
+|-
+| u
+| [https://it.wikipedia.org/wiki/Unit%C3%A0_di_massa_atomica Unità di massa atomica]; alternativa all'unità Da
+| 1.66053906660e-27 kg
+|-
+| Da
+| [https://it.wikipedia.org/wiki/Unit%C3%A0_di_massa_atomica dalton]; alternativa all'unità u
+| 1.66053906660e-27 kg
+|-
+| sr
+| [https://it.wikipedia.org/wiki/Steradiante steradiante]
+| not directly
+|-
+| lm
+| [https://it.wikipedia.org/wiki/Lumen lumen]
+| non direttamente
+|-
+| lx
+| [https://it.wikipedia.org/wiki/Lux lux]
+| non direttamente
+|-
+| px
+| [https://it.wikipedia.org/wiki/Pixel pixel]
+| non direttamente
+|}
+{{Top}}
+<span id="Invalid_characters_and_names"></span>
+==Caratteri e nomi non validi==
+
+La funzionalità delle espressioni è molto potente, ma per raggiungere questo potere ha alcune limitazioni relative ad alcuni caratteri. Per ovviare a questo, FreeCAD offre la possibilità di utilizzare etichette e fare riferimento ad esse invece che ai nomi degli oggetti. Nelle etichette puoi usare quasi tutti i caratteri speciali.
+
+Nei casi in cui non è possibile utilizzare un'etichetta, come il nome dei vincoli di uno schizzo, è necessario sapere quali caratteri non sono consentiti.
+
+<span id="Labels"></span>
+===Etichette===
+
+Per le [[Object_name/it#Etichette|etichette]] non ci sono caratteri non validi, tuttavia è necessario eseguire l'escape di alcuni caratteri:
+{| class="wikitable"
+!style="width: 33%;"|Caratteri
+!style="width: 66%;"|Descrizione
+|-
+| {{incode|'}}, {{incode|\}}, {{incode|"}}
+| È necessario inserire l'escape aggiungendogli {{incode|\}}.
+|}
+
+Ad esempio, l'etichetta {{incode|Sketch\002}} deve essere referenziata come {{incode|<<Sketch\\002>>}}.
+
+<span id="Names"></span>
+===Nomi===
+
+[[Object_name#Nome|Nomi]] di oggetti come dimensioni, schizzi, ecc. non devono avere i caratteri o le sequenze di caratteri elencati di seguito, perchè altrimenti il nome non è valido:
+
+{| class="wikitable"
+!style="width: 33%;"|Caratteri / Sequenze di caratteri
+!style="width: 66%;"|Descrizione
+|-
+| '''+''', '''-''', '''*''', '''/''', '''^''', '''_''', '''<''', '''>''', '''(''', ''')''', '''{''', '''}''', '''[''', ''']''', '''.''', ''',''', '''='''
+| Caratteri che sono operatori matematici o parte di costrutti matematici
+|-
+| '''A''', '''kA''', '''mA''', '''MA''', '''J''', '''K''', ''' ' ''', ''' ft ''', '''°''', and many more!
+| Caratteri e sequenze di caratteri che sono unità (vedere paragrafo [[#Unità|Unità]].)
+|-
+| '''#''', '''!''', '''?''', '''§''', '''$''', '''%''', '''&''', ''':''', ''';''', '''\''', '''<nowiki>|</nowiki>''', '''~''', '''∆''', '''¿''', e molti altri!
+| Caratteri usati come segnaposto o per attivare operazioni speciali
+|-
+| '''pi''', '''e'''
+| Costanti matematiche
+|-
+| '''´''', '''`''', ''' ' ''', '''"'''
+| Caratteri usati per gli accenti
+|-
+| spazio
+| Uno spazio definisce la fine di un nome e pertanto non può essere utilizzato
+|}
+
+Ad esempio, è valido il seguente nome: {{incode|<<Sketch>>.Constraints.T2üßµ@}}. Mentre questi sono nomi non validi: {{incode|<<Sketch>>.Constraints.test\result_2}} (\r significa "ritorno a capo") o {{incode|<<Sketch>>.Constraints.mol}} (mol è un'unità).
+
+Poiché i nomi più brevi (soprattutto se hanno solo uno o due caratteri) possono facilmente risultare in nomi non validi, prendere in considerazione l'utilizzo di nomi più lunghi e/o stabilire una convenzione di denominazione adeguata.
+
+<span id="Cell_aliases"></span>
+===Alias di cella===
+
+Vedere [[Spreadsheet_SetAlias/it#Utilizzo|Spreadsheet SetAlias]].
+{{Top}}
+<span id="Reference_to_CAD_data"></span>
+== Riferimento ai dati CAD ==
+
+È possibile utilizzare i dati del modello stesso in un'espressione. Per fare riferimento a una proprietà utilizzare {{incode|object_name.property}} o {{incode|<<object_label>>.property}}, le etichette devono essere racchiuse tra {{incode|<<}} e {{incode|>>} }. Se si desidera utilizzare le etichette, queste devono essere univoche.
+
+Tutti gli esempi successivi fanno riferimento all'oggetto con il suo nome, ma in tutti i casi è possibile utilizzare anche l'etichetta dell'oggetto.
+
+Se la proprietà è un composto di campi, è possibile accedere ai singoli campi come {{incode|object_name.property.field}}.
+
+Per fare riferimento agli oggetti dell'elenco utilizzare {{incode|object_name.list[list_index]}}. Se si vuole fare riferimento a un vincolo in uno schizzo, usare {{incode|Sketch.Constraints[16]}}. Se ci si trova nello stesso sketch è possibile ometterne il nome e usare semplicemente {{incode|Constraints[16]}}. Tenere presente che l'indice inizia con 0, pertanto è necessario fare riferimento a Constraint17 come {{incode|Constraints[16]}}.
+
+Per fare riferimento all'oggetto stesso utilizzare la pseudo proprietà {{incode|_self}}: {{incode|object_name._self}}.
+
+La tabella seguente mostra alcuni ulteriori esempi:
+{| class="wikitable"
+ !Dati CAD
+ !Chiamata nell'espressione
+ !Risultato
+ |-
+ |Lunghezza di un [[Part_Box/it|Box di Part]]
+ |{{incode|Box.Length}}
+ |Lunghezza con unità (mm)
+ |-
+ |Volume di un Box
+ |{{incode|Box.Shape.Volume}}
+ |Volume in mm&sup3; senza unità
+ |-
+ |Tipo di Shape di un Box
+ |{{incode|Box.Shape.ShapeType}}
+ |Stringa: Solid
+ |-
+ |Etichetta di una Box
+ |{{incode|Box.Label}}
+ |Stringa: Label
+ |-
+ |Coordinata X del centro di massa di un Box
+ |{{incode|Box.Shape.CenterOfMass.x}}
+ |Coordinata X in mm senza unità
+ |-
+ |Coordinata X del Box placement
+ |{{incode|Box.Placement.Base.x}}
+ |Coordinata X con l'unità (mm)
+ |-
+ |Componente X dell'asse di rotazione del placement di un Box
+ |{{incode|Box.Placement.Rotation.Axis.x}}
+ |Componente X del vettore unitario in mm senza unità
+ |-
+ |Angolo di rotazione del placemente di un Box
+ |{{incode|Box.Placement.Rotation.Angle}}
+ |Angolo di rotazione con unità (deg)
+ |-
+ |Oggetto Full Box
+ |{{incode|Box._self}}
+ |Oggetto del tipo <Part::PartFeature>
+ |-
+ |Valore di un vincolo in uno schizzo
+ |{{incode|Constraints.Width}}
+ |Valore numerico di un vincolo denominato {{incode|Width}} nello sketch, se l'espressione è utilizzata nello sketch stesso.
+ |-
+ |Valore di un vincolo in uno schizzo
+ |{{incode|MySketch.Constraints.Width}}
+ |Valore numerico di un vincolo denominato {{incode|Width}} nello sketch, se l'espressione viene utilizzata all'esterno dello sketch.
+ |-
+ |Valore di un alias in uno Spreadsheet
+ |{{incode|Spreadsheet.Depth}}
+ |Valore dell'alias {{incode|Depth}} nel foglio di calcolo {{incode|Spreadsheet}}
+ |-
+ |Valore di una proprietà locale
+ |{{incode|Length}}
+ |Valore della proprietà {{PropertyData|Length}}, ad esempio in un oggetto Pad, se l'espressione è utilizzata ad esempio in {{PropertyData|Length2}} nello stesso oggetto.
+ |}
+
+<span id="Cyclic_dependencies"></span>
+=== Dipendenze cicliche ===
+
+FreeCAD controlla le dipendenze in base alla relazione tra gli oggetti del documento, non alle proprietà. Ciò significa che non è possibile fornire dati a un oggetto ed eseguire query sullo stesso oggetto per ottenere risultati. Ad esempio, anche se non esistono dipendenze cicliche quando vengono considerate le proprietà stesse, potresti non avere un oggetto che ottiene le sue dimensioni da un foglio di calcolo e quindi visualizza il volume di quell'oggetto nello stesso foglio di calcolo. Si devono utilizzare due fogli di calcolo, uno per gestire il proprio modello e l'altro per i report.
+
+Come soluzione alternativa è possibile visualizzare un intervallo di celle dal secondo foglio di calcolo nel primo (o viceversa) creando un [[Spreadsheet_Workbench#Cell_binding|associazione di celle]] con l'opzione {{MenuCommand|Nascondi dipendenza dell'associazione}}.
+
+Un altro modo per aggirare le dipendenze cicliche è nascondere il riferimento utilizzando la funzione {{incode|href}} o {{incode|hiddenref}} per le singole espressioni, ad esempio: {{incode|href(Box.Length)}}.
+
+Tenere presente che entrambe le soluzioni alternative menzionate devono essere utilizzate con cautela e che non funzionano se le proprietà segnalate dipendono da dimensioni determinate dallo stesso foglio di calcolo.
+{{Top}}
+<span id="Document-wide_global_variables"></span>
+== Variabili globali nell'ambito del documento ==
+
+Al momento in FreeCAD non esiste il concetto di variabili globali. Invece, utilizzando l'ambiente [[Spreadsheet Workbench/it|Spreadsheet]], si possono definire delle variabili arbitrarie come celle in un foglio di calcolo, e poi assegnare loro un nome utilizzando la proprietà alias della cella (tasto destro del mouse sulla cella). Dopo si può accedere alla variabile da qualsiasi espressione, come per qualsiasi altra proprietà di un oggetto.
+{{Top}}
+<span id="Cross-document_linking"></span>
+== Riferimenti incrociati nel documento ==
+
+È possibile (con limitazioni) definire una proprietà di un oggetto nel documento corrente (file ".FCstd") utilizzando un'espressione per fare riferimento a una proprietà di un oggetto contenuto in un documento diverso (file ".FCstd"). Ad esempio, una cella in un foglio di calcolo o la {{PropertyData/it|lunghezza}} di un cubo di Part, ecc. in un documento può essere definita da un'espressione che fa riferimento al valore di posizionamento X o ad un'altra proprietà di un oggetto contenuto in un documento diverso.
+
+È possibile utilizzare il nome di un documento per fare riferimento ad esso da altri documenti. Quando si salva un documento per la prima volta, si sceglie un nome per il file; questo di solito è diverso dal default iniziale "Unnamed1" (o il suo equivalente tradotto). Per evitare la perdita dei collegamenti quando il documento master viene rinominato al momento del salvataggio, si consiglia di creare prima il documento master, creare un foglio di calcolo al suo interno e salvarlo. Successivamente è ancora possibile apportare modifiche e salvare il file, ma non si deve rinominarlo.
+
+Una volta creato e salvato (e denominato) il documento master con il foglio di calcolo, è possibile creare dei documenti dipendenti. Supponendo che il documento master sia stato denominato {{incode|master}}, il foglio di calcolo sia stato rinominato {{incode|modelConstants}} e a una cella sia stato assegnato un nome alias {{incode|Length}}, si può quindi accedere al valore con:
+
+{{incode|master#modelConstants.Length}}
+
+Notare che il documento master deve sempre essere caricato affinché i valori del master siano disponibili per il documento dipendente.
+
+Naturalmente, dopo spetta all'utente il compito di caricare i documenti corrispondenti, quando si desidera cambiare qualcosa.
+{{Top}}
+<span id="Known_issues_/_remaining_tasks"></span>
+== Problemi noti / attività rimanenti ==
+
+* FreeCAD non dispone ancora di un gestore di espressioni integrato in cui tutte le espressioni in un documento sono elencate e possono essere create, cancellate, interrogate, ecc. Ma è disponibile un componente aggiuntivo: [https://github.com/gbroques/fcxref fcxref expression manager].
+* I bug/ticket aperti per le espressioni possono essere trovati su [https://github.com/FreeCAD/FreeCAD/labels/Topic%3A%20Expressions GitHub].
+{{Top}}
+<span id="Scripting"></span>
+== Script ==
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.ActiveDocument
+box = doc.addObject("Part::Box", "Box")
+cyl = doc.addObject("Part::Cylinder", "Cylinder")
+cyl_name = cyl.Name
+
+box.setExpression("Height", f"{cyl_name}.Height / 2")
+box.setExpression("Length", f"{cyl_name}.Radius * 2")
+box.setExpression("Width", "Length")
+
+doc.recompute()
+
+# Expressions are stored in the ExpressionEngine property:
+for prop, exp in box.ExpressionEngine:
+    val = getattr(box, prop)
+    print(f"Property: '{prop}' -- Expression: '{exp}' -- Current value: {val}")
+}}
+{{Top}}
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Spreadsheet{{#translation:}}]]

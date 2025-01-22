@@ -1,0 +1,107 @@
+<languages/>
+
+{{Docnav/pl
+|[[Std_SendToPythonConsole/pl|Wyślij do konsoli Python]]
+|[[Std_TransformManip/pl|Przemieszczenie]]
+|[[Std_Edit_Menu/pl|menu Edycja]]
+|IconL=Std_SendToPythonConsole.svg
+|IconR=Std_TransformManip.svg
+|IconC=Freecad.svg
+}}
+
+{{GuiCommand/pl
+|Name=Std Placement
+|Name/pl=Std: Umiejscowienie
+|MenuLocation=Edycja → Umiejscowienie ...
+|Workbenches=wszystkie
+|SeeAlso=[[Std_Alignment/pl|Wyrównanie]], [[Placement/pl|Umiejscowienie]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Polecenie '''Std: Umiejscowienie''' wyświetla [[Task_panel/pl|panel zadań]] Umiejscowienia dla wybranego obiektu.
+
+[[Image:Std_Placement_taskpanel.png]]
+{{Caption|Panel zadań funkcji umiejscowienie}}
+
+<span id="Usage"></span>
+==Użycie==
+
+# Zaznacz pojedynczy obiekt, który ma właściwość {{PropertyData|Umiejscowienie}}.
+# Wybierz z menu opcję {{MenuCommand|Edycja → Umiejscowienie ...}}.
+# Zmień jeden lub więcej parametrów przesunięcia i obrotu.
+# Wykonaj jedną z następujących czynności:
+#* Naciśnij przycisk {{Button|OK}}, aby zastosować zmiany i zamknąć panel zadań.
+#* Naciśnij przycisk {{Button|Zastosuj}}, aby zastosować zmiany, ale zachować panel zadań otwarty dla dalszych zmian.
+# Naciśnij klawisz {{KEY|Esc}} lub przycisk {{Button|Anuluj}}, aby przerwać operację. Spowoduje to cofnięcie wszystkich zmian, które nie zostały zastosowane.
+
+Okno dialogowe można również uruchomić, klikając przycisk z elipsą {{Button|...}}, który pojawia się w [[Property_editor/pl|edytorze właściwości]] po kliknięciu właściwości {{PropertyData|Umiejscowienie}}.
+
+<span id="Notes"></span>
+==Uwagi==
+
+* Więcej informacji na temat parametrów rozmieszczenia można znaleźć na stronie [[Placement/pl|Umiejscowienie]] oraz w poradniku [[Aeroplane/pl|Samolot]].
+* Kąt obrotu może być ustawiony w stopniach w GUI, ale jest przechowywany wewnętrznie w radianach, więc kąty zwykle muszą być konwertowane, gdy są używane w skryptach.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Zobacz również stronę: [https://freecad.github.io/SourceDoc/ Dokumentacja API generowana automatycznie] oraz [[FreeCAD_Scripting_Basics/pl|Podstawy pisania skryptów dla FreeCAD]].
+
+Zobacz również stronę [[Python_scripting_tutorial/pl#Wektory_i_umiejscowienia|Tworzenie skryptów Python]].
+
+Umiejscowienie jest wewnętrznie zdefiniowane przez macierz. W wielu przypadkach prościej jest przedstawić je za pomocą dwóch składników, punktu ''(wektora)'' {{incode|Baza}} i wartości {{incode|Obrót}}. Sam {{incode|Obrót}} ma różne reprezentacje. Może być całkowicie zdefiniowany przez wartość "[https://en.wikipedia.org/wiki/Quaternion quaternion]" {{incode|(xi + yj + zk + w)}}, ale może być również opisana przez rotację {{incode|Oś}} ''(wektor jednostkowy)'' oraz rotację {{incode|Kąt}} ''(radiany)''.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = doc.addObject("Part::Cylinder", "Cylinder")
+
+print(obj.Placement)
+# Placement [Pos=(0,0,0), Yaw-Pitch-Roll=(0,0,0)]
+print(obj.Placement.Base)
+# Vector (0.0, 0.0, 0.0)
+print(obj.Placement.Rotation)
+# Rotation (0.0, 0.0, 0.0, 1.0)
+
+print(obj.Placement.Rotation.Angle)
+# 0.0
+print(obj.Placement.Rotation.Axis)
+# Vector (0.0, 0.0, 1.0)
+print(obj.Placement.Rotation.Q)
+# (0.0, 0.0, 0.0, 1.0)
+}}
+
+Przesuń punkt bazowy obiektu, a następnie obróć obiekt o 45° wokół osi X.
+
+Moduł matematyczny dostarcza metodę {{incode|radians()}} do łatwej konwersji stopni na radiany i musi zostać zaimportowany na początku.
+
+{{Code|code=
+import math
+
+obj.Placement.Base = App.Vector(5, 3, 1)
+obj.Placement.Rotation.Axis = App.Vector(1, 0, 0)
+obj.Placement.Rotation.Angle = math.radians(45)
+
+print(obj.Placement)
+# Placement [Pos=(5,3,1), Yaw-Pitch-Roll=(0,0,45)]
+print(obj.Placement.Rotation.Q)
+# (0.3826834323650898, 0.0, 0.0, 0.9238795325112867)
+print(obj.Placement.Matrix)
+# Matrix ((1,0,0,5),(0,0.707107,-0.707107,3),(0,0.707107,0.707107,1),(0,0,0,1))
+}}
+
+
+{{Docnav/pl
+|[[Std_SendToPythonConsole/pl|Wyślij do konsoli Python]]
+|[[Std_TransformManip/pl|Przemieszczenie]]
+|[[Std_Edit_Menu/pl|menu Edycja]]
+|IconL=Std_SendToPythonConsole.svg
+|IconR=Std_TransformManip.svg
+|IconC=Freecad.svg
+}}
+
+{{Std_Base_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

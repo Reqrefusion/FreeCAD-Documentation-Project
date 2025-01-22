@@ -1,0 +1,100 @@
+<languages/>
+<translate>
+
+<!--T:1-->
+{{TutorialInfo
+|Topic=Using Configuration Tables
+|Level=Beginner
+|Time=30 minutes
+|Author=Gbroques
+|FCVersion=0.20
+|Files=[https://forum.freecad.org/download/file.php?id=270593 ConfigurationTableExample.FCStd]
+}}
+
+==Introduction== <!--T:2-->
+
+<!--T:3-->
+With the release of [[Release_notes_0.20#Spreadsheet_Workbench|FreeCAD V0.20]] two powerful new features have been introduced: ''Variant [[Std_LinkMake|Links]]'' and ''[https://forum.freecadweb.org/viewtopic.php?f=17&t=42183 Configuration Tables]''. Configuration tables are a special type of variant link. They allow to vary sets of predefined parameters for a given object.
+
+<!--T:4-->
+Prior to this, you could parameterize objects with techniques such as spreadsheets, but multiple varied instances of that object couldn't exist at the same time unless you resorted to techniques like copying files or objects which creates maintenance issues. Configuration tables make the maintenance of such variants, and the ability to toggle between them easy.
+
+<!--T:5-->
+This tutorial assumes that you have some familiarity with the [[PartDesign_Workbench|PartDesign Workbench]] and the [[Sketcher_Workbench|Sketcher Workbench]]. You should also be familiar with the [[Tree view|Tree view]] and the [[Property_editor|Property editor]].
+
+<!--T:6-->
+There is also a [https://www.youtube.com/watch?v=m9C_ahIVKOI video version of this tutorial].
+
+==Example== <!--T:7-->
+
+<!--T:8-->
+To gain a better idea of configuration tables consider the following example.
+
+<!--T:9-->
+Imagine a simple hexagonal nut with a "major" diameter of 10mm (M10).
+
+<!--T:10-->
+We can reuse the same design, create a link, and then vary certain parameters to create an M12 hexagonal nut.
+
+<!--T:11-->
+For our example, we will describe the differences between these two variants with 3 parameters:
+# diameter of the center hole
+# width across the corners
+# and thickness.
+
+<!--T:12-->
+The particular parameter values for our variants are described in this table:
+
+<!--T:13-->
+{| class="wikitable"
+|-
+! Variant !! Diameter !! WidthAcrossCorners !! Thickness
+|-
+| M10 || style="text-align:right;" | 10 || style="text-align:right;" | 18.48 || style="text-align:right;" | 8.4
+|-
+| M12 || style="text-align:right;" | 12 || style="text-align:right;" | 20.78 || style="text-align:right;" | 10.8
+|}
+
+==Instructions== <!--T:14-->
+
+<!--T:15-->
+# Create a new [[Spreadsheet_CreateSheet|spreadsheet]] with a heading row. Leave the second row empty. That row will hold the current configuration and will automatically be filled later. Add parameters for M10 and M12 in rows 3 and 4: <p>[[File:Variant-link-spreadsheet-table-example-before-configuration-table.png]]</p>
+# Use the [[PartDesign_Workbench|PartDesign Workbench]] to create a [[PartDesign_Body|Body]] and [[PartDesign_NewSketch|Sketch]] for the hex nut. Dimensional constraint will be added in a later step. <p>[[File:Variant-link-example-hex-nut-sketch-unconstrained.png]]</p>
+# [[PartDesign_Pad|Pad]] the Sketch. Accept the default Length value.
+# Right-click cell A2 in the spreadsheet and select {{MenuCommand|Configuration table...}} from the context menu.
+# The {{MenuCommand|Setup Configuration Table}} dialog opens.
+# Enter the following: <p>[[File:Variant-link-example-setup-configuration-table.png]]</p> This fills out the second row in the table, adds a new {{PropertyData|Configuration}} property to the Body and binds the configuration table to it.
+# Press the {{Button|OK}} button.
+# If cell A2 shows {{Value|#PENDING}}, you can right-click the spreadsheet in the [[Tree_view|Tree view]] and choose {{MenuCommand|Recompute object}} to show the correct value.
+# Set an alias for the 3 cells in row 2 underneath <u>Diameter</u>, <u>WidthAcrossCorners</u>, and <u>Thickness</u>. Each alias should match the cell's column heading. <p>[[File:Variant-link-spreadsheet-table-example.png]]</p>
+# Constrain the Sketch with two constraints and bind the [[Expressions|expressions]] {{Value|Spreadsheet.Diameter}} and {{Value|Spreadsheet.WidthAcrossCorners}} to them: <p>[[File:Variant-link-example-hex-nut-sketch.png]]</p>
+# Bind {{Value|Spreadsheet.Thickness}} to the {{PropertyData|Length}} of the pad.
+# Create a [[PartDesign_SubShapeBinder|PartDesign SubShapeBinder]].
+# In the [[Tree_view|Tree view]] drag the Binder out of the Body and drop it on the Document node.
+# Drop the Body on the Binder to set its {{PropertyData|Support}} property to the Body. Dropping is required as this property is Read Only by default.
+# Set the {{PropertyData|Bind Copy on Change}} to {{Value|Enabled}} on the Binder.
+# Select {{Value|M12}} for the {{PropertyData|Configuration}} property of the Binder.
+# Set {{PropertyView|Use Binder Style}} to {{FALSE}} on the Binder.
+# Change the {{PropertyData|Placement}} of the Binder so that it's away from the Body. 
+# Once finished, you should have something like the following: <p>[[File:Variant-link-finished-example-document.png|500px]]</p>
+
+===Use Std Link instead of PartDesign SubShapeBinder=== <!--T:18-->
+
+<!--T:19-->
+For the variant link you can also use a [[Std_LinkMake|Std Link]] instead of a [[PartDesign_SubShapeBinder|PartDesign SubShapeBinder]]:
+# The preparatory steps 1-10 mentioned above are the same.
+# Create a Link to the Body.
+# Set the {{PropertyData|Link Copy On Change}} to {{Value|Enabled}} on the Link.
+# Follow steps 16, 18 and 19 mentioned above.
+
+==Key considerations== <!--T:16-->
+
+<!--T:17-->
+* As mentioned, a variant link can be made using a [[Std_LinkMake|Std Link]] or a [[PartDesign_SubShapeBinder|PartDesign SubShapeBinder]]. Realthunder explains the difference [https://forum.freecadweb.org/viewtopic.php?f=17&t=42183 here]: <p>{{quote|text=Instead of duplicating the linked object with all its hierarchy, the [[PartDesign_SubShapeBinder|SubShapeBinder]] will make a flattened copy of the mutated object. Another difference to Link is that the [[PartDesign_SubShapeBinder|SubShapeBinder]] will sync any changes of the original object back to the copy even if the configurations are different, while for Link, once copied, the two objects become independent.}}</p>
+* Although built upon links, variant links are not "cheap" like normal links, as they create copies of the original object. Guidance is provided by Realthunder [https://forum.freecadweb.org/viewtopic.php?p=532130#p532130 here] and [https://forum.freecadweb.org/viewtopic.php?p=358582#p358582 here]: <p>{{quote|text=[When] using Link for alternative configurations, you'll need to realize that it makes a copy of the original object... it would be better to create a single 'variant' link for each [variant] to avoid unnecessary duplicates. Or better, use SubShapeBinder... And again, create one [[PartDesign_SubShapeBinder|SubShapeBinder]] for each configuration.}}</p>
+
+
+</translate>
+{{Clear}}
+[[Category:PartDesign{{#translation:}}]]
+[[Category:Spreadsheet{{#translation:}}]]

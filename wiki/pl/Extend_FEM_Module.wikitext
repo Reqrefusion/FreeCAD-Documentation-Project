@@ -1,0 +1,125 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic=MES
+|Level=Średnio zaawansowany
+|Time=1 godzina
+|Author=[[User:M42kus|M42kus]]
+|FCVersion=0.17
+}}
+
+Środowisko pracy MES obsługuje już wiele różnych wiązań i kilka solwerów. Mimo to użytkownicy często potrzebują więzów, które nie są jeszcze obsługiwane przez FreeCAD. Ta strona jest punktem wyjścia do serii samouczków i innych zasobów opisujących, jak rozszerzyć środowisko pracy MES przy użyciu istniejącej struktury. Chociaż ta seria może okazać się pomocna również dla programistów, ideą jest umożliwienie użytkownikom MES, którzy interesują się kodowaniem w Pythonie, możliwości samodzielnego dodawania potrzebnych rzeczy.
+
+Dodawanie nowych wiązań, równań lub solwerów to w większości rutynowa praca. Ale zrobienie tego po raz pierwszy nie będzie tak łatwe, jak mogłoby się wydawać. Zrozumienie poniższych tematów okaże się pomocne:
+
+* Tworzenie skryptów w języku Python we FreeCAD.
+** [[Python_scripting_tutorial/pl|Poradnik: Tworzenie skryptów Python]]
+** [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]]
+* Rozszerzanie FreeCAD za pomocą Python.
+** [[Scripted_objects/pl|Obiekty tworzone skryptami]]
+* Ważne jest gruntowne zrozumienie solwera, dla którego będą dodawane nowe obiekty ''(np. CalculiX lub Elmer)''.
+* Niewielka wiedza na temat systemów kompilacji, zwłaszcza {{incode|cmake}} ''(system kompilacji używany przez FreeCAD)''.
+
+<span id="Build_System_(cmake)"></span>
+==System kompilacji ''(cmake)''==
+
+System kompilacji musi zostać zmodyfikowany niezależnie od tego, które obiekty zostaną dodane do środowiska pracy MES. Każdy moduł (plik) Python musi zostać zarejestrowany. Środowisko pracy FEM wymaga zarejestrowania każdego nowego modułu Python w {{incode|Mod/Fem/CMakeLists.txt}}. Jest to niezależne od typu modułu Python ''(GUI lub non-GUI)''. To, gdzie dokładnie moduł musi zostać wstawiony, zależy od jego roli. Solwer, równania i ograniczenia używają różnych list. Wyszukiwanie podobnych plików i wstawianie nowego pliku do tej samej listy działa przez większość czasu.
+
+Jako ''przykład'' dodajmy nowe wiązanie o nazwie {{incode|pressure}}, które jest związane z ''równaniem przepływu''. Tak więc, '''FlowPressure''' będzie powszechnie używane jako <nazwa> dla tego wiązania. Nowe ograniczenie wymaga co najmniej następujących nowych modułów: 
+* {{incode|constraint_<name>.py}}
+* {{incode|view_constraint_<name>.py}} 
+* {{incode|CommandFemConstraint<name>.py}} (może być niepotrzebny) 
+Te trzy pliki muszą zostać dodane do {{incode|Mod/Fem/CMakeLists.txt}}, a także {{incode|Mod/Fem/App/CMakeLists.txt}}. Wszystkie dodane linie kodu są oznaczone znakiem ''+'' na początku.
+
+{{FileName|Mod/Fem/CMakeLists.txt}}
+
+{{code|code=
+SET(FemObjects_SRCS
+    femobjects/__init__.py
+    femobjects/base_fempythonobject.py
+    femobjects/constraint_bodyheatsource.py
+    femobjects/constraint_electrostaticpotential.py
+    femobjects/constraint_flowvelocity.py
+    femobjects/constraint_initialflowvelocity.py
++   femobjects/constraint_initialflowpressure.py
+    femobjects/constraint_selfweight.py
+...
+    femobjects/solver_ccxtools.py
+)
+...
+SET(FemGuiViewProvider_SRCS
+    femviewprovider/__init__.py
+    femviewprovider/view_base_femconstraint.py
+    femviewprovider/view_base_femobject.py
+    femviewprovider/view_constraint_bodyheatsource.py
+    femviewprovider/view_constraint_electrostaticpotential.py
+    femviewprovider/view_constraint_flowvelocity.py
++   femviewprovider/view_constraint_flowpressure.py
+    femviewprovider/view_constraint_initialflowvelocity.py
+    femviewprovider/view_constraint_selfweight.py
+...
+    femviewprovider/view_solver_ccxtools.py
+)
+}}
+
+<span id="Source_Organization"></span>
+==Organizacja źródła==
+
+Do organizacji kodu Python moduł MES wykorzystuje następujące podejście. Moduł jest podzielony na następujące pakiety: 
+* {{incode|femobjects}}, który zawiera wszystkie obiekty niezwiązane z GUI, takie jak proxy Python dla obiektów dokumentów, * {{incode|femviewproviders}}, który zawiera wszystkie obiekty związane z GUI, takie jak proxy Python dla obiektów dokumentów. 
+* {{incode|femviewproviders}} zawierający wszystko, co związane z GUI, takie jak pythonowe proxy dla dostawców widoków.
+* Panele zadań oparte na C++ są przechowywane w '{{incode|Gui}}',
+* ikony można znaleźć w '{{incode|Gui/Resources/icons/}}',
+* pliki .ui są przechowywane w poleceniach '{{incode|Gui/Resources/ui/}}'.
+
+Jeden pakiet nie jest zgodny z tym wzorcem: {{incode|femsolver}}. Ma on swoje miejsce na tym samym poziomie co {{incode|femobjects}} i {{incode|femguiobjects}} ({{incode|src/Mod/Fem/femsolver}}). Pakiet zawiera pakiety i moduły związane z solwerem i równaniami i jest zorganizowany w następujący sposób:
+
+<pre>
+.femsolver
+.femsolver.elmer
+.femsolver.elmer.equations
+.femsolver.calculix
+.femsolver.calculix.equations
+.femsolver.z88
+.femsolver.z88.equations
+</pre>
+
+<span id="Solver"></span>
+==Solwer==
+
+W FreeCAD solwer można podzielić na dwie części: 
+* Jedna to obiekt dokumentu używany przez użytkownika do interakcji z solwerem. Można poprzez niego ustawić parametry solwera i jest on również używany do kontrolowania procesu rozwiązywania. 
+* Druga część to tak zwane zadania solwera. Proces rozwiązywania jest podzielony na te zadania, a mianowicie: ''sprawdź, przygotuj, rozwiąż i wyniki''. Zadania te wykonują rzeczywistą pracę polegającą na wyeksportowaniu analizy do formatu rozumianego przez plik wykonywalny solwera, uruchomieniu pliku wykonywalnego i załadowaniu wyników z powrotem do FreeCAD.
+
+Większość plików związanych z solwerem znajduje się w pakiecie podrzędnym pakietu {{incode|femsolver}} ''(np. dla Elmera w {{incode|femsolver/elmer}})''. Poniższa lista wylicza wszystkie pliki związane z implementacją solwera. Są to pliki, które należy skopiować i zmodyfikować, aby dodać obsługę nowego solwera do FreeCAD. Podany przykład pochodzi z implementacji solwera Elmer. 
+
+* '''femsolver/elmer/solver.py:''' Obiekt dokumentu widoczny w widoku drzewa. Zaimplementowane w Pythonie poprzez proxy dokumentu i proxy widoku.
+* '''femsolver/elmer/tasks.py:''' Moduł zawierający jedną klasę zadań dla każdego zadania wymaganego dla implementacji solwera. Zadania te dzielą proces rozwiązywania analizy na następujące kroki: sprawdzenie, przygotowanie, rozwiązanie, wyniki.
+* '''femcommands/commands.py:''' Dodaje obiekt dokumentu solwera do aktywnego dokumentu. Wymagane, aby uzyskać dostęp do obiektu solwera z GUI.
+
+<span id="Equations"></span>
+==Równania==
+
+Równanie reprezentuje określoną fizykę, która powinna być brana pod uwagę podczas rozwiązywania analizy ''(np. Przepływ, Ciepło)''. Nie wszystkie solwery w FreeCAD obsługują ''(wszystkie)'' równania. Równania są reprezentowane przez obiekty podrzędne odpowiedniego obiektu solwera. W widoku drzewa wygląda to następująco:
+
+* elmer-solver
+** elastyczność
+** ciepło
+** przepływ
+** elektrostatyka
+
+Większość opcji specyficznych dla solwera ''(np. maksymalna liczba iteracji, metoda rozwiązywania itp.)'' jest ustawiana za pomocą obiektów równań. Jedną z konsekwencji tego jest to, że każdy solwer musi mieć własną implementację &quot;tego samego&quot; równania. CalculiX miałby inny obiekt Heat niż Elmer. Aby uniknąć posiadania wielu przycisków dla tej samej fizyki w GUI, każdy obiekt solwera sam dodaje swoje równania.
+
+Rzeczywistą implementację można podzielić na część ogólną i część specyficzną dla solwera. Część ogólna znajduje się w module {{incode|femsolver.equationbase}}. Część specyficzna dla solwera znajduje się w poszczególnych pakietach Equations pakietów solwera ''(np. {{incode|femsolver/elmer/equations}})''.
+
+Dodanie nowych równań do Elmera powinno być bardzo proste. Dla początkujących istnieje poradnik, który pokazuje, jak dodać nowe równanie do Elmera poprzez dodanie istniejącego solwera sprężystości do FreeCAD: [[Add_FEM_Equation_Tutorial/pl|Poradnik: Dodawanie równań w środowisku MES]].
+
+<span id="Constraints"></span>
+==Wiązania==
+
+Wiązania definiują warunki brzegowe dla problemu, który ma zostać rozwiązany. W FreeCAD wiązania nie są specyficzne dla konkretnego solwera. Konfiguracja problemu może być rozwiązana przez wszystkie solwery, które obsługują wszystkie warunki w analizie.
+
+Dodawanie nowych wiązań jest dość proste. Dla początkujących dostępny jest poradnik: [[Add_FEM_Constraint_Tutorial/pl|Poradnik: Dodawanie wiązań w środowisku MES]]
+
+
+[[Category:FEM{{#translation:}}]]

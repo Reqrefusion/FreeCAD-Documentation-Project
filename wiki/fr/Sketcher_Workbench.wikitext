@@ -1,0 +1,519 @@
+<languages/>
+
+{{Docnav/fr
+|[[Robot_Workbench/fr|Atelier Robot]]
+|[[Spreadsheet_Workbench/fr|Atelier Spreadsheet]]
+|IconL=Workbench_Robot.svg
+|IconR=Workbench_Spreadsheet.svg
+}}
+
+[[Image:Workbench_Sketcher.svg|thumb|128px|Icône de l'atelier Sketcher]]
+
+{{TOCright}}
+
+== Introduction ==
+
+Avec l'[[Image:Workbench_Sketcher.svg|24px]] [[Sketcher_Workbench/fr|atelier Sketcher]], il est possible de créer des esquisses en 2D destinées à être utilisées dans d'autres ateliers. Les esquisses 2D sont le point de départ de nombreux modèles de CAO. Elles définissent généralement les profils et les trajectoires des opérations permettant de créer des formes en 3D. Un modèle peut dépendre de plusieurs esquisses pour sa forme finale.
+
+Avec les opérations booléennes définies dans l'[[Image:Workbench_Part.svg|16px]] [[Part Workbench/fr|atelier Part]], l'atelier Sketcher, ou "Sketcher" en abrégé, constitue la base de la méthode de construction de solides [[Constructive_solid_geometry/fr|conception 3D solide]] (CSG en anglais). Avec l'[[Image:Workbench_PartDesign.svg|16px]] [[PartDesign_Workbench/fr|atelier PartDesign]], elle constitue également la base de la méthodologie des [[Feature_editing/fr|fonctions]] pour la création de solides. Mais de nombreux autres ateliers utilisent également des esquisses.
+
+L'atelier Sketcher comporte des [[#Contraintes|contraintes]], permettant aux formes 2D de suivre des définitions géométriques précises en termes de longueur, d'angles et de relations (horizontalité, verticalité, perpendicularité, etc.). Un solveur de contraintes calcule l'étendue contrainte de la géométrie 2D et permet une exploration interactive des degrés de liberté de l'esquisse.
+
+Sketcher n'est pas destiné à produire des plans en 2D. Une fois que les esquisses sont utilisées pour générer un élément solide, elles sont automatiquement masquées et les contraintes ne sont visibles qu'en mode d'édition d'esquisse. Si vous avez uniquement besoin de produire des vues 2D pour l'impression et que vous ne souhaitez pas créer de modèles 3D, consultez l'[[Draft_Workbench/fr|atelier Draft]].
+
+[[File:FC_ConstrainedSketch.png|450px]]
+{{Caption|Une esquisse pleinement contrainte.‎}}
+
+<span id="Constraints"></span>
+==Contraintes==
+
+Les contraintes sont utilisées pour limiter les degrés de liberté d'un objet. Par exemple, une ligne sans contrainte a 4 degrés de liberté (abréviation française "DDL" et anglaise "DoF") : elle peut être déplacée horizontalement ou verticalement, étirée, subir une rotation.
+
+L'application d'une contrainte horizontale ou verticale, ou une contrainte d'angle (par rapport à une autre ligne ou à l'un des axes), limite la capacité de rotation, la laissant ainsi avec 3 degrés de liberté.<br />
+Le verrouillage d'un de ses points par rapport à l'origine va encore supprimer 2 degrés de liberté.<br />
+Et, l'application d'une contrainte de dimension va supprimer le dernier degré de liberté. La ligne est alors considérée comme '''entièrement contrainte'''.
+
+Les objets peuvent être contraints les uns par rapport aux autres. Deux lignes peuvent être reliées par l'un de leurs points grâce à la contrainte de coïncidence des points. Un angle peut être défini entre elles ou elles peuvent être perpendiculaires. Une ligne peut être tangente à un arc ou à un cercle, etc. Une esquisse complexe comportant plusieurs objets peut avoir un certain nombre de solutions différentes, et le fait de la rendre '''entièrement contrainte''' peut signifier qu'une seule de ces possibles solutions a été atteinte sur la base des contraintes appliquées.
+
+Il existe deux types de contraintes : géométriques et dimensionnelles. Elles sont détaillées dans la section [[#Les_outils|Les outils]] ci-dessous.
+
+<span id="Edit_constraints"></span>
+=== Modifier les contraintes ===
+
+Lorsqu'une [[Sketcher_ToggleDrivingConstraint/fr|contrainte pilotante de dimension]] est créée, et si la [[Sketcher_Preferences/fr#Affichage|préférence]] {{MenuCommand|Demander la valeur après la création d'une contrainte de dimension}} est sélectionnée (par défaut), une boîte de dialogue s'ouvre pour modifier sa valeur.
+
+[[Image:Sketcher_Edit_Constraint.png|Sketcher_Edit_Constraint.png]]
+
+Vous pouvez saisir une valeur numérique ou une [[Expressions/fr|expression]], et il est possible de nommer la contrainte pour faciliter son utilisation dans d'autres expressions. Vous pouvez également cocher la case {{MenuCommand|Référence}} pour faire basculer la contrainte en [[Sketcher_ToggleDrivingConstraint/fr|mode référence]].
+
+Pour modifier la valeur d'une contrainte existante de dimension, procédez comme suit :
+* Double-cliquez sur la valeur de la contrainte dans la [[3D_view/fr|vue 3D]].
+* Double-cliquez sur la contrainte dans la [[Sketcher_Dialog/fr|fenêtre de dialogue]].
+* Cliquez avec le bouton droit de la souris sur la contrainte dans la fenêtre de dialogue de l'esquisse et sélectionnez l'option {{MenuCommand|Changer la valeur}} du menu contextuel.
+
+<span id="Reposition_constraints"></span>
+=== Repositionner les contraintes ===
+
+Les contraintes de dimension peuvent être repositionnées dans la vue 3D en les faisant glisser. Maintenez le bouton gauche de la souris enfoncé sur la valeur de la contrainte et déplacez la souris. Les symboles des contraintes géométriques sont positionnés automatiquement et ne peuvent pas être déplacés.
+
+<span id="Profile_sketches"></span>
+== Esquisses de profil ==
+
+Pour créer une esquisse qui peut être utilisée comme profil pour générer des solides, certaines règles doivent être respectées :
+* L'esquisse ne doit contenir que des contours fermés. Les espaces entre les extrémités, aussi petits soient-ils, ne sont pas autorisés.
+* Les contours peuvent être imbriqués pour créer des vides, mais ils ne doivent pas s'auto-intersecter ou croiser d'autres contours.
+* Les contours ne peuvent pas partager d'arêtes avec d'autres contours. Les arêtes en double doivent être évitées.
+* Les connexions en T, c'est-à-dire plus de deux arêtes partageant un point commun ou un point touchant une arête, ne sont pas autorisées.
+
+Ces règles ne s'appliquent pas à la géométrie de construction (couleur bleue par défaut), qui n'est pas affichée en dehors du mode édition, ou si l'esquisse est utilisée à d'autres fins. D'autres restrictions peuvent s'appliquer en fonction de l'atelier et de l'outil qui utilisera l'esquisse de profil.
+
+<span id="Drawing_aids"></span>
+== Aides au dessin ==
+
+L'atelier Sketcher dispose de plusieurs aides au dessin et d'autres fonctions qui peuvent aider à créer des géométries et à appliquer des contraintes.
+
+<span id="Continue_modes"></span>
+=== Modes continus ===
+
+Il existe deux modes continus : '''Création de géométrie en mode continu''' et '''Création de contraintes en mode continu'''. Si ces modes sont cochés (par défaut) dans les [[Sketcher_Preferences/fr#Affichage|préférences]], les outils associés redémarreront après avoir été arrêtés. Pour quitter un outil en mode continu, appuyez sur {{KEY|Échap}} ou sur le bouton droit de la souris. Cette opération doit être répétée si un outil géométrique continu a déjà été saisi. Vous pouvez également quitter un outil continu en démarrant un autre outil de création de géométrie ou de contrainte. Notez qu'en appuyant sur {{KEY|Échap}}, si aucun outil n'est actif, vous quitterez le mode d'édition d'esquisse. Décochez la [[Sketcher_Preferences/fr#Général|préférence]] '''Échap permet de quitter l'esquisse en édition''' si vous appuyez souvent par inadvertance sur {{KEY|Échap}} trop de fois.
+
+<span id="Auto_constraints"></span>
+=== Contraintes automatiques ===
+
+Dans les esquisses pour lesquelles la case '''Contraintes automatiques''' est cochée (par défaut), plusieurs contraintes sont appliquées automatiquement. L'icône d'une contrainte automatique proposée s'affiche à côté du curseur lorsqu'elle est placée correctement. Un clic gauche permet alors d'appliquer cette contrainte. Il s'agit d'un paramètre par esquisse qui peut être modifié dans la [[Sketcher_Dialog/fr#Contraintes|fenêtre de dialogue]] ou en modifiant la [[Property_editor/fr|propriété]] {{PropertyView|Autoconstraints}} de l'esquisse.
+
+Les contraintes suivantes sont appliquées automatiquement :
+* [[Sketcher_ConstrainCoincident/fr|Coincidence]]
+* [[Sketcher_ConstrainPointOnObject/fr|Point sur objet]]
+* [[Sketcher_ConstrainHorizontal/fr|Horizontale]]
+* [[Sketcher_ConstrainVertical/fr|Verticale]]
+* [[Sketcher_ConstrainTangent/fr|Tangence]]
+* {{Version/fr|0.22}} : [[Sketcher_ConstrainSymmetric/fr|Symétrie]] (point milieu de la ligne)
+
+<span id="Snapping"></span>
+=== Aimantation ===
+
+{{Version/fr|0.21}}
+
+Il est possible d'[[Sketcher_Snap/fr|aimanter]] aux lignes de la grille et aux intersections de la grille, aux arêtes de géométrie et aux points médians des segments et des arcs, ainsi que sur certains angles. Veuillez noter que l'aimantation ne produit pas de contraintes en soi. Par exemple, ce n'est que si [[#Contraintes_automatiques|Contraintes automatiques]] est activé que l'aimantation à une arête produira une [[Sketcher_ConstrainPointOnObject/fr|contrainte Point sur objet]]. Mais le simple fait de choisir un point sur l'arête aurait le même résultat.
+
+<span id="On-View-Parameters"></span>
+===Paramètres d'affichage ===
+
+{{Version/fr|1.0}}
+
+Selon l'option sélectionnée dans les [[Sketcher_Preferences/fr#Général|préférences]], seuls les paramètres d'affichage de dimension ou les paramètres d'affichage de dimension et de position peuvent être activés. Les paramètres de position permettent de saisir des coordonnées exactes, par exemple le centre d'un cercle ou le point de départ d'une ligne. Les paramètres de dimension permettent de saisir des dimensions exactes, par exemple le rayon d'un cercle ou la longueur et l'angle d'une ligne. Les paramètres d'affichage ne sont pas disponibles pour tous les outils.
+
+[[Image:Sketcher_On_view_parameters_positional.png]]
+{{Caption|Détermination du point central d'un cercle avec les paramètres de position activés}}
+
+[[Image:Sketcher_On_view_parameters_dimensional.png]]
+{{Caption|Détermination du rayon d'un cercle avec les paramètres de dimension activés}}
+
+Si des valeurs sont saisies et confirmées en appuyant sur {{KEY|Entrée}} ou {{KEY|Tabulation}}, les contraintes correspondantes sont ajoutées automatiquement. Si deux paramètres sont affichés en même temps, par exemple les coordonnées X et Y d'un point, il est possible de saisir une valeur et de choisir un point pour définir l'autre. En fonction de l'objet, des contraintes supplémentaires peuvent être nécessaires pour le contraindre complètement. Les contraintes résultant des paramètres d'affichage sont prioritaires sur celles qui peuvent résulter des [[Sketcher_Dialog/fr#Contraintes|contraintes automatiques]].
+
+[[Image:Sketcher_ArcExample3.png|300px]]
+{{Caption|Arc créé en saisissant tous les paramètres d'affichage avec les contraintes créées automatiquement qui en résultent}}
+
+<span id="Coordinate_display"></span>
+=== Affichage des coordonnées ===
+
+Si la [[Sketcher_Preferences/fr#Affichage|préférence]] '''Afficher les coordonnées à côté du curseur lors de l'édition''' est cochée (par défaut), les paramètres de l'outil géométrique en cours (coordonnées, rayon ou longueur et angle) sont affichés à côté du curseur. Cette option est désactivée lorsque les paramètres d'affichage sont affichés.
+
+<span id="Selection_methods"></span>
+==Méthodes de sélection==
+
+Lorsqu'une esquisse est en mode édition, les méthodes de sélection suivantes peuvent être utilisées :
+
+<span id="3D_view_element_selection"></span>
+=== Sélection des éléments dans la vue 3D ===
+
+Comme partout ailleurs dans FreeCAD, un élément peut être sélectionné dans la [[3D_view/fr|vue 3D]] avec un simple clic gauche de la souris. Mais il n'est pas nécessaire de maintenir la touche {{KEY|Ctrl}} pour sélectionner plusieurs éléments. Il est toutefois possible de maintenir cette touche enfoncée, ce qui présente l'avantage de pouvoir faire un mauvais clic sans perdre la sélection. Les arêtes, les points et les contraintes peuvent être sélectionnés de cette manière.
+
+<span id="3D_view_box_selection"></span>
+=== Sélection par une boîte dans la vue 3D ===
+
+La sélection par boîte dans la vue 3D fonctionne sans utiliser [[Std_BoxSelection/fr|Std Sélection par boîte]] ou [[Std_BoxElementSelection/fr|Std Sélection d'éléments par boîte]] :
+# Assurez-vous qu'aucun outil n'est actif.
+# Faites l'une des choses suivantes :
+#* Cliquez dans une zone vide et faites glisser un rectangle de gauche à droite pour sélectionner les éléments qui se trouvent entièrement à l'intérieur du rectangle.
+#* Cliquez dans une zone vide et faites glisser un rectangle de droite à gauche pour sélectionner également les éléments qui touchent ou traversent le rectangle.
+
+Vous pouvez sélectionner des arêtes et des points par boîte mais les contraintes ne peuvent pas être sélectionnées par une boîte.
+
+<span id="3D_view_connected_geometry_selection"></span>
+=== Sélection de la géométrie connectée dans la vue 3D ===
+
+{{Version/fr|1.0}}
+
+Un double-clic sur une arête dans la vue 3D sélectionnera toutes les arêtes directement et indirectement connectées à cette arête via ses extrémités. Il n'est pas nécessaire que les arêtes soient reliées par des [[Sketcher_ConstrainCoincident/fr|contraintes de coïncidence]], il suffit que les extrémités aient les mêmes coordonnées.
+
+<span id="Sketcher_Dialog_selection"></span>
+=== Fenêtre de dialogue de Sketcher ===
+
+Les arêtes et les points peuvent également être sélectionnés à partir de la section Éléments de la [[Sketcher_Dialog/fr|fenêtre de dialogue de Sketcher]] et les contraintes à partir de la section Contraintes de cette même fenêtre de dialogue.
+
+<span id="Copy,_cut_and_paste"></span>
+== Copier, couper et coller ==
+
+{{Version/fr|1.0}}
+
+Les raccourcis clavier standard, {{KEY|Ctrl}}+{{KEY|C}}, {{KEY|Ctrl}}+{{KEY|X}} et {{KEY|Ctrl}}+{{KEY|V}}, peuvent être utilisés pour copier, couper et coller une géométrie sélectionnée, y compris les contraintes associées. Mais ces outils sont également disponibles dans le menu {{MenuCommand|Esquisse → Outils d'esquisse}}. Ils peuvent être utilisés au sein d'une même esquisse, mais aussi entre différentes esquisses ou instances distinctes de FreeCAD. Comme les données sont copiées dans le presse-papiers sous forme de code Python, elles peuvent également être utilisées d'autres manières (par exemple, partagées sur le forum).
+
+<span id="Tools"></span>
+== Les outils ==
+
+Les outils de l'atelier Sketcher se trouvent dans le menu Esquisse et/ou dans plusieurs barres d'outils. {{Version/fr|0.21}} : la majorité des barres d'outils de Sketcher ne s'affichent que lorsqu'une esquisse est en mode édition. La seule exception est la [[#Barre_d'outils_de_Sketcher|barre d'outils de Sketcher]] est la seule à s'afficher si aucune esquisse n'est en mode édition.
+
+Certains outils sont également disponibles dans le menu contextuel de le [[3D_view/fr|vue 3D]] lorsqu'une esquisse est en mode édition, ou dans les menus contextuels de la [[Sketcher_Dialog/fr|boîte de dialogue]].
+
+{{Version/fr|0.21}} : si une esquisse est en mode édition, la barre d'outils Structure est cachée car aucun de ses outils ne peut être utilisé. 
+
+<span id="General"></span>
+=== Généralités ===
+
+<span id="Sketcher_toolbar"></span>
+==== Barre d'outils de Sketcher ====
+
+* [[Image:Sketcher_NewSketch.svg|32px]] [[Sketcher_NewSketch/fr|Créer une esquisse]] : crée une nouvelle esquisse et ouvre la [[Sketcher_Dialog/fr|fenêtre de dialogue]] pour la modifier.
+
+* [[Image:Sketcher_EditSketch.svg|32px]] [[Sketcher_EditSketch/fr|Modifier une esquisse]] : ouvre la fenêtre de dialogue pour modifier une esquisse existante.
+
+* [[Image:Sketcher_MapSketch.svg|32px]] [[Sketcher_MapSketch/fr|Ancrer une esquisse]] : ancre une esquisse à la géométrie sélectionnée.
+
+* [[File:Sketcher_ReorientSketch.svg|32px]] [[Sketcher_ReorientSketch/fr|Réorienter une esquisse]] : place une esquisse sur l'un des plans principaux avec un décalage en option. Cela peut également être utilisé pour détacher une esquisse.
+
+* [[File:Sketcher_ValidateSketch.svg|32px]] [[Sketcher_ValidateSketch/fr|Valider une esquisse]] : peut analyser et réparer une esquisse qui n'est plus modifiable ou qui présente des contraintes non valides, ou ajouter des contraintes coïncidentes manquantes.
+
+* [[Image:Sketcher_MergeSketches.svg|32px]] [[Sketcher_MergeSketches/fr|Fusionner des esquisses]] : fusionne deux ou plusieurs esquisses.
+
+* [[Image:Sketcher_MirrorSketch.svg|32px]] [[Sketcher_MirrorSketch/fr|Esquisse miroir]] : met en miroir les esquisses par rapport à leur axe X, axe Y ou à leur origine.
+
+<span id="Sketcher_Edit_Mode_toolbar"></span>
+==== Barre d'outils du mode édition de Sketcher ====
+
+* [[Image:Sketcher_LeaveSketch.svg|32px]] [[Sketcher_LeaveSketch/fr|Quitter l'esquisse]] : quitte le mode d'édition de l'esquisse et ferme la [[Sketcher_Dialog/fr|fenêtre de dialogue de Sketcher]].
+
+* [[Image:Sketcher_ViewSketch.svg|32px]] [[Sketcher_ViewSketch/fr|Vue de l'esquisse]] : aligne la [[3D_view/fr|vue 3D]] avec le plan de l'esquisse.
+
+* [[Image:Sketcher_ViewSection.svg|32px]] [[Sketcher_ViewSection/fr|Vue de section]] : permet d'activer/désactiver un plan de coupe temporaire qui masque tous les objets et parties d'objets devant le plan d'esquisse.
+
+<span id="Sketcher_edit_tools_toolbar"></span>
+==== Barre d'outils des outils d'édition de Sketcher ====
+
+* [[Image:Sketcher_Grid.svg|32px]] [[Sketcher_Grid/fr|Grille]] : active/désactive la grille dans l'esquisse en cours d'édition. Les paramètres peuvent être modifiés dans le menu correspondant. {{Version/fr|0.21}}
+
+* [[Image:Sketcher_Snap.svg|32px]] [[Sketcher_Snap/fr|Aimantation]] : active/désactive l'aimantation dans toutes les esquisses. Les paramètres peuvent être modifiés dans le menu correspondant. {{Version/fr|0.21}}
+
+* [[Image:Sketcher_RenderingOrder.svg|32px]] [[Sketcher_RenderingOrder/fr|Ordre de rendu]] : l'ordre de rendu de toutes les esquisses peut être modifié dans le menu correspondant. {{Version/fr|0.21}}
+
+<span id="Other"></span>
+==== Autres ====
+
+* [[File:Sketcher_StopOperation.svg|32px]] [[Sketcher_StopOperation/fr|Arrêt de l'opération]] : arrête tout outil de création de géométrie ou de contrainte en cours d'exécution.
+
+<span id="Sketcher_geometries"></span>
+===Géométries d'esquisse===
+
+Ces outils permettent de créer des objets.
+
+* [[Image:Sketcher_CreatePoint.svg|32px]] [[Sketcher_CreatePoint/fr|Point]] : crée un point.
+
+* [[Image:Sketcher_CreatePolyline.svg|32px]] [[Sketcher_CreatePolyline/fr|Polyligne]] : crée une série de segments de lignes et d'arcs reliés par leurs extrémités. L'outil dispose de plusieurs modes.
+
+* [[Image:Sketcher_CreateLine.svg|32px]] [[Sketcher_CreateLine/fr|Ligne]] : crée une ligne. {{Version/fr|1.0}} : l'outil a trois modes.
+
+* <span id="Sketcher_CompCreateArc">[[Image:Sketcher_CreateArc.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Créer un arc :</span><!--Do not edit span id: the Sketcher_CompCreateArc pages redirect here-->
+
+:* [[Image:Sketcher_CreateArc.svg|32px]] [[Sketcher_CreateArc/fr|Arc]] : crée un arc par son centre et ses extrémités. {{Version/fr|1.0}} : ou par ses extrémités et un point de l'arc. 
+
+:* [[Image:Sketcher_Create3PointArc.svg|32px]] [[Sketcher_Create3PointArc/fr|Arc par 3 points]] : crée un arc par ses extrémités et un point de l'arc. {{Version/fr|1.0}} : il s'agit du même outil que [[Sketcher_CreateArc/fr|Arc]] mais avec un mode initial différent.
+
+:* [[Image:Sketcher_CreateArcOfEllipse.svg|32px]] [[Sketcher_CreateArcOfEllipse/fr|Arc d'ellipse]] : crée un arc d'ellipse.
+
+:*[[Image:Sketcher_CreateArcOfHyperbola.svg|32px]] [[Sketcher_CreateArcOfHyperbola/fr|Arc d'hyperbole]] : crée un arc d'hyperbole.
+
+:*[[Image:Sketcher_CreateArcOfParabola.svg|32px]] [[Sketcher_CreateArcOfParabola/fr|Arc de parabole]] : crée un arc de parabole.
+
+* <span id="Sketcher_CompCreateConic">[[Image:Sketcher_CreateCircle.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Créer un cercle/une ellipse :</span><!--Do not edit span id: the Sketcher_CompCreateConic pages redirect here-->
+
+:* [[Image:Sketcher_CreateCircle.svg|32px]] [[Sketcher_CreateCircle/fr|Cercle]] : crée un cercle par son centre et un point de la circonférence. {{Version/fr|1.0}} : ou par trois points de la circonférence.
+
+:* [[Image:Sketcher_Create3PointCircle.svg|32px]] [[Sketcher_Create3PointCircle/fr|Cercle par 3 points]] : crée un cercle à partir de trois points de la circonférence. {{Version/fr|1.0}} : il s'agit du même outil que [[Sketcher_CreateCircle/fr|Cercle]] mais avec un mode initial différent.
+
+:* [[Image:Sketcher_CreateEllipseByCenter.svg|32px]] [[Sketcher_CreateEllipseByCenter/fr|Ellipse par son centre]] : crée une ellipse par son centre, une des extrémités de l'un de ses axes et un point de l'ellipse. {{Version/fr|1.0}} : ou par les deux extrémités d'un de ses axes et un point de l'ellipse.
+
+:* [[Image:Sketcher_CreateEllipseBy3Points.svg|32px]] [[Sketcher_CreateEllipseBy3Points/fr|Ellipse par 3 points]] : crée une ellipse à partir des extrémités de l'un de ses axes et d'un point de l'ellipse. {{Version/fr|1.0}} : Il s'agit du même outil que [[Sketcher_CreateEllipseByCenter/fr|Ellipse]] mais avec un mode initial différent.
+
+* <span id="Sketcher_CompCreateRectangles">[[Image:Sketcher_CreateRectangle.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Créer un rectangle :</span><!--Do not edit span id: the Sketcher_CompCreateRectangles pages redirect here-->
+
+:* [[Image:Sketcher_CreateRectangle.svg|32px]] [[Sketcher_CreateRectangle/fr|Rectangle]] : crée un rectangle. {{Version/fr|1.0}} : l'outil dispose de quatre modes. Les coins arrondis et la création d'une copie décalée sont des fonctions optionnelles.
+
+:* [[Image:Sketcher_CreateRectangle_Center.svg|32px]] [[Sketcher_CreateRectangle_Center/fr|Rectangle centré]] : crée un rectangle centré. {{Version/fr|1.0}} : il s'agit du même outil que [[Sketcher_CreateRectangle/fr|Rectangle]] mais avec un mode initial différent.
+
+:* [[Image:Sketcher_CreateOblong.svg|32px]] [[Sketcher_CreateOblong/fr|Rectangle arrondi]] : crée un rectangle arrondi. Idem.
+
+* <span id="Sketcher_CompCreateRegularPolygon">[[Image:Sketcher_CreateHexagon.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Créer un polygone régulier :</span><!--Do not edit span id: the Sketcher_CompCreateRegularPolygon pages redirect here-->
+
+:* [[Image:Sketcher_CreateTriangle.svg|32px]] [[Sketcher_CreateTriangle/fr|Triangle équilatéral]] : crée un triangle équilatéral. {{Version/fr|1.0}} : il s'agit du même outil que [[Sketcher_CreateRegularPolygon/fr|Polygone régulier]] mais le nombre de côtés est prédéfini à une valeur spécifique.
+
+:* [[Image:Sketcher_CreateSquare.svg|32px]] [[Sketcher_CreateSquare/fr|Carré]] : crée un carré. Idem.
+
+:* [[Image:Sketcher_CreatePentagon.svg|32px]] [[Sketcher_CreatePentagon/fr|Pentagone]] : crée un pentagone. Idem.
+
+:* [[Image:Sketcher_CreateHexagon.svg|32px]] [[Sketcher_CreateHexagon/fr|Hexagone]] : crée un hexagone. Idem.
+
+:* [[Image:Sketcher_CreateHeptagon.svg|32px]] [[Sketcher_CreateHeptagon/fr|Heptagone]] : crée un heptagone. Idem.
+
+:* [[Image:Sketcher_CreateOctagon.svg|32px]] [[Sketcher_CreateOctagon/fr|Octogone]] : crée un octogone. Idem.
+
+:* [[Image:Sketcher_CreateRegularPolygon.svg|32px]] [[Sketcher_CompCreateRegularPolygon/fr|Polygone régulier]] : crée un polygone régulier. Le nombre de côtés peut être spécifié.
+
+* <span id="Sketcher_CompSlot">[[Image:Sketcher_CreateSlot.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Créer un contour oblong :</span><!--Do not edit span id: the Sketcher_CompSlot pages redirect here-->
+
+:* [[Image:Sketcher_CreateSlot.svg|32px]] [[Sketcher_CreateSlot/fr|Contour oblong]] : crée un contour oblong.
+
+:* [[Image:Sketcher_CreateArcSlot.svg|32px]] [[Sketcher_CreateArcSlot/fr|Rainure en arc]] : crée une rainure en arc. {{Version/fr|1.0}}
+
+* <span id="Sketcher_CompCreateBSpline">[[Image:Sketcher_CreateBSpline.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Créer une B-spline :</span><!--Do not edit span id: the Sketcher_CompCreateBSpline pages redirect here-->
+
+:* [[File:Sketcher_CreateBSpline.svg|32px]] [[Sketcher_CreateBSpline/fr|B-spline simple]] : crée une B-spline par des points de contrôle. {{Version/fr|1.0}} : ou par des points de nœuds.
+
+:* [[File:Sketcher_CreatePeriodicBSpline.svg|32px]] [[Sketcher_CreatePeriodicBSpline/fr|B-spline périodique]] : crée une B-spline périodique (fermée) par des points de contrôle. {{Version/fr|1.0}} : c'est le même outil que [[Sketcher_CreateBSpline/fr|B-spline des points de contrôle]] mais avec un mode initial différent.
+
+:* [[File:Sketcher_CreateBSplineByInterpolation.svg|32px]] [[Sketcher_CreateBSplineByInterpolation/fr|B-spline par des nœuds]] : crée une B-spline par des nœuds. Idem.
+
+:* [[File:Sketcher_CreatePeriodicBSplineByInterpolation.svg|32px]] [[Sketcher_CreatePeriodicBSplineByInterpolation/fr|B-spline périodique par des nœuds]] : crée une B-spline périodique (fermée) par des nœuds. Idem.
+
+* [[Image:Sketcher_ToggleConstruction.svg|32px]] [[Sketcher_ToggleConstruction/fr|Géométrie de construction]] : permet de faire basculer les outils de création de géométrie en mode construction ou de faire basculer la géométrie sélectionnée en mode construction.
+
+<span id="Sketcher_constraints"></span>
+===Contraintes d'esquisse===
+
+Il s'agit d'outils permettant de créer des [[#Contraintes|contraintes]]. Certaines contraintes nécessitent l'utilisation de [[Sketcher_helper_constraint/fr|contraintes d'assistance]].
+
+* <span id="Sketcher_CompDimensionTools">[[Image:Sketcher_Dimension.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Contraintes de dimension :</span><!--Do not edit span id: the Sketcher_CompDimensionTools pages redirect here-->
+
+:* [[File:Sketcher_Dimension.svg|32px]] [[Sketcher_Dimension/fr|Dimension]] : il s'agit de l'outil de contrainte contextuelle de l'atelier Sketcher. En fonction de la sélection en cours, il propose des contraintes appropriées de dimension mais aussi des contraintes géométriques. {{Version/fr|1.0}}
+
+:* [[File:Sketcher_ConstrainDistanceX.svg|32px]] [[Sketcher_ConstrainDistanceX/fr|Distance horizontale]] : fixe la distance horizontale entre deux points ou les extrémités d'une ligne. Si un seul point est présélectionné, la distance est relative à l'origine de l'esquisse.
+
+:* [[File:Sketcher_ConstrainDistanceY.svg|32px]] [[Sketcher_ConstrainDistanceY/fr|Distance verticale]] : fixe la distance verticale entre deux points ou les extrémités d'une ligne. Si un seul point est présélectionné, la distance est relative à l'origine de l'esquisse.
+
+:* [[File:Sketcher_ConstrainDistance.svg|32px]] [[Sketcher_ConstrainDistance/fr|Distance]] : fixe la longueur d'une ligne, la distance entre deux points, la distance perpendiculaire entre un point et une ligne. {{Version/fr|0.21}}, la distance entre les arêtes de deux cercles ou arcs, ou entre l'arête d'un cercle ou d'un arc et une ligne. {{Version/fr|1.0}}, la longueur d'un arc.
+
+:* <span id="Sketcher_CompConstrainRadDia">[[File:Sketcher_ConstrainRadiam.svg|32px]] [[Sketcher_ConstrainRadiam/fr|Rayon automatique]] : fixe le rayon des arcs et des cercles des poids des B-splines ainsi que le diamètre des cercles.</span><!--Do not edit span id: the Sketcher_CompConstrainRadDia pages redirect here-->
+
+:* [[File:Sketcher_ConstrainRadius.svg|32px]] [[Sketcher_ConstrainRadius/fr|Rayon ou poids]] : fixe le rayon des cercles, des arcs et des cercles des poids des B-splines.
+
+:* [[File:Sketcher_ConstrainDiameter.svg|32px]] [[Sketcher_ConstrainDiameter/fr|Diamètre]] : fixe le diamètre des cercles et des arcs.
+
+:* [[File:Sketcher_ConstrainAngle.svg|32px]] [[Sketcher_ConstrainAngle/fr|Angle]] : fixe l'angle entre deux arêtes, l'angle d'une ligne avec l'axe horizontal de l'esquisse ou l'angle d'ouverture d'un arc de cercle.
+
+:* [[File:Sketcher_ConstrainLock.svg|32px]] [[Sketcher_ConstrainLock/fr|Fixe]] : Applique les contraintes de [[Sketcher_ConstrainDistanceX/fr|Distance horizontale]] et [[Sketcher_ConstrainDistanceY/fr|Distance verticale]] aux points. Si un seul point est sélectionné, les contraintes font référence à l'origine de l'esquisse. Si deux points ou plus sont sélectionnés, les contraintes font référence au dernier point de la sélection.
+
+* [[File:Sketcher_ConstrainCoincidentUnified.svg|32px]] [[Sketcher_ConstrainCoincidentUnified/fr|Coïncidence (unifiée)]] : crée une contrainte de coïncidence entre des points, fixe des points sur des arêtes ou des axes, ou crée une contrainte concentrique. Il combine les outils de [[Sketcher_ConstrainCoincident/fr|coïncidence]] et [[Sketcher_ConstrainPointOnObject|point sur objet]]. {{Version/fr|1.0}}
+
+* [[File:Sketcher_ConstrainCoincident.svg|32px]] [[Sketcher_ConstrainCoincident/fr|Coïncidence]] : crée une contrainte de coïncidence entre des points ou une contrainte concentrique.
+
+* [[File:Sketcher_ConstrainPointOnObject.svg|32px]] [[Sketcher_ConstrainPointOnObject/fr|Point sur objet]] : fixe des points sur des arêtes ou des axes.
+
+* <span id="Sketcher_CompHorVer">[[Image:Sketcher_ConstrainHorVer.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Contrainte horizontale/verticale :</span><!--Do not edit span id: the Sketcher_CompHorVer pages redirect here-->
+
+:* [[File:Sketcher_ConstrainHorVer.svg|32px]] [[Sketcher_ConstrainHorVer/fr|Horizontal/vertical]] : contraint les lignes ou les paires de points à être horizontales ou verticales, selon ce qui est le plus proche de l'alignement actuel. L'outil combine les outils de [[Sketcher_ConstrainHorizontal/fr|contrainte horizontale]] et [[Sketcher_ConstrainVertical/fr|contrainte verticale]]. {{Version/fr|1.0}}
+
+:* [[File:Sketcher_ConstrainHorizontal.svg|32px]] [[Sketcher_ConstrainHorizontal/fr|Horizontal]] : contraint les lignes ou les paires de points à être horizontales.
+
+:* [[File:Sketcher_ConstrainVertical.svg|32px]] [[Sketcher_ConstrainVertical/fr|Vertical]] : contraint les lignes ou les paires de points à être verticales.
+
+* [[File:Sketcher_ConstrainParallel.svg|32px]] [[Sketcher_ConstrainParallel/fr|Parallèle]] : contraint les lignes à être parallèles.
+
+* [[File:Sketcher_ConstrainPerpendicular.svg|32px]] [[Sketcher_ConstrainPerpendicular/fr|Perpendiculaire]] : contraint deux lignes à être perpendiculaires, ou deux arêtes, ou une arête et un axe, à être perpendiculaires à leur intersection. La contrainte peut également relier deux arêtes, les obligeant à être perpendiculaires au niveau de la jonction.
+
+* [[File:Sketcher_ConstrainTangent.svg|32px]] [[Sketcher_ConstrainTangent/fr|Tangente]] : contraint deux arêtes, ou une arête et un axe, à être tangentes. La contrainte peut également relier deux arêtes, les obligeant à être tangentes au niveau de la jonction. Si deux lignes sont sélectionnées, elles deviennent colinéaires.
+
+* [[File:Sketcher_ConstrainEqual.svg|32px]] [[Sketcher_ConstrainEqual/fr|Égalité]] : contraint les arêtes à avoir la même longueur (lignes) ou la même courbure (autres arêtes sauf B-splines).
+
+* [[File:Sketcher_ConstrainSymmetric.svg|32px]] [[Sketcher_ConstrainSymmetric/fr|Symétrie]] : contraint deux points à être symétriques par rapport à une ligne ou un axe, ou par rapport à un troisième point.
+
+* [[Image:Sketcher_ConstrainBlock.svg|32px]] [[Sketcher_ConstrainBlock/fr|Blocage]] : bloque les arêtes en place avec une seule contrainte. Il est principalement destiné aux B-splines.
+
+* [[File:Sketcher_ConstrainSnellsLaw.svg|32px]] [[Sketcher_ConstrainSnellsLaw/fr|Contrainte de réfraction]] : contraint deux lignes à suivre la loi de réfraction de la lumière lorsqu'elle pénètre à travers une interface.
+
+* <span id="Sketcher_CompToggleConstraints">[[Image:Sketcher_ToggleDrivingConstraint.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Activer/désactiver les contraintes pilotantes/pilotées :</span><!--Do not edit span id: the Sketcher_CompToggleConstraints pages redirect here-->
+
+* [[File:Sketcher_ToggleDrivingConstraint.svg|32px]] [[Sketcher_ToggleDrivingConstraint/fr|Contraintes pilotantes]] : active/désactive les outils de création de contraintes de dimension entre le mode pilotant et le mode piloté, ou fait basculer les contraintes de dimension sélectionnées entre ces modes.
+
+* [[File:Sketcher_ToggleActiveConstraint.svg|32px]] [[Sketcher_ToggleActiveConstraint/fr|Activer les contraintes]] : active ou désactive les contraintes sélectionnées.
+
+<span id="Sketcher_tools"></span>
+===Outils d'esquisse===
+
+* <span id="Sketcher_CompCreateFillets">[[Image:Sketcher_CreateFillet.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Créer un congé/chanfrein :</span><!--Do not edit span id: the Sketcher_CompCreateFillets pages redirect here-->
+
+:* [[Image:Sketcher_CreateFillet.svg|32px]] [[Sketcher_CreateFillet/fr|Congé]] : crée un congé entre deux arêtes non parallèles. {{Version/fr|1.0}} : l'outil peut également créer un chanfrein.
+
+:* [[Image:Sketcher_CreateChamfer.svg|32px]] [[Sketcher_CreateChamfer/fr|Chanfrein]] : crée un chanfrein entre deux arêtes non parallèles. Il s'agit du même outil que [[Sketcher_CreateFillet/fr|Congé]] mais avec un mode initial différent. {{Version/fr|1.0}}
+
+* <span id="Sketcher_CompCurveEdition">[[Image:Sketcher_Trimming.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Ajuster une arête :</span><!--Do not edit span id: the Sketcher_CompCurveEdition pages redirect here-->
+
+:* [[Image:Sketcher_Trimming.svg|32px]] [[Sketcher_Trimming/fr|Ajuster]] : ajuste une arête aux intersections les plus proches avec d'autres arêtes.
+
+:* [[Image:Sketcher_Split.svg|32px]] [[Sketcher_Split/fr|Diviser]] : divise une arête tout en transférant la plupart des contraintes.
+
+:* [[File:Sketcher_Extend.svg|32px]] [[Sketcher_Extend/fr|Prolonger]] : prolonge ou raccourcit une ligne ou un arc jusqu'à un emplacement arbitraire, ou jusqu'à une arête ou un point cible.
+
+* [[Image:Sketcher_External.svg|32px]] [[Sketcher_External/fr|Géométrie externe]] : projette sur le plan de l'esquisse des arêtes et/ou des sommets appartenant à des objets situés en dehors de l'esquisse. {{VersionMinus/fr|1.0}}
+
+* <span id="Sketcher_CompExternal">[[Image:Sketcher_Projection.svg|32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Géométrie externe :</span><!--Do not edit span id: the Sketcher_CompExternal pages redirect here-->
+
+:* [[Image:Sketcher_Projection.svg|32px]] [[Sketcher_Projection/fr|Projection]] : crée les arêtes de projection de la géométrie externe. {{Version/fr|1.1}}
+
+:* [[Image:Sketcher_Intersection.svg|32px]] [[Sketcher_Intersection/fr|Intersection]] : crée les arêtes d'intersection de la géométrie externe avec le plan de l'esquisse. {{Version/fr|1.1}}
+
+* [[File:Sketcher_CarbonCopy.svg|32px]] [[Sketcher_CarbonCopy/fr|Copie carbone]] : copie toutes les géométries et contraintes d'une autre esquisse dans l'esquisse active.
+
+* [[File:Sketcher_SelectOrigin.svg|32px]] [[Sketcher_SelectOrigin/fr|Selectionner l'origine]] : sélectionne l'origine de l'esquisse.
+
+* [[File:Sketcher_SelectHorizontalAxis.svg|32px]] [[Sketcher_SelectHorizontalAxis/fr|Axe horizontal]] : sélectionne l'axe horizontal de l'esquisse.
+
+* [[File:Sketcher_SelectVerticalAxis.svg|32px]] [[Sketcher_SelectVerticalAxis/fr|Axe vertical]] : sélectionne l'axe vertical de l'esquisse.
+
+* [[File:Sketcher_Translate.svg|32px]] [[Sketcher_Translate/fr|Déplacer/dupliquer]] : déplace ou permet de créer des copies des éléments sélectionnés. {{Version/fr|1.0}}
+
+* [[File:Sketcher_Rotate.svg|32px]] [[Sketcher_Rotate/fr|Pivoter/dupliquer]] : fait pivoter ou permet de créer des copies pivotées des éléments sélectionnés. {{Version/fr|1.0}}
+
+* [[File:Sketcher_Scale.svg|32px]] [[Sketcher_Scale/fr|Mise à l'échelle]]: met à l'échelle ou permet de créer des copies mises à l'échelle des éléments sélectionnés. {{Version/fr|1.0}}
+
+* [[File:Sketcher_Offset.svg|32px]] [[Sketcher_Offset/fr|Décaler une géométrie]] : crée des arêtes équidistantes autour d'arêtes sélectionnés. {{Version/fr|1.0}}
+
+* [[File:Sketcher_Symmetry.svg|32px]] [[Sketcher_Symmetry/fr|Symétriser]] : crée des copies de manière symétrique des éléments sélectionnés.
+
+* [[File:Sketcher_RemoveAxesAlignment.svg|32px]] [[Sketcher_RemoveAxesAlignment/fr|Supprimer l'alignement des axes]] : supprime l'alignement des axes des arêtes sélectionnées en remplaçant les contraintes [[Sketcher_ConstrainHorizontal/fr|horizontales]] et [[Sketcher_ConstrainVertical/fr|verticales]] par des contraintes [[Sketcher_ConstrainParallel/fr|parallèles]] et [[Sketcher_ConstrainPerpendicular/fr|perpendiculaires]].
+
+* [[File:Sketcher_DeleteAllGeometry.svg|32px]] [[Sketcher_DeleteAllGeometry/fr|Supprimer tous les éléments de géométrie]] : supprime toute la géométrie et toutes les contraintes de l'esquisse.
+
+* [[File:Sketcher_DeleteAllConstraints.svg|32px]] [[Sketcher_DeleteAllConstraints/fr|Supprimer toutes les contraintes]] : supprime toutes les contraintes de l'esquisse.
+
+* <span id="Sketcher_CopyClipboard">[[File:Edit-copy.svg|32px]] Copier dans Sketcher : voir [[#Copier,_couper_et_coller|Copier, couper et coller]].</span><!--Do not edit span id: the Sketcher_CopyClipboard pages redirect here-->
+
+* <span id="Sketcher_CopyClipboard">[[File:Edit-copy.svg|32px]] Couper dans Sketcher : voir [[#Copier,_couper_et_coller|Copier, couper et coller]].</span><!--Do not edit span id: the Sketcher_CopyClipboard pages redirect here-->
+
+* <span id="Sketcher_CopyClipboard">[[File:Edit-copy.svg|32px]] Coller dans Sketcher : voir [[#Copier,_couper_et_coller|Copier, couper et coller]].</span><!--Do not edit span id: the Sketcher_CopyClipboard pages redirect here-->
+
+<span id="Sketcher_B-spline_tools"></span>
+===Outils d'esquisse des B-splines===
+
+* [[File:Sketcher_BSplineConvertToNURBS.svg|32px]] [[Sketcher_BSplineConvertToNURBS/fr|Convertir une géométrie en B-splines]] : convertit les arêtes en B-splines.
+
+* [[File:Sketcher_BSplineIncreaseDegree.svg|32px]] [[Sketcher_BSplineIncreaseDegree/fr|Augmenter le degré]] : augmente le degré (l'ordre) des B-splines.
+
+* [[File:Sketcher_BSplineDecreaseDegree.svg|32px]] [[Sketcher_BSplineDecreaseDegree/fr|Diminuer le degré]] : diminue le degré (l'ordre) des B-splines.
+
+* [[File:Sketcher_BSplineIncreaseKnotMultiplicity.svg|32px]] [[Sketcher_BSplineIncreaseKnotMultiplicity/fr|Augmenter la multiplicité des nœuds]] : augmente la multiplicité d'un nœud d'une B-spline.
+
+* [[File:Sketcher_BSplineDecreaseKnotMultiplicity.svg|32px]] [[Sketcher_BSplineDecreaseKnotMultiplicity/fr|Diminuer la multiplicité des nœuds]] : diminue la multiplicité d'un nœud d'une B-spline.
+
+* [[File:Sketcher_BSplineInsertKnot.svg|32px]] [[Sketcher_BSplineInsertKnot/fr|Insérer un nœud]] : insère un nœud dans une B-spline ou augmente la multiplicité d'un nœud existant.
+
+* [[File:Sketcher_JoinCurves.svg|32px]] [[Sketcher_JoinCurves/fr|Joindre des courbes]] : crée une B-spline en joignant deux B-splines existantes ou d'autres arêtes.  {{Version/fr|0.21}}
+
+<span id="Sketcher_visual"></span>
+===Affichage===
+
+* [[File:Sketcher_SelectElementsWithDoFs.svg|32px]]  [[Sketcher_SelectElementsWithDoFs/fr|Degrés de liberté non contraints]] : sélectionne les éléments non entièrement contraints dans l'esquisse.
+
+* [[File:Sketcher_SelectConstraints.svg|32px]] [[Sketcher_SelectConstraints/fr|Contraintes associées]] : sélectionne les contraintes associées aux éléments de l'esquisse.
+
+* [[File:Sketcher_SelectElementsAssociatedWithConstraints.svg|32px]] [[Sketcher_SelectElementsAssociatedWithConstraints/fr|Éléments associés aux contraintes]] : sélectionne les éléments de l'esquisse associés aux contraintes.
+
+* [[File:Sketcher_SelectRedundantConstraints.svg|32px]] [[Sketcher_SelectRedundantConstraints/fr|Contraintes redondantes]] : sélectionne les contraintes redondantes dans l'esquisse.
+
+* [[File:Sketcher_SelectConflictingConstraints.svg|32px]] [[Sketcher_SelectConflictingConstraints/fr|Contraintes conflictuelles]] : sélectionne les contraintes conflictuelles de l'esquisse.
+
+* [[File:Sketcher_ArcOverlay.svg|32px]] [[Sketcher_ArcOverlay/fr|Cercle auxiliaire pour les arcs]] : affiche ou masque les aides circulaires (cercles virtuels sous-jacents) pour les arcs dans toutes les esquisses. {{Version/fr|1.0}}
+
+* <span id="Sketcher_CompBSplineShowHideGeometryInformation">[[Image:Sketcher_BSplinePolygon.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Afficher/masquer les informations d'une B-spline :</span><!--Do not edit span id: the Sketcher_CompBSplineShowHideGeometryInformation pages redirect here-->
+
+* [[File:Sketcher_BSplineDegree.svg|32px]] [[Sketcher_BSplineDegree/fr|Degré de la B-spline]] : affiche ou masque le degré des B-splines dans toutes les esquisses.
+
+* [[File:Sketcher_BSplinePolygon.svg|32px]] [[Sketcher_BSplinePolygon/fr|Polygone de contrôle]] : affiche ou masque le polygone de contrôle des B-splines dans toutes les esquisses.
+
+* [[File:Sketcher_BSplineComb.svg|32px]] [[Sketcher_BSplineComb/fr|Peigne de courbure]] : affiche ou masque le peigne de courbure des B-splines dans toutes les esquisses.
+
+* [[File:Sketcher_BSplineKnotMultiplicity.svg|32px]] [[Sketcher_BSplineKnotMultiplicity/fr|Multiplicité des nœuds]] : affiche ou masque la multiplicité des nœuds des B-splines dans toutes les esquisses.
+
+* [[File:Sketcher_BSplinePoleWeight.svg|32px]] [[Sketcher_BSplinePoleWeight/fr|Poids des points de contrôle]] : affiche ou masque le poids des points de contrôle des B-splines dans toutes les esquisses.
+
+* [[File:Sketcher_RestoreInternalAlignmentGeometry.svg|32px]] [[Sketcher_RestoreInternalAlignmentGeometry/fr|Géométrie interne d'alignement]] : supprime la géométrie interne des éléments ou recrée la géométrie interne manquante.
+
+* [[File:Sketcher_SwitchVirtualSpace.svg|32px]] [[Sketcher_SwitchVirtualSpace/fr|Espace virtuel]] : masque/démasque les contraintes ou active/désactive l'espace virtuel visible.
+
+<span id="Obsolete_tools"></span>
+===Outils obsolète===
+
+* [[File:Sketcher_Clone.svg|32px]] [[Sketcher_Clone/fr|Cloner]] : clone un élément. Non disponible dans {{VersionPlus/fr|1.0}}.
+
+* [[File:Sketcher_CloseShape.svg|32px]] [[Sketcher_CloseShape/fr|Fermer la forme]] : ferme une forme en appliquant des contraintes coïncidentes aux points d'arrivée. Non disponible dans la ({{VersionPlus/fr|0.21}}).
+
+* [[File:Sketcher_CreatePointFillet.svg|32px]] [[Sketcher_CreatePointFillet/fr|Congé avec contrainte]] : crée un congé entre deux lignes non parallèles tout en préservant leur point d'angle. Non disponible dans {{VersionPlus/fr|1.0}}.
+
+* [[File:Sketcher_ConnectLines.svg|32px]] [[Sketcher_ConnectLines/fr|Connecter les côtés]] : connecte les éléments en appliquant des contraintes de coïncidence aux points d'arrivée. Non disponible dans la ({{VersionPlus/fr|0.21}}).
+
+* [[File:Sketcher_Copy.svg|32px]] [[Sketcher_Copy/fr|Copier]] : copie un élément. Non disponible dans {{VersionPlus/fr|1.0}}.
+
+* [[File:Sketcher_Move.svg|32px]] [[Sketcher_Move/fr|Déplacer]] : déplace la géométrie sélectionnée en prenant comme référence le dernier point sélectionné. Non disponible dans {{VersionPlus/fr|1.0}}.
+
+* [[File:Sketcher_RectangularArray.svg|32px]] [[Sketcher_RectangularArray/fr|Répétition linéaire]] : crée une répétition à partir d'éléments sélectionnés. Non disponible dans {{VersionPlus/fr|1.0}}.
+
+<span id="Preferences"></span>
+==Préférences==
+
+* [[Image:Workbench_Sketcher.svg|32px]] [[Sketcher_Preferences/fr|Préférences...]] : préférences pour l'atelier Sketcher.
+
+<span id="Best_practices"></span>
+== Bonnes pratiques ==
+
+Chaque utilisateur de CAO développe sa propre méthode de travail au fil du temps, mais il existe quelques principes généraux utiles à suivre.
+
+* Une série d'esquisses simples est plus facile à gérer qu'une seule esquisse complexe. Par exemple, une première esquisse peut être créée pour l'élément 3D de base (un tampon ou une rotation), tandis qu'une deuxième peut contenir des trous ou des découpes (poches). Certains détails peuvent être laissés de côté, pour être réalisés ultérieurement en tant qu'éléments 3D. Vous pouvez choisir d'éviter les congés dans votre esquisse s'il y en a trop, et les ajouter en tant qu'élément 3D.
+* Créez toujours un profil fermé, sinon votre esquisse ne produira pas un solide, mais plutôt un ensemble de faces ouvertes. Si vous ne souhaitez pas que certains objets soient inclus dans la création du solide, transformez-les en éléments de construction avec l'outil Mode de construction.
+* Utilisez la fonction de contraintes automatiques pour limiter le nombre de contraintes que vous devrez ajouter manuellement.
+* En règle générale, appliquez d'abord les contraintes géométriques, puis les contraintes dimensionnelles, et verrouillez votre esquisse en dernier. Mais n'oubliez pas : les règles sont faites pour être transgressées. Si vous avez du mal à manipuler votre esquisse, il peut être utile de contraindre quelques objets avant de compléter votre profil.
+* Si possible, centrez votre esquisse par rapport à l'origine (0,0) avec la contrainte de verrouillage. Si votre esquisse n'est pas symétrique, localisez l'un de ses points par rapport à l'origine ou choisissez de jolis chiffres ronds pour les distances de verrouillage.
+* Si vous avez la possibilité de choisir entre la contrainte de longueur et les contraintes de distance horizontale ou verticale, préférez ces dernières. Les contraintes de distance horizontale et verticale sont moins coûteuses en termes de calcul.
+* En général, les meilleures contraintes à utiliser sont : Contraintes horizontales et verticales ; Contraintes de longueur horizontales et verticales ; Tangence point à point. Si possible, limitez l'utilisation de ces contraintes : la contrainte générale de longueur ; la tangence bord à bord ; la contrainte de fixation du point sur une ligne ; la contrainte de symétrie.
+* En cas de doute sur la validité d'une esquisse une fois qu'elle est terminée (les caractéristiques deviennent vertes), fermez la fenêtre de dialogue de Sketcher et utilisez [[File:Sketcher_ValidateSketch.svg|24px]] [[Sketcher_ValidateSketch/fr|Valider une esquisse]].
+
+<span id="Tutorials"></span>
+== Tutoriels ==
+
+* [https://forum.freecadweb.org/viewtopic.php?f=36&t=30104 Sketcher Lecture] par chrisb. Il s'agit d'un document PDF de plus de 80 pages qui sert de manuel détaillé pour Sketcher. Il explique les bases de l'utilisation de Sketcher et entre dans les détails de la création de formes géométriques et de chacune des contraintes.
+* [[Basic_Sketcher_Tutorial/fr|Sketcher : Tutoriel d'introduction]] pour débutants
+* [[Sketcher_Micro_Tutorial_-_Constraint_Practices/fr|Sketcher : Micro-tutoriel - Les pratiques de contraintes]]
+* [[Sketcher_requirement_for_a_sketch/fr|Sketcher : Requis pour une esquisse]] : exigences minimales pour une esquisse et défintion d'une esquisse.
+
+<span id="Scripting"></span>
+==Script==
+
+La page [[Sketcher_scripting/fr|Sketcher : Écrire des scripts]] contient des exemples sur la façon de créer des contraintes à partir de scripts Python.
+
+<span id="Examples"></span>
+== Exemples ==
+
+Pour avoir une idée de ce qui peut être réalisé avec les outils de Sketcher, jetez un coup d'œil aux [[Sketcher_Examples/fr|Sketcher Exemples]] :
+
+[[Image:Sketcher_ExampleHinge-01.gif|80px|link=]]
+[[Image:Sketcher ExampleHinge-15.png|90px|link=]]
+
+
+{{Docnav/fr
+|[[Robot_Workbench/fr|Atelier Robot]]
+|[[Spreadsheet_Workbench/fr|Atelier Spreadsheet]]
+|IconL=Workbench_Robot.svg
+|IconR=Workbench_Spreadsheet.svg
+}}
+
+{{Sketcher_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Workbenches{{#translation:}}]]

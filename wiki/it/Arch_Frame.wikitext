@@ -1,0 +1,124 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_Equipment/it|Arredo]]
+|[[Arch_Fence/it|Recinzione]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_Equipment.svg
+|IconR=Arch_Fence.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{VeryImportantMessage|QUESTO COMANDO FA PARTE DELL'[[BIM_Workbench/it|AMBIENTE BIM]] INTEGRATO NELLA V1.0<br>
+Questa pagina è stata aggiornata per quella versione.}}
+
+{{GuiCommand/it
+|Name=Arch Frame
+|Name/it=Carpenteria
+|MenuLocation=3D/BIM → Frame
+|Workbenches=[[BIM_Workbench|BIM]]
+|Shortcut={{KEY|F}} {{KEY|R}}
+|SeeAlso=
+}}
+
+<span id="Description"></span>
+==Descrizione==
+
+Lo strumento '''Arch Frame''' viene utilizzato per costruire tutti i tipi di oggetti frame basati su un profilo e un layout. Il profilo viene estruso lungo i bordi del layout, che può essere qualsiasi oggetto 2D come [[Sketcher_Workbench|sketch]], o un [[Draft_Workbench|Draft object]]. È particolarmente utile per creare ringhiere o pareti a telaio. Gli oggetti frame possono quindi essere facilmente trasformati in oggetti [[Arch_Wall|Muro]] o [[Arch_Structure|Struttura]].
+
+[[Image:Arch Frame example.jpg|640px]]
+{{Caption|Oggetto Carpenteria creato da una [[Draft_OrthoArray/it|schiera]] derivata da una [[Draft_Line/it|linea]], utilizzando un [[Draft_Circle/it|cerchio]] come profilo.}}
+
+<span id="Usage"></span>
+==Utilizzo==
+
+# Creare un oggetto tracciato e un oggetto profilo, ad esempio con [[Draft_Workbench/it|Draft]] o con [[Sketcher Workbench/it|Schizzo]].
+# Selezionare l'oggetto tracciato, poi, con {{KEY|Ctrl}} premuto, selezionare l'oggetto profilo.
+# Premere il pulsante {{Button|[[Image:Arch Frame.svg|16px]] [[Arch_Frame/it|Carpenteria]]}}, o premere i tasti {{KEY|F}} poi {{KEY|R}}.
+
+<span id="Options"></span>
+== Opzioni ==
+
+* Gli elementi Carpenteria condividono le proprietà e i comportamenti comuni di tutti i [[Arch_Component/it|Componenti Arch]]
+* Impostando la sua proprietà Offset, l'oggetto carpenteria può essere posizionato alla distanza voluta dall'oggetto tracciato. 
+* Il profilo viene copiato alla base di ciascun spigolo o linea dell'oggetto tracciato, quindi estruso lungo esso. È possibile stabilire la posizione del profilo alla base di ogni linea del tracciato tramite le proprietà Align e Rotation.
+
+<span id="Properties"></span>
+=== Proprietà ===
+
+===Data===
+
+{{TitleProperty|Component}}
+
+* {{PropertyData|Base|Link}}: The layout this frame is based on.
+
+For the other properties in the group see [[Arch_Component#Properties|Arch Component]].
+
+{{TitleProperty|Frame}}
+
+* {{PropertyData|Align|Bool}}: Specifica se il profilo deve essere ruotato per avere il suo asse normale allineato con ciascun bordo.
+* {{PropertyData|Base Point|Integer}}: Indice in base zero che indica il punto di incrocio del percorso sul profilo:
+** {{Value|0}}: La '''Base''' del '''Posizionamento''' del profilo. Questo punto viene utilizzato anche in caso di indice non valido.
+** {{Value|1}}: Il punto medio del primo bordo del profilo.
+** {{Value|2}}: Il punto medio del 2° bordo del profilo.
+** {{Value|3}}: Il punto medio del 2° bordo del profilo.
+** {{Value|4}}: Il punto finale del 2° bordo del profilo.
+** ...
+** {{Value|n*2-1}}: Il punto medio dell'ennesimo bordo del profilo.
+** {{Value|n*2}}: Il punto finale dell'ennesimo bordo del profilo.
+* {{PropertyData|Edges|Enumeration}}: Il tipo di bordi da considerare. Le opzioni sono:
+** {{Value|All edges}}
+** {{Value|Vertical edges}}
+** {{Value|Horizontal edges}}
+** {{Value|Bottom horizontal edges}}: Basato sulla coordinata Z globale del centro di massa del bordo.
+** {{Value|Top horizontal edges}}: Idem.
+* {{PropertyData|Fuse|Bool}}: Se vero, i solidi sovrapposti vengono fusi.
+* {{PropertyData|Offset|VectorDistance}}: Una distanza facoltativa tra l'oggetto del layout e l'oggetto cornice.
+* {{PropertyData|Profile|Link}}: Il profilo su cui si basa questo frame.
+* {{PropertyData|Profile Placement|Placement}}: Un posizionamento aggiuntivo facoltativo da aggiungere al profilo prima di estruderlo. Viene utilizzata solo la '''Rotazione''' del '''Posizionamento'''. Ignorato se {{PropertyData|Align}} è {{TRUE}}.
+* {{PropertyData|Rotation|Angle}}: La rotazione del profilo attorno al suo asse di estrusione.
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Vedere anche:}} [[Arch_API/it|API di Arch]] e [[FreeCAD_Scripting_Basics/it|Nozioni di base sugli script di FreeCAD]].
+
+Lo strumento Carpenteria può essere utilizzato nelle [[Macros/it|macro]] e dalla [[Python/it|console di Python]] tramite la seguente funzione:
+
+{{Code|code=
+Frame = makeFrame(baseobj, profile)
+}}
+
+* Crea un oggetto {{incode|Frame}} da un dato {{incode|baseobj}} e un {{incode|profile}}.
+** {{incode|baseobj}} è qualsiasi oggetto che contenga dei contorni, come una [[Draft_Wire/it|Polilinea]] o una [[Draft_OrthoArray/it|Schiera]].
+** {{incode|profile}} è un oggetto 2D estrudibile contenente facce o contorni chiusi.
+
+Esempio:
+
+{{Code|code=
+import Draft, Arch
+
+Line = Draft.makeLine(FreeCAD.Vector(0, 0, 0), FreeCAD.Vector(0, 0, 2000))
+baseobj = Draft.makeArray(Line, FreeCAD.Vector(1000, 0, 0), FreeCAD.Vector(0, 1, 0), 6, 1)
+
+profile = Draft.makeCircle(200)
+Frame = Arch.makeFrame(baseobj, profile)
+FreeCAD.ActiveDocument.recompute()
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_Equipment/it|Arredo]]
+|[[Arch_Fence/it|Recinzione]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_Equipment.svg
+|IconR=Arch_Fence.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

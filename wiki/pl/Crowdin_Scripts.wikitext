@@ -1,0 +1,101 @@
+<languages/>
+{{TOCright}}
+<span id="Managing_Translations_for_FreeCAD"></span>
+== Zarządzanie Tłumaczeniami w programie FreeCAD ==
+
+FreeCAD do zarządzania tłumaczeniami używa zewnętrznego serwisu o nazwie [https://crowdin.com/project/freecad Crowdin.] 
+
+W <code>FreeCAD/src/Tools</code> znajdują się 3 skrypty, które służą do zarządzania plikami tłumaczeń:
+# <code>updatets.py</code> [https://github.com/FreeCAD/FreeCAD/blob/master/src/Tools/updatets.py (github source)]
+# <code>updatecrowdin.py</code> [https://github.com/FreeCAD/FreeCAD/blob/master/src/Tools/updatecrowdin.py (github source)]
+# <code>updatefromcrowdin.py</code> [https://github.com/FreeCAD/FreeCAD/blob/master/src/Tools/updatefromcrowdin.py (github source)]
+
+<span id="Notes"></span>
+=== Uwagi ===
+
+* Skrypty te uruchamiane są z głównego katalogu <code>FreeCAD/</code>. 
+* By umożliwić działanie tych skryptów musisz mieć prawidłowy klucz FreeCAD Crowdin API umieszczony w swoim pliku key <code>~/.crowdin-freecad</code>. ''(Z powodów bezpieczeństwa jest tylko dostępny dla ludzi z prawami administratora na stronie Crowdin FreeCAD)''
+* Obecnie te narzędzia są kompatybilne z Pythonem 2.
+ 
+=== updatets.py ===
+
+Skrypt <code>updatets.py</code> utworzy pliki .ts w twoim lokalnym katalogu <code>FreeCAD/</code>. Generuje on pliki .ts ''(Plik Źródłowy Tłumaczenia Qt)''. 
+
+Jest wywoływany przez:
+<code>python2 updatets.py</code>
+
+=== updatecrowdin.py ===
+
+Skrypt <code>updatecrowdin.py</code> ładuje zmiany do Crowdin ''(zewnętrznego serwisu tłumaczeń społecznościowych)'' z twojego lokalnego katalogu <code>FreeCAD/</code>. Obecnie skrypt obsługuje 4 argumenty:
+
+* <code>updatecrowdin.py status</code> wypisuje stan tłumaczeń
+* <code>updatecrowdin.py update</code> aktualizuje Crowdin aktualną wersją plików .ts znalezioną w kodzie źródłowym
+* <code>updatecrowdin.py build</code> buduje na Crowdin nową, możliwą do pobrania paczkę z wszystkimi przetłumaczonymi ciągami tekstowymi
+* <code>updatecrowdin.py download</code> pobiera najnowszą paczkę
+
+=== updatefromcrowdin.py ===
+
+Skrypt <code>updatefromcrowdin.py</code> ściąga zmiany z Crowdin do twojego lokalnego katalogu <code>FreeCAD/</code>.
+
+<span id="To_send_latest_strings_to_crowdin"></span>
+== By wysłać najnowsze zwroty do Crowdin ==
+
+* Przetestowane tylko na Linuksie
+* Potrzebujesz pliku .credentials w twoim katalogu /home/TwójUżytkownik. Plik ten jest prostym plikiem tekstowym zawierającym tylko jedną linię, którą jest klucz API otrzymywany na https://crowdin.com/project/freecad/settings#api (tylko dla administratorów)
+* Upewnij się, że twoje repozytorium jest czyste ''(git pull, git stash jeśli to konieczne)''
+* cd /path/to/freecad-source-code/src/Tools
+* python updatets.py ''(wypełni najnowszymi ciągami tekstowymi wszystkie pliki .ts znalezione w źródłach)''
+* python updatecrowdin.py update ''(wyśle pliki .ts do Crowdin. Crowdin zaktualizuje tylko nowe ciągi tekstowe)''
+* cd ../.. ''(idź z powrotem go głównego katalogu źródeł)''
+* git checkout . ''(cofnij wszystkie zmiany w plikach .ts, nie ma powodu by wprowadzać je już teraz gdy są wciąż nieprzetłumaczone)''
+
+<span id="To_merge_latest_translations_from_crowdin"></span>
+== By scalić najnowsze tłumaczenia z Crowdin ==
+
+* Przetestowane tylko w systemie Linuks,
+* Potrzebujesz pliku .credentials w katalogu /home/TwójUżytkownik. Plik ten jest zwykłym plikiem tekstowym zawierającym tylko jeden wiersz, jest to klucz API otrzymywany na https://crowdin.com/project/freecad/settings#api ''(tylko dla administratorów)'',
+* Upewnij się, że twoje repozytorium jest czyste ''(git pull, git stash jeśli to konieczne)'',
+* cd /path/to/freecad-source-code/src/Tools,
+* python updatecrowdin.py build ''(stworzy zip po stronie Crowdin z wszystkimi plikami, może potrwać chwilę... Krok ten może zostać też wykonany na stronie internetowej Crowdin)'',
+* python updatecrowdin.py download ''(pobierze plik freecad.zip do tego katalogu)'',
+* mv freecad.zip ~ przenieś plik zip do twojego katalogu domowego, ''(by uniknąć przypadkowego wprowadzenia go później)'',
+* ''(opcjonalnie)'' zedytuj skrypt updatefromcrowdin.py i sprawdź czy default_languages zawiera wszystkie języki, których wymagasz ''(co do zasady wszystkie, które maja ponad 50% zaawansowania)'',
+* python updatefromcrowdin.py -z /home/TwójUżytkownik/freecad.zip,
+* cd ../.. ''(przejdź z powrotem go głównego katalogu źródeł)''.
+* jeśli coś pójdzie nie tak lub nie jesteś pewien, wyczyść wszytko używając git checkout,
+* jeśli wszystko wygląda w porządku ''(git status)'', wprowadź zmiany używając git add . && git commit,
+* Utwórz prośbę o połączenie ''(PR)'' dla FreeCAD.
+
+<span id="To_generate_a_translation_file_from_the_website"></span>
+== By utworzyć plik tłumaczenia ze strony internetowej ==
+
+* Sklonuj stronę domową
+* cd /path/to/FreeCAD-homepage
+* xgettext --from-code=UTF-8 -o lang/homepage.pot *.php
+* Zaktualizuj ręcznie "homepage.po" na stronie internetowej Crowdin, korzystając z pliku lang/homepage.pot
+
+<span id="To_update_the_translations_of_the_website"></span>
+== By zaktualizować tłumaczenia na stronie internetowej ==
+
+* Pozyskaj plik freecad.zip przez pobranie go ze strony internetowej Crowdin albo korzystając z instrukcji powyżej ''(python updatecrowdin.py download)'',
+* cd /path/to/FreeCAD-homepage,
+* Upewnij się, że twoje repozytorium jest czyste ''(git pull, git stash jeśli to konieczne)'',
+* python updatefromcrowdin.py -z /path/to/freecad.zip,
+* jeśli coś pójdzie nie tak lub nie jesteś pewien, wyczyść wszytko używając git checkout,
+* jeśli wszystko wygląda w porządku ''(git status)'', wprowadź zmiany używając git add . && git commit,
+* Utwórz prośbę o połączenie ''(PR)'' dla FreeCAD-Homepage,
+* Po wykonaniu połączenia, jeden z administratorów załaduje ftp serwera Web,
+
+<span id="Related"></span>
+== Powiązane ==
+
+* [[Localisation/pl|Lokalizacja - tłumaczenie interfejsu i dokumentacji]]
+* [[Crowdin_Scripts/pl|Skrypty środowiska Crowdin]]
+* [[Release_process/pl|Proces wydania]]
+
+
+{{Userdocnavi{{#translation:}}}}
+
+[[Category:Developer Documentation{{#translation:}}]]
+
+[[Category:Administration{{#translation:}}]]

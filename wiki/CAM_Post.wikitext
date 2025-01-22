@@ -1,0 +1,155 @@
+<languages/>
+<translate>
+
+<!--T:22-->
+{{Docnav
+|[[CAM_Job|Job]]
+|[[CAM_Sanity|Sanity]]
+|[[CAM_Workbench|CAM]]
+|IconL=CAM_Job.svg
+|IconR=CAM_Sanity.svg
+|IconC=Workbench_CAM.svg
+}}
+
+<!--T:1-->
+{{GuiCommand
+|Name=CAM Post
+|MenuLocation=CAM → Post Process
+|Workbenches=[[CAM_Workbench|CAM]]
+|Shortcut={{KEY|P}} {{KEY|P}}
+}}
+
+==Description== <!--T:2-->
+
+<!--T:3-->
+The tool [[Image:CAM_Post.svg|16px]] [[CAM_Post|Post]] exports the selected [[Image:CAM_Job.svg|16px]] [[CAM_Job|CAM Job]] to a G-code file.
+
+<!--T:8-->
+'''Each CNC Controller speaks a specific G-code dialect, requiring a Dialect-correct Postprocessor to translate the final output from the agnostic internal FreeCAD G-code dialect.'''
+
+=== Typical functions of the Postprocessor include === <!--T:27-->
+
+<!--T:18-->
+*Using a correct Job output G-code file extension. 
+*Selecting the G-code commands. CNC controllers typically support a subset of available G-code commands. The super-set of G-code commands contains powerful and specialized commands that otherwise must be processed using multiple simpler commands. Postprocessors are written to select the best G-code for an Operation, available on the target.   
+*Formatting the G-code syntax by reordering the Feed, X, Y, Z, A, and B inputs, and the precision.
+*Inserting a Pre-amble to set units, units format, Work plane, coordinate system, etc...
+*Inserting a Post-amble to park the machine, stop it, process any arguments.  
+*Inserting Tool changes, or suppressing them between subsequent operations using the same tool.
+*Formatting the Feed and Speed rate information to revolutions per minute, or per second.
+*Formatting Function Call Naming and Calling.
+
+=== Postprocessor Customization === <!--T:28-->
+
+<!--T:19-->
+If you want to write your own postprocessor, have a look at the [[CAM_Postprocessor_Customization|CAM Postprocessor Customization]] page.
+
+<!--T:26-->
+'''Note:''' Several provided Postprocessors generate suitable code for many CNC controllers, or can be used as templates for modification
+
+<!--T:20-->
+Postprocessors contain configuration flags and are designed to be tuned by adding G-codes and M-codes to provided definitions for:
+*Machine initialization
+*Job finalization
+*Tool-Changes
+*Cooling on /off
+*Etc...
+
+<!--T:9-->
+Postprocessors use [[CAM_scripting#The_FreeCAD_Internal_G-code_Format|FreeCAD's internal G-code dialect]] in conjunction with the Postprocessor configuration definitions, to generate Dialect-Correct G-code for target machines. This allows the CAM workbench to generate correct G-code to target various CNC machine controllers by invoking different Postprocessors.
+
+<!--T:10-->
+CNC Machine Controller types include:
+*CNC mills
+*CNC lathes
+*3D Printers
+*DragKnife Cutters
+*Laser Cutters
+*Engravers
+*Plasma Torch Cutters
+*Wire Benders
+*EDM Cutters
+*Etc...
+
+<!--T:11-->
+If only one CNC machine is used, or if all CNC machines share a common Postprocesor, the CAM workbench would need to include only a single Postprocessor. If a single Postprocessor is inadequate to output G-code for all target CNC controllers, then multiple Postprocessors must be installed.
+
+==Usage== <!--T:4-->
+
+<!--T:5-->
+# Select a [[Image:CAM_Job.svg|16px]] [[CAM_Job|CAM Job]] in the [[Tree_view|Tree view]].
+# There are several ways to invoke the command:
+#* Press the {{Button|[[Image:CAM_Post.svg|16px]] [[CAM_Post|CAM Post]]}} button.
+#* Select the {{MenuCommand|CAM → [[Image:CAM_Post.svg|16px]] Post Process}} option from the menu.
+#* Use the keyboard shortcut: {{KEY|P}} then {{KEY|P}}.
+# Confirm the {{MenuCommand|Output File}} name and directory
+
+==Options== <!--T:6-->
+
+<!--T:7-->
+Output file and Postprocessor properties can be set in the  [[CAM_Job|Job]], at any time, prior to invoking the Postprocessor.
+
+<!--T:12-->
+The provided Postprocessors are written with comments indicating areas containing Flags, Configuration Variables, and Sections of G-Codes and M-Codes that are to be used by the Postprocessor to configure the output.
+
+<!--T:13-->
+Typical Configuration True/False Flags include:
+*'''OUTPUT_COMMENTS''' (True = Allow, False = Suppress): Used to insert Text Comments in the output G-code file.
+*'''OUTPUT_HEADER''' (True = Allow, False = Suppress): Used to insert Text Headers in the output G-code file.
+*'''OUTPUT_LINE_NUMBERS''' (True = Allow, False = Suppress): Used to insert Line Numbers in the output G-code file.
+*'''SHOW_EDITOR''' (True = Allow, False = Suppress): Used to show the output G-code in a Pop-up window when invoking the Postprocessor.
+*'''MODAL''' (True = Allow, False = Suppress): Used to reduce the number of output G-code lines by stripping Mode information when the Mode is not changing.
+
+<!--T:14-->
+Typical Configuration Variables include:
+*'''LINENR''' (Line Number): Used to Set the Line Number index.
+*'''UNITS''' (G20 or G21): Used to explicitly communicate to the target CNC controller what Units to use to interpret the final output file.
+*'''MACHINE_NAME''' (Name of Target CNC Mill): Used to Insert a machine name label in the final output file.
+*'''PRECISION''': Used to Set the number of digits to include after the decimal place in final output file
+
+<!--T:15-->
+Typical Configuration Sections include:
+*'''PREAMBLE''': Code configuration inserted at beginning of the Job.
+*'''POSTAMBLE''': Code configuration appended to the Job, providing for parking the machine, etc...
+*'''TOOL_CHANGE''': Code inserted with each tool change in the Job.
+
+<!--T:16-->
+The {{KEY|Edit}} → {{KEY|Preferences...}} → {{KEY|CAM}} → {{KEY|Job Preferences tab}} → {{KEY|Defaults}} → {{KEY|CAM}} is used to set the default Postprocessor selected on Job creation. This allows CAM workbench to be configured to only display desired Postprocessors, and to set a default. 
+
+<!--T:21-->
+Included Postprocessors are saved in '''FreeCAD/Mod/CAM/CAM/Post/scripts''' by default:
+*centroid
+*comparams
+*dxf
+*dynapath
+*grbl, including support for bCNC header blocks using Job output argument --bcnc
+*jtech (laser)
+*[http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g17-g19.1 linuxcnc] 
+*mach3_mach4
+*nccad
+*opensbp
+*phillips
+*refactored* (These postprocessors are works-in-progress and will be changing a lot)
+*rml
+*smoothie
+*uccnc
+
+== Limitations == <!--T:29-->
+
+<!--T:17-->
+* Do '''not''' use the {{KEY|File}} → {{KEY|Export}} menu for export to G-code, it will produce damaged G-code!
+
+
+<!--T:23-->
+{{Docnav
+|[[CAM_Job|Job]]
+|[[CAM_Sanity|Sanity]]
+|[[CAM_Workbench|CAM]]
+|IconL=CAM_Job.svg
+|IconR=CAM_Sanity.svg
+|IconC=Workbench_CAM.svg
+}}
+
+</translate>
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

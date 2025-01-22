@@ -1,0 +1,141 @@
+<languages/>
+
+{{Docnav
+|[[Draft_Move|Move]]
+|[[Draft_Scale|Scale]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_Move.svg
+|IconR=Draft_Scale.svg
+|IconC=Workbench_Draft.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/es
+|Name=Draft Rotate
+|Name/es=Draft Rotate
+|Workbenches=[[Draft_Workbench/es|Croquis]], [[Arch_Workbench/es|Arquitectura]]
+|MenuLocation=Croquis → Girar
+|Shortcut={{KEY|R}} {{KEY|O}}
+}}
+</div>
+
+<span id="Description"></span>
+==Descripción==
+
+<div class="mw-translate-fuzzy">
+Esta herramienta gira o copia y gira los objetos seleccionados un ángulo dado alrededor de un punto en el [[Draft SelectPlane/es|plano de trabajo]] actual. Si no se han seleccionado objetos, te invitará a seleccionar uno. Luego, se pregunta al usuario por el centro de rotación, el ángulo de inicio y el ángulo de giro.
+</div>
+
+The command can be used on 2D objects created with the [[Draft_Workbench|Draft Workbench]] or [[Sketcher_Workbench|Sketcher Workbench]], but also on many 3D objects such as those created with the [[Part_Workbench|Part Workbench]], [[PartDesign_Workbench|PartDesign Workbench]] or [[BIM_Workbench|BIM Workbench]].
+
+[[Image:Draft_Rotate_example.jpg|400px]]
+{{Caption|Rotating an object around a center point}}
+
+<span id="Usage"></span>
+<div class="mw-translate-fuzzy">
+==Utilización==
+</div>
+
+See also: [[Draft_Snap|Draft Snap]] and [[Draft_Constrain|Draft Constrain]].
+
+<div class="mw-translate-fuzzy">
+# Selecciona los objetos que desees girar o copiar
+# Presiona el botón {{KEY|[[Image:Draft Rotate.png|16px]] [[Draft Rotate/es|girar]]}}, o presiona las teclas {{KEY|R}} y {{KEY|O}}
+# Designa un punto central en la vista 3D, o escribe unas coordenadas
+# Designa un segundo punto en la vista 3D, o indica un ángulo de referencia
+# Designa un tercer punto en la vista 3D, o indica un ángulo de rotación
+</div>
+
+<span id="Options"></span>
+==Opciones==
+
+The single character keyboard shortcuts available in the task panel can be changed. See [[Draft_Preferences|Draft Preferences]]. The shortcuts mentioned here are the default shortcuts (for version 1.0).
+
+<div class="mw-translate-fuzzy">
+* Presiona {{KEY|X}}, {{KEY|Y}} o {{KEY|Z}} después de un punto para restringir el siguiente punto sobre el eje indicado.
+* Para introducir coordenadas manualmente, simplemente introduce los números y presiona {{KEY|ENTER}} entre cada componente X, Y y Z.
+* Presiona {{KEY|T}} o selecciona la casilla para activar/desactivar el botón {{KEY|'''Continuar'''}}. Si el modo continuar está activado, la herramienta Girar se reiniciará al terminar permitiendo que gires o copies otros objetos sin necesidad de volver a presionar el botón de Girar.
+* Presionando {{KEY|ALT}} o {{KEY|C}} o seleccionando el botón {{KEY|'''Copiar'''}} se creará una copia de los objetos, en lugar de girarlos. Si mantienes presionada la tecla {{KEY|ALT}} después de indicar el tercer punto, podrás situar más copias, hasta que liberes la tecla {{KEY|ALT}}.
+* Presiona {{KEY|CTRL}} mientras dibujas para forzar el [[Draft_Snap/es|ajuste]] de tu punto a la posición de ajuste más cercana, independientemente de la distancia.
+* Presiona {{KEY|SHIFT}} mientras dibujas para [[Draft_Constrain/es|restringir]] tu siguiente punto horizontal o verticalmente en relación al centro de giro.
+* Presiona {{KEY|ESC}} o el botón {{KEY|'''Cancelar'''}} para abortar el comando actual.
+</div>
+
+==Notes==
+
+* An Object that is [[Part_EditAttachment|attached]] cannot be rotated with the Draft Rotate command. To rotate it either its {{PropertyData|Support}} object has to be rotated, or its {{PropertyData|Attachment Offset}} has to be changed.
+* The base angle concept can be somewhat confusing. Especially since it works only when selecting points, not when specifying the angle using the input field. An explanation of how it works, with an example, can be found in [https://forum.freecad.org/viewtopic.php?p=736674#p736674 this forum thread].
+
+==Preferences==
+
+See also: [[Preferences_Editor|Preferences Editor]] and [[Draft_Preferences|Draft Preferences]].
+
+* To reselect the base objects after copying objects: {{MenuCommand|Edit → Preferences... → Draft → General → Select base objects after copying}}.
+
+==Scripting==
+
+<div class="mw-translate-fuzzy">
+==Programación==
+</div>
+
+<div class="mw-translate-fuzzy">
+La herramienta Girar puede utilizarse en [[macros/es|macros]] y desde la consola de Python utilizando la siguiente función:
+</div>
+
+{{Code|code=
+rotated_list = rotate(objectslist, angle, center=Vector(0,0,0), axis=Vector(0,0,1), copy=False)
+}}
+
+<div class="mw-translate-fuzzy">
+* Gira el objeto dado o los objetos contenidos 
+ en la lista dada alrededor de un centro indicado si se proporciona, utilizando el eje como eje de rotación.
+* Si se omite el eje, la rotación se realizará alrededor del eje vertical Z. 
+* Si copymode es True, los objetos en realidad no se mueven sino que se crean unas copias. 
+* Devuelve los objetos (o sus copias si copymode es True).
+</div>
+
+Ejemplo:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+polygon1 = Draft.make_polygon(3, radius=300)
+Draft.move(polygon1, App.Vector(1000, 0, 0))
+
+# Rotation around the origin
+angle1 = 45
+rot2 = Draft.rotate(polygon1, angle1, copy=True)
+rot3 = Draft.rotate(polygon1, 2*angle1, copy=True)
+rot4 = Draft.rotate(polygon1, 4*angle1, copy=True)
+
+polygon2 = Draft.make_polygon(3, radius=1000)
+polygon3 = Draft.make_polygon(5, radius=500)
+Draft.move(polygon2, App.Vector(2000, 0, 0))
+Draft.move(polygon3, App.Vector(2000, 0, 0))
+
+# Rotation around another point
+angle2 = 60
+cen = App.Vector(3100, 0, 0)
+list2 = [polygon2, polygon3]
+rot_list2 = Draft.rotate(list2, angle2, center=cen, copy=True)
+rot_list3 = Draft.rotate(list2, 2*angle2, center=cen, copy=True)
+rot_list4 = Draft.rotate(list2, 4*angle2, center=cen, copy=True)
+
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Draft_Move|Move]]
+|[[Draft_Scale|Scale]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_Move.svg
+|IconR=Draft_Scale.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

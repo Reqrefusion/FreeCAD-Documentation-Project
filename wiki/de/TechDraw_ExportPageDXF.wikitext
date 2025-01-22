@@ -1,0 +1,83 @@
+<languages/>
+
+{{Docnav/de
+|[[TechDraw_ExportPageSVG/de|BlattExportierenSVG]]
+|[[TechDraw_View/de|Ansicht]]
+|[[TechDraw_Workbench/de|TechDraw]]
+|IconL=TechDraw_ExportPageSVG.svg
+|IconR=TechDraw_View.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{GuiCommand/de
+|Name=TechDraw ExportPageDXF
+|Name/de=TechDraw BlattExportierenDXF
+|MenuLocation=TechDraw → Page → Seite als DXF-Datei exportieren 
+|Workbenches=[[TechDraw_Workbench/de|TechDraw]]
+|Version=0.18
+|SeeAlso=[[TechDraw_ExportPageSVG/de|TechDraw BlattExportierenSVG]], [[Draft_DXF/de|Draft DXF]]
+}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+Das Werkzeug '''TechDraw BlattExportierenDXF''' speichert ein Zeichnungsblatt als [[DXF/de|DXF]]-Datei.
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Wenn mehrere Zeichnungsblätter im Dokument vorhanden sind: Wahlweise das gewünschte Zeichnungsblatt durch Auswahl in der [[Tree_view/de|Baumansicht]] aktivieren.
+# Es gibt mehrere Möglichkeiten, das Werkzeug aufzurufen:
+#* Die Schaltfläche {{Button|[[Image:TechDraw_ExportPageDXF.svg|16px]] [[TechDraw_ExportPageDXF/de|Seite als DXF-Datei exportieren]]}} drücken.
+#* Den Menüeintrag {{MenuCommand|TechDraw → Page  → [[Image:TechDraw_ExportPageDXF.svg|16px]] Seite als DXF-Datei exportieren}}  auswählen.
+#* Wenn ein Zeichnungsblatt im [[Main_view_area/de|Hauptansichtsbereich]] angezeigt wird: Mit der rechten Maustaste in das Fenster des Blattes klicken und im Kontextmenü die Option {{MenuCommand|Export DXF}} auswählen.
+# Wenn mehrere Zeichnungsblätter im Dokument vorhanden sind und noch kein Blatt aktiviert wurde, wird das Dialogfeld {{MenuCommand|Blattauswahl}} geöffnet:
+## Das gewünschte Blatt auswählen.
+## Die Schaltfläche {{Button|OK}} drücken.
+# Das Dialogfenster {{MenuCommand|Seite als DXF-Datei exportieren}} wird geöffnet.
+# Einen Speicherort und einen Dateinamen auswählen.
+
+<span id="Limitations"></span>
+===Einschränkungen===
+
+* Radien- und Durchmessermaße werden nur dann korrekt exportiert, wenn sie "innerhalb" des Bogens liegen.
+* Skalierung wird nicht unterstützt. Das DXF wird in der tatsächlichen Größe der TechDraw Seite gezeichnet.
+* Einheiten werden nicht unterstützt. Das DXF wird in Millimetern (mm) gezeichnet. Bemaßungstext wird genau wie in TechDraw angezeigt.
+* TechDraw kann keine [[TechDraw_DraftView/de|Draft-Ansicht]] oder [[TechDraw_ArchView/de|Arch-Ansicht]] nach DXF exportieren. Diese Ansichten sind [[SVG/de|SVG]]-Elemente, die intern vom Arbeitsbereich [[Draft_Workbench/de|Draft]] generiert werden, sodass es keine geometrische Form zum Exportieren gibt. Um eine Ansicht als DXF zu exportieren, muss sie mit [[TechDraw_View/de|Ansicht]] oder [[TechDraw_ProjectionGroup/de|Ansichtengruppe]] erstellt worden sein. Man wählt z. B. eine [[Arch_SectionPlane/de|Arch SchnittEbene]], danach verwendet man [[Draft_Shape2DView/de|Draft FormIn2DAnsicht]] um eine ebene Projektion zu erstellen, und wendet dann [[TechDraw_View/de|Ansicht]] auf dieses Objekt an. Alternativ wählt man die Objekte in der Baumansicht oder in der 3D-Ansicht aus und exportiert sie mit {{MenuCommand|Datei → [[Std_Export/de|Exportieren...]]}}.
+* Das Schriftfeld einer Seite ist ebenfalls eine [[SVG/de|SVG]]-Vorlage, daher wird es auch nicht nach DXF exportiert.
+* Im Allgemeinen kann TechDraw nur die Elemente nach DXF exportieren, die von der Klasse {{incode|Import::ImpExpDxfWrite}} des [[Draft_DXF/de|Draft DXF]]-Moduls unterstützt werden.
+
+<span id="Notes"></span>
+==Hinweise==
+
+* Diese Funktion exportiert die Versionen R12 (AC1009) und R14 (AC1014) von [[DXF/de|DXF]].
+** R12 ist eine ältere, einfachere Version des Standards, sollte aber für die meisten anderen Programme lesbar sein.
+** R14 ist die Standardversion.  Sie enthält unter anderem Unterstützung für Splines und Ellipsen.
+* Diese Parameter beeinflussen die Ausgabe:
+** {{MenuCommand|Werkzeuge → Parameter Berabeiten → BasisApp/Einstellungen/Mod/Import → DxfVersionOut}}. Dies ist ein ganzzahliger Wert. Gültige Einträge sind 12 oder 14. Der Standardwert ist 14.
+** {{MenuCommand|Werkzeuge → Parameter Berabeiten → BasisApp/Einstellungen/Mod/Import → DiscretizeEllipses}}. Dies ist ein boolescher Wert. Wenn {{TRUE}}, werden Splines und Ellipsen in Polylinien umgewandelt; wenn {{FALSE}}, werden Splines und Ellipsen als Splines- und Ellipsenobjekte geschrieben. Die Vorgabe ist {{FALSE}}. Wenn der Parameter DxfVersionOut 12 ist, werden Splines und Ellipsen immer in Polylinien konvertiert.
+** {{MenuCommand|Werkzeuge → Parameter Berabeiten → BasisApp/Einstellungen/Mod/Import → maxsegmentlength}}. Dies ist ein Gleitkommawert. Wenn Splines und Ellipsen in Polylinien umgewandelt werden, bestimmt dieser Parameter die Segmentlänge.
+
+<span id="Scripting"></span>
+==Skripten==
+
+{{Emphasis|Siehe auch:}} [[TechDrawGui_API/de|TechDrawGui API]] und [[FreeCAD_Scripting_Basics/de|FreeCAD Grundlagen Skripten]].
+
+Das Werkzeug SeiteExportierenDXF kann in [[Macros/de|Makros]] und von der [[Python/de|Python]]-Konsole aus mit den folgenden Funktionen benutzt werden:
+
+{{Code|code=
+TechDraw.writeDXFPage(page,filename)
+}}
+
+
+{{Docnav/de
+|[[TechDraw_ExportPageSVG/de|BlattExportierenSVG]]
+|[[TechDraw_View/de|Ansicht]]
+|[[TechDraw_Workbench/de|TechDraw]]
+|IconL=TechDraw_ExportPageSVG.svg
+|IconR=TechDraw_View.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{TechDraw_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

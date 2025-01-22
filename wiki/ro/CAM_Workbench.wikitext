@@ -1,0 +1,416 @@
+<languages/>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Docnav
+|[[BIM_Workbench|BIM Workbench]]
+|[[Draft_Workbench|Draft Workbench]]
+|IconL=Workbench_BIM.svg
+|IconR=Workbench_Draft.svg
+}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[Image:Workbench_CAM.svg|thumb|128px|CAM workbench icon]]
+</div>
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Introducere==
+
+<div class="mw-translate-fuzzy">
+Atelierul traiectorii este folosit pentru producerea unor instrucţiuni [https://en.wikipedia.org/wiki/CNC_router CNC machines] pornind de la un model FreeCAD 3D. Acestea produc  obeicte reale 3D pe mașini CNC ca frezele, strungurile, mașinile de tăiat cu laser, sau similare.În mod tipic instrucțiile sunt un dialect  [https://en.wikipedia.org/wiki/G-Code G-Code] .
+</div>
+
+[[Image:pathwb.png|600px]]
+
+<div class="mw-translate-fuzzy">
+Algoritmul pentru crearea acestor instrucțiuni în  FreeCAD, în limbajul G-cod, este următorul:
+* Un model 3D este obiectul de bază, creat în mod obișnuit folosind una sau mai multe tabele de lucru [[PartDesign Workbench/ro|Part Design]], [[Part_Workbench/ro|Part]] sau [[Draft Workbench/ro|Draft]].
+* O [[CAM_Job/ro|Job]] este creată în Path Workbench. Aceasta conține toate informațiile necesare pentru a genera codul G necesar pentru a procesa lucrarea pe o moară CNC: există material stoc, moara are un anumit [[CAM_ToolBitLibraryOpen|set de instrumente]] și urmează anumite comenzi care controlează viteza și mișcările (de obicei, Codul G).
+* Instrumentele sunt selectate după cum este cerut de Operațiunile de Lucru.
+* Căile de frezare sunt create folosind, de ex. [[CAM_Profile/ro|Contour]] și [[CAM_Pocket_3D/ro|Pocket]] Operații. Aceste Obiecte de cale folosesc dialectul intern al FreeCAD G, independent de mașina CNC.
+* Exportați lucrarea cu un cod g, care se potrivește cu mașina dvs.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== General concepts ==
+</div>
+
+<div class="mw-translate-fuzzy">
+== Concepte generale ==
+Path Workbench generează G-Code care definește căile necesare pentru a mula Proiectul reprezentat de modelul 3D pe miezul țintă [[https://www.freecadweb.org/wiki/Path_scripting#FreeCAD.27s_internal_GCode_format  the Path Job Operations FreeCAD G-Code dialect ]], care ulterior se traduce în dialectul corespunzător pentru controlerul CNC țintă prin selectarea postprocesorului adecvat.
+ 
+Codul G este generat de directivele și operațiile conținute într-o traiectorie. Fluxul de lucru al joburilor le afișează în ordinea în care vor fi executate. Lista este populată prin adăugarea operațiunilor de deplasare, a traiectoriile suplimentare(Dressup), a comenzilor parțiale ale traiectorilor și a modificărilor de parcurs - din meniul Path sau prin butoanele GUI.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The G-code is generated from directives and Operations contained in a CAM Job. The Job Workflow lists these in the order they will be executed. The list is populated by adding CAM Operations, Path Dressups, Supplemental Commands, and Path Modifications from the CAM Menu, or GUI buttons.
+</div>
+
+<div class="mw-translate-fuzzy">
+Path Workbench oferă un Manager de instrumente (Library, Tool-Table) și G-Code Inspection și instrumente de simulare. Acesta leagă postprocesorul și permite importarea și exportul șabloanelor de lucrări.
+</div>
+
+<div class="mw-translate-fuzzy">
+Path Workbench include dependențe externe:
+# Unitățile de măsură ale modelului FreeCAD 3D sunt definite în {{MenuCommand|Edit → Preference → General → Units tab's Units settings}}..  Configurația Postprocesorului definește unitățile finale de cod G.
+# Fișierul Macro al traiectorie, and Geometric toleranțe, sunt definite în {{MenuCommand|Edit → Preferences → Path → Job Preferences}} .
+# Culorile sunt definite in the {{MenuCommand|Edit → Preferences → Path → Path colors}} tab.
+# Parametrii Punților de susținere (Holding tag) sunt definite în {{MenuCommand|Edit → Preferences → Path → Dressups}}  tab. 
+# Calitatea modelului 3D de bază acceptă cerințele Path WB, passes Check Geometry.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Limitations ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Some current limitations of which you should be aware are:
+* Most of the CAM Tools are not true 3D tools but only 2.5D capable. This means that they take a fixed 2D shape and can cut it down to a given depth. However, there are two tools which produce true 3D paths: {{KEY|[[Image:CAM_3DPocket.svg|24px]] [[CAM_Pocket_3D|3D Pocket]]}} and {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}} (which is still an [[CAM_experimental|experimental feature]] as of November 2020).
+* Most of CAM workbench is designed for a simple, standard 3-axis (xyz) CNC mill/router, but lathe tools are under development in 0.19_pre.
+* Most operations in CAM workbench will return paths based on a standard endmill tool/bit only, regardless of the tool/bit type assigned in a given tool controller with the exception of the {{KEY|[[Image:CAM_Engrave.svg|24px]] [[CAM_Engrave|Engrave]]}} and {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}} operations.
+* The operations within the CAM workbench are not aware of clamping mechanisms in use to secure the model to your machine. Consequently, please review and simulate the paths you generate prior to sending the code to your machine. If necessary, model your clamping mechanisms in FreeCAD in order to better inspect the paths generated. Look for possible collisions with clamps or other obstacles along the paths.
+</div>
+
+<span id="Units"></span>
+== Unități de măsură ==
+
+<div class="mw-translate-fuzzy">
+Unitatea de măsură în Traiectorie poate crea confuzii. Există mai multe puncte de înțeles:
+# În FreeCAD unitățile de măsură pentru lungime și timp sunt 'mm' and 's' respectively. Viteza este în 'mm/s'. Aceasta este stocată intern în FreeCAD indiferent de orice altceva
+# Schema default de Unități de măsură  utilizează unitățile implicite. Dacă utilizați schema implicită și introduceți o rată de alimentare fără a specifică  unitățile de măsură, aceasta va fi introdusă ca 'mm/s'
+# Majoritatea mașinilor CNC se așteaptă ca rata de alimentare să fie sub formă de fie 'mm/min' or 'in/min'.  Cele mai multe postprocesoare vor converti automat unitatea atunci când generează gcode.
+</div>
+
+<div class="mw-translate-fuzzy">
+Scheme:
+# Schimbarea schemei din preferințe modifică șirul de unități implicit pentru câmpurile de introducere. Dacă sunteți un utilizator Path și preferați să proiectați în metrice, este foarte recomandat să utilizați schema "Metric Small Parts & CNC". Dacă proiectați în unități din SUA, fie Decimalul Imperial și Clădirea SUA vor funcționa
+# Schimbarea schemei de unități preferate nu va avea niciun efect asupra ieșirii, dar va ajuta la evitarea erorilor de intrare
+</div>
+
+<div class="mw-translate-fuzzy">
+Ieşire:
+# Generarea unității corecte în ieșire este responsabilitatea postprocesorului și se face numai la momentul respectiv
+# Unitatea de ieșire a mașinii nu are nicio legătură cu schema unității selectată
+# Postprocesoarele produc fie ieșire metrică (G21), ieșire Imperial (G20), fie configurabile.
+# Implicit post-procesor configurabil la metric (G21)
+# Dacă doriți ca postprocesorul dvs. configurabil să emită gcode imperiale (G20), Setați argumentul corect în configurația de ieșire a jobului (de ex. --Inches pentru linuxcnc). Acest lucru poate fi stocat într-un șablon de lucru și setat ca șablon implicit pentru al face automat pentru toate lucrările viitoare
+</div>
+
+<div class="mw-translate-fuzzy">
+Căi de inspecție:
+# Dacă utilizați instrumentul Path Inspect pentru a vedea codul g, îl veți vedea în 'mm/s' deoarece nu este post-procesat
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Heights and depths ==
+</div>
+
+<div class="mw-translate-fuzzy">
+==Comenzi pentru Traiectorie==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[Image:Path-DepthsAndHeights.gif|500px]]
+{{Caption|Visual reference for Depth properties (settings)}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Commands ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Some commands are experimental and not available by default. To enable them see [[CAM_experimental|CAM experimental]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Project Commands ===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path-Job.png|32px]] [[CAM_Job/ro|Job]]:  Creează un nou CNC job
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_PostProcess.png|32px]] [[CAM_Post/ro|Post Process]]: Exportă un proiect ca G-code
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Sanity.png|32px]] [[CAM_Sanity/ro|CAM Errors]]: Verifică lucrarea selectată pentru valori lipsă
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path-ExportTemplate.png|32px]] [[CAM_ExportTemplate/ro|Export Template]]: Exportă job-ul curent ca șablon
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Tool Commands ===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Inspect.png|32px]] [[CAM_Inspect/ro|G-Code Inspector]]: Arată G-code pentru verificare
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Simulator.png|32px]] [[CAM_Simulator/ro|Simulator]]: Arată operațiunile de frezare ca și cum ar fi fost deja făcute pe mașina-unealtă
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_SimulatorGL.svg|32px]] [[CAM_SimulatorGL|CAM SimulatorGL]]: Enables the new, improved CAM simulator. {{Version|1.0}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path-CompleteLoop.png|32px]] [[CAM_SelectLoop/ro|Complete Loop]]: Completează o buclă de la două muchii selceționate
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_OpActiveToggle.svg|32px]] [[CAM_OpActiveToggle|Toggle the Active State of the Operation]]: Activates or de-activates a path operation.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_ToolBitLibraryOpen.svg|32px]] [[CAM_ToolBitLibraryOpen|ToolBit Library editor]]: Opens an editor to manage ToolBit libraries.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_ToolBitDock.svg|32px]] [[CAM_ToolBitDock|ToolBit Dock]]: Toggles the ToolBit Dock.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Basic Operations ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Profile.svg|32px]] [[CAM_Profile|Profile]]: Creates a profile operation of the entire model, or from one or more selected faces or edges.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Pocket.png|32px]] [[CAM_Pocket_Shape/ro|Pocket]]: Creează o operație de realizare a unor adâncituri dreptunghiulare pornind de la una sau mai multe buzunare -pocket(s)
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Drilling.png|32px]] [[CAM_Drilling/ro|Drilling]]: Realizează un ciclu de găurire
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path-Face.png|32px]] [[CAM_MillFace/ro|Mill Face]]: Creează o traiectorie de suprafață
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path-Helix.png|32px]] [[CAM_Helix/ro|Helix]]: Creează o traiectorie elicoidală
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Adaptive.svg|32px]] [[CAM_Adaptive|Adaptive]]: Creates an adaptive clearing and profiling operation.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Slot.svg|32px]] [[CAM_Slot|Slot]]: Creates a slotting operation from selected features or custom points. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path-Engrave.png|32px]] [[CAM_Engrave/ro|Engrave]]: Creează o gravură
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Deburr.svg|32px]] [[CAM_Deburr|Deburr]]: Creates a deburr path.
+</div>
+
+<div class="mw-translate-fuzzy">
+===Traiectorie suplimentară===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== 3D Operations ===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path-3DPocket.png|32px]] [[CAM_Pocket_3D/ro|3D Pocket]]: Creează o traiectorie pentru o adâncitură 3D- 3D pocket
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path-3DSurface.png|32px]] [[CAM_Surface/ro|3D Surface]]: Creează o traiectorie de uzinare pentru o suprafață 3D
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Waterline.svg|32px]] [[CAM_Waterline|Waterline]]: Creates a waterline path for a 3D surface. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Path Dressup ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupAxisMap.svg|32px]] [[CAM_DressupAxisMap|Axis Map]]: Remaps one axis to another.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupPathBoundary.svg|32px]] [[CAM_DressupPathBoundary|Boundary]]: Adds a boundary dressup modification to a selected path.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupDogbone.png|32px]]  [[CAM_DressupDogbone/ro|Dogbone Dressup]]: Adaugă modificări de traiectorie pentru colțurile interne (dogbone)
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupDragKnife.png|32px]] [[CAM_DressupDragKnife/ro|Dragknife Dressup]]: Adaugă o traiectorie suplimentară pentru un dragknife la traiectoria selectată
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupLeadInOut.png|32px]] [[CAM_DressupLeadInOut/ro|Lead In Dressup]]:Adaugă un punct de intrare și / sau un punct de ieșire la o traiectorie selectată
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupRampEntry.png|32px]] [[CAM_DressupRampEntry/ro|Ramp Entry Dressup]]: Adaugă o traiectorie suplimentară de intrare intrare în șpan
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupTag.png|32px]] [[CAM_DressupTag/ro|Tag Dressup]]: Adaugă punți de susținere (holding tag) la traiectoria selectată
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupZCorrect.svg|32px]] [[CAM_DressupZCorrect|Z Depth Correction]]: Corrects the Z depth using Probe Map.
+</div>
+
+<span id="Supplemental_Commands"></span>
+<div class="mw-translate-fuzzy">
+===Comenzi Speciale===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Fixture.png|32px]] [[CAM_Fixture/ro|Fixture]]: Schimbă poziția punctului de fixare
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Comment.png|32px]] [[CAM_Comment/ro|Comment]]: Inserează un comentariu în G-codul traiectoriei
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Stop.png|32px]] [[CAM_Stop/ro|Stop]]: Introduce o oprire completă a mașinii
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Custom.png|32px]] [[CAM_Custom/ro|Custom]]: Inserează G-cod personalizat
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Probe.svg|32px]] [[CAM_Probe|Probe]]: Creates a Probing Grid from a job stock.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Shape.svg|32px]] [[CAM_Shape/ro|From Shape]]: Creează un obiect traiectorie dintr-un obiect Piesă selectat
+</div>
+
+<span id="Path_Modification"></span>
+<div class="mw-translate-fuzzy">
+===Modificarea Traiectoriei===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Copy.png|32px]] [[CAM_Copy/ro|Copy]]: Creează o Copie parametrică a obiectului traiectorie selectat
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Array.png|32px]] [[CAM_Array/ro|Array]]: Creează o matrice de multiplicare a traiectoriei selectate
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_SimpleCopy.png|32px]] [[CAM_SimpleCopy/ro|Simple Copy]]: Creează o copie neparametrică a unui obiect traiectorie selectat
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Specialty Operations ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_ThreadMilling.svg|32px]] [[CAM_ThreadMilling|Thread Milling]]: Creates a CAM Thread Milling operation from features of a base object. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Miscellaneous ===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path-Area.png|32px]] [[CAM_Area/ro|Feature area]]: Creează o zonă de caracteristici din obiectele selectate
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Path-Area-Workplane.png|32px]] [[CAM_Area_Workplane/ro|Feature area workplane]]: Creează un plan de lucru pentru zona de caracteristici
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== ToolBit architecture ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Manage tools, bits, and the Tool Library. Based on the ToolBit architecture.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[CAM_Tools|CAM Tools]]
+* [[CAM_ToolShape|CAM ToolShape]]
+* [[CAM_ToolBit|CAM ToolBit]]
+* [[CAM_ToolBit_Library|CAM ToolBit Library]]
+* [[CAM_ToolController|CAM ToolController]]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Other ==
+</div>
+
+<div class="mw-translate-fuzzy">
+Path Workbench partajează mai multe concepte cu alte pachete software CAM, dar are propriile particularități. Dacă ceva pare rău, ar putea fi un loc bun pentru a începe.
+</div>
+
+<span id="Preferences"></span>
+<div class="mw-translate-fuzzy">
+===Preferințe===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Std_DlgParameter.png|32px]] [[CAM_Preferences/ro|Preferences...]]: Preferințe disponibile în Atelierul Traiectorie.
+</div>
+
+<span id="Scripting"></span>
+== Script ==
+
+<div class="mw-translate-fuzzy">
+A se vedea pagina [[Path scripting/ro|CAM scripting]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Tutorials ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[CAM_Walkthrough_for_the_Impatient|CAM Walkthrough for the Impatient]]: a quick tutorial to get familiar with CAM.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Videos ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [https://www.youtube.com/playlist?list=PLEuOia-QxyFKgzAeTyH62GKqWKVURiWJL FreeCAD Path: Custom paths with Python - Part 1 - 5]: A playlist with a series of 5 videos in English by sliptonic. This series shows how to work with the [[CAM_Workbench|CAM Workbench]]. 
+* [https://www.youtube.com/playlist?list=PLUrr_kHPp4vhGdLlj6IemtF-OPUlRvSTC  FreeCAD CAM Path Workbench]: A playlist with a series of 7 videos in English by CAD CAM Lessons.
+* [https://www.youtube.com/playlist?list=PLUrr_kHPp4vh2n6DcIlegK4dEKIFjmISJ FreeCAD CAM CNC]: A playlist with a series of 8 videos in English by CAD CAM Lessons.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Roadmap ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[CAM_Development_Roadmap|CAM Development Roadmap]]: Read this if you are a developer and want to contribute to CAM.
+</div>
+
+
+<div class="mw-translate-fuzzy">
+{{Userdocnavi/ro}}
+[[Category:Path/ro]]
+[[Category:Workbenches/ro]]
+</div>
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Workbenches{{#translation:}}]]

@@ -1,0 +1,181 @@
+<languages/>
+{{TOCright}}
+
+== Creating a SketchObject using Python ==
+
+We create a SketchObject like this:
+
+{{Code|code=
+import FreeCAD as App
+import Part
+import Sketcher
+
+doc = App.newDocument()  
+
+sketch = doc.addObject("Sketcher::SketchObject", "Sketch")
+sketch.addGeometry(Part.LineSegment(App.Vector(1.2, 1.8, 0),
+                                    App.Vector(5.2, 5.3, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(6.5, 1.5, 0),
+                                    App.Vector(10.2, 5.0, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(12.2, 1.0, 0),
+                                    App.Vector(15.4, 5.0, 0)), False)
+
+doc.recompute()
+}}
+
+It also adds three [[Topological_data_scripting#Line|lines]] in the newly created Sketch.
+
+<span id="Creating_a_constraint_using_Python"></span>
+== Creación de una restricción con Python ==
+
+A geometric constraint [[File:Sketcher_ConstrainCoincident.svg|24px]] [[File:Sketcher_ConstrainPointOnObject.svg|24px]] [[File:Sketcher_ConstrainVertical.svg|24px]] [[File:Sketcher_ConstrainHorizontal.svg|24px]] [[File:Sketcher_ConstrainParallel.svg|24px]] [[File:Sketcher_ConstrainPerpendicular.svg|24px]] [[File:Sketcher_ConstrainTangent.svg|24px]] [[File:Sketcher_ConstrainEqual.svg|24px]] [[File:Sketcher_ConstrainSymmetric.svg|24px]] and [[File:Sketcher_ConstrainBlock.svg|24px]] can be created from macros and from the Python console by using the following command:
+
+{{Code|code=sketch.addConstraint(Sketcher.Constraint(ConstraintType, EdgeOrPartOfEdge…)) }}
+
+A dimensional constraint [[File:Sketcher_ConstrainLock.svg|24px]] [[File:Sketcher_ConstrainDistanceX.svg|24px]] [[File:Sketcher_ConstrainDistanceY.svg|24px]] [[File:Sketcher_ConstrainDistance.svg|24px]] [[File:Sketcher_ConstrainRadius.svg|24px]] [[File:Sketcher_ConstrainDiameter.svg|24px]] [[File:Sketcher_ConstrainAngle.svg|24px]] and the special constraint [[File:Sketcher_ConstrainSnellsLaw.svg|24px]] [[Sketcher_ConstrainSnellsLaw|Snell's law]] can be created from macros and from the Python console by using the following command:
+
+{{Code|code=sketch.addConstraint(Sketcher.Constraint(DimensionalConstraintType, EdgeOrPartOfEdge…, App.Units.Quantity("float_value unit"))) }}
+
+e.g.
+
+{{Code|code=sketch.addConstraint(Sketcher.Constraint(DimensionalConstraintType, EdgeOrPartOfEdge…, App.Units.Quantity("123.0 mm"))) }}
+
+The first argument {{incode|ConstraintType}} is described below in [[#Constraint_types|Constraint types]].
+
+A constraint can take up to six arguments which are edges or indicate which sub-part of an edge is used by the constraint. See the documentation of individual constraints for details on what combinations of edges and sub-parts of edges can be passed as arguments.
+The main issue with this function is to identify correctly the line number and the vertex number of the lines you want to process.
+The sections below describe how to [[#Identifying_the_numbering_of_a_line|identify the numbering of a line]], and how to [[#Identifying_the_numbering_of_the_sub-parts_of_a_line|Identify the numbering of the sub-parts of a line]].
+
+<span id="Constraint_types"></span>
+== Tipos de restricciones ==
+
+For geometric constraints, the first argument is one of the following. See the corresponding feature page for the possible combinations of arguments allowed for each constraint.
+
+{| class="wikitable"
+|-
+! Code !! Icon !! Feature
+|-
+| {{incode|"Coincident"}} || [[File:Sketcher_ConstrainCoincident.svg|24px]] || [[Sketcher_ConstrainCoincident|Coincident]]
+|-
+| {{incode|"PointOnObject"}} || [[File:Sketcher_ConstrainPointOnObject.svg|24px]] || [[Sketcher_ConstrainPointOnObject|Point On Object]]
+|-
+| {{incode|"Vertical"}} || [[File:Sketcher_ConstrainVertical.svg|24px]] || [[Sketcher_ConstrainVertical|Vertical]]
+|-
+| {{incode|"Horizontal"}} || [[File:Sketcher_ConstrainHorizontal.svg|24px]] || [[Sketcher_ConstrainHorizontal|Horizontal]]
+|-
+| {{incode|"Parallel"}} || [[File:Sketcher_ConstrainParallel.svg|24px]] || [[Sketcher_ConstrainParallel|Parallel]]
+|-
+| {{incode|"Perpendicular"}} || [[File:Sketcher_ConstrainPerpendicular.svg|24px]] || [[Sketcher_ConstrainPerpendicular|Perpendicular]]
+|-
+| {{incode|"Tangent"}} || [[File:Sketcher_ConstrainTangent.svg|24px]] || [[Sketcher_ConstrainTangent|Tangent]]
+|-
+| {{incode|"Equal"}} || [[File:Sketcher_ConstrainEqual.svg|24px]] || [[Sketcher_ConstrainEqual|Equal]]
+|-
+| {{incode|"Symmetric"}} || [[File:Sketcher_ConstrainSymmetric.svg|24px]] || [[Sketcher_ConstrainSymmetric|Symmetric]]
+|-
+| {{incode|"Block"}} || [[Image:Sketcher_ConstrainBlock.svg|24px]] || [[Sketcher_ConstrainBlock|Block]]
+|}
+
+For dimensional constraints, the first argument is one of the following. See the corresponding feature page for the possible combinations of arguments allowed for each constraint.
+
+{| class="wikitable"
+|-
+! Code !! Icon !! Feature
+|-
+| {{incode|"DistanceX"}} || [[File:Sketcher_ConstrainDistanceX.svg|24px]] || [[Sketcher_ConstrainDistanceX|Horizontal distance]]
+|-
+| {{incode|"DistanceY"}} || [[File:Sketcher_ConstrainDistanceY.svg|24px]] || [[Sketcher_ConstrainDistanceY|Vertical distance]]
+|-
+| {{incode|"Distance"}} || [[File:Sketcher_ConstrainDistance.svg|24px]] || [[Sketcher_ConstrainDistance|Distance]]
+|-
+| {{incode|"Radius"}} || [[File:Sketcher_ConstrainRadius.svg|24px]] || [[Sketcher_ConstrainRadius|Radius]]
+|-
+| {{incode|"Diameter"}} || [[File:Sketcher_ConstrainDiameter.svg|24px]] || [[Sketcher_ConstrainDiameter|Diameter]]
+|-
+| {{incode|"Angle"}} || [[File:Sketcher_ConstrainAngle.svg|24px]] || [[Sketcher_ConstrainAngle|Angle]]
+|-
+| {{incode|"AngleViaPoint"}} || [[File:Sketcher_ConstrainAngle.svg|24px]] || [[Sketcher_ConstrainAngle|Angle]]
+|}
+
+The [[File:Sketcher_ConstrainSnellsLaw.svg|24px]] [[Sketcher_ConstrainSnellsLaw|Snell's law]] constraints behave like dimensional contraints for the purposes of scripting. Again, see the corresponding feature page for the possible combinations of arguments allowed for each constraint.
+
+{| class="wikitable"
+|-
+! Code !! Icon !! Feature
+|-
+| {{incode|"SnellsLaw"}} || [[File:Sketcher_ConstrainSnellsLaw.svg|24px]] || [[Sketcher_ConstrainSnellsLaw|Snell's law]]
+|}
+
+The [[File:Sketcher_ConstrainLock.svg|24px]] [[Sketcher_ConstrainLock|Lock]] constraint is a GUI command which creates a [[File:Sketcher_ConstrainDistanceX.svg|24px]] [[Sketcher_ConstrainDistanceX|Horizontal distance]] and a [[File:Sketcher_ConstrainDistanceY.svg|24px]] [[Sketcher_ConstrainDistanceY|Vertical distance]] constraint, it is not a constraint of its own.
+
+<span id="Identifying_the_numbering_of_a_line"></span>
+==Identificación de la numeración de una línea==
+
+I have drawn three lines as shown in the following figure.
+
+[[File:PartDesignConstraintPointOnPointScriptingFigure1.jpg|600px]]
+
+By moving the cursor of the mouse above the line you can see the line number at the bottom left of the FreeCAD windows, see next figure.
+
+[[File:PartDesignConstraintPointOnPointScriptingFigure2.jpg|600px]]
+
+Unfortunately the numbering displayed on the FreeCAD windows start from 1 whereas the numbering of the line used to script start from 0: this means that you have to subtract one each time you want to refer to a line.
+
+Positive numbers indicate sketch edges (straight lines, circles, conics, B-splines,  and so on). The following values can be used to denote elements that are not sketch edges:
+
+* {{incode|-1}} denotes the horizontal x axis
+* {{incode|-2}} denotes the vertical y axis
+* {{incode|-n}} denotes the external geometry element number {{incode|n-3}} (e.g. the external geometry element with index 0 in the flattened list {{incode|sketch.ExternalGeometry}} would be denoted by -3, the following element in the flattened list would be -4 and so on).
+
+==Identifying the numbering of the sub-parts of a line==
+
+When qualifying which part of a line is affected by a constraint, the following values can be used:
+* {{incode|0}} to indicate that the constraint affects the entire edge.
+* {{incode|1}} to indicate that the constraint affects the start point of the edge (a full circle has no starting point).
+* {{incode|2}} to indicate that the constraint affects the endpoint of the edge.
+* {{incode|3}} to indicate that the constraint affects the center point of the edge. Can only be used for circles, circular arcs, ellipses and elliptical arcs.
+* {{incode|n}} to indicate that the constraint affects the n-th pole of a B-spline.
+
+The vertices indicated by 1 and 2 are numbered according to their order of creation. To find out the order of their creation (If you have a lot of lines, you cannot remember which vertex you have created first), you just have to move the cursor of your mouse above the two vertices of one line, see following figure.
+
+[[File:PartDesignConstraintPointOnPointScriptingFigure3.jpg|600px]]
+
+If you read e.g. 4 and 5, it means that the vertex with the lower number (4 in this example) will be referenced by using the number 1 (first in the script command and the vertex with the higher number (5 in this example) will be referenced by using the number 2 in the script command.
+
+<span id="Example"></span>
+==Ejemplo==
+
+Let us take the previous example of the three lines. The subsequent figure indicates the numbering of each line and their vertices according to the convention for scripting.
+
+[[Image:PartDesignConstraintPointOnPointScriptingFigure3Bis.jpg|600px]]
+
+{{Caption|<b>blue text:</b> numbering of line, <b>black text:</b> numbering of vertices}}
+
+The command {{incode|sketch.addConstraint(Sketcher.Constraint("Coincident", 1, 2, 2, 1))}} yields following result:
+
+[[Image:PartDesignConstraintPointOnPointScriptingFigure4.jpg|600px]]
+
+The full code to draw the three lines and add a Coincident constraint on two points from two lines is like this:
+
+{{Code|code=
+import FreeCAD as App
+import Part
+import Sketcher
+
+doc = App.newDocument()  
+
+sketch = doc.addObject("Sketcher::SketchObject", "Sketch")
+sketch.addGeometry(Part.LineSegment(App.Vector(1.2, 1.8, 0),
+                                    App.Vector(5.2, 5.3, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(6.5, 1.5, 0),
+                                    App.Vector(10.2, 5.0, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(12.2, 1.0, 0),
+                                    App.Vector(15.4, 5.0, 0)), False)
+sketch.addConstraint(Sketcher.Constraint("Coincident", 1, 2, 2, 1))
+
+doc.recompute()
+}}  
+
+
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

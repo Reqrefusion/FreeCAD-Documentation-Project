@@ -1,0 +1,153 @@
+<languages/>
+
+{{Docnav/fr
+|[[Part_Loft/fr|Lissage]]
+|[[Part_Section/fr|Section]]
+|[[Part_Workbench/fr|Atelier Part]]
+|IconL=Part_Loft.svg
+|IconR=Part_Section.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/fr
+|Name=Part Sweep
+|Name/fr=Part Balayage
+|MenuLocation=Part → Créer un balayage...
+|Workbenches=[[Part_Workbench/fr|Part]]
+|SeeAlso=[[Part_Loft/fr|Part Lissage]]
+}}
+
+==Description== 
+
+L'outil [[Image:Part_Sweep.svg|24px]] [[Part_Sweep/fr|Part Balayage]] crée une face, une coque ou une forme solide à partir d'un ou plusieurs profils (sections transversales) répartis le long d'une trajectoire.
+
+La commande Part Balayage est similaire à [[Image:Part_Loft.svg|24px]] [[Part_Loft/fr|Part Lissage]] avec en plus une trajectoire.
+
+[[File:Part_Sweep_simple.png|400px]]
+{{Caption|Balayage solide généré à partir d'un profil unique (A) distribué le long d'une trajectoire (B)}}
+
+<span id="Usage"></span>
+==Utilisation== 
+
+# Il y a plusieurs façons de lancer la commande :
+#* Appuyez sur le bouton {{Button|[[Image:Part_Sweep.svg|16px]] [[Part_Sweep/fr|Créer un balayage...]]}}
+#* Sélectionnez l'option {{MenuCommand|Part → [[Image:Part_Sweep.svg|16px]] Créer un balayage...}} du menu.
+# Le [[Task_panel/fr|panneau des tâches]] du balayage s'ouvre.
+# Dans la liste ''Profils disponibles'' à gauche, sélectionnez un profil et cliquez sur la flèche droite pour le placer dans la liste ''Profils sélectionnés'' à droite.
+# Répétez l'opération si vous voulez plus d'un profil.
+# Les flèches vers le haut et vers le bas réorganisent la liste de droite. Mais cela n'a pas d'impact sur le résultat. La position des profils le long de la trajectoire détermine l'ordre dans lequel ils sont utilisés.
+# Cliquez sur le bouton {{Button|Trajectoire de balayage}}, puis choisissez l'un ou l'autre mode de sélection :
+#* ''Sélection de segments'' : sélectionnez une ou plusieurs arêtes contiguës dans la [[3D_view/fr|vue 3D]] (appuyez sur {{KEY|CTRL}} pour une sélection multiple) et cliquez sur {{Button|Valider}}. Le balayage ne sera généré que le long des arêtes sélectionnées.
+#* ''Sélection complète de la trajectoire'' : passez à la [[Tree_view/fr|vue en arborescence]], sélectionnez l'objet à utiliser comme trajectoire, revenez au panneau des tâches et cliquez sur {{Button|Valider}}. Le balayage sera généré le long de toutes les arêtes contiguës de l'objet.
+# Définissez les options [[#Solide|Solide]] et [[#Frenet|Frenet]].
+# Cliquez sur {{Button|OK}}.
+
+<span id="Accepted_geometry"></span>
+===Géométrie acceptée===
+
+* '''Profils :''' ce peut être un point (sommet), une ligne (arête), une polyligne ou une face. Les arêtes et les polylignes peuvent être ouvertes ou fermées. Il existe plusieurs [[#Limitations|Limitations]], voir ci-dessous. Parfois, il ne suffit pas d'aligner correctement le profil sur la trajectoire. Pour que l'outil fonctionne correctement, il peut également être nécessaire d'[[Part_EditAttachment/fr|ancrer]] le profil à la trajectoire. Si l'esquisse du profil est ancrée à la mauvaise extrémité d'une arête de la trajectoire, changez {{PropertyData|Map Path Parameter}} de 0 à 1.
+
+* '''Trajectoire''' : ce peut être une ligne (arête) ou une série de lignes connectées, une polyligne ou divers objets des atelier Part ou Draft ou une esquisse. La trajectoire peut être ouverte ou fermée.
+
+* Les objets [[App_Link/fr|App Link]] liés aux types d'objets appropriés et les conteneurs [[App_Part/fr|App Part]] contenant les objets visibles appropriés peuvent également être utilisés comme profils et trajectoires. {{Version/fr|0.20}}
+
+==Options==
+
+<span id="Solid"></span>
+====Solide====
+
+Si "Solid" est mis à "true", FreeCAD crée un solide, à condition que les profils soient fermés. S'il est mis à "false", FreeCAD crée une face ou une coque pour des profils ouverts ou fermés.
+
+====Frenet====
+
+[[File:Sweep-frenet-comp.png|500px|right]]
+
+La propriété "Frenet" contrôle la façon dont l'orientation du profil change quand il suit la trajectoire de balayage. Si "Frenet" est mis à "false", l'orientation du profil est maintenu cohérent point à point. La forme résultante présente le moins de torsion possible. De manière inattendue, lorsqu'un profil est balayé le long d'une hélice, l'orientation du profil se déplace lentement (rotation) au fur et à mesure qu'il suit l'hélice. Le fait d'attribuer la valeur "Frenet" à true permet d'éviter ce phénomène.
+
+Si "Frenet" est mis à "true", l'orientation du profil est basée sur les vecteurs de courbure et de tangence locaux de la trajectoire. Cela permet de conserver une orientation cohérente du profil lors du balayage le long d'une hélice (car le vecteur de courbure d'une hélice droite pointe toujours vers son axe). Toutefois, lorsque la trajectoire n'est pas une hélice, la forme obtenue peut parfois avoir d'étranges torsions. Pour plus d'informations, voir [https://fr.wikipedia.org/wiki/Rep%C3%A8re_de_Frenet Repère de Frenet].
+
+====Transition====
+
+"Transition" définit le style de transition du balayage aux joints non tangentiels de la trajectoire. La propriété n'est pas exposée dans le panneau de tâches et peut être trouvée dans les [[Property_editor/fr|propriétés]] après la création du balayage.
+
+<span id="Properties"></span>
+==Propriétés==
+
+Voir aussi : [[Property_editor/fr|Éditeur de propriétés]]
+
+Un objet Part Balayage est dérivé d'un [[Part_Feature/fr|Part Feature]] et hérite de toutes ses propriétés. Il possède également les propriétés supplémentaires suivantes :
+
+<span id="Data"></span>
+===Données===
+
+{{TitleProperty|Sweep}}
+
+* {{PropertyData|Sections|LinkList}} : liste des sections utilisées.
+* {{PropertyData|Spine|LinkSub}} : trajectoire le long de laquelle balayer.
+* {{PropertyData|Solid|Bool}} : true ou false (par défaut). True crée un solide.
+* {{PropertyData|Frenet|Bool}} : true ou false (par défaut). True utilise l'algorithme Frenet.
+* {{PropertyData|Transition|Enumeration}} : mode de transition. Les options sont ''Transformed'', ''Right corner'' ou ''Round corner''.
+
+==Limitations==
+
+<span id="Vertex_or_point"></span>
+===Sommet ou point===
+
+Un sommet ou un point ne peut être utilisé que comme premier et/ou dernier profil.<br>
+Par exemple :
+* Vous ne pouvez pas balayer à partir d'un cercle vers un point, vers une ellipse. 
+* Vous pouvez cependant passer d'un point à un cercle, à une ellipse et à un autre point.
+
+<span id="Profiles"></span>
+===Profils===
+
+Dans un balayage, tous les profils (lignes, polylignes, etc.) doivent être ouverts ou fermés.<br>
+Par exemple :
+* FreeCAD ne peut pas effectuer de balayage entre un Part Cercle et une Part Polyligne.
+
+<span id="Sketches"></span>
+===Esquisses===
+
+* Le profil peut être créé avec une esquisse. Cependant, seules les esquisses valides seront disponibles pour la sélection dans le panneau de tâches.
+* L'esquisse ne doit contenir qu'une seule polyligne ou ligne ouverte ou fermée (il peut s'agir de plusieurs lignes, si ces lignes sont toutes connectées, il s'agit alors d'une seule polyligne).
+
+<span id="Draft_Workbench_objects"></span>
+===Objets de l'atelier Draft===
+
+Un profil peut être un objet de l'[[Draft_Workbench/fr|atelier Draft]].
+Les objets suivants peuvent être des profils valides :
+* Point
+* Ligne, polyligne
+* B-spline, courbe de Bézier
+* Cercle, ellipse
+* Rectangle, polygone
+
+<span id="Part_Workbench_objects"></span>
+===Objets de l'atelier Part===
+
+Un profil peut être un objet Part créé avec la commande [[Part_Primitives/fr|Part Primitives]].<br>
+Les objets suivants peuvent être des profils valides :
+* Point (vertex=sommet)
+* Ligne (arête)  
+* Hélice, spirale
+* Cercle, ellipse
+* Polygone régulier
+* Plan (face)
+
+<span id="Links"></span>
+==Liens==
+
+* Un balayage est souvent utilisé pour créer des filets pour les vis, voir [[Thread_for_Screw_Tutorial/fr|Tutoriel création de vis]] pour plus d'informations.
+
+
+{{Docnav/fr
+|[[Part_Loft/fr|Lissage]]
+|[[Part_Section/fr|Section]]
+|[[Part_Workbench/fr|Atelier Part]]
+|IconL=Part_Loft.svg
+|IconR=Part_Section.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

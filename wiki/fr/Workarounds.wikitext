@@ -1,0 +1,564 @@
+<languages/>
+
+== Introduction ==
+
+Le but de cet article est de lister certaines fonctionnalités actuellement manquantes dans FreeCAD et de fournir des solutions de contournement pour celles-ci. Il peut être utile aux nouveaux utilisateurs qui ne trouvent pas une fonctionnalité particulière dans FreeCAD.
+
+<span id="Workarounds_for_the_Sketcher_Workbench"></span>
+== Solutions de contournement de l'atelier Sketcher ==
+
+{| class="wikitable"
+|-
+! width="2%"|N° !! width="28%"| Fonction manquante !! width="70%"| Solutions de contournement
+
+|-
+| 1
+| Aimantation automatique aux objets (centres géométriques, quadrants, extensions, intersections)
+|
+* Appliquez manuellement des [[Sketcher_Workbench/fr#Contraintes_d.27esquisse|contraintes]] et utilisez des [[Sketcher_ToggleConstruction/fr|lignes de construction]].
+* Dessinez la géométrie dans l'[[Draft Workbench/fr|atelier Draft]], où l'aimantation aux objets est disponible, puis convertissez pour dessiner avec l'outil [[Draft_Draft2Sketch/fr|Draft Draft vers Esquisse]].
+
+|-
+| 2
+| Vérifier les propriétés géométriques et de masse de l'esquisse (aire, centre de masse, second moment de l'aire, etc.)
+|
+* Créez une face à partir de l'esquisse avec [[Part_MakeFace/fr|Part Créer une face]], puis analysez cette face avec [[Part_CheckGeometry/fr|Part Vérifier la géométrie]]
+
+|-
+| 3
+| Possibilité d'utiliser les résultats de l'outil [[Sketcher_External/fr|Géométrie externe]] directement pour des opérations sur l'esquisse
+|
+* Tracez manuellement sur la géométrie créée par cet outil
+* [https://github.com/realthunder/FreeCAD/releases Fork de Realthunder] - Outil de définition de la géométrie
+
+|-
+| 4
+| Projeter plusieurs arêtes à la fois avec l'outil [[Sketcher_External/fr|Géométrie externe]] lorsqu'une face est sélectionnée
+|
+* Projetez des arêtes individuellement
+
+|-
+| 5
+| Esquisses 3D
+|
+* Utilisez l'[[Draft_Workbench/fr|atelier Draft]], mais les ébauches 3D ne peuvent pas être converties en esquisses (elles peuvent toutefois être utilisées pour des analyses ducadre spatial effectuées [[FEM_Workbench/fr|en interne]] ou en externe, et pour des [[PartDesign_AdditivePipe/fr|PartDesign Balayages additifs]] ou des [[Part_Sweep/fr|Part Balayages]])
+
+|-
+| 6
+| Projection des arêtes de coupe lors de la réalisation d'une esquisse sur un plan traversant un objet
+|
+* Créez un [[Std_LinkMake/fr|lien]] à partir de l'objet, et [[Part_SliceApart/fr|séparer/exploser]] cet objet pour obtenir les arêtes de coupe réelles
+
+|-
+| 7
+| Outil [[Sketcher_ViewSection/fr|Vue de section]] montrant des sections remplies
+|
+* Si l'esquisse est parallèle à l'un des plans principaux du système de coordonnées global : utilisez [[Part_SectionCut/fr|Part Coupe persistante]]
+
+|-
+| 8
+| Dimension du diamètre par rapport à un axe de symétrie pour les pièces tournantes
+|
+* Créez plutôt une cote de rayon (vous pouvez entrer le diamètre divisé par 2 - le calcul sera effectué par FreeCAD).
+
+|-
+| 9
+| Les étiquettes de dimension s'adaptent à la rotation de la vue pour être toujours lisibles.
+|
+* Rotation de la vue en cas de besoin
+
+|-
+| 10
+| La première [[Sketcher_Workbench/fr#Contraintes_dimensionnelles|dimension]] dans l'esquisse met à l'échelle la géométrie de sorte que sa forme initialement dessinée ne soit pas brisée.
+|
+* Appliquez quelques [[Sketcher_Workbench/fr#Contraintes_dimensionnelles|contraintes_dimensionnelles]] avant de dessiner la forme entière.
+
+|-
+| 11
+| Une option pour cacher l'ensemble de l'ensemble de la [[Sketcher_ToggleConstruction/fr|géométrie de construction]] dans une esquisse active.
+|
+* Dans la fenêtre Éléments, utilisez le filtre ''Construction'', sélectionnez les entités [[Sketcher_ToggleConstruction/fr|géométrie de construction]] et décochez leurs cases.
+
+|}
+
+<span id="Workarounds_for_the_Part_Workbench_and_Part_Design_Workbench"></span>
+== Solutions de contournement pour l'atelier Part et l'atelier PartDesign ==
+
+{| class="wikitable"
+|-
+! width="2%"|N° !! width="28%"| Fonction manquante !! width="70%"| Solutions de contournement
+
+|-
+| 1
+| Vérifier les propriétés géométriques et de masse du modèle
+|
+* [[Macro_FCInfo/fr|Macro FCInfo]]
+* Outil [[Part_CheckGeometry/fr|Part Vérifier la géométrie]] - aire, volume, masse, longueur, centre d'inertie, moments d'inertie, rayon de giration
+
+|-
+| 2
+| Afficher le centre de masse du modèle (pièce ou assemblage)
+|
+* [[Macro_CenterOfMass|Macro CenterOfMass]]
+
+|-
+| 3
+| [[Std_ToggleClipPlane/fr|Couper selon des plans]] qui ne donne pas l'impression que le modèle est creux.
+|
+* Changez la propriété Lighting dans les paramètres de vue de la pièce en "One side" (équivalent très grossier, problème avec les pièces multicolores)
+* Outil [[Part_SectionCut/fr|Coupe persistante]] - désélectionnez tous les plans avant d'appuyer sur Fermer.
+* [https://github.com/realthunder/FreeCAD/releases Fork de Realthunder] - rendu expérimental
+
+|-
+| 4
+| Création d'un axe sur l'intersection de 2 plans et d'un plan à mi-chemin entre deux faces/points, éventuellement d'autres variantes pour la création d'un [[Datum/fr|datum]]
+|
+* [[Macro_Intersection/fr|Macro Intersection]]
+* Ajustement manuel de l'accrochage à un [[Datum/fr|datum]]
+
+|-
+| 5
+| Extraction automatisée du milieu de surface (pour les pièces à paroi mince)
+|
+* Utilisez [[Draft_Facebinder/fr|Draft Surface liée]] puis [[Draft_Scale/fr|Draft Échelle]] ou [[Part_Offset/fr|Part Décaler en 3D]] (plus facile) pour en faire un véritable milieu de surface, appliquez la solution de contournement pour l'extension des faces si les milieux de surface générées sont séparées et joignez-les avec les outils booléens.
+
+|-
+| 6
+| Projeter des esquisses (coller/enrouler) sur des faces non planes (par exemple cylindriques)
+|
+* Outil [[Curves_SketchOnSurface/fr|Curves Esquisse sur une surface]] de l'extension [[Curves_Workbench/fr|atelier Curves]]
+* Outil [[Part_ProjectionOnSurface/fr|Part Projeter sur une surface]]
+
+|-
+| 7
+| Sélectionner la partie de l'esquisse à [[PartDesign_Pad/fr|protruser]]
+|
+* Sélectionnez une à une toutes les arêtes formant un contour fermé pour le protrusion.
+* Sélectionnez les arêtes de l'esquisse et créez un [[Std_LinkMakeRelative/fr|sous lien]] ou une [[PartDesign_SubShapeBinder/fr|Sous forme liée]] et protrusez ce nouvel objet
+* Faites une [[PartDesign_Pad|Protrusion]] d'une esquisse complète située sur la face existante du modèle dans la direction opposée (vers la forme existante) de sorte que seules de nouvelles faces soient créées. Il est ensuite possible de sélectionner ces faces individuellement et de les protruser. Cette méthode doit être utilisée avec prudence car les opérations 3D inutiles peuvent entraîner des erreurs inattendues. Il est donc recommandé d'utiliser plutôt la solution de contournement précédente.
+* [https://github.com/realthunder/FreeCAD/releases Fork de Realthunder] - Outils Exporter une géométrie unique et Exporter plusieurs géométries ou [[PartDesign_SubShapeBinder/fr|PartDesign Sous forme liée]] automatique créé lorsque les arêtes formant une boucle fermée sont sélectionnées dans l'esquisse avant une [[PartDesign_Pad/fr|protrusion]].
+
+|-
+| 8
+| Des [[PartDesign_Fillet/fr|congés]] et [[PartDesign_Chamfer/fr|chanfreins]] qui peuvent déborder sur les faces/arêtes adjacentes
+|
+* Faites des [[PartDesign_Fillet/fr|Congés]] avec un rayon légèrement plus petit (par exemple 6,4999 au lieu de 6,5 mm)
+* Modélisez ces fonctions directement à l'aide d'autres opérations, telles que [[PartDesign_Pocket/fr|PartDesign Cavité]] ou incluez-les déjà dans les esquisses.
+
+|-
+| 9
+| Rayon variable pour l'outil [[PartDesign_Fillet/fr|PartDesign Congé]]
+|
+* Utilisez l'outil [[Part_Fillet/fr|Part Congé]] qui prend en charge un rayon variable.
+
+|-
+| 10
+| Courbes paramétriques
+|
+* [[Macro_3D_Parametric_Curve/fr|Macro 3D Parametric Curve]]
+
+|-
+| 11
+| Filetages cosmétiques
+|
+* Ajoutez des filetages cosmétiques sur la page [[TechDraw_Workbench/fr#Lignes_centrales.2C_filetage_et_taraudage|TechDraw]]
+* Modélisez de véritables filetages, pour les trous, qui peuvent être générés automatiquement à l'aide de l'outil [[PartDesign_Hole/fr|Perçage]]
+
+|-
+| 12
+| Fractionnement (diviser des surfaces et des volumes à l'aide d'esquisses et de plans de référence tout en gardant le nombre de parties inchangé)
+|
+* Outil [[Part_BooleanFragments/fr|Fragments booléens]] - uniquement pour le découpage de surfaces avec des esquisses.
+
+|-
+| 13
+| Rails de guidage pour [[PartDesign AdditivePipe/fr|Balayage additif]] et [[PartDesign_AdditiveLoft/fr|Lissage additif]] ou leurs équivalents dans l'[[Part_Workbench/fr|atelier Part]]
+|
+* Extensions [[CurvedShapes_Workbench/fr|atelier CurvedShapes]] - [[CurvedShapes_CurvedArray/fr|CurvedArray]] ou [[CurvedShapes_CurvedPathArray/fr|CurvedPathArray]]
+* Extensions [[Curves_Workbench/fr|atelier CurvedShapes]] - [[Curves_GordonSurface/fr|Surface de Gordon]] ou [[Curves_Pipeshell/fr|Enveloppe de tube]]
+* [[Surface_Workbench/fr|atelier Surface]] - [[Surface_Filling/fr|Remplissage]]
+
+|-
+| 14
+| Torsion pour [[PartDesign_AdditivePipe/fr|PartDesign Balayage additif]] ou [[Part_Sweep/fr|Part Balayage]]
+|
+* [[PartDesign_AdditiveHelix/fr|PartDesign Hélice additive]] ({{Incode|pas <nowiki>=</nowiki> hauteur * 360 / angle de torsion}})
+* Extension [[CurvedShapes_Workbench/fr|atelier CurvedShapes]] - [[CurvedShapes_CurvedArray/fr|CurvedArray]]
+* Mode multisection dans [[PartDesign_AdditivePipe/fr|PartDesign Balayage additif]]
+
+|-
+| 15
+| Pliage de pièces existantes
+|
+* Pour les objets en tôle : extension [[SheetMetal_Workbench/fr|atelier SheetMetal]] - [[SheetMetal_AddFoldWall/fr|SheetMetal Plier une tôle]]
+
+|-
+| 16
+| Modèle le long d'une courbe
+|
+* Outil [[Draft_PathArray/fr|Draft Réseau selon une courbe]]
+
+|-
+| 17
+| Portée de la coupe - outils de coupe n'affectant que la partie sélectionnée du modèle
+|
+* Ordre différent des opérations et utilisation d'une [[Part_Cut/fr|soustraction booléenne]] sur les corps [[PartDesign_Pad/fr|protrusés]]
+
+|-
+| 18
+| Fusionner des faces adjacentes
+|
+* Pour les faces d'un [[PartDesign_Body/fr|PartDesign Corps]] : changez la propriété Refine de la dernière fonction à {{True}}, peut ne pas supprimer toutes les faces redondantes
+* Pour les faces coplanaires : utilisez [[Draft_Upgrade/fr|Draft Agréger]] deux fois pour obtenir une [[Draft_Wire|Draft Polyligne]], [[Draft_Downgrade/fr|Draft Désagréger]] la polyligne pour obtenir une face
+
+|-
+| 19
+| Outil [[PartDesign_Hole/fr|Perçage]] utilisant les points des esquisses
+|
+* Dessinez des cercles pour l'outil [[PartDesign_Hole/fr|Perçage]]
+
+|-
+| 20
+| [[PartDesign_Point/fr|Datum points]] de coordonnées
+|
+* Basez des [[PartDesign_Point/fr|datum points]] sur une géométrie existante
+* Créez des [[PartDesign_Point/fr|datum points]] à l'origine et modifiez leur [[Placement/fr|position]] par la suite.
+
+|-
+| 21
+| Un outil pour la création automatique de nervures (renforts structurels)
+|
+* Créez des nervures manuellement, des pyramides tronquées ([[Part_Wedge/fr|Part Pyramide tronquée]] ou [[PartDesign_AdditiveWedge/fr|PartDesign Pyramide tronquée additive]]) peuvent être utilisés pour des nervures triangulaires simples.
+
+|-
+| 22
+| Un outil pour la création automatique de dômes
+|
+* Créez des dômes manuellement, des sphères ([[Part_Sphere/fr|Part Sphère]] ou des [[PartDesign_AdditiveSphere|PartDesign Sphère additive]]) avec des paramètres correctement ajustés peuvent être utilisées pour des dômes sphériques simples.
+
+|-
+| 23
+| Extension des faces jusqu'à d'autres faces (utile par exemple lors de l'extraction des milieux de surface, comme mentionné ci-dessus)
+|
+* Utilisez l'outil [[Draft_Upgrade/fr|Draft Agréger]] sur les faces à étendre, étendez les bords appropriés avec [[Draft_Stretch/fr|Draft Étirer]] et recréez les faces en utilisant [[Part_MakeFace/fr|Part Créer une face]].
+
+|-
+| 24
+| Versions floues des [[Part_Workbench/fr#Barres_d'outils_des_booléens|Part Opérations booléennes]] (possibilité de spécifier une tolérance pour l'union booléenne et d'autres opérations)
+|
+* Extension [[Defeaturing_Workbench/fr|Atelier Defeaturing]].
+|
+
+|-
+| 25
+| [[PartDesign_AdditiveLoft/fr|PartDesign Lissage additif]] et [[PartDesign_AdditivePipe/fr|PartDesign Balayage additif]] avec la possibilité d'utiliser un profil ouvert comme première ou dernière section.
+|
+* Différentes approches de modélisation, impliquant par exemple une [[PartDesign_Pad/fr|PartDesign Protrusion]].
+
+|-
+| 26
+| Un outil pour [[Part_Sweep/fr|balayer]] un profil circulaire d'un diamètre donné le long d'une trajectoire sélectionnée.
+|
+* Dessiner le profil circulaire manuellement
+
+|-
+| 27
+| Affichage facultatif du système de coordonnées locales pour les [[PartDesign_Plane/fr|plans de référence]].
+|
+* Attachez un [[PartDesign_CoordinateSystem/fr|système de coordonnées de référence]] au plan de référence pour voir son orientation locale.
+
+|}
+
+<span id="Workarounds_for_the_Draft_Workbench"></span>
+== Solutions de contournement de l'atelier Draft ==
+
+{| class="wikitable"
+|-
+! width="2%"|N° !! width="28%"|Fonction manquante !! width="70%"|Solutions de contournement
+
+|-
+| 1
+| Aimanter aux intersections apparentes des bords incurvés, des prolongements perpendiculaires, des prolongements d'arc, des centres géométriques et des points tangents.
+|
+* Utilisez les autres [[Draft_Workbench/fr#Barre_d.27outils_d.27aimantation_de_Draft|outils d'aimantation de Draft]] disponibles et une approche plus manuelle de la géométrie de construction.
+* Lorsque vous travaillez sur le plan XY : créez une projection (temporaire) de la géométrie avec [[Draft_Shape2DView/fr|Draft Vue 2D d'une forme]].
+
+|-
+| 2
+| Raccourcis clavier pour les [[Draft_Workbench/fr#Barre_d.27outils_d.27aimantation_de_Draft|outils d'aimantation de Draft]].
+|
+* Les aimantations peuvent être activés et désactivés à l'aide de raccourcis clavier, mais uniquement lorsqu'aucune des boîtes de saisie du panneau des tâches n'est activée (l'utilisateur doit donc cliquer dans un espace vide du panneau des tâches pour pouvoir utiliser les raccourcis pour les aimantations).
+
+|-
+| 3
+| Les couleurs des objets redeviennent automatiquement "normales" lorsqu'ils sont retirés du [[Draft_ToggleConstructionMode/fr|groupe de géométrie de construction]].
+|
+* Déplacez les objets vers un [[Draft_Layer|calque]] avec les paramètres de couleur corrects.
+* Changez les couleurs manuellement.
+
+|-
+| 4
+| Une option permettant de basculer rapidement entre les trois principaux plans de travail et leurs projections au point sélectionné (pour le dessin en 3D).
+|
+* Réglez le [[Draft_SelectPlane/fr|Draft Plan de travail]] sur Automatique, puis sélectionnez l'une des vues standard : [[Std_ViewFront/fr|vue de face]], [[Std_ViewTop/fr|vue de dessus]], etc.
+* Utilisez la fonction [[Draft_Constrain/fr|Draft Contrainte]] - elle s'adapte aux axes, pas aux plans.
+* Utilisez [[Draft_WorkingPlaneProxy|proxy de plan de travail]].
+
+|-
+| 5
+| Entrée de ligne de commande de type AutoCAD
+|
+* Utilisez les widgets de FreeCAD ou les [[Scripting_and_macros/fr|scripts en Python]] pour la saisie.
+
+|-
+| 6
+| [[Draft_Hatch/fr|Hachurer]] une région détouré par une polyligne
+|
+* Créez une face (une hachure ne peut être appliquée qu'à des objets ayant des faces planes) :
+** Dans le cas d'une seule polyligne fermée : définissez sa propriété Make Face à "true", et son Display Mode à "Wireframe".
+** [[Draft_Upgrade/fr|Agrégez]] plusieurs polylignes deux ou trois fois jusqu'à ce que vous ayez une face, ou une seule polyligne fermée (voir ci-dessus)
+** Si les polylignes doivent rester séparées, mais sont connectées bout à bout, créez une [[PartDesign_SubShapeBinder/fr|sous forme liée]] à partir d'eux. 
+** Tracez sur la région avec une polyligne fermée (non paramétrique).
+
+|}
+
+<span id="Workarounds_for_the_TechDraw_Workbench"></span>
+== Solutions de contournement de l'atelier TechDraw ==
+
+{| class="wikitable"
+|-
+! width="2%"|N° !! width="28%"| Fonction manquante !! width="70%"| Solutions de contournement
+
+|-
+| 1
+| Vues en coupe éclatées et tournées/supprimées
+|
+* Utilisez l'outil [[Part_SliceApart/fr|Séparer/exploser]] pour découper physiquement le modèle et créer ensuite sa vue
+
+|-
+| 2
+| Dimension de diamètres automatique sur les vues latérales
+|
+* Ajoutez manuellement le symbole du diamètre
+
+|-
+| 3
+| Ajouter manuellement une géométrie aux vues générées
+|
+* Outils de trait cosmétique dans [[TechDraw_Workbench/fr#Annotations|Annotations]] et [[TechDraw_Workbench/fr#Extensions|Extensions]], limité
+* Créez des [[TechDraw_View/fr|vues]] et des [[TechDraw_DraftView/fr|vues d'un objet Draft]] d'esquisses et d'objets [[Draft_Workbench/fr|Draft]].
+
+|-
+| 4
+| Vues ombrées dans les dessins
+|
+* Placez des captures d'écran du modèle sur un fond blanc sur la page TechDraw
+
+|-
+| 5
+| Dimensions ordonnées
+|
+* Pas de solution de contournement connue
+
+|-
+| 7
+| Exclure les nervures des hachures
+|
+* Dans certains cas, il peut être suffisant d'utiliser la première solution de contournement mentionnée ici et de créer manuellement une section avec une ligne de découpe personnalisée
+
+|-
+| 7
+| Exporter des pages TechDraw au format PDF sans rendre le texte du modèle (texte du chemin d'accès) impossible à marquer/à rechercher.
+|
+* Exportez la page en tant que SVG, puis convertissez le SVG en PDF en utilisant par exemple [http://www.inkscape.org Inkscape] ou ouvrez le SVG dans un navigateur Web, puis enregistrez ou imprimez en PDF.
+
+|-
+| 8
+| [[Std_BoxSelection/fr|Sélection par boîte]] d'objets TechDraw
+|
+* Sélectionnez manuellement les objets, un par un (en maintenant Ctrl)
+
+|-
+| 9
+| Modifier les vues régulières et en coupe à l'aide des outils d'esquisse
+|
+* Créez et modifiez manuellement les vues :
+*# Si une vue en coupe doit être modifiée, utilisez l'outil [[Part_SectionCut/fr|Part Coupe persistante]] ou des opérations booléennes pour découper la pièce de la même manière que le ferait l'outil [[TechDraw_SectionView/fr|TechDraw Vue en coupe]].
+*# Utilisez l'outil [[Draft_Shape2DView/fr|Draft Vue 2D d'une forme]] pour créer une représentation linéaire 2D de la vue ou de la vue en coupe.
+*# Utilisez les outils de [[Draft_Workbench/fr#Planche_.C3.A0_dessin|Draft]] avec les outils d'[[Draft_Workbench/fr#Barre_d.27outils_d.27aimantation_de_Draft|aimantation]] appropriés pour modifier la vue.
+*# Utilisez l'outil [[Draft_Draft2Sketch/fr|Draft Vue 2D d'une forme]] pour créer une esquisse à partir des objets Draft.
+*# Utilisez l'outil [[Sketcher_ValidateSketch/fr|Sketcher Valider une esquisse]] pour vous assurer que l'esquisse ne comporte pas de coïncidences manquantes, de lignes doubles, etc.
+*# Utilisez l'outil [[TechDraw_View/fr|TechDraw Vue]] pour créer une vue de l'esquisse dans TechDraw.
+
+|-
+| 10
+| Vues secondaires
+|
+* Créez une [[TechDraw_View/fr|vue standard]] à partir de la bonne direction. Les solutions de contournement pour "Vue normale à une face" peuvent être utiles. Faites pivoter et positionnez la vue selon vos besoins.
+|}
+
+<span id="Workarounds_for_the_FEM_Workbench"></span>
+== Solutions de contournement de l'atelier FEM ==
+
+{| class="wikitable"
+|-
+! width="2%"|N° !! width="28%"| Fonction manquante !! width="70%"| Solutions de contournement
+
+|-
+| 1
+| Poutres avec une [[FEM_ElementGeometry1D/fr|section transversale]] arbitraire
+|
+* Modifiez manuellement le fichier d'entrée et modifier la définition de la section de la poutre
+
+|-
+| 2
+| Charge répartie sur les poutres
+|
+* [[FEM_ConstraintForce/fr|Charge d'effort]]
+
+|-
+| 3
+| Support des maillages multiples et donc possibilité de définir un [[FEM_ConstraintContact/fr|contact]] entre des faces qui se touchent (non séparées)
+|
+* Appliquez [[Part_Fuse/fr|Part Union]] ou [[Part_BooleanFragments/fr|Part Fragments booléens]] aux assemblages et incluez de petits espaces si vous voulez utiliser les contraintes de [[FEM_ConstraintContact/fr|contact]] ou de [[FEM_ConstraintTie/fr|liaison]].
+
+|-
+| 4
+| Modèles de matériaux avancés (hyperélasticité, fluage, etc.)
+|
+* Modifiez manuellement le fichier d'entrée et ajoutez les mots-clés appropriés pour la définition des matériaux
+
+|-
+| 5
+| Coques composites
+|
+* Éditez manuellement le fichier d'entrée et modifiez la définition de la section shell (coque)
+
+|-
+| 6
+| Création simple d'ensembles de nœuds et d'éléments ainsi que de surfaces
+|
+* Utilisez des ensembles de nœuds et d'éléments ainsi que des surfaces créés par d'autres fonctionnalités (affectation des matériaux, conditions limites, etc.)
+
+|-
+| 7
+| Editeur de mots-clés CalculiX qui peut plier les lignes de données et permettre des modifications non seulement juste avant d'exécuter l'analyse
+|
+* Un éditeur simple qui peut ouvrir le fichier .inp avant d'exécuter l'analyse, colorier la syntaxe et enregistrer les modifications (accessible à l'aide du bouton {{Button|Editer le fichier .inp}} dans la fenêtre [[FEM_SolverControl/fr|FEM Réglage du solveur]])
+
+|-
+| 8
+| Maillage avec des éléments hexaédriques
+|
+* Créez la géométrie dans FreeCAD, exportez la pour le maillage dans un logiciel externe (par exemple [https://gmsh.info/ Gmsh] ou [https://www.code-aster.org/V2/spip.php?article303 Salome_Meca]), importez le maillage (par exemple au format .inp ou .unv), faite le glisser vers le conteneur d'analyse et appliquer des contraintes à la géométrie.
+
+|-
+| 9
+| Analyses multi-étapes (par exemple, préchargement pour l'analyse de fréquence/flexion)
+|
+* Préparez l'analyse avec la première étape, écrivez le fichier .inp, modifiez-le pour ajouter les définitions des étapes suivantes et exécutez l'analyse.
+
+|-
+| 10
+| [[Std_BoxSelection/fr|Sélection par boîte]] d'entités géométriques pour les contraintes
+|
+* Sélectionnez manuellement les entités géométriques, une par une.
+
+|}
+
+<span id="General_workarounds"></span>
+== Solutions générales de contournement ==
+
+{| class="wikitable"
+|-
+! width="2%"|N° !! width="28%"|Fonction manquante !! width="70%"|Solutions de contournement
+
+|-
+| 1
+| Amélioration de l'apparence/du rendu des modèles 3D
+|
+* [https://github.com/realthunder/FreeCAD/releases Fork de Realthunder]
+* Rendu avec un logiciel externe tel que [https://www.blender.org/ Blender].
+
+|-
+| 2
+| Instructions de la [[Status_bar/fr|Barre d'état]] ("Maintenant, prenez ce...") pour de nombreux outils qui en bénéficieraient (par exemple, [[Sketcher_Workbench/fr#Contraintes_d.27esquisse|Sketcher Contraintes d'esquisse]]), des infobulles plus informatives
+|
+* [[Main_Page/fr|La documentation du Wiki]]
+
+|-
+| 3
+| Ordre de sélection cohérent - certains outils exigent que l'utilisateur choisisse d'abord l'entité géométrique alors que d'autres permettent la sélection après avoir activé l'outil
+|
+* Pas de solution de contournement connue
+
+|-
+| 4
+| Plus d'options de personnalisation de l'interface graphique - menus à secteurs, différents styles et thèmes d'icônes, etc.
+|
+* Divers paquets de personnalisation créés par la communauté
+* [https://github.com/realthunder/FreeCAD/releases Fork de Realthunder]
+
+|-
+| 5
+| Outils de sélection avancés : sélection par angle, inversion de la sélection, sélection à l'intérieur des faces, etc.
+|
+* Sélection manuelle
+
+|-
+| 6
+| Atelier d'[[Assembly/fr|assemblage]] avec possibilité de contraindre les pièces à l'origine et aux données.
+|
+* Pas de solution de contournement connue
+
+|-
+| 7
+| L'outil [[Std_TransformManip/fr|Std Transformer]] avec une option de déplacement et de rotation par rapport aux bords et aux coordonnées globales
+|
+* Extension [[Manipulator_Workbench/fr|atelier Manipulator]]
+
+|-
+| 8
+| Plus d'options de textures
+|
+* Pas de solution de contournement connue
+
+|-
+| 9
+| Mettre en évidence uniquement la fonction individuelle de PartDesign dans la [[3D_view/fr|Vue 3D]] lorsque l'opération correspondante est sélectionnée dans la [[Tree_view/fr|Vue en arborescence]]
+|
+* Pas de solution de contournement connue
+
+|-
+| 10
+| Sélectionner uniquement l'élément PartDesign individuel dans la [[Tree_view/fr|Vue en arborescence]] lorsqu'un élément correspondant est sélectionné dans la [[3D_view/fr|Vue 3D]]
+|
+* Pas de solution de contournement connue
+
+|-
+| 11
+| Modélisation en forme libre
+|
+* Modélisez des formes complexes de manière "traditionnelle", par exemple en utilisant les ateliers externes [[Curves_Workbench/fr|Curves]] et [[CurvedShapes_Workbench/fr|CurvedShapes]].
+* Sculptez des maillages, par exemple dans [https://www.blender.org/ Blender] et les importer dans FreeCAD.
+
+|-
+| 12
+| Les générateurs et calculateurs de composants d'assemblage pour : les assemblages boulonnés et rivetés, les arbres, les cannelures, les clavettes, les cames, les engrenages (droits, coniques, à vis sans fin), les roulements, les ressorts, les courroies et les chaînes, les axes, les joints toriques
+|
+* L'[[Fasteners_Workbench/fr|atelier Fasteners]] et l'[[FCGear_Workbench/fr|atelier FCGear]] mais aucun calcul de conception disponible.
+* [[PartDesign_WizardShaft/fr|PartDesign Conception d'arbre]] - calculs de base pour les arbres
+
+|-
+| 13
+| Un outil d'analyse cinématique sur des esquisses correctement contraintes
+|
+* [[Scripting_and_macros/fr|Exemples de scripts et macros]] - [https://forum.freecadweb.org/viewtopic.php?f=8&t=68826&start=10#p596531 exemple]
+
+|-
+| 14
+| [[https://en.wikipedia.org/wiki/Geometric_dimensioning_and_tolerancing GD&T]] directement sur les modèles 3D - approche [https://en.wikipedia.org/wiki/Model-based_definition Model-based definition]
+|
+* Outils [[Draft_Workbench/fr#Annotation|Draft Annotation]]
+
+|}

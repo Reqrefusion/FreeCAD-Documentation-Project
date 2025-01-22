@@ -1,0 +1,110 @@
+<languages/>
+
+{{Docnav/pl
+|[[Draft_WireToBSpline/pl|Polilinia na krzywą złożoną]]
+|[[Draft_Slope/pl|Ustaw nachylenie]]
+|[[Draft_Workbench/pl|środowisko pracy Rysunek Roboczy]]
+|IconL=Draft_WireToBSpline.svg
+|IconR=Draft_Slope.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{GuiCommand/pl
+|Name=Draft Draft2Sketch
+|Name/pl=Rysunek Roboczy: Rysunek roboczy do szkicu
+|MenuLocation=Modyfikacja → Rysunek roboczy do szkicu
+|Workbenches=[[Draft_Workbench/pl|Rysunek Roboczy]], [[BIM_Workbench/pl|BIM]]
+}}
+
+<span id="Description"></span>
+==Opis== 
+
+Narzędzie [[Image:Draft_Draft2Sketch.svg|24px]] '''Rysunek roboczy do szkicu''' konwertuje obiekty środowiska pracy [[Draft_Workbench/pl|Rysunek Roboczy]] na obiekty środowiska [[Sketcher_NewSketch/pl|Szkicownik]] i odwrotnie.
+
+[[Image:Draft_Draft2Sketch_example.png]]
+{{Caption|Konwertowanie obiektów środowiska Rysunek Roboczy na szkice Szkicownika.}}
+
+<span id="Usage"></span>
+==Użycie== 
+
+# Opcjonalnie wybierz jeden lub więcej obiektów Rysunku Roboczego lub [[Sketcher_NewSketch/pl|szkic]] środowiska Szkicownik.
+# Polecenie można wywołać na kilka sposobów:
+#* Naciśnij przycisk {{Button|[[Image:Draft_Draft2Sketch.svg|16px]] '''Rysunek roboczy do szkicu'''}}.
+#* [[Draft_Workbench/pl|Środowisko pracy Rysunek Roboczy]]: Wybierz z menu opcję {{MenuCommand|Modyfikacja → [[Image:Draft_Draft2Sketch.svg|16px]] Rysunek roboczy do szkicu}}.
+#* [[BIM_Workbench/pl|Środowisko pracy BIM]]: Wybierz opcję {{MenuCommand|Modyfikacja → [[Image:Draft_Draft2Sketch.svg|16px]] Rysunek roboczy do szkicu}} z menu.
+# Jeśli nie wybrałeś jeszcze żadnego obiektu: wybierz obiekt w oknie [[3D_view/pl|widoku 3D]].
+# Zostanie utworzony nowy obiekt.
+
+<span id="Notes"></span>
+==Uwagi==
+
+* Obiekty nie pochodzące ze środowiska pracy Rysunek Roboczy, które są całkowicie płaskie, również mogą być konwertowane.
+* Polecenie może obsługiwać tylko obiekty zbudowane z linii prostych, łuków kołowych, łuków eliptycznych, krzywych złożónych i krzywych Béziera.
+* [[Draft_BezCurve/pl|Krzywe Bezier'a]] będą aproksymowane przez [[Sketcher_CreateBSpline/pl|Krzywe złożone przez punkty kontrolne]] środowiska Szkicownik.
+* Zewnętrzne środowisko pracy [[KicadStepUp_Workbench/pl|KicadStepUp]] zawiera polecenie do konwersji [[Draft_BSpline/pl|krzywych złożonych]] środowiska Rysunek Roboczy na serię [[Sketcher_CreateArc/pl|łuków]] Szkicownika. Więcej informacji można znaleźć w temacie na forum [https://forum.freecadweb.org/viewtopic.php?f=9&t=25082 BSplines to Shape2DView and Sketcher].
+* [https://forum.freecadweb.org/viewtopic.php?f=3&t=58781#p505207 Ten inny temat na forum] zawiera makrodefinicję do takiej konwersji.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Zobacz również stronę: [https://freecad.github.io/SourceDoc/ Dokumentacja API generowana automatycznie] oraz [[FreeCAD_Scripting_Basics/pl|Podstawy pisania skryptów dla FreeCAD]].
+
+Aby przekonwertować obiekty na szkic, użyj metody {{incode|make_sketch}} ({{Version/pl|0.19}}) modułu Rysunek Roboczy. Metoda ta zastępuje przestarzałą metodę {{incode|makeSketch}}.
+
+{{Code|code=
+sketch = make_sketch(objects_list, autoconstraints=False, addTo=None, delete=False, name="Sketch", radiusPrecision=-1, tol=1e-3)
+}}
+
+* {{incode|lista_obiektów}} zawiera obiekty do konwersji. Jest to pojedynczy obiekt lub lista obiektów. Obsługiwane są obiekty {{incode|Draft}}, {{incode|Part::Feature}} i {{incode|Part.Shape}}.
+* Jeśli {{incode|więzyautomatyczne}} ma wartość {{True/pl}}, wiązania zbieżności są dodawane do węzłów należących do tego samego obiektu źródłowego.
+* {{incode|dodajDo}} jest istniejącym obiektem szkicu, do którego dodawana jest geometria. Jeśli nie zostanie podany, tworzony jest nowy szkic.
+* Jeśli {{incode|usuń}} ma wartość {{True/pl}}, obiekty źródłowe są usuwane.
+* {{incode|nazwa}} jest nazwą nowego szkicu.
+* {{incode|precyzjaPromienia}} wskazuje, jak powinny być obsługiwane wiązania promienia:
+** Użyj {{incode|-1}}, aby wyłączyć wiązania promienia.
+** Użyj {{incode|0}}, aby dodać indywidualne wiązania promienia.
+** Użyj liczby dodatniej, aby zaokrąglić promienie zgodnie z tą precyzją i dodać wiązania równości między krzywymi o równych promieniach.
+* {{incode|tol}} jest tolerancją używaną do sprawdzania, czy kształty są płaskie i współpłaszczyznowe. Użyj {{incode|-1}} dla ścisłej analizy.
+* {{incode|szkic}} jest zwracany wraz z obiektem szkicu.
+
+Aby przekonwertować szkic na obiekty środowiska Rysunek Roboczy, użyj metody {{incode|draftify}} modułu Rysunek Roboczy.
+
+{{Code|code=
+draftify(objectslist, makeblock=False, delete=True)
+}}
+
+* {{incode|listaobiektów}} zawiera obiekty do konwersji. Jest to pojedynczy obiekt lub lista obiektów.
+* Jeśli {{incode|makeblock}} ma wartość {{True/pl}}, konwertowane obiekty są grupowane w {{incode|Part::Part2DObject}}.
+* Jeśli {{incode|usuń}} ma wartość {{True/pl}}, obiekty źródłowe są usuwane.
+
+Przykład:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+rectangle = Draft.make_rectangle(2000, 1000)
+circle = Draft.make_circle(500)
+doc.recompute()
+
+sketch_from_draft = Draft.make_sketch([rectangle, circle], autoconstraints=True, delete=False, radiusPrecision=0)
+doc.recompute()
+
+draft_from_sketch = Draft.draftify(sketch_from_draft, delete=False)
+doc.recompute()
+}}
+
+
+{{Docnav/pl
+|[[Draft_WireToBSpline/pl|Polilinia na krzywą złożoną]]
+|[[Draft_Slope/pl|Ustaw nachylenie]]
+|[[Draft_Workbench/pl|środowisko pracy Rysunek Roboczy]]
+|IconL=Draft_WireToBSpline.svg
+|IconR=Draft_Slope.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

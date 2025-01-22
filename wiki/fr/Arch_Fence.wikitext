@@ -1,0 +1,122 @@
+<languages/>
+
+{{Docnav/fr
+|[[Arch_Frame/fr|Ossature]]
+|[[Arch_Truss/fr|Treillis]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_Frame.svg
+|IconR=Arch_Truss.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|Cette commande fait partie de l'ensemble intégré de l'[[BIM_Workbench/fr|atelier BIM]] avec la V1.0<br>
+Cette page a été mise à jour pour cette version.}}
+
+{{GuiCommand/fr
+|Name=Arch Fence
+|Name/fr=Arch Clôture
+|MenuLocation=3D/BIM → Clôture
+|Workbenches=[[BIM_Workbench/fr|BIM]]
+|Version=0.19
+}}
+
+==Description==
+
+L'outil '''Arch Clôture''' est un objet qui construit une clôture en répétant un poteau et une section de clôture le long d'un tracé donné.
+
+[[Image:Arch Fence description example.png|600px]]
+
+<span id="Usage"></span>
+==Utilisation==
+
+<span id="Creating_from_scratch"></span>
+===Création à partir de zéro===
+
+# Utilisez un atelier de votre choix pour créer un seul poteau de clôture et une seule section.
+# Créez le tracé que la clôture doit suivre à l'aide de l'[[Sketcher_Workbench/fr|atelier Sketcher]] ou de l'[[Draft_Workbench/fr|atelier Draft]].
+# Revenez à l'[[BIM_Workbench/fr|atelier BIM]].
+# Sélectionnez la section, la publication et le tracé dans exactement cet ordre.
+# Appuyez sur le bouton {{Button|[[Image:Arch_Fence.svg|16px]][[Arch_Fence/fr|Clôture]]}}.
+
+==Options==
+
+Pour l'instant, l'outil part du principe que
+# Le tracé est dessiné sur le plan XY
+# La section et le poteau sont dessinés à l'origine de manière à rester debout dans la vue de face
+
+<span id="Properties"></span>
+==Propriétés==
+
+<span id="Data"></span>
+=== Données ===
+
+* {{PropertyData|Path}} : tracé que doit suivre la clôture
+* {{PropertyData|Post}} : un seul poteau de clôture à répéter
+* {{PropertyData|Section}} : une seule section à répéter
+* {{PropertyData|Number Of Posts}} : nombre total de poteaux utilisés pour construire la clôture. Calculé automatiquement.
+* {{PropertyData|Number Of Sections}} : nombre total de sections utilisées pour construire la clôture. Calculé automatiquement.
+
+<span id="View"></span>
+=== Vue ===
+
+* {{PropertyView|Use Original Colors}} : lorsque l'option est définie à {{TRUE}}, la clôture utilisera les couleurs de la section d'origine et du piquet. Sinon, la définition de ShapeColor de la clôture sera utilisée pour coloriser la clôture.
+
+<span id="Notes"></span>
+== Remarques ==
+
+* Arch Clôture a été introduit dans FC v0.19 par l'utilisateur furti.
+* [https://forum.freecadweb.org/viewtopic.php?t=36149 Sujet du forum] discutant de la fonctionnalité Arch Clôture.
+
+<span id="Scripting"></span>
+==Script==
+
+L'outil Clôture peut être utilisé dans une [[Macros/fr|macro]] et à partir de la console [[Python/fr|Python]] à l'aide de la fonction suivante :
+
+{{Code|code=
+Fence = buildFence(section, post, path)
+}}
+
+Exemple :
+
+{{Code|code=
+import FreeCAD
+import Part
+import Arch
+
+parts = []
+
+parts.append(Part.makeBox(2000, 50, 30, FreeCAD.Vector(0, 0, 1000 - 30)))
+parts.append(Part.makeBox(2000, 50, 30))
+parts.append(Part.makeBox(20, 20, 1000 - 60, FreeCAD.Vector(0, 15, 30)))
+parts.append(Part.makeBox(20, 20, 1000 - 60, FreeCAD.Vector(1980, 15, 30)))
+
+for i in range(8):
+    parts.append(Part.makeBox(20, 20, 1000 - 60, FreeCAD.Vector((2000 / 9 * (i + 1)) - 10, 15, 30)))
+
+Part.show(Part.makeCompound(parts), "Fence_section")
+fence_section = FreeCAD.ActiveDocument.Fence_section
+
+sketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", "Path")
+sketch.Placement = FreeCAD.Placement(FreeCAD.Vector(0, 0, 0), FreeCAD.Rotation(0, 0, 0, 1))
+sketch.addGeometry(Part.LineSegment(FreeCAD.Vector(0, 0, 0), FreeCAD.Vector(20000, 0, 0)), False)
+sketch.addGeometry(Part.LineSegment(FreeCAD.Vector(20000, 0, 0), FreeCAD.Vector(20000, 20000, 0)), False)
+
+post = Part.makeBox(100, 100, 1000, FreeCAD.Vector(0, 0, 0))
+Part.show(post, "Post")
+post = FreeCAD.ActiveDocument.Post
+
+Fence = Arch.buildFence(fence_section, post, sketch)
+}}
+
+
+{{Docnav/fr
+|[[Arch_Frame/fr|Ossature]]
+|[[Arch_Truss/fr|Treillis]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_Frame.svg
+|IconR=Arch_Truss.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

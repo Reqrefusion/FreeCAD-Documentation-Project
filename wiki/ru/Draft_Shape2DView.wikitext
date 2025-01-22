@@ -1,0 +1,134 @@
+<languages/>
+
+{{Docnav
+|[[Draft_FlipDimension|FlipDimension]]
+|[[Draft_SelectPlane|SelectPlane]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_FlipDimension.svg
+|IconR=Draft_SelectPlane.svg
+|IconC=Workbench_Draft.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/ru
+|Name=Draft Shape2DView
+|Name/ru=Draft Shape2DView
+|MenuLocation=Черчение → 2D вид фигуры
+|Workbenches=[[Draft_Workbench/ru|Draft]], [[Arch_Workbench/ru|Arch]]
+}}
+</div>
+
+==Description==
+
+The [[Image:Draft_Shape2DView.svg|24px]] '''Draft Shape2DView''' command creates 2D projections from selected objects, usually 3D solids or [[Arch_SectionPlane|Arch SectionPlanes]]. The projections are placed in the [[3D_view|3D view]].
+
+Draft Shape2DView projections can be displayed on a [[TechDraw_Workbench|TechDraw Workbench]] page using the [[TechDraw_DraftView|TechDraw DraftView]] command. Alternatively the [[TechDraw_Workbench|TechDraw Workbench]] offer its own projection commands. But these create projections that are only displayed on the drawing page and not in the [[3D_view|3D view]].
+
+[[Image:Draft_Shape2DView_example.jpg]]
+{{Caption|Projection of solid shapes onto the XY plane}}
+
+==Usage==
+
+# Optionally rotate the [[3D_view|3D view]]. The camera direction in the [[3D_view|3D view]] determines the projection vector. For example, a [[Std_ViewTop|top view]] will project onto the XY plane. The projection vector is ignored for projections created from [[Arch_SectionPlane|Arch SectionPlanes]].
+# Optionally select one or more objects.
+# There are several ways to invoke the command:
+#* Press the {{Button|[[Image:Draft_Shape2DView.svg|16px]] [[Draft_Shape2DView|Shape 2D view]]}} button.
+#* Select the {{MenuCommand|Modification → [[Image:Draft_Shape2DView.svg|16px]] Shape 2D view}} option from the menu.
+# If you have not yet selected an object: select an object in the [[3D_view|3D view]].
+# The projected objects are created on the XY plane.
+
+==How to produce plans and sections with different linewidths==
+
+[[Image:Draft_shape2dview_example_plan.png|700px]]
+
+Drawings with different linewidths for viewed and cut lines can easily be produced by using two shape2Dview objects from a same [[Arch_SectionPlane|Arch SectionPlane]]. One of the shape2Dview objects has its projection mode set to '''Solid''', which renders the viewed lines, and another set to '''Cut lines''' or '''Cut faces''' to render the cut lines. The two shape2Dviews are then placed at the same location, one on top of the other.
+
+==Properties==
+
+See also: [[Property_editor|Property editor]].
+
+A Draft Shape2DView object is derived from a [[Part_Part2DObject|Part Part2DObject]] and inherits all its properties. It also has the following additional properties:
+
+===Data===
+
+{{TitleProperty|Draft}}
+
+* {{PropertyData|Auto Update|Bool}}: specifies if the projection should be automatically recomputed if the {{PropertyData|Base}} object changes. Selecting {{False}} can be useful if there are many Draft Shape2DViews in a document or if they are complex. If set to {{False}} the [[Std_Refresh|Std Refresh]] command must be used to update the projection.
+* {{PropertyData|Base|Link}}: specifies the object to be projected.
+* {{PropertyData|Clip|Bool}}: if this is True, the contents are clipped to the borders of the section plane, if applicable. This overrides the base object's Clip property.
+* {{PropertyData|Face Numbers|IntegerList}}: specifies the indices of the faces to be projected. Only works if {{PropertyData|Projection Mode}} is {{Value|Individual Faces}}.
+* {{PropertyData|Fuse Arch|Bool}}: specifies if [[BIM_Workbench|BIM objects]] of the same type and material are fused or not.
+* {{PropertyData|Hidden Lines|Bool}}: specifies if hidden lines are shown or not.
+* {{PropertyData|In Place|Bool}}: only works if the selected object is an [[Arch_SectionPlane|Arch SectionPlane]], and {{PropertyData|Projection Mode}} is {{Value|Cutlines}} or {{Value|Cutfaces}}, specifies if the projection will appear co-planar with the section plane.
+* {{PropertyData|Projection|Vector}}: specifies the direction of the projection. Ignored if {{PropertyData|Base}} is an [[Arch_SectionPlane|Arch SectionPlane]].
+* {{PropertyData|Projection Mode|Enumeration}}: specifies the projection mode. The following modes are available:
+** {{Value|Solid}}: projects the entire selected object.
+** {{Value|Individual Faces}}: only projects the faces in the {{PropertyData|Face Numbers}} list.
+** {{Value|Cutlines}}: only works if the selected object is an [[Arch_SectionPlane|Arch SectionPlane]], projects only the edges cut by the section plane.
+** {{Value|Cutfaces}}: only works if the selected object is an [[Arch_SectionPlane|Arch SectionPlane]], projects the areas cut through solids by the section plane as faces.
+** {{Value|Solid faces}}: projects the entire selected object by cutting faces one by one. Can be used if the {{Value|Solid}} mode gives wrong results.
+* {{PropertyData|Segment Length|Float}}: specifies the size in millimeters of linear segments if {{PropertyData|Tessellation}} is {{TRUE}}.
+* {{PropertyData|Tessellation|Bool}}: specifies if tessellation should be performed. Tessellation means that curves are replaced by sequences of line segments. This can be computationally intensive if the {{PropertyData|Segment Length}} is too short.
+* {{PropertyData|Visible Only|Bool}}: specifies if the projection should only be recomputed if it is visible.
+* {{PropertyData|Exclusion Points|Vector list}}: A list of exclusion points. Any edge passing through any of those points will not be drawn.
+* {{PropertyData|Exclusion Names|String list}}: A list of object names. Any viewed or cut child object with a name in that list will not be drawn. {{Version|0.21}}
+
+===View===
+
+{{TitleProperty|Draft}}
+
+* {{PropertyView|Pattern|Enumeration}}: not used.
+* {{PropertyView|Pattern Size|Float}}: not used.
+
+==Scripting==
+
+See also: [https://freecad.github.io/SourceDoc/ Autogenerated API documentation] and [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+To create a 2D projection use the {{incode|make_shape2dview}} method ({{Version|0.19}}) of the Draft module. This method replaces the deprecated {{incode|makeShape2DView}} method.
+
+{{Code|code=
+shape2dview = make_shape2dview(baseobj, projectionVector=None, facenumbers=[])
+}}
+
+* {{incode|baseobj}} is the object to be projected.
+* {{incode|projectionVector}} is the projection vector. If not supplied the Z axis is used.
+* {{incode|facenumbers}} is a list of face numbers (0-based). If supplied only these faces are considered.
+* {{incode|shape2dview}} is returned with the created 2D projection.
+
+Change the {{incode|ProjectionMode}} property of the created object if required. It can be: {{incode|"Solid"}}, {{incode|"Individual Faces"}}, {{incode|"Cutlines"}}, {{incode|"Cutfaces"}} or {{incode|"Solid faces"}}.
+
+Example:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+box = doc.addObject("Part::Box", "Box")
+box.Length = 2300
+box.Width = 500
+box.Height = 1000
+
+shape1 = Draft.make_shape2dview(box)
+
+shape2 = Draft.make_shape2dview(box, App.Vector(1, -1, 1))
+
+shape3 = Draft.make_shape2dview(box, App.Vector(-1, 1, 1), [0, 5])
+shape3.ProjectionMode = "Individual Faces"
+
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Draft_FlipDimension|FlipDimension]]
+|[[Draft_SelectPlane|SelectPlane]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_FlipDimension.svg
+|IconR=Draft_SelectPlane.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

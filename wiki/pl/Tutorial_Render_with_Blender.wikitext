@@ -1,0 +1,315 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic=Renderowanie
+|Level=średniozaawansowany
+|Time=60 minut
+|Author=[https://forum.freecadweb.org/memberlist.php?mode=viewprofile&u=21943 vocx]
+|FCVersion=0.18 lub nowszy
+|Files=brak
+}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Ten poradnik prezentuje jak stworzyć wyrenderowany obraz w programie [https://www.blender.org/ Blender], zaczynając od części lub zespołu stworzonego w programie FreeCAD. Zakłada on, że użytkownik stworzył już część w programie FreeCAD, lub zaimportował ją do niego. Następnie część ta jest eksportowana do Blendera w celu wyrenderowania.
+
+Przedstawia renderowanie w Blenderze 2.80 z wykorzystaniem zarówno renderera EEVEE jak i Cycles. Demonstruje różne polecenia środowiska [[Python/pl|Python]], które mogą być użyte by wykonać działania szybciej, zarówno w programie FreeCAD jak i Blender.
+
+Podobny opis tego procesu jest zaprezentowany w serii filmów, [https://www.youtube.com/watch?v=U7e6-Wfv2b0 Renderuj modele Solidworks i FreeCAD w Blenderze], autorstwa Joko Engineering.
+
+<span id="FreeCAD"></span>
+==FreeCAD==
+
+1. Stwórz złożenie, używając zawartości ze środowiska [[Part_Workbench/pl|Caęść]] lub [[PartDesign_Workbench/pl|Projekt Części]], albo dowolnego innego środowiska, które tworzy obiekty brył, na przykład [[Arch_Workbench/pl|Architektura]]. Przypisz kolory lub materiały poszczególnym zawartościom tworzącym złożenie, w przybliżeniu odpowiadające kolorowi, który chcesz uzyskać w renderingu.
+
+[[Image:01_T03_FreeCAD_Blender_model.png|600px|center]]
+
+{{Caption|align=center|Złożenie trzech brył stworzonych w programie FreeCAD, z przypisanymi kolorami lub materiałami.}}
+
+2. Jeśli twój model jest bardzo szczegółowy, upewnij się, że wartość {{PropertyView/pl|Odchyłka}} zawartości jest ustawiona na niską wielkość, pomiędzy {{incode|0.1}} a {{incode|0.01}}, lub nawet mniejszą. Im niższa jest ta wartość, tym bardziej szczegółowa będzie wyeksportowana siatka, a co za tym idzie, tym lepsza będzie jakość otrzymanego renderu.
+
+[[Image:02_T03_FreeCAD_Blender_deviation.png|center]]
+
+{{Caption|align=center|Właściwość odchylenia zawartości utworzonych w programie FreeCAD. Wartość odchylenia musi być małe, aby można było eksportować części z dobrą rozdzielczością.}}
+
+3. Wybierz środowisko {{incode|Part}}, kolejnie z menu {{MenuCommand|Plik → Eksport}}, lub naciśnij klawisze {{KEY|Ctrl}} + {{KEY|E}}, i wyeksportować jako {{incode|OBJ}}.
+
+Alternatywnie, eksport może być wykonany z konsoli [[Python/pl|Python]]. Zdefiniuj listę obiektów, które mają być wyeksportowane i użyj funkcji eksportującej z nazwą pliku.
+
+{{Code|code=
+import importOBJ
+objs = FreeCAD.ActiveDocument.getObjectsByLabel("Part")[0]
+
+importOBJ.export(objs, "/home/user/assembly.obj")
+}}
+
+{{Emphasis|Uwaga:}} podczas eksportu do OBJ, tworzone są dwa pliki. Pierwszy zawiera informacje o siatce, {{incode|assembly.obj}}, drugi zawiera definicję materiałów, która w większości przypadków zawiera tylko kolor, {{incode|assembly.mtl}}.
+
+{{Emphasis|Uwaga 2:}} Jeśli wynikowy plik OBJ wydaje się być pusty, być może trzeba będzie wyeksportować poszczególne zawartości. W takim przypadku należy zaznaczyć każdą z nich pod częścią i powtórzyć eksport.
+
+{{Code|code=
+import importOBJ
+objs = [FreeCAD.ActiveDocument.getObjectsByLabel("Body.base")[0],
+FreeCAD.ActiveDocument.getObjectsByLabel("Body.bolt")[0],
+FreeCAD.ActiveDocument.getObjectsByLabel("Body.bolt.big")[0]]
+
+importOBJ.export(objs, "/home/user/assembly.obj")
+}}
+
+<span id="Blender"></span>
+==Blender==
+
+<span id="Prepare_the_model"></span>
+===Przygotowanie modelu===
+
+4. Otwórz Blendera. Zmień panel {{incode|Oś czasu}} na {{incode|konsolę Python}} ''({{KEY|Shift}} + {{KEY|F4}})''. To pomoże Ci wprowadzać komendy i widzieć wyniki. Możesz podzielić ten panel tak, aby po jednej stronie pozostała konsola, a po drugiej panel {{incode|Info}}, pozwoli ci to zobaczyć działanie kodu po kliknięciu w interfejs.
+
+Upewnij się, że używasz renderera EEVEE. W panelu {{incode|Properties}} przejdź do {{incode|Render}}, i dla {{incode|Render Engine}} wybierz {{incode|Eevee}}.
+
+{{Code|code=
+bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+}}
+
+5. Zaimportuj plik modelu z menu, {{MenuCommand|Pilik → Import → Wavefront ''(.obj)''}}.
+
+Alternatywnie, import można wykonać z poziomu {{incode|konsoli Python}}.
+
+{{Code|code=
+obj_file = "/home/user/assembly.obj"
+bpy.ops.import_scene.obj(filepath=obj_file)
+}}
+
+6. Zmień skalę.
+
+Jeśli zawartości wydają się być bardzo duże, może być konieczna zmiana jednostek, aby obiekty były wyświetlane w odpowiedniej skali.
+
+W panelu {{incode|Properties}} przejdź do {{incode|Scene}}, {{incode|Units}} i wybierz odpowiednie ustawienia {{incode|Unit System}}, {{incode|Unit Scale}} i {{incode|Length}}.
+
+Dla małych części, możesz chcieć zachować długość na {{incode|Millimeters}}, a skalę na {{incode|0.001}}. W przypadku większych części, na przykład modelu budynku, może być konieczne ustawienie tych wartości na {{incode|Meters}} i {{incode|0.001}}. W razie potrzeby wypróbuj inne wartości skali.
+
+Może to być ustawione również z poziomu {{incode|Python console}}.
+
+{{Code|code=
+bpy.context.scene.unit_settings.length_unit = 'MILLIMETERS'
+# or bpy.context.scene.unit_settings.length_unit = 'METERS'
+bpy.context.scene.unit_settings.scale_length = 0.001
+}}
+
+{{Emphasis|Uwaga:}} Zmiana skali i jednostek sceny jest konieczna tylko wtedy, gdy chcesz pracować z obiektami w ich prawdziwych wymiarach. Jeśli chcesz tylko szybko wyrenderować scenę, możesz pominąć wszelkie regulacje.
+
+6.1. W przypadku pomniejszenia, gdy widok przycina importowane części, może być konieczne dostosowanie wartości przycinania widoku.
+
+Naciśnij klawisz {{KEY|N}}, aby wyświetlić panel pomocniczy. Przejdź do sekcji {{incode|View}} i ustaw {{incode|End}} na dużą wartość, na przykład {{incode|1E6 mm}} lub {{incode|1000 m}}.
+
+6.2. Jeśli chcesz, możesz również dostosować rozmiar siatki. Przejdź do {{incode|Overlays}}, następnie {{incode|Guides}} i ustaw {{incode|Scale}} dla tej siatki na {{incode|0.001}}.
+
+7. Ustal obrót obiektów.
+
+Po zaimportowaniu obiekty mogą być obrócone wokół wybranej osi, na przykład o 90 stopni wokół osi X.
+Naciśnij klawisz {{KEY|N}}, aby wyświetlić panel pomocniczy. Wybierz obiekt, przejdź do sekcji {{incode|Transform}} i ustaw {{incode|Rotation}} na {{incode|0°}} w każdym polu. Zrób to dla każdego obiektu.
+
+Można to zautomatyzować za pomocą małego skryptu, który po prostu ustawia rotację każdego importowanego ciała na zero, z wyjątkiem obiektów wewnątrz tupli {{incode|fixed_objs}}. Może to być przydatne, jeśli importujesz obiekty do istniejącej sceny, gdzie inne obiekty są już we właściwych pozycjach.
+
+{{Code|code=
+fixed_objs = ('Camera', 'Cube', 'Light')
+
+for obj in bpy.data.objects:
+    if any(s for s in fixed_objs if s in obj.name):
+        print('%s %s  [[No change]]' % (obj.name, obj.rotation_euler))
+        continue
+    else:
+        obj.rotation_euler = (0, 0, 0)
+        print('%s %s  ... rotated' % (obj.name, obj.rotation_euler))
+}}
+
+[[Image:03_T03_FreeCAD_Blender_imported_assembly.png|center]]
+
+{{Caption|align=center|Zespół stworzony w programie FreeCAD zaimportowany do Blendera; model został obrócony, a jednostki sceny dopasowane do zaimportowanych obiektów.}}
+
+<span id="Prepare_the_camera_of_the_scene"></span>
+===Przygotuj ujęcie kadru===
+
+8. Ustaw ujęcie widoku we właściwej pozycji.
+
+Dostosuj rzutnię, aby spojrzeć na model w żądanej orientacji, a następnie naciśnij klawisze {{KEY|Ctrl}} + {{KEY|Alt}} + {{KEY|0}} ''(klawiatura numeryczna)'', albo użyj opcji z menu {{MenuCommand|View → Align View → Align Active Camera to View}}.
+
+8.1. Jeśli w ujęciu widoku nic nie widać, być może trzeba dostosować przycięcie. Zaznaczając kamerę w {{incode|Outliner}}, przejdź do panelu {{incode|Properties}}, następnie {{incode|Object Data}}, potem {{incode|Lens}}, a następnie ustaw {{incode|Clip End}} na dużą wartość, na przykład {{incode|1E3 mm}} lub {{incode|1000 m}}.
+
+{{Code|code=
+bpy.context.object.data.clip_end = 1e+03
+}}
+
+Jeśli widzisz obiekt w ujęciu widoku, możesz teraz szybko wyrenderować model, naciskając {{KEY|F12}}, co spowoduje otwarcie {{incode|Image Editor}} z wynikiem. Naciśnij {{KEY|Esc}}, aby wyjść i powrócić do {{incode|3D Viewport}}.
+
+[[Image:04_T03_FreeCAD_Blender_first_render.png|600px|center]]
+
+{{Caption|align=center|Pierwszy render montażu w Blenderze, z ujęciem z poprawnym clippingiem, ale bez oświetlenia}}
+
+Możesz przełączać się między ujęciem widoku a rzutnią 3D, naciskając klawisz {{KEY|0}} na klawiaturze numerycznej. Naciśnięcie klawisza {{KEY|F12}} spowoduje wyświetlenie widoku z kamery w dowolnym momencie.
+
+8.2. Jeśli ujęcie wygląda na bardzo małe w rzutni 3D, przejdź do panelu {{incode|Properties}}, następnie {{incode|Object Data}}, potem {{incode|Viewport Display}} i ustaw większą wartość dla pola {{incode|Size}}, na przykład {{incode|20 mm}}. Włącz także pole wyboru {{incode|Limits}}, aby zobaczyć odległość obcinania ujęcia widoku.
+
+{{Code|code=
+bpy.context.object.data.display_size = 20
+bpy.context.object.data.show_limits = True
+}}
+
+<span id="Prepare_the_lighting_of_the_scene"></span>
+===Przygotuj oświetlenie sceny===
+
+9. Zaznacz światło w {{incode|Outliner}}, przejdź do panelu {{incode|Properties}}, następnie {{incode|Object Data}}, naciśnij na {{incode|Sun}} i ustaw {{incode|Strength}} na {{incode|5.0}}.
+
+{{Code|code=
+bpy.context.object.data.type = 'SUN'
+bpy.context.object.data.energy = 5
+}}
+
+Spowoduje to przekształcenie światła w lampę słoneczną. Ten typ lampy emituje nieskończoną liczbę równoległych promieni świetlnych, które docierają do sceny pod stałym kątem.
+
+Możesz umieścić lampę słoneczną w dowolnym miejscu rzutni nad swoim modelem, tak aby określić kierunek promieni świetlnych. Dla lampy słonecznej nie ma znaczenia jak blisko lub daleko umieścisz lampę, tylko kierunek promieni, które są definiowane przez rotację obiektu {{incode|Light}}.
+
+{{Code|code=
+bpy.context.active_object.location = (150, 100, 100)
+bpy.context.active_object.rotation_euler = (0.6, 0.05, 1.88)
+}}
+
+Naciśnij ponownie klawisz {{KEY|F12}}, aby zobaczyć wstępny render modelu.
+
+[[Image:05_T03_FreeCAD_Blender_render_sun_lamp.png|600px|center]]
+
+{{Caption|align=center|Render złożenia w Blenderze z dodaną lampą słoneczną, która emituje równoległe promienie świetlne o stałym kącie}}
+
+<span id="More_setup:_floor,_global_lighting,_reflections,_and_soft_shadows"></span>
+===Więcej ustawień: podłoga, oświetlenie globalne, odbicia i miękkie cienie===
+
+10. Dodaj płaszczyznę podłogi. Naciśnij klawisze {{KEY|Shift}}+{{KEY|A}}, a następnie wybierz {{incode|Mesh}}, {{incode|Plane}} i nadaj mu wymiary około 10 razy większe niż twój model. Ten obiekt będzie służył jako płaszczyzna podłogi lub blat stołu, na którym stoi model. Przesuń również płaszczyznę nieco w dół, tak aby nie przecinała modelu. Wystarczy {{incode|-1 mm}} poniżej obiektu.
+
+{{Code|code=
+bpy.ops.mesh.primitive_plane_add(size=1500, view_align=False, enter_editmode=False, location=(0, 0, -1))
+}}
+
+11. Ustaw iluminację świata. W panelu {{incode|Properties}} przejdź do {{incode|World}} i ustaw {{incode|Color}} na wartość jasnoniebiesko-szarą, {{incode|RGB (0.358, 0.512, 0.527)}}, a także ustaw {{incode|Strength}} na {{incode|0.3}}.
+
+12. Ustaw odbicia i cienie. Renderer EEVEE w Blenderze produkuje szybkie obrazy poprzez dezaktywację większości efektów na początku. W celu uzyskania lepszych obrazów, niektóre opcje muszą być uaktywnione.
+
+Przejdź do panelu {{incode|Properties}}, następnie {{incode|Render}} i zaznacz opcję {{incode|Screen Space Reflections}}. W sekcji {{incode|Shadows}} zaznacz również opcję {{incode|Soft Shadows}}.
+
+{{Code|code=
+bpy.context.scene.eevee.use_ssr = True
+bpy.context.scene.eevee.use_soft_shadows = True
+}}
+
+<span id="Set_the_materials_of_the_objects"></span>
+===Ustawienie rodzaju materiału dla obiektów===
+
+13. Zmień panel {{incode|Python Console}} w panel {{incode|Shader Editor}} ''({{KEY|Shift}}+{{KEY|F3}})''.
+
+13.1. Zaznacz płaszczyznę podłoża, przejdź do panelu {{incode|Properties}}, następnie {{incode|Material}} i kliknij przycisk {{incode|New}}. W oknie {{incode|Shader Editor}} powinien pojawić się węzeł {{incode|Principled BSDF}}. Nadaj mu beżowy kolor {{incode|Base Color}} {{incode|RGB ''(0.318, 0.267, 0.187)''}}, suwak {{incode|Metallic}} ustaw na {{incode|0.000}}, a suwak {{incode|Roughness}} na {{incode|1.000}}.
+
+[[Image:06_T03_FreeCAD_Blender_Principled_shader.png|center]]
+
+{{Caption|align=center|Podstawowy shader BSDF używany w Blenderze do symulacji różnych materiałów, od błyszczących metali po szorstkie i nieprzezroczyste bryły..}}
+
+13.2. Zaznacz każdą z części modelu i dostosuj odpowiedni węzeł materiałowy {{incode|Principled BSDF}}. W przypadku części metalowych ustaw właściwość {{incode|Metallic}} na wartość {{incode|1.000}}. Dostosuj wartość właściwości {{incode|Roughness}}, aby mieściła się w przedziale od {{incode|0.2}} do {{incode|0.7}}. Im bardziej {{incode|0.000}} zbliża się do wartości {{incode|Roughness}}, tym bardziej będzie się odbijał ''(przypominał lustro)''.
+
+W przypadku materiałów innych niż metale, takich jak tworzywa sztuczne, drewno i tkaniny, ustaw suwak {{incode|Metallic}} na wartość {{incode|0.000}}, a wartość parametru {{incode|Roughness}} na wartość pomiędzy {{incode|0.4}} a {{incode|1.0}}.
+
+Ogólnie rzecz biorąc, metale są naturalnie gładkie i dlatego ich wartość chropowatości jest mała, co sprawia, że są bardzo odblaskowe (błyszczące). Inne materiały są mikroskopijnie szorstkie i dlatego nie odbijają tak dużo światła, co czyni je nieprzezroczystymi.
+
+14. Testuj różne kombinacje materiałów, aż do uzyskania akceptowalnego wyglądu. Wciśnij {{KEY|Z}} a następnie {{KEY|8}} W tym trybie renderer EEVEE pokazuje w czasie rzeczywistym na rzutni 3D, jak będzie wyglądał końcowy obraz. Użyj {{KEY|Z}} by otworzyć menu pie i przełączyć się z powrotem do trybu {{incode|Solid}} ({{KEY|Z}} {{KEY|6}}), lub przejść do trybu {{incode|LookDev}} ({{KEY|Z}} {{KEY|2}}), trybu który dodaje różne rodzaje oświetlenia do sceny by przetestować wygląd materiałów.
+
+Naciśnij przycisk {{KEY|F12}}, aby wyświetlić widok z kamery i sprawdzić jakość obrazu.
+
+<span id="Rendering_and_saving"></span>
+===Renderowanie i zapisywanie===
+
+15. Jeśli Twój model wygląda w miarę dobrze z rendererem EEVEE możesz już zapisać obraz poprzez {{MenuCommand|Image → Save As}} lub naciskając {{KEY|Shift}}+{{KEY|S}} w {{Incode|Image Editor}}.
+
+[[Image:07_T03_FreeCAD_Blender_EEVEE_render.png|600px|center]]
+
+{{Caption|align=center|Renderowane złożenie wykonane w Blenderze EEVEE. Wszystkie materiały używają shadera Principled BSDF, użyta jest tylko jedna lampa słoneczna, z niewielką ilością światła otoczenia.}}
+
+16. Jeśli chcesz poprawić jakość obrazu, wypróbuj renderer Cycles.
+
+Przejdź do panelu {{incode|Properties}}, następnie {{incode|Render}}, i dla {{incode|Render Engine}} wybierz {{incode|Cycles}}. W przypadku renderera Cycles, Blender będzie stopniowo udoskonalał obraz, aż minie pewna liczba iteracji. Za każdym razem, gdy rzutnia się zmieni, przeliczanie rozpocznie się od nowa.
+
+{{Code|code=
+bpy.context.scene.render.engine = 'CYCLES'
+}}
+
+16.1. Dostosuj częstotliwość próbkowania. Przejdź do panelu {{incode|Properties}}, następnie {{incode|Render}}, po czym w sekcji {{incode|Sampling}} wybierz odpowiednią liczbę dla {{incode|Render}} i {{incode|Viewport}}.
+
+Dla {{incode|Viewport}} wystarczy niewielka liczba próbek, w zakresie od {{incode|32}} do {{incode|128}}, aby uzyskać dobry podgląd obrazu. W celu uzyskania ostatecznego obrazu należy ustawić {{incode|Render}} na wyższą liczbę, od {{incode|128}} do {{incode|2000}}, w zależności od złożoności i ilości szczegółów sceny.
+
+Wciśnij klawisz {{KEY|F12}} aby wyrenderować końcowy widok przez kamerę. W zależności od Twojej karty graficznej ''(GPU)'' renderowanie obrazu w Cycles powinno zająć kilka sekund lub minut więcej niż w EEVEE, ale jakość obrazu powinna być lepsza.
+
+17. Kiedy jesteś zadowolony z jakości renderingu, w {{incode|Image Editor}} przejdź do {{MenuCommand|Image → Save As}} lub naciśnij {{KEY|Shift}}+{{KEY|S}}.
+
+[[Image:08_T03_FreeCAD_Blender_Cycles_render.png|600px|center]]
+
+{{Caption|align=center|Renderowane złożenie wyprodukowane w Blender Cycles. Wszystkie opcje, materiały i światła, które były używane w EEVEE zostały zachowane do użycia w Cycles.}}
+
+<span id="Rendering_from_the_command_line"></span>
+===Renderowanie z poziomu wiersza poleceń===
+
+18. Jeśli scena jest już całkowicie ukończona, możesz chcieć renderować ją spoza Blendera, z linii poleceń systemu operacyjnego. Może to być przydatne do wsadowego renderowania różnych scen w zdalnym systemie. Zarówno EEVEE jak i Cycles są obsługiwane.
+
+{{Code|lang=sh|code=
+blender -b assembly.blend -E BLENDER_EEVEE -o //assembly_EEVEE_#### -t 3 -F PNG -x 1 -f 1
+}}
+
+{{Code|lang=sh|code=
+blender -b assembly.blend -E CYCLES -o //assembly_CYCLES_#### -t 3 -F PNG -x 1 -f 1
+}}
+
+Pozwala to określić, że renderowanie powinno odbywać się w tle za pomocą {{incode|-b}}., Silnik renderujący jest wybierany za pomocą {{incode|-E}}, nazwa pliku wyjściowego jest wybierana za pomocą {{incode|-o}}, podwójny ukośnik wprzód {{incode|//}} wskazuje ścieżkę względem pliku wejściowego. Znak skrótu {{incode|#}} jest używany do wskazania numeru ramki, w razie potrzeby uzupełnionego zerami, na przykład {{incode|0001}}. Liczba wątków procesora używanych podczas renderowania jest wybierana za pomocą {{incode|-t 3}}, format pliku wyjściowego określa się za pomocą {{incode|-F}}, a opcja {{incode|-x 1}} automatycznie dodaje do nazwy rozszerzenie. Ostatnią opcją jest {{incode|-f 1}}, która oznacza, że renderowana będzie tylko pierwsza klatka, co jest normalnym przypadkiem dla statycznej sceny. W przypadku animacji należy użyć przełącznika {{incode|-a}}, aby dla każdej klatki utworzyć obraz, który następnie można złożyć w plik wideo.
+
+<span id="Importing_plugin"></span>
+==Importowanie wtyczek==
+
+Stworzenie pośredniej siatki Wavefront (.obj) i następnie zaimportowanie jej do Blendera zadziała w większości sytuacji. Jednakże, istnieje również możliwość importu pliku FreeCAD (.FCStd) bezpośrednio do Blendera za pomocą pluginu.
+* [https://gist.github.com/yorikvanhavre/e873d51c8f0e307e333fe595c429ba87 io_import_fcstd.py], oryginalna wersja dla Blendera 2.79
+* [https://gist.github.com/yorikvanhavre/680156f59e2b42df8f5f5391cae2660b FreeCAD .FCStd importer for Blender 2.80]
+
+Jest to wtyczka do Blendera. Aby działała, Blender musi być w stanie zaimportować FreeCAD jako moduł z {{incode|Python Console}}.
+{{Code|code=
+import FreeCAD
+}}
+
+Jest to możliwe tylko wtedy, gdy zarówno Blender jak i FreeCAD są skompilowane z tą samą {{incode|pythonX.Y}} ''(główną i podrzędną)'' wersją. Na przykład, jeśli Blender jest skompilowany z wersją środowiska Python 3.7, FreeCAD również musi być skompilowany z wersją Python 3.7. Jeśli FreeCAD jest skompilowany z inną wersją, na przykład Python 2.7.15 lub Python 3.6.7, wtyczka nie będzie działać. Numer wersji mikro ''(trzecia cyfra)'' nie ma znaczenia, to znaczy, że wtyczka powinna działać, jeśli jeden program jest skompilowany z Pythonem 3.7.5, a drugi z Pythonem 3.7.8.
+
+Dodatkowo, prekompilowany moduł FreeCAD w Pythonie, {{incode|FreeCAD.so}} w Linuksie i {{incode|FreeCAD.pyd}} w Windows, powinien znajdować się w ścieżce Pythona używanej przez Blendera do importowania modułów. Ścieżka ta może być ustawiona na różne sposoby, w zależności od systemu operacyjnego i dystrybucji środowiska Python.
+
+W Blenderze możesz zobaczyć wszystkie przeszukiwane ścieżki poprzez sprawdzenie zmiennej {{incode|sys.path}}. Moduł FreeCAD powinien znajdować się w każdym z tych katalogów.
+{{Code|code=
+import sys
+print(sys.path)}}
+
+* Kopia lub dowiązanie symboliczne wewnątrz jednego z tych katalogów może zostać utworzone wskazując na moduł FreeCAD.
+{{Code|code=
+ln -s /usr/lib/freecad/lib/FreeCAD.so $HOME/.config/blender/2.80/scripts/addons
+
+ln -s /usr/lib/freecad/lib/FreeCAD.so $HOME/.local/lib/python3.7/site-packages
+}}
+
+* Inną możliwością jest dodanie modułu bezpośrednio do ścieżki wewnątrz Blendera.
+{{Code|code=
+import sys
+sys.path.append("/usr/lib/freecad/lib/FreeCAD.so")
+}}
+
+<span id="Final_notes"></span>
+==Uwagi końcowe==
+
+EEVEE nie jest fizycznie dokładnym rendererem, jednak jego główną siłą jest to, że jest to silnik czasu rzeczywistego, więc jest w stanie produkować szybkie renderingi bezpośrednio w rzutni 3D. W wielu przypadkach obrazy te mają wystarczającą jakość dla końcowej produkcji, co oznacza, że możliwe jest uzyskanie dobrego rezultatu w bardzo krótkim czasie. W przypadkach, gdy pożądane są złożone interakcje światła ''(odbicia, załamania, światło wolumetryczne i kaustyka)'', EEVEE jest bardziej ograniczony i wymaga pewnych opcji i sztuczek, aby obejść niektóre z tych ograniczeń.
+
+Z drugiej strony, Cycles jest prawdziwym rendererem raytracingowym, co oznacza, że jest bardziej dokładny w obliczaniu ścieżek światła w przestrzeni sceny. Cycles jest zalecanym rendererem, gdy pożądana jest najwyższa jakość ''(fotorealistyczne rezultaty)'', kosztem dłuższego czasu renderowania.
+
+Oba renderery mogą być użyte w celu wykorzystania zalet każdego z nich. W wielu przypadkach scena może być szybko przygotowana i przetestowana z EEVEE, aby uzyskać wstępne renderingi. Następnie ta sama scena może być użyta z niewielkimi zmianami z Cycles, aby uzyskać wyższej jakości, ostateczny rendering. W szczególności, gdy scena, która została ustawiona w EEVEE będzie używana w Cycles, światła mogą wymagać korekty wartości i pozycji, jako że oba renderery traktują światło w różny sposób.
+
+Uzyskanie dobrych rezultatów zależy w dużej mierze od opcji renderowania, materiałów i oświetlenia. Shader materiałów {{incode|Principled BSDF}} jest ogólnym rozwiązaniem, które sprawdza się w wielu przypadkach, jednak aby uzyskać prawdziwie fotorealistyczne rezultaty, nadal bardzo ważne jest użycie map tekstur i map normalnych, wraz z dokładnym oświetleniem sceny.
+
+
+{{Raytracing Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

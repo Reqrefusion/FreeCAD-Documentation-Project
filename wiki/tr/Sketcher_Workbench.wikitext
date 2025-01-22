@@ -1,0 +1,673 @@
+<languages/>
+
+{{Docnav
+|[[Robot_Workbench|Robot Workbench]]
+|[[Spreadsheet_Workbench|Spreadsheet Workbench]]
+|IconL=Workbench_Robot.svg
+|IconR=Workbench_Spreadsheet.svg
+}}
+
+[[Image:Workbench_Sketcher.svg|thumb|128px|Sketcher workbench icon]]
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+== Giriş ==
+
+<div class="mw-translate-fuzzy">
+[[Sketcher Workbench/tr|Eskiz tezgahı]]; [[PartDesign Workbench/tr|Parça tasarım tezgahı]], [[Arch_Workbench/tr|Yapı tezgahı]] ve diğer tezgahlarda kullanılmak üzere 2D geometriler üretir.
+Genel olarak, bir 2D geometrisi çoğu CAD modelinin başlangıç ​​noktası olarak kabul edilir, çünkü bir 2D çizimi, 3D şekli oluşturmak için "ekstrüzyona sokulabilir"; Önceden oluşturulmuş 3D şekillerin üstünde oyuklar, çıkıntılar veya ekstrüzyonlar gibi başka özellikler oluşturmak için başka 2D çizimler de kullanılabilir. [[Part_Workbench/tr|Parça Tezgahında]] tanımlanan katılarda, Boolean işlemleri ile birlikte Eskiz, üretken katı şekilli tasarımın çekirdeğini oluşturur.
+</div>
+
+Together with boolean operations defined in the [[Image:Workbench_Part.svg|16px]] [[Part Workbench|Part Workbench]], the Sketcher Workbench, or "The Sketcher" for short, forms the basis of the [[Constructive_solid_geometry|constructive solid geometry]] (CSG) method of building solids. Together with [[Image:Workbench_PartDesign.svg|16px]] [[PartDesign_Workbench|PartDesign Workbench]] operations, it also forms the basis of the [[Feature_editing|feature editing]] methodology of creating solids. But many other workbenches use sketches as well.
+
+<div class="mw-translate-fuzzy">
+Eskiz tezgahı, 2D şekillerin kesin geometrik tanımları izlemesine izin veren "kısıtlamalara" sahiptir. Bir kısıtlayıcı çözücü, 2D geometrinin kısıtlı boyutunu hesaplar ve çizim serbestlik derecelerinin etkileşimli olarak araştırılmasını sağlar.
+</div>
+
+<div class="mw-translate-fuzzy">
+==== Eskiz nerelerde kullanılmaz ====
+Eskiz, 2D planlar üretmek için tasarlanmamıştır. Eskizler, katı bir özellik oluşturmak için kullanıldığında, otomatik olarak gizlenir. Kısıtlamalar yalnızca Eskiz düzenleme modunda görülebilir.
+</div>
+
+[[File:FC_ConstrainedSketch.png|450px]]
+{{Caption|
+Tamamen kısıtlanmış bir eskiz}}
+
+== Constraints ==
+
+<div class="mw-translate-fuzzy">
+==== Kısıtlama nedir ====
+Boyutlar yerine, kısıtlamalar bir nesnenin serbestlik derecesini sınırlamak için kullanılır. Örneğin, kısıtlamaları olmayan bir çizgi 4 [[#Degrees Of Freedom|Serbestlik Derecesine]] (" DOF " olarak kısaltılır) sahiptir:  yatay ya da dikey olarak hareket ettirilebilir, uzatılabilir ve döndürülebilir.
+</div>
+
+Yatay veya dikey bir sınırlama veya bir açı sınırlaması (başka bir çizgiye veya eksenlerden birine göre) uygulamak, dönme kapasitesini sınırlar ve böylece 3 serbestlik derecesine sahip olur. Çizginin herhangi bir noktasını, Orijin ile ilişkilendirmek 2 serbestlik derecesini ortadan kaldırır. Bir boyut sınırlaması uygulamak son serbestlik derecesini ortadan kaldıracaktır. Çizgi daha sonra '''tamamen kısıtlı''' olarak kabul edilir .
+
+<div class="mw-translate-fuzzy">
+Birden fazla nesne aralarında sınırlandırılabilir. İki çizgi, noktaları birbiriyle çakışan nokta kısıtı ile birleştirilebilir. Aralarında bir açı belirlenebilir veya dik olarak ayarlanabilir. Bir çizgi, bir yay veya bir daireye teğet olabilir vb. Birden fazla nesneyi içeren karmaşık bir Eskiz, çok sayıda farklı çözüme sahip olacak ve '''tamamen kısıtlı''' olması, bu olası çözümlerden yalnızca birinin uygulanan kısıtlamalara dayanarak ulaşıldığı anlamına gelir.
+</div>
+
+<div class="mw-translate-fuzzy">
+İki tür kısıtlama vardır: geometrik ve boyutsal. Bunlar aşağıdaki [[#The tools|'Araçlar']] bölümünde ayrıntılı olarak açıklanmaktadır .
+</div>
+
+=== Edit constraints ===
+
+When a [[Sketcher_ToggleDrivingConstraint|driving dimensional constraint]] is created, and if the {{MenuCommand|Ask for value after creating a dimensional constraint}} [[Sketcher_Preferences#Display|preference]] is selected (default), a dialog opens to edit its value.
+
+[[Image:Sketcher_Edit_Constraint.png|Sketcher_Edit_Constraint.png]]
+
+You can enter a numerical value or an [[Expressions|expression]], and it is possible to name the constraint to facilitate its use in other expressions. You can also check the {{MenuCommand|Reference}} checkbox to switch the constrain to [[Sketcher_ToggleDrivingConstraint|reference mode]].
+
+To edit the value of an existing dimensional constraint do one of the following:
+* Double-click the constraint value in the [[3D_view|3D view]].
+* Double-click the constraint in the [[Sketcher_Dialog|Sketcher Dialog]].
+* Right-click the constraint in the Sketcher Dialog and select the {{MenuCommand|Change value}} option from the context menu.
+
+=== Reposition constraints ===
+
+Dimensional constraints can be repositioned in the 3D view by dragging. Hold down the left mouse button over the constraint value and move the mouse. The symbols of geometric constraints are positioned automatically and cannot be moved.
+
+== Profile sketches ==
+
+To create a sketch that can be used as a profile for generating solids certain rules must be followed:
+* The sketch must contain only closed contours. Gaps between endpoints, however small, are not allowed.
+* Contours can be nested, to create voids, but should not self-intersect or intersect other contours.
+* Contours cannot share edges with other contours. Duplicate edges must be avoided.
+* T-connections, that is more than two edges sharing a common point, or a point touching an edge, are not allowed.
+
+These rules do not apply to construction geometry (default color blue), which is not shown outside edit mode, or if the sketch is used for a different purpose. Depending on the workbench and the tool that will use the profile sketch, additional restrictions may apply.
+
+== Drawing aids ==
+
+The Sketcher Workbench has several drawing aids and other features that can help when creating geometry and applying constraints.
+
+=== Continue modes ===
+
+There are two continue modes: '''Geometry creation "Continue Mode"''' and '''Constraint creation "Continue Mode"'''. If these are checked (default) in the [[Sketcher_Preferences#Display|preferences]], related tools will restart after finishing. To exit a continuous tool press {{KEY|Esc}} or the right mouse button. This must be repeated if a continuous geometry tool has already received input. You can also exit a continuous tool by starting another geometry or constraint creation tool. Note that pressing {{KEY|Esc}} if no tool is active will exit sketch edit mode. Uncheck the '''Esc can leave sketch edit mode''' [[Sketcher_Preferences#General|preference]] if you often inadvertently press {{KEY|Esc}} too many times.
+
+=== Auto constraints ===
+
+In sketches that have '''Auto constraints''' checked (default) several constraints are applied automatically. The icon of a proposed automatic constraint is shown next to the cursor when it is placed correctly. Left-Clicking will then apply that constraint. This is a per-sketch setting that can be changed in the [[Sketcher_Dialog#Constraints|Sketcher Dialog]] or by changing the {{PropertyView|Autoconstraints}} [[Property_editor|property]] of the sketch.
+
+The following constraints are applied automatically:
+* [[Image:Sketcher_ConstrainCoincident.svg|16px]] [[Sketcher_ConstrainCoincident|Coincident]]
+* [[Image:Sketcher_ConstrainPointOnObject.svg|16px]] [[Sketcher_ConstrainPointOnObject|Point on object]]
+* [[Image:Sketcher_ConstrainHorizontal.svg|16px]] [[Sketcher_ConstrainHorizontal|Horizontal]]
+* [[Image:Sketcher_ConstrainVertical.svg|16px]] [[Sketcher_ConstrainVertical|Vertical]]
+* [[Image:Sketcher_ConstrainTangent.svg|16px]] [[Sketcher_ConstrainTangent|Tangent]]
+* {{Version|1.0}}: [[Image:Sketcher_ConstrainSymmetric.svg|16px]] [[Sketcher_ConstrainSymmetric|Symmetric]] (line midpoint)
+
+=== Snapping ===
+
+{{Version|0.21}}
+
+It is possible to [[Sketcher_Snap|snap]] to grid lines and grid intersection, to edges of geometry and midpoints of lines and arcs, and to certain angles. Please note that snapping does not produce constraints in and of itself. For example, only if [[#Auto constraints|Auto constraints]] is switched on will snapping to an edge produce a [[Sketcher_ConstrainPointOnObject|Point on object constraint]]. But just picking a point on the edge would then have the same result.
+
+=== On-View-Parameters ===
+
+{{Version|1.0}}
+
+Depending on the selected option in the [[Sketcher_Preferences#General|preferences]] only the dimensional On-View-Parameters or both the dimensional and the positional On-View-Parameters can be enabled. Positional parameters allow the input of exact coordinates, for example the center of a circle, or the start point of a line. Dimensional parameters allow the input of exact dimensions, for example the radius of a circle, or the length and angle of a line. On-View-Parameters are not available for all tools.
+
+[[Image:Sketcher_On_view_parameters_positional.png]]
+{{Caption|Determining the center point of a circle with the positional parameters enabled}}
+
+[[Image:Sketcher_On_view_parameters_dimensional.png]]
+{{Caption|Determining the radius of a circle with the dimensional parameters enabled}}
+
+If values are entered and confirmed by pressing {{KEY|Enter}} or {{KEY|Tab}}, related constraints are added automatically. If two parameters are displayed at the same time, for example the X and Y coordinate of a point, it is possible to enter one value and pick a point to define the other. Depending on the object additional constraints may be required to fully constrain it. Constraints resulting from On-View-Parameters take precedence over those that may result from [[Sketcher_Dialog#Constraints|Auto constraints]].
+
+[[Image:Sketcher_ArcExample3.png|300px]]
+{{Caption|Arc created by entering all On-View-Parameters with resulting automatically created constraints}}
+
+=== Coordinate display ===
+
+If the '''Show coordinates beside cursor while editing''' [[Sketcher_Preferences#Display|preference]] is checked (default), the parameters of the current geometry tool (coordinates, radius, or length and angle) are displayed next to the cursor. This is deactivated while On-View-Parameters are shown.
+
+== Selection methods ==
+
+While a sketch is in edit mode the following selection methods can be used:
+
+=== 3D view element selection ===
+
+As elsewhere in FreeCAD, an element can be selected in the [[3D_view|3D view]] with a single left mouse click. But there is no need to hold down the {{KEY|Ctrl}} key when selecting multiple elements. Holding down that key is possible though and has the advantage that you can miss-click without losing the selection. Edges, points and constraints can be selected in this manner.
+
+=== 3D view box selection ===
+
+Box selection in the 3D view works without using [[Std_BoxSelection|Std BoxSelection]] or [[Std_BoxElementSelection|Std BoxElementSelection]]:
+# Make sure that no tool is active.
+# Do one of the following:
+#* Click in an empty area and drag a rectangle from left to right to select elements that lie completely inside the rectangle.
+#* Click in an empty area and drag a rectangle from right to left to also select elements that touch or cross the rectangle.
+
+You can box-select edges and points, constraints cannot be box-selected.
+
+=== 3D view connected geometry selection ===
+
+{{Version|1.0}}
+
+Double-clicking an edge in the 3D view will select all edges directly and indirectly connected with that edge via endpoints. There is no need for the edges to be connected with [[Sketcher_ConstrainCoincident|Coincident constraints]], endpoints need only have the same coordinates.
+
+=== Sketcher Dialog selection ===
+
+Edges and points can also be selected from the Elements section of the [[Sketcher_Dialog|Sketcher Dialog]], and constraints from the Constraints section of that dialog.
+
+== Copy, cut and paste ==
+
+{{Version|1.0}}
+
+The standard keyboard shortcuts, {{KEY|Ctrl}}+{{KEY|C}}, {{KEY|Ctrl}}+{{KEY|X}} and {{KEY|Ctrl}}+{{KEY|V}}, can be used to copy, cut and paste selected Sketcher geometry including related constraints. But these tools are also available from the {{MenuCommand|Sketch → Sketcher tools}} menu. They can be used within the same sketch but also between different sketches or separate instances of FreeCAD. Since the data is copied to the clipboard in the form of Python code, it can be used in other ways too (e.g. shared on the forum).
+
+== Tools ==
+
+<div class="mw-translate-fuzzy">
+== Araçlar ==
+Eskiz Tezgahı araçlarının tümü, Eskiz Tezgahını yüklediğinizde görünen Eskiz menüsünde bulunur.
+</div>
+
+Some tools are also available from the [[3D_view|3D view]] context menu while a sketch is in edit mode, or from the context menus of the [[Sketcher_Dialog|Sketcher Dialog]].
+
+{{Version|0.21}}: If a sketch is in edit mode the Structure toolbar is hidden as none of its tools can then be used. 
+
+=== General ===
+
+==== Sketcher toolbar ====
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_NewSketch.png‎‎|32px]] [[Sketcher_NewSketch/tr|Eskiz oluştur]]: Seçilen bir yüz veya düzlemde yeni bir eskiz oluşturur. Bu araç yürütülürken herhangi bir yüz seçilmezse, kullanıcıdan açılır pencereden bir düzlem seçmesi istenir.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_EditSketch.png|32px]] [[Sketcher_EditSketch/tr|Eskizi düzenle]]:  Seçilen Eskiz'i düzenler.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_MapSketch.png‎|32px]] [[Sketcher_MapSketch/tr|Eskizi yüze eşle]]: Bir katının seçilmiş bir yüzüne Eskizi eşler.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_ReorientSketch.svg|32px]] [[Sketcher_ReorientSketch/tr|Eskizi uyarla]]: Eskizin konumunu değiştirmek için kullanılır.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Sketcher_ValidateSketch/tr|Eskizi kontrol et]]: Farklı noktaların toleransını doğrulayın ve ayarlayın.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher MergeSketch.png‎|32px]] [[Sketcher MergeSketches/tr|Eskizleri birleştir]]: İki veya daha fazla eskizi birleştirin.{{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher MirrorSketch.png‎|32px]] [[Sketcher MirrorSketch/tr|Eskizi Aynala]]:Bir çizimi x ekseni, y ekseni veya orijini boyunca aynalayın. {{Version|0.16}}
+</div>
+
+==== Sketcher Edit Mode toolbar ====
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_LeaveSketch.png|32px]] [[Sketcher_LeaveSketch/tr|Eskizden çık]]: Eskiz düzenleme modundan çıkar.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_ViewSketch.png‎|32px]] [[Sketcher_ViewSketch/tr|Eskiz görünümü]]: Model görünümünü eskiz düzlemine dik olarak ayarlar.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher ViewSection.png|32px]] [[Sketcher_ViewSection/tr|Bölümü görüntüle]]: Eskiz düzleminin önünde herhangi bir cismi geçici olarak gizleyen bir bölüm düzlemi oluşturur.{{Version|0.18}}
+</div>
+
+==== Sketcher edit tools toolbar ====
+
+* [[Image:Sketcher_Grid.svg|32px]] [[Sketcher_Grid|Toggle grid]]: Toggles the grid in the sketch currently being edited. Settings can be changed in the related menu. {{Version|0.21}}
+
+* [[Image:Sketcher_Snap.svg|32px]] [[Sketcher_Snap|Toggle snap]]: Toggles snapping in all sketches. Settings can be changed in the related menu. {{Version|0.21}}
+
+* [[Image:Sketcher_RenderingOrder.svg|32px]] [[Sketcher_RenderingOrder|Configure rendering order]]: The rendering order of all sketches can be changed in the related menu. {{Version|0.21}}
+
+==== Other ====
+
+* [[File:Sketcher_StopOperation.svg|32px]] [[Sketcher_StopOperation|Stop operation]]: Stops any currently running geometry or constraint creation tool.
+
+<span id="Sketcher_geometries"></span>
+=== Eskiz Geometrileri ===
+
+Bunlar nesne oluşturma araçlarıdır.
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_CreatePoint.png|32px]] [[Sketcher_CreatePoint/tr|Nokta]]: Nokta çizer.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_CreatePolyline.png|32px]] [[Sketcher_CreatePolyline/tr|Polyline (Çok noktalı çizgi)]]: Birden çok çizgi parçasından oluşan bir çizgi çizer. Bir Polyline çizerken M tuşuna basmak, farklı polyline modları arasında geçiş yapar.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_Line.png|32px]] [[Sketcher_CreateLine/tr|2 noktadan Çizgi]]: İki nokta arasında Çizgi oluşturur. Çizgiler sonsuz serbestlik derecesine sahiptir.
+</div>
+
+* <span id="Sketcher_CompCreateArc">[[Image:Sketcher_CreateArc.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Create arc:</span><!--Do not edit span id: the Sketcher_CompCreateArc pages redirect here-->
+
+<div class="mw-translate-fuzzy">
+:* [[Image:Sketcher_Arc.png|32px]] [[Sketcher_CreateArc/tr|Yay]]:  Merkez, yarıçap, başlangıç ​​açısı ve bitiş açısından bir yay parçası çizer.
+</div> 
+
+<div class="mw-translate-fuzzy">
+:* [[Image:Sketcher CreateArc3Point.png|32px]] [[Sketcher_Create3PointArc/tr|3 nokta ile yay çiz]]:  İki uç noktadan ve çevredeki başka bir noktadan bir yay parçası çizer.
+</div>
+
+:* [[Image:Sketcher_CreateArcOfEllipse.svg|32px]] [[Sketcher_CreateArcOfEllipse|Arc of ellipse]]: Creates an arc of ellipse.
+
+:* [[Image:Sketcher_CreateArcOfHyperbola.svg|32px]] [[Sketcher_CreateArcOfHyperbola|Arc of hyperbola]]: Creates an arc of hyperbola.
+
+:* [[Image:Sketcher_CreateArcOfParabola.svg|32px]] [[Sketcher_CreateArcOfParabola|Arc of parabola]]: Creates an arc of parabola.
+
+* <span id="Sketcher_CompCreateConic">[[Image:Sketcher_CreateCircle.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Create circle/ellipse:</span><!--Do not edit span id: the Sketcher_CompCreateConic pages redirect here-->
+
+<div class="mw-translate-fuzzy">
+:* [[Image:Sketcher_Circle.png|32px]] [[Sketcher_CreateCircle/tr|Daire]]: Merkez nokta ve yarıçaptan bir daire çizer.
+</div>
+
+<div class="mw-translate-fuzzy">
+:* [[Image:Sketcher CreateCircle3Point.png|32px]] [[Sketcher_Create3PointCircle/tr|3 nokta ile daire]]: seçilen üç nokta üzerinden geçen bir daire çizer.
+</div>
+
+:* [[Image:Sketcher_CreateEllipseByCenter.svg|32px]] [[Sketcher_CreateEllipseByCenter|Ellipse by center]]: Creates an ellipse by its center, an endpoint of one of its axes, and a point along the ellipse. {{Version|1.0}}: Or by both endpoints of one of its axes and a point along the ellipse.
+
+:* [[Image:Sketcher_CreateEllipseBy3Points.svg|32px]] [[Sketcher_CreateEllipseBy3Points|Ellipse by 3 points]]: Creates an ellipse by the endpoints of one of its axes and a point along the ellipse. {{Version|1.0}}: This is the same tool as [[Sketcher_CreateEllipseByCenter|Ellipse by center]] but with a different initial mode.
+
+* <span id="Sketcher_CompCreateRectangles">[[Image:Sketcher_CreateRectangle.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Create rectangle:</span><!--Do not edit span id: the Sketcher_CompCreateRectangles pages redirect here-->
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_CreateRectangle.png|32px]] [[Sketcher_CreateRectangle/tr|Dikdörtgen]]: İki zıt noktadan bir dikdörtgen çizer.
+</div>
+
+:* [[Image:Sketcher_CreateRectangle_Center.svg|32px]] [[Sketcher_CreateRectangle_Center|Centered rectangle]]: Creates a centered rectangle. {{Version|1.0}}: This is the same tool as [[Sketcher_CreateRectangle|Rectangle]] but with a different initial mode.
+
+:* [[Image:Sketcher_CreateOblong.svg|32px]] [[Sketcher_CreateOblong|Rounded rectangle]]: Creates a rounded rectangle. Idem.
+
+* <span id="Sketcher_CompCreateRegularPolygon">[[Image:Sketcher_CreateHexagon.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Create regular polygon:</span><!--Do not edit span id: the Sketcher_CompCreateRegularPolygon pages redirect here-->
+
+<div class="mw-translate-fuzzy">
+:* [[Image:Sketcher_CreateTriangle.png|32px]] [[Sketcher_CreateTriangle/tr|Üçgen]]:Bir inşaat geometri dairesi içine bir eşkenar üçgen çizer. {{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+:* [[Image:Sketcher_CreateSquare.png|32px]] [[Sketcher_CreateSquare/tr|Kare]]: Bir inşaat geometri dairesi içine bir kare çizer. {{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+:* [[Image:Sketcher_CreatePentagon.png|32px]] [[Sketcher_CreatePentagon/tr|Beşgen]]: Bir inşaat geometri dairesi içine bir beşgen çizer. {{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+:* [[Image:Sketcher_CreateHexagon.png|32px]] [[Sketcher_CreateHexagon/tr|Altıgen]]: Bir inşaat geometri dairesi içine bir altıgen çizer. {{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+:* [[Image:Sketcher_CreateHeptagon.png|32px]] [[Sketcher_CreateHeptagon/tr|Yedigen]]: Bir inşaat geometri dairesi içine bir yedigen çizer.
+</div>
+
+<div class="mw-translate-fuzzy">
+:* [[Image:Sketcher_CreateOctagon.png|32px]] [[Sketcher_CreateOctagon/tr|Sekizgen]]:Bir inşaat geometri dairesi içine bir sekizgen çizer. {{Version|0.15}}
+</div>
+
+:* [[Image:Sketcher_CreateRegularPolygon.svg|32px]] [[Sketcher_CreateRegularPolygon|Regular polygon]]: Creates a regular polygon. The number of sides can be specified.
+
+* <span id="Sketcher_CompSlot">[[Image:Sketcher_CreateSlot.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Create slot:</span><!--Do not edit span id: the Sketcher_CompSlot pages redirect here-->
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_CreateSlot.png|32px]] [[Sketcher_CreateSlot/tr|Yuva]]: Bir yarım dairenin merkezini ve diğer bir yarım dairenin son noktasını seçerek ikisi arasında bir oval çizer.
+</div>
+
+:* [[Image:Sketcher_CreateArcSlot.svg|32px]] [[Sketcher_CreateArcSlot|Arc slot]]: Creates an arc slot. {{Version|1.0}}
+
+* <span id="Sketcher_CompCreateBSpline">[[Image:Sketcher_CreateBSpline.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Create B-spline:</span><!--Do not edit span id: the Sketcher_CompCreateBSpline pages redirect here-->
+
+:* [[File:Sketcher_CreateBSpline.svg|32px]] [[Sketcher_CreateBSpline|B-spline by control points]]: Creates a B-spline curve by control points. {{Version|1.0}}: Or by knot points.
+
+:* [[File:Sketcher_CreatePeriodicBSpline.svg|32px]] [[Sketcher_CreatePeriodicBSpline|Periodic B-spline by control points]]: Creates a periodic (closed) B-spline curve by control points. {{Version|1.0}}: This is the same tool as [[Sketcher_CreateBSpline|B-spline by control points]] but with a different initial mode.
+
+:* [[File:Sketcher_CreateBSplineByInterpolation.svg|32px]] [[Sketcher_CreateBSplineByInterpolation|B-spline by knots]]: Creates a B-spline curve by knot points. Idem.
+
+:* [[File:Sketcher_CreatePeriodicBSplineByInterpolation.svg|32px]] [[Sketcher_CreatePeriodicBSplineByInterpolation|Periodic B-spline by knots]]: Creates a periodic (closed) B-spline curve by knot points. Idem.
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_ToggleConstruction.png|32px]] [[Sketcher_ToggleConstruction/tr|İnşaat modu]]: Eskiz geometrisini inşaat moduna değiştirir. İnşaat geometrisi mavi renkte gösterilir ve Eskiz düzenleme modunun dışına atılır.
+</div>
+
+<span id="Sketcher_constraints"></span>
+=== Eskiz kısıtlamaları===
+
+<div class="mw-translate-fuzzy">
+Kısıtlamalar, uzunlukları tanımlamak, Eskiz öğeleri arasında kuralları belirlemek ve eskizleri dikey ve yatay eksenler boyunca kilitlemek için kullanılır. Bazı kısıtlamalar, [[Sketcher_helper_constraint|Yardımcı kısıtlamaların]] kullanılmasını gerektirir .
+</div>
+
+* <span id="Sketcher_CompDimensionTools">[[Image:Sketcher_Dimension.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Dimensional constraints:</span><!--Do not edit span id: the Sketcher_CompDimensionTools pages redirect here-->
+
+:* [[File:Sketcher_Dimension.svg|32px]] [[Sketcher_Dimension|Dimension]]: Is the context-sensitive constraint tool of the Sketcher Workbench. Based on the current selection, it offers appropriate dimensional constraints, but also geometric constraints. {{Version|1.0}}
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_HorizontalDistance.png‎|32px]] [[Sketcher ConstrainDistanceX/tr|Yatay uzunluk]]:İki nokta veya çizgi bitiş noktaları arasındaki yatay mesafeyi sabitler. Yalnızca bir öğe seçilirse, mesafe orijine ayarlanır.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_VerticalDistance.png|32px]] [[Sketcher_ConstrainDistanceY/tr|Dikey uzunluk]]: 2 nokta veya çizgi bitiş noktası arasındaki dikey uzunluğu sabitler. Yalnızca bir öğe seçilirse, uzunluk orijine ayarlanır.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_Length.png|32px]] [[Sketcher_ConstrainDistance|Uzunluk]]: Seçili çizginin uzunluğunu sınırlayarak mesafeyi tanımlar veya aralarındaki uzunluğu sınırlayarak iki nokta arasını tanımlar.
+</div>
+
+:* <span id="Sketcher_CompConstrainRadDia">[[File:Sketcher_ConstrainRadiam.svg|32px]] [[Sketcher_ConstrainRadiam|Auto radius/diameter]]: Fixes the radius of arcs and B-spline weight circles, and the diameter of circles.</span><!--Do not edit span id: the Sketcher_CompConstrainRadDia pages redirect here-->
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_Radius.png|32px]] [[Sketcher_ConstrainRadius/tr|Yarıçap]]:Yarıçapı kısıtlayarak, seçilen bir yayın veya dairenin yarıçapını tanımlar.
+* [[Image:Constraint_InternalAngle.png|32px]] [[Sketcher_ConstrainAngle/tr|İç Açı]]:Seçilen iki çizgi arasındaki iç açıyı tanımlar.
+</div>
+
+:* [[File:Sketcher_ConstrainDiameter.svg|32px]] [[Sketcher_ConstrainDiameter|Diameter]]: Fixes the diameter of circles and arcs.
+
+:* [[File:Sketcher_ConstrainAngle.svg|32px]] [[Sketcher_ConstrainAngle|Angle]]: Fixes the angle between two edges, the angle of a line with the horizontal axis of the sketch, or the aperture angle of a circular arc.
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_ConstrainLock.png‎|32px]] [[Sketcher ConstrainLock|Kilit]]: Seçili öğeyi, kökene göre dikey ve yatay mesafeler ayarlayarak sınırlar ve böylece o öğenin konumunu kilitler. Bu kısıtlama mesafeleri daha sonra düzenlenebilir.
+</div>
+
+* [[File:Sketcher_ConstrainCoincidentUnified.svg|32px]] [[Sketcher_ConstrainCoincidentUnified|Coincident (unified)]]: Creates a coincident constraint between points, fixes points on edges or axes, or creates a concentric constraint. It combines the [[Sketcher_ConstrainCoincident|Coincident]] and [[Sketcher_ConstrainPointOnObject|Point on object]] tools. {{Version|1.0}}
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_PointOnPoint.png|32px]] [[Sketcher ConstrainCoincident/tr|Çakıştır]]:Bir noktaya, bir veya daha fazla noktayı çakıştırır.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_PointOnObject.png|32px]] [[Sketcher ConstrainPointOnObject/tr|Nesne üzerinde nokta]]: Bir noktayı, çizgi, yay veya eksen gibi bir nesne üzerine çakıştırır.
+</div>
+
+* <span id="Sketcher_CompHorVer">[[Image:Sketcher_ConstrainHorVer.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]]Horizontal/vertical constraints:</span><!--Do not edit span id: the Sketcher_CompHorVer pages redirect here-->
+
+:* [[File:Sketcher_ConstrainHorVer.svg|32px]] [[Sketcher_ConstrainHorVer|Horizontal/vertical]]: Constrains lines or pairs of points to be horizontal or vertical, whichever is closest to the current alignment. It combines the [[Sketcher_ConstrainHorizontal|Horizontal]] and [[Sketcher_ConstrainVertical|Vertical]] tools. {{Version|1.0}}
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_Horizontal.png|32px]] [[Sketcher_ConstrainHorizontal|Yatay]]: Seçili çizgileri veya çoklu çizgi öğelerini gerçek bir yatay yönde sınırlar. Bu kısıtlamayı uygulamadan önce birden fazla nesne seçilebilir.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_Vertical.png|32px]] [[Sketcher_ConstrainVertical/tr|Dikey]]: Seçilen çizgileri veya çoklu çizgi öğelerini gerçek bir dikey yönlendirmeyle sınırlar. Bu kısıtlamayı uygulamadan önce birden fazla nesne seçilebilir.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_Parallel.png|32px]] [[Sketcher_ConstrainParallel|Paralel]]: İki veya daha fazla çizgiyi paralel yaptırarak sınırlar.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_Perpendicular.png|32px]] [[Sketcher_ConstrainPerpendicular/tr|Dik]]: İki çizgiyi bir birine dik hale getirir veya bir yay uç noktasına  bir çizgiyi dik olarak sınırlar.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_Tangent.png|32px]] [[Sketcher ConstrainTangent/tr|Teğet]]:Seçilen iki varlık arasında teğet bir kısıtlama veya iki çizgi parçası arasında bir eş doğrusal kısıtlama oluşturur. Bir çizgi segmenti, bu yay veya daireyle teğet olmak için doğrudan bir yay veya dairenin üzerinde olmak zorunda değildir.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_EqualLength.png|32px]] [[Sketcher_ConstrainEqual/tr|Eşit]]: Seçilen iki çizimi birbirine eşitler. Eğer daireler veya yaylar seçilirse yarıçapları eşitlenir.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_Symmetric.png|32px]] [[Sketcher_ConstrainSymmetric/tr|Simetrik]]: Bir çizgi etrafında simetrik olarak iki nokta sınırlar veya seçilen ilk iki noktayı simetrik olarak seçilen üçüncü bir noktaya sınırlar.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_ConstrainBlock.png|32px]] [[Sketcher_ConstrainBlock|Kısıtlama bloğu]]: Temel olarak, tek bir kısıtlama ile yerinde bir geometrik elemanın bloklanmasını sağlar.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Constraint_SnellsLaw.png|32px]] [[Sketcher ConstrainSnellsLaw/tr|Snell yasası]]:Bir arayüzden geçen ışığı simüle etmek için bir kırılma yasasına uymak için iki satır kısıtlar. {{Version|0.15}}
+</div>
+
+* <span id="Sketcher_CompToggleConstraints">[[Image:Sketcher_ToggleDrivingConstraint.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Toggle constraints:</span><!--Do not edit span id: the Sketcher_CompToggleConstraints pages redirect here-->
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_ToggleConstraint.png |32px]] [[Sketcher_ToggleDrivingConstraint/tr|Referans/Çizim değiştir]]:Araç çubuğunu veya seçilen kısıtlamaları referans moduna /çizim modundan değiştirir.{{Version|0.16}}
+</div>
+
+:* [[File:Sketcher_ToggleActiveConstraint.svg|32px]] [[Sketcher_ToggleActiveConstraint|Activate/deactivate constraint]]: Activates or deactivates selected constraints.
+
+<span id="Sketcher_tools"></span>
+===Eskiz araçları===
+
+* <span id="Sketcher_CompCreateFillets">[[Image:Sketcher_CreateFillet.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Create fillet/chamfer:</span><!--Do not edit span id: the Sketcher_CompCreateFillets pages redirect here-->
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_CreateFillet.png|32px]] [[Sketcher_CreateFillet/tr|Kavis]]:Bir noktada birleştirilmiş iki çizgi arasında bir kavis yapar. Her iki çizgiyi de seçin veya köşe noktasına tıklayın, ardından aracı etkinleştirin.
+</div>
+
+:* [[Image:Sketcher_CreateChamfer.svg|32px]] [[Sketcher_CreateChamfer|Chamfer]]: creates a chamfer between two non-parallel edges. This is the same tool as [[Sketcher_CreateFillet|Fillet]] but with a different initial mode. {{Version|1.0}}
+
+* <span id="Sketcher_CompCurveEdition">[[Image:Sketcher_Trimming.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Edit edge:</span><!--Do not edit span id: the Sketcher_CompCurveEdition pages redirect here-->
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_Trimming.png|32px]] [[Sketcher_Trimming/tr|Kırpma]]: Tıklanan noktaya göre bir çizgi, daire veya yay kırpar.
+</div>
+
+:* [[Image:Sketcher_Split.svg|32px]] [[Sketcher_Split|Split]]: Splits an edge while transferring most constraints.
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_Extend.svg|32px]] [[Sketcher_Extend/tr|Genişlet]]: Bir çizgiyi veya bir yayı bir sınır çizgisine, yay, elips, elips yayına veya uzayda bir noktaya genişletir.{{Version|0.17}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher_External.png|32px]] [[Sketcher_External/tr|Dış geometri]]:  Dış geometriye bağlı bir kenar oluşturur.
+</div>
+
+* <span id="Sketcher_CompExternal">[[Image:Sketcher_Projection.svg|32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] External geometry:</span><!--Do not edit span id: the Sketcher_CompExternal pages redirect here-->
+
+:* [[Image:Sketcher_Projection.svg|32px]] [[Sketcher_Projection|Create external projection geometry]]: Creates the projection edges of external geometry. {{Version|1.1}}
+
+:* [[Image:Sketcher_Intersection.svg|32px]] [[Sketcher_Intersection|Create external intersection geometry]]: Creates the intersection edges of external geometry with the sketch plane. {{Version|1.1}}
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_CarbonCopy.svg|32px]] [[Sketcher_CarbonCopy/tr|Karbon kopya]]:Başka bir çizimin geometrisini kopyalar.{{Version|0.17}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher SelectOrigin.png‎|32px]] [[Sketcher SelectOrigin|Eksen merkez noktasını seç]]: Eskizin eksen merkez noktasını seçer.{{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher SelectHorizontalAxis.png‎|32px]] [[Sketcher SelectHorizontalAxis|Yatay ekseni seç]]: Eskizin yatay eksenini seçer.{{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher SelectVerticalAxis.png‎|32px]] [[Sketcher SelectVerticalAxis/tr|Dikey eksen seç]]: Eskizin dikey eksenini seçer.{{Version|0.15}}
+</div>
+
+* [[File:Sketcher_Translate.svg|32px]] [[Sketcher_Translate|Array transform]]: Moves or optionally creates copies of selected elements. {{Version|1.0}}
+
+* [[File:Sketcher_Rotate.svg|32px]] [[Sketcher_Rotate|Polar transform]]: Rotates or optionally creates rotated copies of selected elements. {{Version|1.0}}
+
+* [[File:Sketcher_Scale.svg|32px]] [[Sketcher_Scale|Scale transform]]: Scales or optionally creates scaled copies of selected elements. {{Version|1.0}}
+
+* [[File:Sketcher_Offset.svg|32px]] [[Sketcher_Offset|Offset geometry]]: Creates equidistant edges around selected edges. {{Version|1.0}}
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher Symmetry.png‎|32px]] [[Sketcher Symmetry/tr|Simetri]]: Seçilen bir çizgiye simetrik bir eskiz elemanı kopyalar. {{Version|0.16}}
+</div>
+
+* [[File:Sketcher_RemoveAxesAlignment.svg|32px]] [[Sketcher_RemoveAxesAlignment|Remove axes alignment]]: Removes the axes alignment of selected edges by replacing [[Sketcher_ConstrainHorizontal|Horizontal]] and [[Sketcher_ConstrainVertical|Vertical]] constraints with [[Sketcher_ConstrainParallel|Parallel]] and [[Sketcher_ConstrainPerpendicular|Perpendicular]] constraints.
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher Element SelectionTypeInvalid.svg|32px]] [[Sketcher_DeleteAllGeometry/tr|Tüm geometriyi sil]]:Tüm geometriyi eskizden siler.{{Version|0.18}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher Element SelectionTypeInvalid.svg|32px]] [[Sketcher_DeleteAllConstraints|Tüm kısıtlamaları sil]]:Tüm kısıtlamaları çizimden siler. {{Version|0.18}}
+</div>
+
+* <span id="Sketcher_CopyClipboard">[[File:Edit-copy.svg|32px]] Copy in Sketcher: See [[#Copy,_cut_and_paste|Copy, cut and paste]].</span><!--Do not edit span id: the Sketcher_CopyClipboard pages redirect here-->
+
+* <span id="Sketcher_Cut">[[File:Edit-cut.svg|32px]] Cut in Sketcher: See [[#Copy,_cut_and_paste|Copy, cut and paste]].</span><!--Do not edit span id: the Sketcher_Cut pages redirect here-->
+
+* <span id="Sketcher_Paste">[[File:Edit-paste.svg|32px]] Paste in Sketcher: See [[#Copy,_cut_and_paste|Copy, cut and paste]].</span><!--Do not edit span id: the Sketcher_Paste pages redirect here-->
+
+<span id="Sketcher_B-spline_tools"></span>
+=== Eskiz B-spline araçları ===
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_BSplineApproximate.svg|32px]] [[Sketcher_BSplineApproximate/tr|Geometriyi B-spline'a Dönüştür]]
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_BSplineIncreaseDegree.svg|32px]] [[Sketcher_BSplineIncreaseDegree/tr|Derece arttır]]
+</div>
+
+* [[File:Sketcher_BSplineDecreaseDegree.svg|32px]] [[Sketcher_BSplineDecreaseDegree|Decrease B-spline degree]]: Decreases the degree (order) of B-splines.
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_BSplineIncreaseKnotMultiplicity.svg|32px]] [[Sketcher_BSplineIncreaseKnotMultiplicity/tr|Düğüm çokluğunu arttır]]
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_BSplineDecreaseKnotMultiplicity.svg|32px]] [[Sketcher_BSplineDecreaseKnotMultiplicity/tr|Düğüm çokluğunu azalt]]
+</div>
+
+* [[File:Sketcher_BSplineInsertKnot.svg|32px]] [[Sketcher_BSplineInsertKnot|Insert knot]]: Inserts a knot into a B-spline or increases the multiplicity of an existing knot.
+
+* [[File:Sketcher_JoinCurves.svg|32px]] [[Sketcher_JoinCurves|Join curves]]: Creates a B-spline by joining two existing B-splines or other edges. {{Version|0.21}}
+
+===Sketcher visual===
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher SelectElementsWithDoFs.svg|32px]] [[Sketcher_SelectElementsWithDoFs/tr|DOF çözücü seç]]: Yeşil renkte geometriyi serbestlik dereceli (DOF), yani tamamen kısıtlanmayan şekilde vurgular.{{Version|0.18}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher SelectConstraints.png‎|32px]] [[Sketcher SelectConstraints/tr|Kısıtlamaları seç]]: Eskiz elemanının kısıtlamalarını seçer. {{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher SelectElementsAssociatedWithConstraints.png‎|32px]] [[Sketcher SelectElementsAssociatedWithConstraints/tr|Kısıtlanmış öğeleri seç]]: Eskizin kısıtlanmış öğelerini seçer.{{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher SelectRedundantConstraints.png‎|32px]] [[Sketcher SelectRedundantConstraints/tr|Gereksiz kısıtlamaları seç]]: Eskizin gereksiz kısıtlamalarını seçer. {{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher SelectConflictingConstraints.png‎|32px]] [[Sketcher SelectConflictingConstraints/tr|Uyumsuz Kısıtlamaları seç]]: Eskizin birbiriyle tutarsız olan kısıtlamalarını seçer.{{Version|0.15}}
+</div>
+
+* [[File:Sketcher_ArcOverlay.svg|32px]] [[Sketcher_ArcOverlay|Show/hide circular helper for arcs]]: Shows or hides the circular helpers (underlying virtual circles) for arcs in all sketches. {{Version|1.0}}
+
+* <span id="Sketcher_CompBSplineShowHideGeometryInformation">[[Image:Sketcher_BSplinePolygon.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Show/hide B-spline information layer:</span><!--Do not edit span id: the Sketcher_CompBSplineShowHideGeometryInformation pages redirect here-->
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_BSplineDegree.svg|32px]] [[Sketcher_BSplineDegree/tr| B-spline derecesini Göster / Gizle]]
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_BSplinePolygon.svg|32px]] [[Sketcher_BSplinePolygon/tr|B-spline kontrol poligonunu Göster/Gizle]]
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_BSplineComb.svg|32px]] [[Sketcher_BSplineComb| B-spline eğrilik tepelerini Göster/Gizle]]
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_BSplineKnotMultiplicity.svg|32px]] [[Sketcher_BSplineKnotMultiplicity/tr|B-spline düğüm çokluğunu Göster/Gizle]]
+</div>
+
+:* [[File:Sketcher_BSplinePoleWeight.svg|32px]] [[Sketcher_BSplinePoleWeight|Show/hide B-spline control point weight]]: Shows or hides the B-spline control point weight in all sketches.
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_Element_Ellipse_All.png‎|32px]] [[Sketcher_RestoreInternalAlignmentGeometry/tr|İç geometriyi göster/gizle]]:Seçilmiş bir elipsin, elips yayının/hiperbol/parabol veya B-spline'ın gereksiz iç geometrisini kaybeder/siler.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher SwitchVirtualSpace.png‎|32px]] [[Sketcher_SwitchVirtualSpace/tr|Sanal alana geç]]: Kısıtlamaları '''gizlemenizi''' ve onları tekrar görünür hale getirmenizi sağlar.{{Version|0.17}} https://forum.freecadweb.org/viewtopic.php?f=9&t=26614 bakınız.
+</div>
+
+===Obsolete tools===
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher Clone.png‎|32px]] [[Sketcher Clone/tr|Klon]]:  Eskiz elemanını klonlar.{{Version|0.16}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher CloseShape.png‎|32px]] [[Sketcher CloseShape/tr|CŞekli kapat]]: Bitiş noktalarını çakıştırarak kısıtlanmış kapalı bir şekil oluşturur. {{Version|0.15}}
+</div>
+
+* [[File:Sketcher_CreatePointFillet.svg|32px]] [[Sketcher_CreatePointFillet|Corner-preserving fillet]]: Creates a fillet between two non-parallel lines while preserving their corner point. Not available in {{VersionPlus|1.0}}.
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher ConnectLines.png‎|32px]] [[Sketcher ConnectLines/tr|
+Kenarları Bağla]]: Uç noktalarını çakıştırarak eskiz elemanlarını bağlar.{{Version|0.15}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher Copy.png‎|32px]] [[Sketcher Copy/tr|Kopyala]]: Eskiz öğesini kopyalar.{{Version|0.16}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[File:Sketcher_Move.svg|32px]] [[Sketcher_Move/tr|Taşı]]: Seçilen geometriyi, seçilen son noktayı referans alarak hareket ettirir.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Sketcher RectangularArray.png‎|32px]] [[Sketcher RectangularArray/tr|Dikdörtgen dizi]]: Seçili eskiz öğelerinin dizisini oluşturur.{{Version|0.16}}
+</div>
+
+<span id="Preferences"></span>
+<div class="mw-translate-fuzzy">
+=== Seçenekler ===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Std_DlgParameter.png|32px]] [[Sketcher_Preferences/tr|Seçenekler...]]: Seçenekler, Eskiz araçlarında tek kullanımlıktır.
+</div>
+
+== Best practices ==
+
+<div class="mw-translate-fuzzy">
+== Öneriler ==
+Her CAD kullanıcısı zaman içinde kendi çalışma tarzını geliştirir, ancak takip edilmesi gereken bazı genel prensipler vardır.
+</div>
+
+<div class="mw-translate-fuzzy">
+*Bir dizi basit eskizle çalışmak, tek bir karmaşık olandan daha kolaydır. Örneğin, temel 3D özelliği için bir ilk çizim oluşturulabilir (kalınlık ver veya bir döndürerek), ikincisi ise bir delik veya kesik içerebilir (oyuklar). Bazı detaylar, daha sonra 3D özellikler olarak gerçekleştirilmek üzere bırakılabilir. Çok fazla varsa, eskiziniz de kavislerden kaçınmayı seçebilir ve bunları 3D özellik olarak ekleyebilirsiniz.
+*Her zaman kapalı bir profil oluşturun, aksi halde çiziminiz düzgün olmaz ve bir dizi açık yüz oluşturur. Bazı nesnelerin katı oluşturmaya dahil edilmesini istemiyorsanız, inşaat modu aracıyla bunları inşaat elemanlarına çevirin.
+*Elle eklemeniz gereken kısıtlama sayısını sınırlandırmak için otomatik kısıtlamalar özelliğini kullanın.
+*Genel bir kural olarak, önce geometrik kısıtlamaları, ardından boyutsal kısıtlamaları uygulayın ve eskizinizi en son kilitleyin. Ancak unutmayın: kurallar çiğnenmek içindir. Eskizinizle ilgili sorun yaşıyorsanız, profilinizi tamamlamadan önce birkaç nesneyi kısıtlamak faydalı olabilir.
+*Mümkünse, eskizinizi kilit sınırlamasıyla başlangıç ​​noktasına (0,0) ortalayın. Çiziminiz simetrik değilse, noktalarından bir orijini bulun veya kilitleme mesafeleri için güzel yuvarlak sayılar seçin. V0.12'de, harici sınırlamalar (eskiz kenarları gibi mevcut 3D geometriye veya diğer çizimlere sınırlama) uygulanmaz. Bu, aşağıdaki eskiz geometrisini ilk eskizinize göre bulmak için ilk eskizinize göre mesafeleri elle ayarlamanız gerektiği anlamına gelir. Orijine göre (25,75) bir kilit kısıtlaması (23.47,73.02) 'den daha kolay hatırlanır.
+*Uzunluk sınırlaması ile Yatay/Dikey uzunluk sınırlamaları arasında seçim yapma olanağınız varsa, ikincisini tercih edin. Yatay ve Dikey Mesafe kısıtlamaları hesaplamak daha kolaydır.
+*Genel olarak, kullanılacak en iyi kısıtlamalar şunlardır: Yatay ve Dikey Kısıtlamalar; Yatay ve Dikey Uzunluk Kısıtlamaları; Noktadan Noktaya Teğet. Mümkünse, bunların kullanımından kaçının: genel Uzunluk Kısıtlaması; Kenardan Kenara Teğet; Noktayı Çizgi Kısıtlamasına Onar; Simetri Kısıtlaması.
+</div>
+
+<span id="Tutorials"></span>
+<div class="mw-translate-fuzzy">
+== Kılavuzlar ==
+</div>
+
+* [https://forum.freecadweb.org/viewtopic.php?f=36&t=30104 Sketcher Lecture] by chrisb. This is a more than 80 page PDF document that serves as a detailed manual for the Sketcher. It explains the basics of Sketcher usage, and goes into a lot of detail about the creation of geometrical shapes, and each of the constraints.
+* [[Basic_Sketcher_Tutorial|Basic Sketcher Tutorial]] for beginners
+* [[Sketcher_Micro_Tutorial_-_Constraint_Practices|Sketcher Micro Tutorial - Constraint Practices]]
+* [[Sketcher_requirement_for_a_sketch|Sketcher requirement for a sketch]] Minimum requirement for a sketch and Complete determination of a sketch
+
+== Scripting ==
+
+The [[Sketcher_scripting|Sketcher scripting]] page contains examples on how to create constraints from Python scripts.
+
+== Examples ==
+
+For some ideas of what can be achieved with Sketcher tools, have a look at: [[Sketcher_Examples|Sketcher examples]].
+
+[[Image:Sketcher_ExampleHinge-01.gif|80px|link=]]
+[[Image:Sketcher ExampleHinge-15.png|90px|link=]]
+
+
+<div class="mw-translate-fuzzy">
+{{Userdocnavi}}
+[[Category:Sketcher/tr]]
+[[Category:Workbenches/tr]]
+</div>
+
+{{Sketcher_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Workbenches{{#translation:}}]]

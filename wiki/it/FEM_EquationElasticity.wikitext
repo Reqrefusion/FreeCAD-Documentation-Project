@@ -1,0 +1,115 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it|[[FEM_EquationHeat/it|Equation heat]]|[[FEM_EquationElectrostatic/it|Equazione elettrostatica]]|[[FEM_Workbench/it|FEM]]|IconL=Fem-equation-heat.svg|IconC=Workbench_FEM.svg|IconR=Fem-equation-electrostatic.svg}}
+</div>
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/it|Name=FEM_EquationElasticity|Name/it=FEM EquationElasticity|Icon=Fem-equation-elasticity.svg|MenuLocation= Solve → Equazione di elasticità||Workbenches=[[FEM_Workbench/it|FEM]]|Shortcut=|SeeAlso=[[FEM_tutorial/it|Tutorial FEM]]}}
+</div>
+
+<span id="Description"></span>
+==Descrizione==
+
+<div class="mw-translate-fuzzy">
+Da fare
+</div>
+
+For info about the math of the equation, see the [http://www.elmerfem.org/blog/documentation/ Elmer models manual], section ''Linear Elasticity''.
+
+==Usage==
+
+# After adding an Elmer solver as described [[FEM_SolverElmer#Equations|here]], select it in the [[Tree_view|tree view]].
+# Now either use the toolbar button [[Image:FEM_EquationElasticity.svg|24px]] or the menu {{MenuCommand|Solve → Mechanical equations → Elasticity equation}}.
+# Change the [[#Solver_Settings|equation's solver settings]] or the [[FEM_SolverElmer_SolverSettings|general solver settings]] if necessary.
+
+'''Note''': For analyses of nonlinear elasticity you must use the [[Image:FEM_EquationDeformation.svg|32px]] [[FEM_EquationDeformation|Deformation equation]]  ({{Version|0.21}}). The Elasticity equation is only for linear elasticity.
+
+'''Note''': If you use more than one CPU core for the solver ({{Version|0.21}}), you cannot use the default solver settings. However, using just one CPU and the default solver settings is in many cases faster than using several CPUs because the elasticity solver is only fast when {{PropertyData|Linear Solver Type}} is set to ''Direct'' (the default, described [[FEM_SolverElmer_SolverSettings#Linear_System|here]]). For multi-CPU solving one can only use the {{PropertyData|Linear Direct Method}} ''MUMPS''. However, MUMPS is not freely available as a direct download.
+
+==Solver Settings==
+
+For the general solver settings, see the [[FEM_SolverElmer_SolverSettings|Elmer solver settings]].
+
+The elasticity equation provides these special settings:
+* {{PropertyData|Calculate Pangle}}: If the principal angles should be calculated.
+* {{PropertyData|Calculate Principal}}: If all stresses should be calculated.
+* {{PropertyData|Calculate Strains}}: If strains will be calculated. This will also calculate the stresses, even if {{PropertyData|Calculate Principal}} or {{PropertyData|Calculate Stresses}} is {{FALSE}}.
+* {{PropertyData|Calculate Stresses}}: If stresses should be calculated. Compared to {{PropertyData|Calculate Principal}} the Tresca yield criterion and the principal stress will not be calculated.
+* {{PropertyData|Constant Bulk System}}: See the Elmer manual for more info.
+* {{PropertyData|Displace Mesh}}: If mesh can be deformed. This is by default {{TRUE}} and must be set to {{FALSE}} for eigenfrequency analyses.
+* {{PropertyData|Fix Displacement}}: If displacements or forces are set. thereby {{PropertyData|Model Lumping}} is automatically used.
+* {{PropertyData|Geometric Stiffness}}: Considers the geometric stiffness of the body.
+* {{PropertyData|Incompressible}}: Computation of incompressible material in connection with viscoelastic Maxwell material and a custom {{PropertyData|Variable}}.
+* {{PropertyData|Maxwell Material}}: Compute the viscoelastic material model.
+* {{PropertyData|Model Lumping}}: Uses [https://en.wikipedia.org/wiki/Lumped-element_model model lumping].
+* {{PropertyData|Model Lumping Filename}}: File to save the results from the model lumping.
+* {{PropertyData|Stability Analysis}}: If {{TRUE}} {{PropertyData|Eigen Analysis}} becomes a stability analysis (buckling analysis). Otherwise a modal analysis is performed.
+* {{PropertyData|Update Transient System}}: See the Elmer manual for more info.
+* {{PropertyData|Variable}}: The variable for the elasticity equation. Only change this if {{PropertyData|Incompressible}} is set to {{TRUE}} in accordance to the Elmer manual.
+
+Eigenvalues:
+* {{PropertyData|Eigen Analysis}}: If an eigen analysis should be performed (calculation of eigenmodes and eigenfrequencies).
+* {{PropertyData|Eigen System Complex}}: Should be {{TRUE}} if the eigen system is complex. it must be {{FALSE}} for a damped eigen value analyses.
+* {{PropertyData|Eigen System Compute Residuals}}: Computes residuals of the eigen value system.
+* {{PropertyData|Eigen System Damped}}: Set a damped eigen analysis. Can only be used if  {{PropertyData|[[FEM_SolverElmer_SolverSettings#Linear_System|Linear Solver Type]]}} is ''Iterative''.
+* {{PropertyData|Eigen System Select}}: Selection of which eigenvalues are computed. Note that the selection of ''Largest*'' cause an infinite run for recent Elmer solver (as of August 2022).
+* {{PropertyData|Eigen System Tolerance}}: Convergence tolerance for iterative eigensystem solve. The default is 100 times the {{PropertyData|[[FEM_SolverElmer_SolverSettings#Linear_System|Linear Tolerance]]}}.
+* {{PropertyData|Eigen System Values}}: The number of the highest eigenmode that should be calculated.
+
+Equation:
+* {{PropertyData|Plane Stress}}: Computes solution according to the plane stress situation. Applies only for 2D geometry.
+
+==Analysis Feature Information==
+
+The elasticity equation takes the following analysis features into account if they are set:
+
+* [[Image:FEM_ConstraintFixed.svg|32px]] [[FEM_ConstraintFixed|Fixed boundary condition]]
+* [[Image:FEM_ConstraintDisplacement.svg|32px]] [[FEM_ConstraintDisplacement|Displacement boundary condition]]
+* [[Image:FEM_ConstraintForce.svg|32px]] [[FEM_ConstraintForce|Force load]]
+* [[Image:FEM_ConstraintInitialTemperature.svg|32px]] [[FEM_ConstraintInitialTemperature|Initial temperature condition]]
+* [[Image:FEM_ConstraintPressure.svg|32px]] [[FEM_ConstraintPressure|Pressure load]]
+* [[Image:FEM_ConstraintSelfWeight.svg|32px]] [[FEM_ConstraintSelfWeight|Gravity load]]
+* [[Image:FEM_ConstraintSpring.svg|32px]] [[FEM_ConstraintSpring|Spring]]
+
+===Note===
+
+* Except for calculations in 2D, for all the above analysis features it is important that they act on a face. Features in 3D set to lines or vertices are not recognized by the Elmer solver.
+
+==Eigenmode Analysis==
+
+To perform an eigenmode analysis (calculation if the eigenmodes and eigenfrequencies), you need to
+# Set {{PropertyData|Eigen Analysis}} to {{TRUE}}
+# Set {{PropertyData|Displace Mesh}} to {{FALSE}}
+# Set {{PropertyData|Eigen System Values}} to the highest number of eigenmodes you are interested in. The smaller this number the shorter the solver runtime since higher modes can be omitted from computation.
+# Add a [[FEM_ConstraintFixed|fixed boundary condition]] and set at least one face of the body as fixed.
+# Run the solver.
+
+It is highly recommended to use {{PropertyData|Linear Solver Type}} set to ''Direct'' (the default)  because this is much faster and the results are more accurate.
+
+==Buckling Analysis==
+
+To perform a buckling analysis, you need to do the same as for an [[#Eigenmode_Analysis|Eigenmode Analysis]], and additionally:
+* Set {{PropertyData|Stability Analysis}} to {{TRUE}}
+
+==Results==
+
+The available results depend on the [[#Solver_Settings|solver settings]]. If none of the {{PropertyData|Calculate *}} settings was set to {{TRUE}}, only the displacement is calculated. Otherwise also the corresponding results will be available. If {{PropertyData|Eigen Analysis}} was set to {{TRUE}} all results will be available for every calculated eigenmode.
+
+If {{PropertyData|Eigen Analysis}} was set to {{TRUE}}, the eigenfrequencies are output at the end of the solver log in the solver dialog and also in the document '''SolverElmerOutput''' that will be created in the tree view after the solver has finished.
+
+'''Note:''' The eigenmode displacement <math>\vec{d}</math> vector has an arbitrary value since the result is
+
+<math>\quad
+\vec{d} = c\cdot\vec{u}
+</math>
+
+whereas <math>\vec{u}</math> is the eigenvector and <math>c</math> is a complex number.
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it|[[FEM_EquationHeat/it|Equation heat]]|[[FEM_EquationElectrostatic/it|Equazione elettrostatica]]|[[FEM_Workbench/it|FEM]]|IconL=Fem-equation-heat.svg|IconC=Workbench_FEM.svg|IconR=Fem-equation-electrostatic.svg}}
+</div>
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

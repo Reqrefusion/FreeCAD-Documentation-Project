@@ -1,0 +1,178 @@
+<languages/>
+<translate>
+
+<!--T:12-->
+{{VeryImportantMessage|To use this enable experimental feature you have to [[CAM_experimental|enable Experimental Features]]}}
+
+</translate>
+{{UnfinishedDocu{{#translation:}}}}
+<translate>
+
+<!--T:13-->
+{{Docnav
+|[[CAM_Probe|Probe]]
+|[[CAM_Copy|Copy]]
+|[[CAM_Workbench|CAM]]
+|IconL=CAM_Probe.svg
+|IconR=CAM_Copy.svg
+|IconC=Workbench_CAM.svg
+}}
+
+<!--T:1-->
+{{GuiCommand
+|Name=CAM Shape
+|MenuLocation=CAM → Supplemental Commands → From Shape
+|Workbenches=[[CAM_Workbench|CAM]]
+}}
+
+==Description== <!--T:2-->
+
+<!--T:3-->
+The tool [[Image:CAM_Shape.svg|24px]] [[CAM_Shape|Shape]] doesn't match the current CAM workflow. For that reason it's moved to the experimental features. 
+
+<!--T:11-->
+This tool generates tool-paths from CAM Object edges. 
+
+<!--T:9-->
+Tool-paths are uncompensated for tool radius. There is no Tool controller associated with the generated tool-paths .
+
+<!--T:4-->
+[[File:FromShape_image_0.png]]
+
+==Usage== <!--T:5-->
+
+<!--T:6-->
+All edges associated with the 3D Model selection will be included.  
+# Select edges by selecting the entire object from the [[3D_view|3D view]] or [[Tree_view|Tree view]], or by selecting individual edges, or by Faces from the [[3D_view|3D view]].
+# Press the {{KEY|[[Image:CAM_Shape.svg|16px]] [[CAM_Shape|From Shape]]}} button.
+
+<!--T:10-->
+The output tool-path is added outside the CAM Job.
+
+==Options== <!--T:7-->
+
+<!--T:8-->
+All Options provided are available only from the FromShape.Property.Data view, and include:
+* '''Retraction Axis'''
+* '''Retraction Height'''
+* '''Resume Height'''
+* '''Feed Rate'''
+* '''Feed Rate Vertical'''
+
+==Properties== <!--T:17-->
+
+===Data=== <!--T:18-->
+
+<!--T:45-->
+Empty
+
+===View=== <!--T:19-->
+
+<!--T:46-->
+Empty
+
+==Scripting== <!--T:47-->
+
+<!--T:20-->
+{{Emphasis|See also:}} [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+====DocString Info==== <!--T:48-->
+
+<!--T:22-->
+Returns a CAM object from a list of shapes.
+
+<!--T:23-->
+* shapes: input list of shapes.
+
+<!--T:24-->
+* start (Vector()): feed start position, and also serves as a hint of path entry.
+
+<!--T:25-->
+* return_end (False): if True, returns tuple (path, endPosition).
+
+<!--T:26-->
+* arc_plane(1): 0=None,1=Auto,2=XY,3=ZX,4=YZ,5=Variable. Arc drawing plane, corresponding to G17, G18, and G19.
+**If not 'None', the output wires will be transformed to align with the selected plane, and the corresponding G-code will be inserted.
+**'Auto' means the plane is determined by the first encountered arc plane. If the found plane does not align to any G-code plane, XY plane is used.
+**'Variable' means the arc plane can be changed during operation to align to the arc encountered.
+
+<!--T:27-->
+* sort_mode(1): 0=None,1=2D5,2=3D,3=Greedy. Wire sorting mode to optimize travel distance.
+**'2D5' explode shapes into wires, and groups the shapes by its plane. The 'start' position chooses the first plane to start. The algorithm will then sort within the plane and then move on to the next nearest plane.
+**'3D' makes no assumption of planarity. The sorting is done across 3D space.
+**'Greedy' like '2D5' but will try to minimize travel by searching for nearest path below the current milling layer. The path in lower layer is only selected if the moving distance is within the value given in 'threshold'.
+
+<!--T:28-->
+* min_dist(0.0): minimum distance for the generated new wires. Wires maybe broken if the algorithm see fits. Set to zero to disable wire breaking.
+
+<!--T:29-->
+* abscissa(3.0): Controls vertex sampling on wire for nearest point searching. The sampling is done using OCC GCPnts_UniformAbscissa.
+
+<!--T:30-->
+* nearest_k(3): Nearest k sampling vertices are considered during sorting.
+
+<!--T:31-->
+* orientation(0): 0=Normal,1=Reversed. Enforce loop orientation:
+**'Normal' means CCW for outer wires when looking against the positive axis direction, and CW for inner wires.
+**'Reversed' means the other way round.
+
+<!--T:32-->
+* direction(0): 0=None,1=XPositive,2=XNegative,3=YPositive,4=YNegative,5=ZPositive,6=ZNegative. Enforce open path direction.
+
+<!--T:33-->
+* threshold(0.0): If two wire's end points are separated within this threshold, they are consider as connected. You may want to set this to the tool diameter to keep the tool down.
+
+<!--T:34-->
+* retract_axis(2): 0=X,1=Y,2=Z. Tool retraction axis.
+
+<!--T:35-->
+* retraction(0.0): Tool retraction absolute coordinate along retraction axis.
+
+<!--T:36-->
+* resume_height(0.0): When return from last retraction, this gives the pause height relative to the Z value of the next move.
+
+<!--T:37-->
+* segmentation(0.0): Break long curves into segments of this length. One use case is for PCB autolevel, so that more correction points can be inserted.
+
+<!--T:38-->
+* feedrate(0.0): Normal move feed rate.
+
+<!--T:39-->
+* feedrate_v(0.0): Vertical only (step down) move feed rate.
+
+<!--T:40-->
+* verbose(true): If true, each motion G-code will contain full coordinate and feedrate.
+
+<!--T:41-->
+* abs_center(false): Use absolute arc center mode (G90.1).
+
+<!--T:42-->
+* preamble(true): Emit preambles.
+
+<!--T:43-->
+* deflection(0.01): Deflection for non circular curve discretization. It also also used for discretizing circular wires when you 'Explode' the shape for wire operations
+
+<!--T:49-->
+Example:
+
+</translate>
+{{Code|code=
+shapes = [Box.Shape]
+Path.fromShapes(shapes, start=Vector(), return_end=False, arc_plane=1, sort_mode=1, min_dist=0.0, abscissa=3.0, nearest_k=3, orientation=0, direction=0, threshold=0.0, retract_axis=2, retraction=0.0, resume_height=0.0, segmentation=0.0, feedrate=0.0, feedrate_v=0.0, verbose=True, abs_center=False, preamble=True, deflection=0.01)
+}}
+<translate>
+
+
+<!--T:14-->
+{{Docnav
+|[[CAM_Probe|Probe]]
+|[[CAM_Copy|Copy]]
+|[[CAM_Workbench|CAM]]
+|IconL=CAM_Probe.svg
+|IconR=CAM_Copy.svg
+|IconC=Workbench_CAM.svg
+}}
+
+</translate>
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

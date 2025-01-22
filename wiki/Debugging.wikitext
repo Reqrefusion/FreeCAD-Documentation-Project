@@ -1,0 +1,518 @@
+<languages/>
+<translate>
+
+<!--T:27-->
+{{Docnav
+|[[Tracker|Tracker]]
+|[[Testing|Testing]]
+}}
+
+</translate>
+{{TOCright}}
+<translate>
+
+== Test First == <!--T:1-->
+
+<!--T:51-->
+Before you go through the pain of debugging use the [[Testing|Test framework]] to check if the standard tests work properly. If they do not run complete there is possibly a broken installation.
+
+== Command Line == <!--T:2-->
+
+<!--T:52-->
+The ''debugging'' of FreeCAD is supported by a few internal mechanisms. The command line version of FreeCAD provides some options for debugging support.
+
+<!--T:13-->
+These are the currently recognized options in FreeCAD 0.19:
+
+<!--T:14-->
+Generic options:
+  -v [ --version ]          Prints version string
+  -h [ --help ]             Prints help message
+  -c [ --console ]          Starts in console mode
+  --response-file arg       Can be specified with '@name', too
+  --dump-config             Dumps configuration
+  --get-config arg          Prints the value of the requested configuration key
+
+<!--T:15-->
+Configuration:
+  -l [ --write-log ]        Writes a log file to:
+                            $HOME/.local/share/FreeCAD/FreeCAD.log (Linux)
+                            $HOME/Library/Application\ Support/FreeCAD/FreeCAD.log (macOS)
+                            %APPDATA%\FreeCAD\FreeCAD.log (Windows)
+  --log-file arg            Unlike to --write-log this allows to log to an 
+                            arbitrary file
+  -u [ --user-cfg ] arg     User config file to load/save user settings
+  -s [ --system-cfg ] arg   System config file to load/save system settings
+  -t [ --run-test ] arg     Test case - or 0 for all
+  -M [ --module-path ] arg  Additional module paths
+  -P [ --python-path ] arg  Additional Python paths
+  --single-instance         Allow to run a single instance of the application
+
+== Generating a Backtrace == <!--T:3-->
+
+<!--T:53-->
+If you are running a version of FreeCAD from the bleeding edge of the development curve, it may "crash".  You can help solve such problems by providing the developers with a "backtrace".  To do this, you need to be running a "debug build" of the software. "Debug build" is a parameter that is set at compile time, so you'll either need to compile FreeCAD yourself, or obtain a pre-compiled "debug" version.  
+
+=== For Linux === <!--T:4-->
+
+</translate>
+<!-- START OF COLLAPSIBLE DIV --><div class="toccolours mw-collapsible mw-collapsed" style="width:800px;">
+<translate>
+
+<!--T:48-->
+Linux Debugging → 
+
+</translate>
+<div class="mw-collapsible-content">
+<translate>
+
+<!--T:49-->
+Prerequisites: 
+
+<!--T:5-->
+* software package gdb installed
+* a debug build of FreeCAD (at this time only available by [[Compile_on_Linux#For_a_Debug_build|building from source]])
+* a FreeCAD model that causes a crash
+
+<!--T:6-->
+Steps:
+Enter the following in your terminal window:
+
+<!--T:65-->
+Find FreeCAD binary on your system:
+
+</translate>
+{{Code|code=
+$ whereis freecad
+freecad: /usr/local/freecad <--- for example
+
+$ cd /usr/local/freecad/bin
+$ gdb FreeCAD
+}}
+<translate>
+
+<!--T:50-->
+GNUdebugger will output some initializing information. The (gdb) shows GNUDebugger is running in the terminal, now input:
+
+</translate>
+{{Code|code=
+(gdb) handle SIG33 noprint nostop
+(gdb) run
+}}
+<translate>
+
+<!--T:7-->
+FreeCAD will now start up.  Perform the steps that cause FreeCAD to crash or freeze, then enter in the terminal window:
+
+</translate>
+{{Code|code=
+(gdb) bt
+}}
+<translate>
+
+<!--T:38-->
+This will generate a lengthy listing of exactly what the program was doing when it crashed or froze. Include this with your problem report.
+
+</translate>
+{{Code|code=
+(gdb) bt full
+}}
+<translate>
+
+<!--T:39-->
+Print the values of the local variables also. This can be combined with a number to limit the number of frames shown.
+
+</translate>
+</div></div> <!-- END OF COLLAPSIBLE DIV -->
+<translate>
+
+=== For macOS === <!--T:16-->
+
+</translate>
+<!-- START OF COLLAPISBLE DIV --><div class="toccolours mw-collapsible mw-collapsed" style="width:800px;">
+<translate>
+
+<!--T:40-->
+macOS Debugging → 
+
+</translate>
+<div class="mw-collapsible-content">
+<translate>
+
+<!--T:41-->
+Prerequisites: 
+
+<!--T:17-->
+* software package lldb installed
+* a debug build of FreeCAD
+* a FreeCAD model that causes a crash
+
+<!--T:18-->
+Steps:
+Enter the following in your terminal window:
+
+</translate>
+{{Code|code=
+$ cd FreeCAD/bin
+$ lldb FreeCAD
+}}
+<translate>
+
+<!--T:42-->
+LLDB will output some initializing information. The (lldb) shows the debugger is running in the terminal, now input:
+
+</translate>
+{{Code|code=
+(lldb) run
+}}
+<translate>
+
+<!--T:20-->
+FreeCAD will now start up.  Perform the steps that cause FreeCAD to crash or freeze, then enter in the terminal window:
+
+</translate>
+{{Code|code=
+(lldb) bt
+}}
+<translate>
+
+<!--T:43-->
+This will generate a lengthy listing of exactly what the program was doing when it crashed or froze. Include this with your problem report.
+
+</translate>
+</div></div> <!-- END OF COLLAPSIBLE DIV -->
+<translate>
+
+== List Libraries Loaded by FreeCAD == <!--T:55-->
+
+<!--T:56-->
+(Applicable to Linux and macOS)
+
+<!--T:57-->
+Sometimes it's helpful to understand what libraries FreeCAD is loading, specifically if there are multiple libraries being loaded of the same name but different versions (version collision). In order to see which libraries are loaded by FreeCAD when it crashes you should open a terminal and run it in the debugger. In a second terminal window, find out the process id of FreeCAD:
+
+<!--T:58-->
+{{incode|ps -A &#124; grep FreeCAD}}
+
+<!--T:59-->
+Use the returned id and pass it to {{incode|lsof}}:
+
+<!--T:60-->
+{{incode| lsof -p process_id}}
+
+<!--T:61-->
+This prints a long list of loaded resources. So for example, if trying to ascertain if more than one Coin3d library versions is loaded, scroll through the list or search directly for Coin in the output:
+
+<!--T:62-->
+{{incode|lsof -p process_id &#124; grep Coin}}
+
+== Python Debugging == <!--T:8-->
+
+<!--T:54-->
+For a more modern approach to debugging Python, see these posts:
+* [https://forum.freecadweb.org/viewtopic.php?f=22&t=28901 Debugging macros with VS 2017]
+* [https://forum.freecadweb.org/viewtopic.php?f=10&t=35383 Python workbenches debugging]
+* [https://forum.freecadweb.org/viewtopic.php?f=4&t=40251 python3.dll, Qt5Windgets.dll, Qt5Gui.dll and Qt5Core.dll not found]
+
+=== winpdb === <!--T:36-->
+
+</translate>
+<!-- START OF COLLAPSIBLE DIV --><div class="toccolours mw-collapsible mw-collapsed" style="width:800px;">
+<translate>
+
+<!--T:44-->
+winpdb Debugging → 
+
+</translate>
+<div class="mw-collapsible-content">
+<translate>
+
+<!--T:45-->
+Here is an example of using ''Winpdb'' inside FreeCAD:
+
+<!--T:22-->
+We need the Python debugger: ''Winpdb''. If you do not have it installed, on Ubuntu/Debian install it with:
+
+</translate>
+{{Code|code=
+sudo apt-get install winpdb
+}}
+<translate>
+
+<!--T:24-->
+Now lets setup the debugger.
+
+<!--T:25-->
+# Start ''Winpdb''.
+# Set the debugger password to "test": Go to menu ''File'' → ''Password" and set the password.
+
+<!--T:26-->
+Now we will run a test Python script in FreeCAD step by step.
+
+<!--T:9-->
+# Run winpdb and set the password (e.g. test)
+# Create a Python file with this content
+
+</translate>
+{{Code|code=
+import rpdb2
+rpdb2.start_embedded_debugger("test")
+import FreeCAD
+import Part
+import Draft
+print "hello"
+print "hello"
+import Draft
+points=[FreeCAD.Vector(-3.0,-1.0,0.0),FreeCAD.Vector(-2.0,0.0,0.0)]
+Draft.makeWire(points,closed=False,face=False,support=None)
+}}
+<translate>
+
+<!--T:10-->
+# Start FreeCAD and load the above file into FreeCAD
+# Press F6 to execute it
+# Now FreeCAD will become unresponsive because the Python debugger is waiting
+# Switch to the Windpdb GUI and click on "Attach". After a few seconds an item "<Input>" appears where you have to double-click
+# Now the currently executed script appears in Winpdb.
+# Set a break at the last line and press F5
+# Now press F7 to step into the Python code of Draft.makeWire
+
+</translate>
+</div></div> <!-- END OF COLLAPSIBLE DIV -->
+<translate>
+
+=== Visual Studio Code (VS Code) === <!--T:29-->
+
+</translate>
+<!-- START OF COLLAPSIBLE DIV --><div class="toccolours mw-collapsible mw-collapsed" style="width:800px;">
+<translate>
+
+<!--T:46-->
+VS Code Debugging → 
+
+</translate>
+<div class="mw-collapsible-content">
+<translate>
+
+<!--T:47-->
+Prerequisites: 
+
+<!--T:30-->
+* The ptvsd package needs to be installed in a Python 3 outside of FreeCAD, then the module must be copied to FreeCAD's Python library folder.
+
+</translate>
+{{Code|code=
+# In a cmd window that has a path to you local Python 3:
+pip install ptvsd
+# Then if your Python is installed in C:\Users\<userid>\AppData\Local\Programs\Python\Python37
+# and your FreeCAD is installed in C:\freecad\bin
+xcopy "C:\Users\<userid>\AppData\Local\Programs\Python\Python37\Lib\site-packages\ptvsd" "C:\freecad\bin\Lib\site-packages\ptvsd"
+}}
+<translate>
+
+<!--T:31-->
+[https://pypi.org/project/ptvsd/ pypi page]
+
+<!--T:32-->
+[https://code.visualstudio.com/docs/python/debugging#_remote-debugging Visual Studio Code documentation for remote debugging]
+
+<!--T:33-->
+Steps:
+* Add following code at the beginning of your script
+
+</translate>
+{{Code|code=
+import ptvsd
+print("Waiting for debugger attach")
+# 5678 is the default attach port in the VS Code debug configurations
+ptvsd.enable_attach(address=('localhost', 5678), redirect_output=True)
+ptvsd.wait_for_attach()
+}}
+<translate>
+
+<!--T:34-->
+* Add a debug configuration in Visual Studio Code {{MenuCommand|Debug → Add Configurations…}}. 
+* The config should look like this:
+
+</translate>
+<!--NOT CHANGE THE <pre> </pre> BALISE CAUSE THE PIPE OR SPACE IN MACRO CODE CUT THE MACRO-->
+<pre>
+    "configurations": [
+        {
+            "name": "Python: Attacher",
+            "type": "python",
+            "request": "attach",
+            "port": 5678,
+            "host": "localhost",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "."
+                }
+            ]
+        },
+</pre>
+<translate>
+
+<!--T:35-->
+* In VS Code add a breakpoint anywhere you want.
+* Launch the script in FreeCAD. FreeCAD freeze waiting for attachment.
+* In VS Code start debugging using created configuration. You should see variables in debugger area.
+* When setting breakpoints, VS Code will complain about not finding the .py file opened in the VS Code editor.
+** Change "remoteRoot": "." to "remoteRoot": "<directory of file>"
+*** For example, if the Python file resides in ''/home/FC_myscripts/myscript.py''
+*** Change to: "remoteRoot": "/home/FC_myscripts"
+** If you're just debugging FreeCAD macros from the FreeCAD macro folder, and that folder is "C:/Users/<userid>/AppData/Roaming/FreeCAD/Macro", then use:
+*** "localRoot": "C:/Users/<userid>/AppData/Roaming/FreeCAD/Macro",
+*** "remoteRoot": "C:/Users/<userid>/AppData/Roaming/FreeCAD/Macro"
+* If your macro can't find ptvsd despite having installed it somewhere precede 'import ptvsd' with
+
+</translate>
+{{Code|code=
+from sys import path
+sys.path.append('/path/to/site-packages')
+}}
+<translate>
+
+<!--T:66-->
+Where the path is to the directory where ptvsd was installed.
+* On the left bottom edge of VSCode you can choose the Python executable - it's best to make this the version packaged with FreeCAD.
+In the Mac package it is /Applications/FreeCAD.App/Contents/Resources/bin/python.
+
+<!--T:67-->
+You can locate it on your system by typing
+
+</translate>
+{{Code|code=
+import sys
+print(sys.executable)
+}}
+<translate>
+
+<!--T:68-->
+into FreeCAD's Python console.
+
+</translate>
+</div></div> <!-- END OF COLLAPSIBLE DIV -->
+<translate>
+
+=== With LiClipse and AppImage === <!--T:69-->
+
+</translate>
+<!-- START OF COLLAPSIBLE DIV --><div class="toccolours mw-collapsible mw-collapsed" style="width:800px;">
+<translate>
+
+<!--T:70-->
+LiClipse Debugging → 
+
+</translate>
+<div class="mw-collapsible-content">
+<translate>
+
+<!--T:71-->
+* Extract AppImage.
+
+</translate>
+{{Code|code=
+> ./your location/FreeCAD_xxx.AppImage --appimage-extract
+> cd squashfs-root/
+}}
+<translate>
+
+<!--T:72-->
+* The sqashfs-root location is where the debugger later on is hooked up to.
+
+<!--T:73-->
+* Make sure you can start a FreeCAD session from within the squashfs-root location.
+
+</translate>
+{{Code|code=
+squashfs-root> ./usr/bin/freecadcmd
+}}
+<translate>
+
+<!--T:74-->
+* Should start up a FreeCAD commandline session.
+
+<!--T:75-->
+* Install [https://www.liclipse.com/ LiClipse].
+** Comes ready with pydev and has installers for all platforms.
+** For linux it is just to extract (to any location) and run.
+
+<!--T:76-->
+* Configure liclipse for debugging.
+** Right-click pydev icon (upper right corner) and choose customize.
+*** Activate "PyDev Debug" (through checkbox, or it might be needed to go to tab "Action Set Availability" and activate there first).
+*** In the pydev menu you can now choose "start debug server".
+** Use menu window/open perspective/other > debug.
+*** Right-click debug icon (upper right corner) and choose customize.
+*** Checking "Debug" brings the debugging navigation tools to the toolbar.
+** Open preferences through menu window/preferences.
+*** In PyDev/Interpreters add "new Interpreter by browsing".
+*** The added interpreter should be: {{incode|your loc/squashfs-root/usr/bin/python}}.
+*** If you are only using this for fc, you can add AddOn workbench folders as well, or do that in a pydev-project later on.
+
+<!--T:77-->
+* Find path to {{incode|pydevd.py}} in your liclipse installation.
+** Something along the lines of: {{incode|your location/liclipse/plugins/org.python.pydev.xx/pysrc}}.
+* Create a regular pydev-project in liclipse.
+** Import external sources, for example a macro that you want to debug, or an external workbench.
+** In that macro (or workbench .py file) add the code lines:
+
+</translate>
+: {{Code|code=
+import sys; sys.path.append("path ending with /pysrc")
+import pydevd; pydevd.settrace()
+}}
+<translate>
+
+<!--T:78-->
+:* This is where the execution will halt when the macro is run.
+
+<!--T:79-->
+* Start the liclipse debug server (menu pydev).
+
+<!--T:80-->
+* Start FreeCAD.
+
+</translate>
+{{Code|code=
+squashfs-root> ./usr/bin/freecad
+}}
+<translate>
+
+<!--T:81-->
+* Run the macro (or any other file with a {{incode|pydevd.settrace()}} trigger) from within freecad, as you would normally do.
+
+<!--T:82-->
+* Happy debugging.
+
+<!--T:83-->
+* The use of LiClipse for remote debugging, and the steps described here related to liclipse, should work on any platform.  The parts related to AppImage is for linux only.
+
+</translate>
+</div></div> <!-- END OF COLLAPSIBLE DIV -->
+<translate>
+
+=== Pyzo === <!--T:84-->
+
+<!--T:85-->
+See the [[Pyzo|main article about Pyzo]].
+
+== Debugging OpenCasCade == <!--T:63-->
+
+<!--T:64-->
+For developers needing to dig deeper in to the OpenCasCade kernel, user @abdullah has created a [https://forum.freecadweb.org/viewtopic.php?f=10&t=47017 thread] orientation discussing how to do so.
+
+
+<!--T:11-->
+{{Docnav
+|[[Tracker|Tracker]]
+|[[Testing|Testing]]
+}}
+
+</translate>
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}

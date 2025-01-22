@@ -1,0 +1,95 @@
+<languages/>
+
+{{TOCright}}
+
+==Introduction==
+
+To get access to the {{incode|Mesh}} module you have to import it first:
+
+{{Code|code=
+import Mesh
+}}
+
+==Creation==
+
+To create an empty mesh object just use the standard constructor:
+
+{{Code|code=
+mesh = Mesh.Mesh()
+}}
+
+You can also create an object from a file:
+
+{{Code|code=
+mesh = Mesh.Mesh("D:/temp/Something.stl")
+}}
+
+Or create it out of a set of triangles described by their corner points:
+
+{{Code|code=
+triangles = [
+# triangle 1
+[-0.5000, -0.5000, 0.0000], [0.5000, 0.5000, 0.0000], [-0.5000, 0.5000, 0.0000],
+#triangle 2
+[-0.5000, -0.5000, 0.0000], [0.5000, -0.5000, 0.0000], [0.5000, 0.5000, 0.0000],
+]
+meshObject = Mesh.Mesh(triangles)
+Mesh.show(meshObject)
+}}
+
+The Mesh-Kernel takes care of creating a topologically correct data structure by sorting coincident points and edges.
+{{Top}}
+==Modeling==
+
+To create regular geometries you can use one of the {{incode|create*()}} methods. A torus, for instance, can be created as follows:
+
+{{Code|code=
+m = Mesh.createTorus(8.0, 2.0, 50)
+Mesh.show(m)
+}}
+
+The first two parameters define the radii of the torus and the third parameter is a sub-sampling factor for how many triangles are created. The higher this value the smoother the mesh.
+
+The {{incode|Mesh}} module also provides three Boolean methods: {{incode|union()}}, {{incode|intersection()}} and {{incode|difference()}}:
+
+{{Code|code=
+m1, m2              # are the input mesh objects
+m3 = Mesh.Mesh(m1)  # create a copy of m1
+m3.unite(m2)        # union of m1 and m2, the result is stored in m3
+m4 = Mesh.Mesh(m1)
+m4.intersect(m2)    # intersection of m1 and m2
+m5 = Mesh.Mesh(m1)
+m5.difference(m2)   # the difference of m1 and m2
+m6 = Mesh.Mesh(m2)
+m6.difference(m1)   # the difference of m2 and m1, usually the result is different to m5
+}}
+
+Here is an example that creates a pipe using the {{incode|difference()}} method:
+
+{{Code|code=
+import FreeCAD, Mesh
+cylA = Mesh.createCylinder(2.0, 10.0, True, 1.0, 36)
+cylB = Mesh.createCylinder(1.0, 12.0, True, 1.0, 36)
+cylB.Placement.Base = (FreeCAD.Vector(-1, 0, 0)) # move cylB to avoid co-planar faces
+pipe = cylA
+pipe = pipe.difference(cylB)
+pipe.flipNormals() # somehow required
+doc = FreeCAD.ActiveDocument
+obj = d.addObject("Mesh::Feature", "Pipe")
+obj.Mesh = pipe
+doc.recompute()
+}}
+{{Top}}
+==Notes==
+
+An extensive, though hard to use, source of mesh related scripting are the unit test scripts of the {{incode|Mesh}} module. 
+In these unit tests literally all methods are called and all properties/attributes are tweaked.
+So if you are bold enough, take a look at the [https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/Mesh/App/MeshTestsApp.py Unit Test module].
+
+See also: [[Mesh_API|Mesh API]].
+{{Top}}
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{Mesh Tools navi{{#translation:}}}}
+{{clear}}

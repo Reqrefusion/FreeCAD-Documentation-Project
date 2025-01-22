@@ -1,0 +1,420 @@
+<languages/>
+
+{{Docnav/pl
+|[[Part_RefineShape/pl|Udoskonal kształt]]
+|
+|[[Part_Workbench/pl|środowisko pracy Część]]
+|IconL=Part_RefineShape.svg
+|IconR=
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/pl
+|Name=Part EditAttachment
+|Name/pl=Część: Dołączenie
+|MenuLocation=Część → Dołączenie ...
+|Workbenches=[[Part_Workbench/pl|Część]], [[PartDesign_Workbench/pl|Projekt Części]]
+|Version=0.17
+|SeeAlso=[[Placement/pl|Umiejscowienie]], [[Basic_Attachment_Tutorial/pl|Podstawy mocowania]]
+}}
+
+<span id="Description"></span>
+==Opis== 
+
+[[Image:Part_EditAttachment.svg|24px]] '''Dołączenie''' jest narzędziem do dołączania obiektu do jednego lub większej liczby innych obiektów. Dołączony obiekt jest powiązany z obiektem, do którego się odnosi, co oznacza, że jeśli [[Std_Placement/pl|umiejscowienie]] lub geometria obiektu, do którego wykonano odniesienie zostanie zmieniona, położenie dołączonego obiektu zostanie odpowiednio zaktualizowane.
+
+<span id="Attacher_engines"></span>
+==Silniki dołączania==
+
+Dołączanie obiektu jest kontrolowane przez jeden z czterech silników dołączania. Domyślny silnik używany dla obiektu zależy od jego typu. Silnik dołączania obiektu można zmienić poprzez jego właściwość {{PropertyData|Attacher Engine}} ({{Version|1.0}}) lub [[Property_editor/pl#Menu_kontekstowe|ukrytą]] właściwość {{PropertyData|Attacher Type}}.
+
+Dostępne silniki są wymienione w tabeli poniżej. Silniki dołączania kontrolują właściwość {{PropertyData|Umiejscowienie}} obiektów. Wszystkie silniki mogą być użyte dla dowolnych obiektów z tą właściwością. Ale wyniki ostatnich trzech z nich mają najwięcej sensu jeśli kształt obiektu pasuje do wspomnianego 'kształtu logicznego'.
+
+{| class="wikitable"
+|-
+! Silnik dołączania !! Typ dołączania !! Kształt logiczny
+|-
+| [[#Engine_3D/pl|Silnik 3D]] || Attacher::AttachEngine3D ||
+|-
+| [[#Engine_Plane/pl|Silnik Płaszczyzna]] || Attacher::AttachEnginePlane || Płaska ściana zbieżna z płaszczyzną XY Umiejscowienia
+|-
+| [[#Engine_Line/pl|Silnik Linia]] || Attacher::AttachEngineLine || Prosta krawędź współliniowa z osią Z Umiejscowienia
+|-
+| [[#Engine_Point/pl|Silnik Punkt]] || Attacher::AttachEnginePoint || Wierzchołek zbieżny z początkiem układu współrzędnych Umiejscowienia
+|}
+
+Pozostała część tej strony skupia się na Silniku 3D. Tryby innych silników są tylko wymienione. Należy pamiętać, że tryby Silnika Płaszczyzna są w rzeczywistości identyczne z trybami Silnika 3D.
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wybierz obiekt, który ma zostać dołączony.
+# Wykonaj jedną z poniższych czynności:
+#* Jeśli obiekt ma już właściwość {{PropertyData|Map Mode}}: kliknij na tym polu w [[Property_editor/pl|Edytorze właściwości]] i wciśnij przycisk {{Button|...}}, który się pojawi.
+#* Wybierz opcję z menu {{MenuCommand|Część → [[Image:Part_EditAttachment.svg|16px]] Dołączenie ...}}.
+# Otworzy się panel zadań {{MenuCommand|Dołączenie}}.
+# W górnej części panelu zadań można odczytać ''Nie dołączono''. Pierwszy przycisk oznaczony {{Button|Wybieranie ...}} jest podświetlony, aby wskazać, że oczekiwany jest wybór w oknie [[3D_view|widoku 3D]].
+# Wybierz wierzchołek, krawędź lub ścianę/płaszczyznę należącą do innego obiektu.
+# W polu wprowadzania po prawej stronie przycisku wyświetlany będzie wybrany obiekt i jego element podrzędny. Na przykład, jeśli wybrana jest ściana [[Part_Box/pl|sześcianu środowiska Część]], pole może pokazywać informację {{Value|Sześcian:Ściana6}}. Etykieta przycisku wyświetla teraz typ elementu podrzędnego.
+# Dostępne tryby są filtrowane na podstawie wybranych odniesień i ich kolejności. Na przykład dla trybów [[#Wyrównanie_O-Z-X|Wyrównanie O-Z-X]] do [[#Wyrównanie_O-Y-X|Wyrównanie O-Y-X]] pierwsze odniesienie musi być wierzchołkiem. Jeśli pierwsze odwołanie jest elementem podrzędnym innego typu, są one automatycznie usuwane z listy.
+# W górnej części panelu zadań jest teraz wyświetlana informacja ''Dołączono w trybie <opis>''.
+# Opcjonalnie wybierz inny [[#Tryby_dołączenia|Tryb dołączania]] z listy. Aby uzyskać informacje na temat trybów dołączania, wskaż je kursorem myszki, aby wyświetlić podpowiedź.
+# W zależności od wybranego trybu, można dodać do trzech kolejnych odniesień, naciskając przyciski {{Button|Odniesienie2}}, {{Button|Odniesienie3}} i {{Button|Odniesienie4}} i powtarzając krok 5. Możliwe jest również określenie wszystkich odniesień przed wybraniem trybu dołączania.
+# Opcjonalnie ustaw [[#Odsunięcie_dołączenia|Odsunięcie dołączenia]].
+# Naciśnij {{Button|OK}}.
+# Jeśli dotyczy, opcjonalnie zmień właściwość {{PropertyData|Map Path Parameter}} w [[Property_editor/pl|Edytorze właściwości]].
+
+<span id="Attachment_modes"></span>
+==Tryby dołączenia==
+
+<span id="Engine_3D"></span>
+=== Silnik 3D ===
+
+[[File:Part_Offset_Tasks.png|250px|right]]
+
+<span id="Deactivated"></span>
+====Nieaktywny====
+
+Dołączanie jest wyłączone. Obiekt można przenieść, edytując jego właściwość [[Placement/pl|Umiejscowienie]].
+
+<span id="Translate_origin"></span>
+====Przekształcenia położenia odniesienia====
+
+Początek obiektu jest wyrównany do dopasowanego wierzchołka. Orientacja jest kontrolowana przez właściwość [[Placement/pl|Umiejscowienie]].
+
+:; Kombinacje odniesienia:
+: wierzchołek.
+
+<span id="Object&#039;s_X_Y_Z"></span>
+====XYZ Obiektu====
+
+Umiejscowienie jest równe umiejscowieniu powiązanego obiektu.
+
+:; Kombinacje odniesienia:
+: dowolne,
+: stożek.
+
+<span id="Object&#039;s_X_Z_Y"></span>
+====XZY Obiektu====
+
+Osie X, Y i Z są dopasowywane odpowiednio do lokalnych osi X, Z i -Y połączonego obiektu.
+
+:; Kombinacje odniesienia:
+: dowolne,
+: stożek.
+
+<span id="Object&#039;s_Y_Z_X"></span>
+====YZX Obiektu====
+
+Osie X, Y i Z są dopasowywane odpowiednio do lokalnych osi Y, Z i X połączonego obiektu.
+
+:; Kombinacje odniesienia:
+: dowolne,
+: stożek.
+
+<span id="XY_on_plane"></span>
+====XY na płaszczyźnie====
+
+Płaszczyzna XY jest wyrównana tak, aby pokrywała się z płaską powierzchnią.
+
+:; Kombinacje odniesienia:
+: płaszczyzna.
+
+<span id="XY_tangent_to_surface"></span>
+====Styczna do powierzchni XY====
+
+Płaszczyzna XY jest styczna do ściany w punkcie wierzchołka.
+
+:; Kombinacje odniesienia:
+: ściana, wierzchołek,
+: wierzchołek, ściana.
+
+<span id="Z_tangent_to_edge"></span>
+====Z stycznie do krawędzi====
+
+Oś Z jest wyrównana tak, aby była styczna do krawędzi. Opcjonalny wierzchołek określa to miejsce.
+
+Jeśli żaden wierzchołek nie jest powiązany, właściwość {{PropertyData|Parametr ścieżki mapowania}} określa punkt.
+
+:; Kombinacje odniesienia:
+: krawędź
+: krawędź, wierzchołek
+: wierzchołek, krawędź
+
+<span id="Frenet_NBT"></span>
+====NBT układu Freneta====
+
+[[File:Attacher_mode_FrenetNB.png|250px]]
+
+Osie X i Y są wyrównane do osi normalnej ''(N)'' i binormalnej ''(B)'' układu współrzędnych [https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas Frenet'a-Serret'a] w punkcie na zakrzywionej krawędzi. Opcjonalny wierzchołek określa położenie.
+
+Jeśli żaden wierzchołek nie jest powiązany, właściwość {{PropertyData|Parametr ścieżki mapowania}} określa punkt. Początek obiektu jest przenoszony do wierzchołka, jeśli wierzchołek jest pierwszy, lub utrzymywany na krzywej, jeśli krzywa jest pierwsza.
+
+''Frenet NBT'' jest podobny do ''Z stycznie do krawędzi'', z tą różnicą, że oś X jest ściśle zdefiniowana.
+
+:;Kombinacje odniesienia:
+: krzywa,
+: krzywa, wierzchołek,
+: wierzchołek, krzywa.
+
+<span id="Frenet_TNB"></span>
+====TNB układu Freneta====
+
+[[File:Attacher_mode_FrenetTN.png|250px]]
+
+Osie X i Y są wyrównane do osi stycznej ''(T)'' i normalnej ''(N)'' układu współrzędnych Frenet'a-Serret'a w punkcie na zakrzywionej krawędzi. Opcjonalny wierzchołek określa miejsce.
+
+Patrz [[#NBT_układu_Freneta|NBT układu Freneta]].
+
+<span id="Frenet_TBN"></span>
+====TBN układu Freneta====
+
+[[File:Attacher_mode_FrenetTB.png|250px]]
+
+Osie X i Y są wyrównane do osi stycznej ''(T)'' i binormalnej ''(B)'' układu współrzędnych Frenet-Serret w punkcie na zakrzywionej krawędzi. Opcjonalny wierzchołek określa miejsce.
+
+Patrz [[#NBT_układu_Freneta|NBT układu Freneta]].
+
+<span id="Concentric"></span>
+====Współosiowo====
+
+Płaszczyzna XY jest wyrównana do [https://en.wikipedia.org/wiki/Osculating_circle osculating okręgu] w punkcie na krawędzi. Opcjonalny wierzchołek określa miejsce.
+
+Jeśli żaden wierzchołek nie jest powiązany, właściwość {{PropertyData|Parametr ścieżki mapowania}} określa punkt.
+
+:; Kombinacje odniesienia:
+: krzywa,
+: okrąg,
+: krzywa, wierzchołek,
+: okrąg, wierzchołek,
+: wierzchołek, krzywa,
+: wierzchołek, okrąg.
+
+<span id="Revolution_Section"></span>
+====Przekrój przez obrót====
+
+Oś Y jest wyrównana tak, aby pasowała do osi okręgu oscylującego w punkcie na krawędzi. Opcjonalny wierzchołek określa miejsce.
+
+Patrz  [[#Współosiowo|Współosiowo]]
+
+<span id="XY_plane_by_3_points"></span>
+====Płaszczyzna XY przez trzy punkty====
+
+Płaszczyzna XY jest wyrównana tak, aby przechodziła przez trzy wierzchołki. Oś X będzie przechodzić przez pierwsze dwa wierzchołki.
+
+:; Kombinacje odniesienia:
+: wierzchołek, wierzchołek, wierzchołek,
+: linia, wierzchołek,
+: wierzchołek, linia,
+: linia, linia.
+
+<span id="XZ_plane_by_3_points"></span>
+====Płaszczyzna XZ przez trzy punkty====
+
+Płaszczyzna XZ jest wyrównana tak, aby przechodziła przez trzy wierzchołki. Oś X będzie przechodzić przez pierwsze dwa wierzchołki.
+
+Patrz [[#Płaszczyzna_XY_przez_trzy_punkty|Płaszczyzna XY przez trzy punkty]].
+
+<span id="Folding"></span>
+====Składany====
+
+[[File:Attacher_mode_Folding.png|250px]]
+
+Jest to specjalny tryb składania wielościanów. Wybierz cztery linie, które mają wspólny punkt w następującej kolejności: linia konturu ''(1)'', linia zagięcia ''(2)'', inna linia zagięcia ''(3)'', inna linia konturu ''(4)''. Aby określić układ współrzędnych, wybrane linie konturowe są zbieżne poprzez obrócenie linii 1 wokół linii 2 i linii 4 wokół linii 3. Początek jest dopasowany do punktu wspólnego, oś X jest dopasowana do linii 2, oś Y jest wyrównana w kierunku zbieżnych linii konturowych.
+
+:; Kombinacje odniesienia
+: linia, linia, linia, linia.
+
+<span id="Inertia_CS"></span>
+====Bezwładność CS====
+
+Osie X, Y i Z są dopasowane do osi układu współrzędnych bezwładnościowych, zbudowanego na głównych osiach bezwładności i środku masy.
+
+:; Kombinacje odniesienia:
+: dowolny,
+: dowolny, dowolny,
+: dowolny, dowolny, dowolny,
+: dowolny, dowolny, dowolny, dowolny.
+
+<span id="Align_O-Z-X"></span>
+====Wyrównanie O-Z-X====
+
+Początek obiektu jest dopasowany do pierwszego wierzchołka. Osie Z i X są wyrównane w kierunku wierzchołka lub wzdłuż linii.
+
+Zapoznaj się z treścią strony [[O-X-Y_Type_Attachment_Modes/pl|Wyrównanie trybów dołączania typu O-X-Y]], aby uzyskać więcej informacji na temat następujących trybów:
+
+:; Kombinacje odniesienia:
+: wierzchołek, wierzchołek, wierzchołek,
+: wierzchołek, wierzchołek, linia,
+: wierzchołek, linia, wierzchołek,
+: wierzchołek, linia, krawędź,
+: wierzchołek, wierzchołek,
+: wierzchołek, linia.
+
+<span id="Align_O-Z-Y"></span>
+====Wyrównanie O-Z-Y====
+
+Początek obiektu jest dopasowany do pierwszego wierzchołka. Osie Z i Y są wyrównane w kierunku wierzchołka lub wzdłuż linii.
+
+Patrz [[#Wyrównanie_O-Z-X|Wyrównanie O-Z-X]].
+
+<span id="Align_O-X-Y"></span>
+====Wyrównanie O-X-Y====
+
+Początek obiektu jest dopasowany do pierwszego wierzchołka. Osie X i Y są wyrównane w kierunku wierzchołka lub wzdłuż linii.
+
+Patrz [[#Wyrównanie_O-Z-X|Wyrównanie O-Z-X]].
+
+<span id="Align_O-X-Z"></span>
+====Wyrównanie O-X-Z====
+
+Początek obiektu jest dopasowany do pierwszego wierzchołka. Osie X i Z są wyrównane w kierunku wierzchołka lub wzdłuż linii.
+
+Patrz [[#Wyrównanie_O-Z-X|Wyrównanie O-Z-X]].
+
+<span id="Align_O-Y-Z"></span>
+====Wyrównanie O-Y-Z====
+
+Początek obiektu jest dopasowany do pierwszego wierzchołka. Osie Y i Z są wyrównane w kierunku wierzchołka lub wzdłuż linii.
+
+Patrz [[#Wyrównanie_O-Z-X|Wyrównanie O-Z-X]].
+
+<span id="Align_O-Y-X"></span>
+====Wyrównanie O-Y-X====
+
+Początek obiektu jest dopasowany do pierwszego wierzchołka. Osie Y i X są wyrównane w kierunku wierzchołka lub wzdłuż linii.
+
+Patrz [[#Wyrównanie_O-Z-X|Wyrównanie O-Z-X]].
+
+<span id="XY_parallel_to_plane"></span>
+==== XY równoległe do płaszczyzny ====
+
+{{Version/pl|1.0}}
+
+Płaszczyzna XY jest wyrównywana aby była równoległa do płaszczyzny XY Umiejscowienia powiązanego obiektu i przechodziła przez wierzchołek. Początek jest dopasowywany do rzutu początku powiązanego obiektu na płaszczyznę XY.
+
+Zauważ, że musisz wskazać cały obiekt a nie tylko jego element podrzędny, taki jak ściana czy płaszczyzna.
+
+:; Kombinacje odniesień:
+: Dowolny cały obiekt (z właściwością {{PropertyData|Umiejscowienie}}), wierzchołek
+
+<div class="toccolours mw-collapsible mw-collapsed">
+
+<span id="Engine_Plane"></span>
+=== Silnik Płaszczyzna ===
+
+<div class="mw-collapsible-content">
+
+* Nieaktywny
+* Przenieś odniesienie położenia
+* XY obiektu
+* XZ obiektu
+* YZ obiektu
+* Płaszczyzna ściany
+* Prostopadle do powierzchni
+* Normalna do krawędzi
+* NB układu Freneta
+* TN układu Freneta
+* TB układu Freneta
+* Współosiowo
+* Przekrój przez obrót wokół osi
+* Płaszczyzna wyznaczona przez 3 punkty
+* Normalna do 3 punktów
+* Składany
+* Bezwładność 2-3
+* Wyrównanie O-N-X
+* Wyrównanie O-N-Y
+* Wyrównanie O-X-Y
+* Wyrównanie O-X-N
+* Wyrównanie O-Y-N
+* Wyrównanie O-Y-X
+* XY równolegle do płaszczyzny {{Version/pl|1.0}}
+
+</div>
+</div>
+<div class="toccolours mw-collapsible mw-collapsed">
+
+<span id="Engine_Line"></span>
+=== Silnik Linia ===
+
+<div class="mw-collapsible-content">
+
+* Nieaktywny
+* Oś X Obiektu
+* Oś Y obiektu
+* Oś Z obiektu
+* Oś krzywizny
+* Linia kontrolna 1
+* Linia kontrolna 2
+* Asymptota 1
+* Asymptota 2
+* Stycznie
+* Normalna do krawędzi
+* Binormalna
+* Przez dwa punkty
+* Przecięcie {{Version/pl|1.0}}
+* Linia zbliżeniowa
+* Pierwsza oś główna
+* Druga oś główna
+* Trzecia oś główna
+* Normalna do powierzchni
+
+</div>
+</div>
+<div class="toccolours mw-collapsible mw-collapsed">
+
+<span id="Engine_Point"></span>
+=== Silnik Punkt ===
+
+<div class="mw-collapsible-content">
+
+* Nieaktywny
+* Odniesienie położenia obiektów
+* Ogniskowa 1
+* Ogniskowa 2
+* Na krawędzi
+* Środek krzywizny
+* Środek ciężkości
+* Wierzchołek
+* W pobliżu punktu 1
+* W pobliżu punktu 2
+
+</div>
+</div>
+
+<span id="Attachment_offset"></span>
+==Odsunięcie dołączenia==
+
+Odsunięcie dołączania staje się aktywne po wybraniu trybu dołączania innego niż "Niedołączono". Służy do zastosowania przesunięcia liniowego lub obrotowego w układzie współrzędnych dołączenia ''(ACS)'', zgodnie z definicją trybu umocowania i obiektu ''(obiektów)'', do którego się odwołano. 
+
+* '''W kierunku X''': ustawia odległość przesunięcia wzdłuż osi X układu współrzędnych dołączenia.
+
+* '''Y''': '''W kierunku Y''': ustawia odległość przesunięcia wzdłuż osi Y układu współrzędnych dołączenia ''(ACS)''.
+
+'''W kierunku Z''': ustawia odległość przesunięcia wzdłuż osi Z układu współrzędnych dołączenia ''(ACS)''.
+
+* '''Wokół osi X''': obraca dołączony obiekt wokół osi X układu współrzędnych dołaczenia ''(ACS)''.
+
+* '''Wokół osi Y''': obraca dołączony obiekt wokół osi Y układu współrzędnych dołaczenia ''(ACS)''.
+
+* '''Wokół osi Z''': obraca dołączony obiekt wokół osi Z układu współrzędnych dołaczenia ''(ACS)''.
+
+* '''Odwróć strony''': jeśli opcja zostanie zaznaczona, dołączony obiekt zostanie odwrócony. Jest to równoznaczne z obróceniem obiektu o 180° wokół osi Y systemu współrzędnych dołączenia.
+
+<span id="Limitations"></span>
+==Ograniczenia==
+
+* Jeśli wybranie dwóch linii spowoduje błąd "Punkty są współliniowe. Nie można utworzyć płaszczyzny", spróbuj zamiast tego wybrać trzy wierzchołki [https://forum.freecadweb.org/viewtopic.php?f=8&t=55088&p=473614#p473594].
+
+
+{{Docnav/pl
+|[[Part_RefineShape/pl|Udoskonal kształt]]
+|
+|[[Part_Workbench/pl|środowisko pracy Część]]
+|IconL=Part_RefineShape.svg
+|IconR=
+|IconC=Workbench_Part.svg
+}}
+
+{{Part_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,96 @@
+<languages/>
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+[[File:Sketcher_Sketch.svg|32px]]
+
+Obiekt [[Sketcher_SketchObject/pl|SketchObject]], lub formalnie {{incode|Sketcher::SketchObject}}, jest podstawowym elementem do tworzenia obiektów 2D za pomocą środowiska pracy [[Sketcher_Workbench/pl|Szkicownik]].
+
+Obiekt {{incode|Sketcher::SketchObject}} wywodzi się z obiektu [[Part_Part2DObject/pl|Part2DObject]], co oznacza, że jest to obiekt [[Part Feature/pl|Cecha]] wyspecjalizowany dla geometrii 2D. Podobnie jak obiekt Part2DObject, obiekt SketchObject może być dołączany do płaszczyzn i powierzchni. Ponadto obiekt SketchObject może obsługiwać wiązania geometryczne.
+
+[[File:FreeCAD_core_objects.svg|800px]]
+
+{{Caption|Uproszczony diagram zależności pomiędzy podstawowymi obiektami w programie FreeCAD.}}
+
+<span id="Usage"></span>
+==Użycie==
+
+Zapoznaj si z informacjami na stronie: [[Sketcher_NewSketch/pl|Utwórz szkic]].
+
+<span id="Properties"></span>
+==Właściwości==
+
+Zobacz stronę [[Property/pl|Właściwości]] dla wszystkich typów właściwości, które mogą mieć obiekty tworzone skryptami.
+
+Obiekt [[Sketcher_SketchObject/pl|SketchObject]] ''(klasa {{incode|Sketcher::SketchObject}})'' wywodzi się z obiektu [[Part_Part2DObject/pl|Part2DObject]] ''(klasa {{incode|Part::Part2DObject}})'' i dziedziczy wszystkie jego właściwości.
+
+Obiekt SketchObject ma także następujące dodatkowe właściwości w obszarze [[Property_editor/pl|edytora właściwości]]. Ukryte właściwości można pokazać za pomocą polecenia {{MenuCommand|Wyświetl wszystko}} w menu kontekstowym okna [[Property_editor/pl|edycji właściwości]].
+
+<span id="Data"></span>
+===Dane===
+
+{{TitleProperty|Szkic}}
+
+* {{PropertyData|Geometria|GeometryList|ukryty}}: lista geometrii części istniejących wewnątrz szkicu.
+* {{PropertyData|Wiązania|}}: nazwane wiązania, jeśli istnieją. W przeciwnym razie jest to pusta lista {{incode|[]}}.
+* {{PropertyData|Geometria zewnętrzna|LinkSubList}}: lista geometrii części spoza tego szkicu, które są używane jako odniesienie.
+* {{PropertyData|W pełni związany|Bool|ukryty}}: ''(tylko do odczytu)'' jeśli parametr przyjmuje wartość {{TRUE/pl}} szkic jest w pełni związany.
+
+<span id="View"></span>
+===Widok===
+
+{{TitleProperty|Wiązania automatyczne}}
+
+* {{PropertyView|Wiązania automatyczne|Bool}}: jeśli parametr ma wartość {{TRUE/pl}} to podczas rysowania geometrii automatycznie dodawane są wiązania.
+* {{PropertyView|Unikaj wiązań nadmiarowych|Bool}}: jeśli parametr ma wartość {{TRUE/pl}} unika się zbędnych automatycznych wiązań.
+
+{{TitleProperty|Siatka}}
+
+* {{PropertyView|Automatyczny rozmiar siatki|Bool}}: jeśli parametr ma wartość {{TRUE/pl}} rozmiar siatki jest zmieniany na podstawie ramki otaczającej geometrii szkicu.
+* {{PropertyView|Rozmiar siatki|Length}}: wielkość odstępu między liniami siatki lokalnej w oknie [[3D_view/pl|widoku 3D]]. Wartość domyślna to {{value|10 mm}}.
+* {{PropertyView|Pokaż siatkę|Bool}}: jeśli parametr ma wartość {{TRUE/pl}} w oknie [[3D_view/pl|widoku 3D]] zostanie wyświetlona siatka lokalna obiektu. Siatka ta jest niezależna od [[Draft_ToggleGrid/pl|siatki projektu]].
+
+{{TitleProperty|Widoczność automatyczna}}
+
+* {{PropertyView|Środowisko edycji|String}}: nazwa środowiska roboczego, które ma zostać uaktywnione podczas edycji szkicu. Wartością domyślną jest {{value|SketcherWorkbench}}.
+* {{PropertyView|Wymuś Ortho|Bool}}: jeśli parametr ma wartość {{TRUE/pl}} po otwarciu szkicu ujęcie widoku zostanie ustawione w trybie [[Std_OrthographicCamera/pl|ortogonicznym]].
+* {{PropertyView|Ukryj zależne|Bool}}: jeśli parametr ma wartość {{TRUE/pl}} wszystkie obiekty zależne od szkicu są ukrywane po otwarciu szkicu.
+* {{PropertyView|Restore Camera|Bool}}: jeśli parametr ma wartość {{TRUE/pl}} pozycja ujęcia widoku jest zapisywana przed otwarciem szkicu i przywracana po jego zamknięciu.
+* {{PropertyView|Widok Przekroju|Bool}}: jeśli parametr ma wartość {{TRUE/pl}} podczas edycji szkicu widoczne są tylko obiekty ''(ich części)'' znajdujące się za płaszczyzną szkicu.
+* {{PropertyView|Wyświetl odnośniki|Bool}}: jeśli parametr ma wartość {{TRUE/pl}} wszystkie obiekty używane w łączach do geometrii zewnętrznej są wyświetlane po otwarciu szkicu.
+* {{PropertyView|Wyświetl podparcie|Bool}}: jeśli parametr ma wartość {{TRUE/pl}} po otwarciu szkicu są wyświetlane wszystkie obiekty, do których jest dołączony ten szkic.
+* {{PropertyView|Tempo Vis|PythonObject|ukryty}}: klasa niestandardowa powiązana z tym obiektem, która obsługuje ukrywanie i pokazywanie innych obiektów podczas otwierania i zamykania szkicu.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]], oraz [[Scripted_objects/pl|Obiekty skryptowe]].
+
+Ogólne informacje na temat dodawania obiektów do dokumentu można znaleźć na stronie [[Part_Feature/pl|Część: właściwość]].
+
+Obiekt ''SketchObject'' jest tworzony za pomocą metody dokumentu {{incode|addObject()}}.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("Sketcher::SketchObject", "Sketch")
+obj.Label = "Custom label"
+}}
+
+Dlatego też, dla klasy podrzędnej [[Python/pl|Python]], powinieneś stworzyć obiekt {{incode|Sketcher::SketchObjectPython}}.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("Sketcher::SketchObjectPython", "CustomSketch")
+obj.Label = "Custom label"
+}}
+
+
+{{Sketcher_Tools_navi{{#translation:}}}}
+{{Document_objects_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

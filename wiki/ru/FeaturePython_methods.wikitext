@@ -1,0 +1,67 @@
+<languages/>
+
+{{TOCright}}
+
+==Введение==
+
+Данная страница содержит справочные данные по доступным переопределяемым методам примененных в описаниях:  [[Create_a_FeaturePython_object_part_I/ru|Create a FeaturePython object part I]] и [[Scripted_objects/ru|Программируемые объекты]].
+
+==Основная ссылка==
+Указанные ниже методы в ~ 99% случаев применяются опытными пользователями proxy классов Python.
+
+{| class="wikitable" cellpadding="5px" width="100%"
+|style="width:25%" | {{incode|execute(self, obj)}}
+|style="width:25%" | Вызывается во время перерасчета FeaturePython (или пересчета всего документа)
+|style="width:50%" | Не вызывайте {{incode|recompute()}} из этого метода (или любого метода, вызываемого из {{incode|execute()}}), поскольку это вызовет повторный пересчет, что может привести к зацикливанию.
+|-
+| {{incode|onBeforeChange(self, obj, prop)}}
+| Вызывается перед тем, как значение свойства будет изменено
+| {{incode|prop}} - название изменяемого свойства, но не сам объект свойства. Изменение свойства не может быть отменено. Будущее/текущее значение свойства не доступны для сравнения одновременно.
+|-
+| {{incode|onChanged(self, obj, prop)}}
+| Вызывается после того, как значение свойства было изменено
+| {{incode|prop}} - название свойства, которое подлежит изменению, но не сам объект свойства.
+|-
+| {{Incode|onDocumentRestored(self, obj)}}
+| Вызывается после восстановления документа или копирования объекта FeaturePython.
+| Иногда ссылки на объект FeaturePython из класса или класс из объекта FeaturePython могут быть нарушены, так как класс {{incode|__init__()}} метод не вызывается при реконструкции объекта. Добавление {{incode|self.Object <nowiki>=</nowiki> obj}} или {{incode|obj.Proxy <nowiki>=</nowiki> self}} как правило решает эти проблемы.
+|}
+
+Нередко можно столкнуться с ситуацией, когда обратные вызовы (callbacks) Python запускаются не так, как следовало бы. Начинающие в этой области могут быть уверены, что система обратного вызова FeaturePython не является хрупкой или сломанной. Неизменно, когда обратные вызовы не выполняются, это происходит из-за того, что ссылка потеряна или не определена в базовом коде. Однако, если кажется, что обратные вызовы прерываются без объяснения причин, предоставление ссылок на объекты/proxy ссылки в обратном вызове {{incode|onDocumentRestored()}} (как указано в первой таблице выше) может облегчить эти проблемы. Пока вы не освоитесь с системой обратного вызова, может быть полезно добавлять инструкции вывода в консоль print() в каждый обратный вызов для вывода сообщений в консоль в процессе разработки.
+
+==Дополнительные методы==
+Приведенные ниже методы предназначены для '''продвинутого''' применения proxy классов Python, как правило в большинстве случаев они вам не понадобятся.
+
+* mustExecute
+* getViewProviderName
+* getSubObject
+* getSubObjects
+* getLinkedObject
+* hasChildElement
+* isElementVisible
+* canLinkProperties
+* allowDuplicateLabel
+* redirectSubName
+* canLoadPartial
+* onBeforeChangeLabel
+
+==Определение всех доступных Python методов==
+В случаях, когда документация к описываемому классу не актуализирована, вы можете самостоятельно определить какие методы доступны в нем , обратившись к исходному C++ коду. Например в [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L161-L351 классе шаблоне FeaturePython] перечислены различные вызовы, в виде: <code>imp-><название метода>()</code>.
+
+Каждому из них соответствует аналогичный метод доступный в Python.
+
+К примеру, <code>imp->execute()</code> [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L193 в строке 193] означает, что <code>execute</code> метод доступен в Python коде.
+
+Обратите внимание, что <code>getPyObject()</code> и <code>init()</code> являются особыми случаями и не подлежат подобному способу определения.
+
+==Смотрите также==
+
+* [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L44-L86 FreeCAD GitHub: FeaturePython.h - public API]
+* [https://github.com/FreeCAD/FreeCAD/blob/76e74294894bbce46d006e149315c6274d206278/src/App/FeaturePython.h#L167 FreeCAD GitHub: FeaturePythonT template class]
+* [https://forum.freecadweb.org/viewtopic.php?f=22&t=49194 FreeCAD Forum Discussion: Scripted Objects Complete Method Reference]
+
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}

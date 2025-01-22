@@ -1,0 +1,92 @@
+<languages/>
+
+{{Docnav
+|
+|
+|[[Arch_Workbench/it|Arch]]
+|IconL=
+|IconR=
+|IconC=Workbench_Arch.svg
+}}
+
+{{VeryImportantMessage|QUESTO COMANDO È OBSOLETO<br>
+Non è disponibile nella {{VersionPlus/it|1.0}}.}}
+
+{{GuiCommand/it
+|Name=Arch 3Views
+|Name/it=3 Viste da mesh
+|MenuLocation=Arch → Utilità → 3 Viste da mesh
+|Workbenches=[[Arch_Workbench/it|Arch]]
+|SeeAlso=[[Arch_SplitMesh/it|Dividi Mesh]], [[Arch_MeshToShape/it|Da Mesh a Forma]]
+}}
+
+<span id="Description"></span>
+==Descrizione==
+
+{{Emphasis|Questo comando non è attualmente in uso.}} Esso servirà a generare delle viste piatte, di un oggetto [[Mesh_Workbench/it|Mesh]], da usare con lo strumento  {{KEY|[[Image:Arch Equipment.svg|24px]] [[Arch_Equipment/it|Arredo]]}}.
+
+<span id="Usage"></span>
+==Utilizzo== 
+
+# Selezionare un oggetto Mesh
+# Selezionare il pulsante {{KEY|[[Image:Arch 3Views.svg|16px]]}}, o {{KEY|Arch}} → {{KEY|Utilità}} → {{KEY|[[Image:Arch 3Views.svg|16px]] [[Arch_3Views/it|3 viste]]}} dal menu principale.
+
+<span id="Scripting"></span>
+== Script ==
+
+{{Emphasis|Vedere anche:}} [[Arch_API/it|API di Arch]] e [[FreeCAD_Scripting_Basics/it|Nozioni di base sugli script di FreeCAD]].
+
+Questo strumento può essere utilizzato nelle [[Macros/it|macro]] e dalla console [[FreeCAD_Scripting_Basics/it|Python]] tramite la seguente funzione:
+{{Code|code=
+shape = createMeshView(obj, direction=FreeCAD.Vector(0, 0, -1), outeronly=False, largestonly=False)
+}}
+* Crea una {{incode|shape}} piatta che è la proiezione nella data {{incode|direction}} dell'oggetto mesh ({{incode|obj}}) specificato.
+* Se {{incode|outeronly}} è {{incode|True}} viene preso in considerazione solo il contorno esterno, scartando i fori interni.
+* Se {{incode|largestonly}} è {{incode|True}} viene utilizzato solo il segmento più grande della mesh specificata.
+
+Usare {{incode|Part.show()}} per visualizzare la forma piatta risultante.
+
+Esempio:
+{{Code|code=
+import FreeCAD, Draft, Arch, Mesh, MeshPart
+
+Line = Draft.makeWire([FreeCAD.Vector(0, 0, 0), FreeCAD.Vector(2000, 2000, 0)])
+Wall = Arch.makeWall(Line, width=150, height=3000)
+FreeCAD.ActiveDocument.recompute()
+
+Shape = Wall.Shape.copy(False)
+Shape.Placement = Wall.getGlobalPlacement()
+
+mesh_obj = FreeCAD.ActiveDocument.addObject("Mesh::Feature", "Mesh")
+mesh_obj.Mesh = MeshPart.meshFromShape(Shape=Shape, MaxLength=520)
+mesh_obj.ViewObject.DisplayMode = "Flat Lines"
+FreeCAD.ActiveDocument.recompute()
+
+XAxis = FreeCAD.Vector(1, 0, 0)
+YAxis = FreeCAD.Vector(0, 1, 0)
+ZAxis = FreeCAD.Vector(0, 0, -1)
+
+s1 = Arch.createMeshView(mesh_obj, ZAxis)
+s2 = Arch.createMeshView(mesh_obj, XAxis)
+s3 = Arch.createMeshView(mesh_obj, YAxis)
+
+Part.show(s1)
+Part.show(s2)
+Part.show(s3)
+
+Wall.ViewObject.Visibility = False
+mesh_obj.ViewObject.Visibility = False
+}}
+
+
+{{Docnav
+|
+|
+|[[Arch_Workbench/it|Arch]]
+|IconL=
+|IconR=
+|IconC=Workbench_Arch.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

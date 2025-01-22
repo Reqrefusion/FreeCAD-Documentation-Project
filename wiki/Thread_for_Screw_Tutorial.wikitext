@@ -1,0 +1,238 @@
+<languages/>
+
+{{TutorialInfo
+|Topic=Product design
+|Level=Advanced
+|Time=60 minutes
+|Author=[[User:DeepSOIC|DeepSOIC]], [[User:Murdic|Murdic]], vocx
+|FCVersion=0.19
+|Files=[https://forum.freecad.org/viewtopic.php?f=36&t=44668 Updated: Thread for screw tutorial]
+}}
+
+== Introduction ==
+
+This tutorial is a collection of techniques to model screw threads in FreeCAD. It was updated for v0.19, although the overall process has been essentially the same since v0.14, when the tutorial was originally written. The updated content focuses on the [[File:Workbench_PartDesign.svg|24px]] [[PartDesign Workbench|PartDesign Workbench]] to create the thread, but does not use the [[File:PartDesign_AdditiveHelix.svg|24px]] [[PartDesign_AdditiveHelix|PartDesign AdditiveHelix]] tool as this was introduced later.
+
+In traditional CAD systems modelling screw threads is discouraged because it puts a big load on the modelling kernel, as well as on the rendering of the shapes. In traditional systems a thread does not need to be represented directly in 3D space, as it can be indicated with its required characteristics in the 2D technical drawing that is sent for manufacturing. However, with the popularization of additive manufacturing (3D printing), there is now a real need to model 3D threads, in order to print them exactly as designed. This is what this tutorial is for.
+
+Many of the techniques presented here have been collected from different forum threads:
+* [https://forum.freecad.org/viewtopic.php?f=3&t=12593 Gathering thread modeling techniques]
+* [https://forum.freecad.org/viewtopic.php?f=3&t=6506 Creating a thread: Unexpected results]
+
+See also helpful videos:
+* [https://forum.freecad.org/viewtopic.php?f=8&t=44259 Introducing a strategy for designing a bolt without the commonly found problems.]
+
+Remember that thread shapes take a lot of memory, and having just one thread in a document can increase the file size significantly, so the user is advised to create threads only when absolutely necessary.
+
+== Method 1. Using utilities and parts from workbenches ==
+
+Using utilities and parts that other people have created is easy and saves time. See the [[External_workbenches|external workbenches]] page for information on external tools.
+
+In particular, three resources are recommended that can be installed from the [[Std_AddonMgr|Addon Manager]]:
+* [[Fasteners_Workbench|Fasteners Workbench]], to add/attach various fasteners to parts. The screws and nuts don't show a thread by default, but this can be controlled with an option.
+* [[BOLTSFC_Workbench|BOLTSFC Workbench]], to place fasteners from the BOLTS library.
+* [[ThreadProfile_Workbench|ThreadProfile Workbench]], to create common threads.
+
+[[File:T13_00_Threads_fasteners.png|x300px]]
+{{Caption|Various standard screws inserted with the Fasteners Workbench. An option controls whether an object shows the real thread or just a plain cylinder.}}
+
+== Method 2. Using macros (deprecated) ==
+
+* In the past, the [[Macro_BOLTS|Macro BOLTS]] was used to insert the parts from the BOLTS library. This is now deprecated. Use the [[BOLTSFC_Workbench|BOLTSFC Workbench]] instead.
+
+* In the past the stand-alone [[Macro_screw_maker1_2|Screw Maker macro]], by ulrich1a, was used to create individual bolts, screws, and washers. This is now deprecated. The [[Fasteners_Workbench|Fasteners workbench]], by shaise, includes the complete screw maker macro, together with a GUI to select the right component.
+
+== Method 3. Fake threads: non-helical ==
+
+In many cases we don't need real threads, we just need a visual indication that the threads will be there.
+
+We can create a fake thread by using a non-helical path, for example by revolving a sawtooth profile, or by stacking discs with tapered edges. This fake thread is hard to tell apart from the real helical one by simple inspection. This method is good for visualizing a thread-like object, but it is not useful if we need to 3D-print an actual thread.
+
+[[File:T13_01_Threads_comparison_fake_real.png|x300px]]
+{{Caption|Left: simple bolt with a fake, non-helical thread. Right: simple bolt with a real helical thread. When 3D printing is not needed, a simulated thread is often sufficient for visualization.}}
+
+=== Revolving sawtooth profile ===
+
+# Click on {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body|PartDesign Body]]}}.
+# Click on {{Button|[[File:PartDesign_NewSketch.svg|16px]] [[PartDesign_NewSketch|PartDesign New sketch]]}}. Select {{Value|XZ_Plane}}.
+# Draw a closed sketch with the required inner diameter {{Value|10 mm}}, outer diameter around {{Value|12.6 mm}}, pitch {{Value|3 mm}}, number of teeth {{Value|8}}, and total height {{Value|30 mm}}.
+# Select the sketch, then click on {{Button|[[File:PartDesign_Revolution.svg|16px]] [[PartDesign_Revolution|PartDesign Revolution]]}}. Select {{Value|Vertical sketch axis}}, and press {{Button|OK}}.
+
+[[File:T13_02_Threads_Sawtooth_sketch_profile.png|x300px]]
+{{Caption|Profile used to create the revolution that will simulate a thread.}}
+
+[[File:T13_03_Threads_Sawtooth_revolution_1.png|x300px]] [[File:T13_04_Threads_Sawtooth_revolution_2.png|x300px]]
+{{Caption|Sectional view of the resulting non-helical thread produced by revolving the sawtooth profile around the vertical axis.}}
+
+=== Stacking discs ===
+
+# Repeat the first two steps from the previous section.
+# Draw a closed sketch with the required inner diameter {{Value|10 mm}}, outer diameter around {{Value|12.6 mm}}, and pitch {{Value|3 mm}}, but draw only a single tooth of the sawtooth.
+# Select the sketch, then click on {{Button|[[File:PartDesign_Revolution.svg|16px]] [[PartDesign_Revolution|PartDesign Revolution]]}}. Select {{Value|Vertical sketch axis}}, and press {{Button|OK}}.
+# Select the {{Value|Revolution}}, then click on {{Button|[[File:PartDesign_LinearPattern.svg|16px]] [[PartDesign_LinearPattern|PartDesign Linear pattern]]}}. Select {{Value|Vertical sketch axis}}. For a fake thread with a pitch of {{Value|3 mm}}, set the {{MenuCommand|Length}} to {{Value|3}}, and {{MenuCommand|Occurrences}} to {{Value|2}}, then press {{Button|OK}}. This will create two discs, one on top of the other.
+# You can add more discs by increasing the value of {{MenuCommand|Occurrences}} in the linear pattern, and by raising the {{MenuCommand|Length}}, which is the total length of the fake thread.
+
+The {{MenuCommand|Length}} and {{MenuCommand|Occurrences}} are related. If the length is too large, but the number of occurrences is not high enough, you will have disconnected discs, and the Body computation will fail, as the resulting object must always be a [[PartDesign_Body|single contiguous solid]]. For example, to get a total height of {{Value|30 mm}}, set {{MenuCommand|Length}} to {{Value|27 mm}} and {{MenuCommand|Occurrences}} to {{Value|10}}.
+
+If you wish, you may add a {{Button|[[File:PartDesign_AdditiveCylinder.svg|16px]] [[PartDesign_AdditiveCylinder|PartDesign Additive cylinder]]}} with a diameter equal to the inner diameter of the discs, and as high as the total thread height. This will join all discs into a single solid, thus guaranteeing that there will not be disconnected discs.
+
+[[File:T13_05_Threads_Stacked_discs_sketch.png|x300px]]
+{{Caption|Profile used to create a revolved disc that will be used to simulate a thread.}}
+
+[[File:T13_06_Threads_Stacked_discs_1.png|x300px]] [[File:T13_07_Threads_Stacked_discs_2.png|x282px]]
+{{Caption|Left: single disc created by revolution. Right: multiple discs placed in a linear pattern in the Z direction simulating a helical thread.}}
+
+== Method 4. Sweeping a vertical profile ==
+
+=== PartDesign Workbench ===
+
+A true thread consists of a closed profile sweeping a solid along a helical path.
+
+# In the [[File:Workbench_Part.svg|24px]] [[Part_Workbench|Part Workbench]], click on {{Button|[[File:Part_Primitives.svg|16px]] [[Part_Primitives|Part Primitives]]}} to create a {{Button|[[File:Part_Helix.svg|16px]] [[Part_Helix|Part Helix]]}}. Give it the appropriate values for {{MenuCommand|Pitch}} {{Value|3 mm}}, {{MenuCommand|Height}} {{Value|23 mm}}, and {{MenuCommand|Radius}} {{Value|10 mm}}.
+# Move to the [[File:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench|PartDesign Workbench]], and click on {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body|PartDesign Body]]}}.
+# Click on {{Button|[[File:PartDesign_NewSketch.svg|16px]] [[PartDesign_NewSketch|PartDesign New sketch]]}}. Select {{Value|XZ_Plane}}.
+# Draw a closed sketch with the required profile for the thread teeth, normally a triangular shape. In this case we will use a height of {{Value|2.9 mm}}, which is slightly smaller than the {{Value|3.0 mm}} pitch used for the helix path. The profile must not create any self intersections when moved along the helix, neither between the turns nor in the middle, thus the sketch as shown for stacking disks cannot be used.
+# Select the sketch, then click on {{Button|[[File:PartDesign_AdditivePipe.svg|16px]] [[PartDesign_AdditivePipe|PartDesign Additive pipe]]}}. In {{MenuCommand|Path to sweep along}}, click on {{MenuCommand|Object}}, and choose the helix object previously created. Then change {{MenuCommand|Orientation mode}} to {{Value|Frenet}} so that the profile sweeps the path without twisting; then press {{Button|OK}}.
+# When the dialog asks for a reference, choose {{Value|Create cross-reference}}.
+# The helical coil is created, but there is no central body or shaft.
+# Click on {{Button|[[File:PartDesign_AdditiveCylinder.svg|16px]] [[PartDesign_AdditiveCylinder|PartDesign Additive cylinder]]}} with the appropriate {{MenuCommand|Radius}} {{Value|10 mm}} and {{MenuCommand|Height}} {{Value|29.9 mm}} to touch the rest of the helical thread and automatically fuse to it.
+# Additional boolean operations are needed to shape up the abrupt ends of the coil. For example, you can use additive features to provide a head to the screw, and a tip.
+
+[[File:T13_08_Threads_Helical_thread_profile.png|x300px]] [[File:T13_09_Threads_Helical_thread_path.png|x300px]]
+{{Caption|Left: profile for a helical thread. Right: helical path that will be used to create a sweep.}}
+
+[[File:T13_10_Threads_Helical_thread_coil.png|x300px]] [[File:T13_11_Threads_Helical_thread_coil_sliced.png|x300px]]
+{{Caption|Left: helical coil resulting from the sweep operation of the closed profile along the helical path. Right: sectional view of the coil produced from the sweep.}}
+
+[[File:T13_12_Threads_Helical_thread_cylinder.png|x300px]] [[File:T13_13_Threads_Helical_thread_finished.png|x300px]]
+{{Caption|Left: helical coil fused to a central cylinder to form the body of the screw. Right: more features, a head and a tip, added to improve the shape of the screw.}}
+
+=== Part Workbench ===
+
+This process can also be done with the tools of the [[Part_Workbench|Part Workbench]].
+# In the [[File:Workbench_Part.svg|24px]] [[Part_Workbench|Part Workbench]], click on {{Button|[[File:Part_Primitives.svg|16px]] [[Part_Primitives|Part Primitives]]}} to create a {{Button|[[File:Part_Helix.svg|16px]] [[Part_Helix|Part Helix]]}}. Give it the appropriate values for {{MenuCommand|Pitch}} {{Value|3 mm}}, {{MenuCommand|Height}} {{Value|23 mm}}, and {{MenuCommand|Radius}} {{Value|10 mm}}.
+# In this case, you don't need a {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body|PartDesign Body]]}}. Switch to the [[File:Workbench_Sketcher.svg|24px]] [[Sketcher_Workbench|Sketcher Workbench]], then click {{Button|[[File:Sketcher_NewSketch.svg|16px]] [[Sketcher_NewSketch|Sketcher New sketch]]}}, and choose the global XZ plane.
+# Then return to the [[File:Workbench_Part.svg|24px]] [[Part_Workbench|Part Workbench]], and use {{Button|[[File:Part_Sweep.svg|16px]] [[Part_Sweep|Part sweep]]}}.
+# Select the appropriate sketch from {{MenuCommand|Available profile}} and click the arrow to pass it to {{MenuCommand|Selected profiles}}.
+# Click {{Button|Sweep path}}, and choose all edges of the existing helix in the [[3D_view|3D view]]. Click {{Button|Done}}.
+# Make sure to tick {{CheckBox|TRUE|Create solid}} and {{CheckBox|TRUE|Frenet}}. Obtaining a solid is the key to be able to perform [[Part_Boolean|Part Boolean]] operations with the resulting coil, otherwise only a surface will be produced.
+# Click {{Button|OK}} to exit the dialog and create the coil.
+
+Now you can proceed to add other primitives like {{Button|[[File:Part_Cylinder.svg|16px]] [[Part_Cylinder|Part Cylinders]]}}, or other shapes, in order to perform {{Button|[[File:Part_Fuse.svg|16px]] [[Part_Fuse|Part Fuses]]}} and {{Button|[[File:Part_Cut.svg|16px]] [[Part_Cut|Part Cuts]]}} to finish building the screw.
+
+[[File:T13_14_Threads_components.png|x300px]]
+{{Caption|Creating a thread coil by sweeping a vertical profile, (1) the [[sketch|sketch profile]], (2) the [[Part_Helix|helical]] sweeping path, and (3) the result of the [[Part_Sweep|sweep]].}}
+
+=== Tips for success ===
+
+* {{Emphasis|Rule 1.}} When the profile sweeps the helix, the resulting solid coil must not touch or self-intersect as it will be an invalid solid. This holds for the profile moving along the helix, as well as intersections in the center of the helix. Attempts to do boolean operations with it (fuse or cut) are very likely to fail. Check the quality of the coil with {{Button|[[File:Part_CheckGeometry.svg|16px]] [[Part_CheckGeometry|Part CheckGeometry]]}}; if self-intersections are reported, you must increase the pitch of the helix.
+
+[[File:T13_15_Threads_self_intersection.png|x300px]] [[File:T13_16_Threads_no_self_intersections_OK.png|x300px]]
+{{Caption|Left: invalid sweep generated by using a very small pitch of the helix compared to the height of the triangular profile. Right: pitch that is sufficiently large and doesn't cause self-intersections.}}
+
+* {{Emphasis|Rule 2.}} When a cylinder is added to a coil to form the main shaft of a screw, the cylinder must not be tangent to the coil profile. That is, the cylinder must not have the same radius as the inner radius of the thread, as this is very likely to fail a fuse operation. In general, avoid geometry coincident to elements of the sweep, such as tangent faces, or edges tangent to faces they are not connected to. In order to produce a good boolean union, the swept coil and the cylinder must intersect. Check the quality of the fusion with {{Button|[[File:Part_CheckGeometry.svg|16px]] [[Part_CheckGeometry|Part CheckGeometry]]}}; if coplanar faces are reported increase the cylinder's radius by a small amount.
+* If the coil and the cylinder are tangent, even if the first fusion succeeds, it may fail in subsequent boolean operations with a third solid.
+* This is a limitation of the OpenCASCADE Technology (OCCT) kernel; in general, it doesn't handle well operations between coplanar surfaces.
+
+[[File:T13_17_Threads_tangent_faces.png|x300px]] [[File:T13_18_Threads_no_tangent_faces_OK.png|x300px]]
+{{Caption|Left: the solid cylinder is tangent to the inner radius of the thread; this may result in an invalid boolean union. Right: the cylinder has a slightly larger radius, so the two solids intersect; this will result in a valid fusion.}}
+
+* {{Emphasis|Rule 3.}} The inner cylinder has a seamline. You should avoid placing the start of the helix along that seam. Either turn the helix or the cylinder by some degrees.
+
+
+* {{Emphasis|Tip 1.}} The radius of the helical path does not matter, unless the helix is tapered. All that matters is the pitch and the height of the helix. This means that you can use a single {{Button|[[File:Part_Helix.svg|16px]] [[Part_Helix|Part Helix]]}} to generate several threads with equal pitch. What determines the position of the resulting coil is the position of the profile [[Sketch|sketch]].
+
+* {{Emphasis|Tip 2.}} Keep the thread short, that is, with a low number of turns. Long threads tend to fail with boolean operations. If you need to add many turns, consider creating first a short thread, and then using {{Button|[[File:Draft_OrthoArray.svg|16px]] [[Draft_OrthoArray|Draft OrthoArray]]}} to duplicate the same pattern several times.
+
+* {{Emphasis|Tip 3.}} For 3D visualization and 3D printing it may be okay to leave the cylinder and the thread unfused, that is, with intersections between the two solids. Reducing the amount the boolean operations results in less memory consumption and smaller files.
+
+=== Pros and cons ===
+
+* [[File:Edit_OK.svg|24px]] Easy to understand.
+* [[File:Edit_OK.svg|24px]] Very natural way of defining a thread profile.
+* [[File:Edit_OK.svg|24px]] No problems with meshing of the resulting object, unlike method 5.
+
+* [[File:Edit_Cancel.svg|24px]] Due to invalidity of self-intersecting sweeps, it is next to impossible to generate a thread with no gap between each tooth, that is, with no straight cylindrical face at the inner sides of the thread.
+* [[File:Edit_Cancel.svg|24px]] Boolean operations are required to obtain a single contiguous solid. Boolean operations take a relatively long time to calculate, and fail often.
+* [[File:Edit_Cancel.svg|24px]] Threads with a high number of turns are problematic.
+
+== Method 5. Sweeping a horizontal profile ==
+
+=== General ===
+
+The idea is to sweep a horizontal cross-section of the thread along a helix. The main problem here is figuring out the profile to use to obtain such thread.
+
+[[File:thread-by-horz-profile.png|600px]]
+
+If one uses a circle as a horizontal profile (the circle has to be placed off the origin, that offset defines the depth of the thread), the thread profile will be sinusoidal. 
+
+To obtain a standard sawtooth profile, a pair of mirrored archimedean spirals need to be fused into a wire. The resulting figure is a heart shape, which becomes barely distinguishable from a circle when the depth of the thread is small compared to its diameter, this is why a "thick" thread is shown on the picture above.
+
+=== Generating the profile ===
+
+Figuring out the horizontal profile to obtain a certain vertical profile is not easy. For simple cases like triangular or trapezoidal it can be constructed manually. Alternatively, it can be constructed by creating a short thread with method 4, and getting a slice of it by doing a [[Part_Common|Part Common]] between a horizontal plane face and the thread.
+
+==== Profile for triangular thread ====
+
+# First create an Archimedian spiral in the XY plane.
+## Set the number of turns to 0.5.
+## Set the radius to the inner radius of the thread, the outer radius will be this plus the depth of the cut.
+## Set the growth to double the depth of cut of the thread.
+# [[Part_Mirror|Part Mirror]] the spiral against the XY plane
+# [[Part_Fuse|Part Fuse]] the spiral and the mirror to obtain a closed wire, shaped like a heart.
+
+==== Profile for arbitrary cross-section ====
+
+[[File:thread-by-horz-profile-profileMake.png|1000px]]
+
+# Make a vertical cut profile. Make sure that the height of the sketch matches the pitch of the thread you need.
+# Make a helix1 with height identical to the pitch and the pitch identical to the thread pitch, and a helix radius of 0.42*nominal diameter of the thread.
+# Sweep the cut profile along the helix1. Set {{CheckBox|TRUE|Create solid}} and {{CheckBox|TRUE|Frenet}}.
+# Make a circle with nominal radius of the thread in the XY plane.
+# Make a face from the circle. This can be done with {{Button|[[File:Part_Builder.svg|16px]] [[Part_Builder|Part Builder]]}} or {{Button|[[File:Draft_Upgrade.svg|16px]] [[Draft_Upgrade|Draft Upgrade]]}}, then set {{PropertyData|MakeFace}} to {{TRUE}}.
+# Cut the face with the sweep profile.
+# Make a {{Button|[[File:Draft_Clone.svg|16px]] [[Draft_Clone|Draft Clone]]}} from the cut.
+# Use {{Button|[[File:Draft_Downgrade.svg|16px]] [[Draft_Downgrade|Draft Downgrade]]}} on the clone in order to get a wire. This wire is the horizontal profile needed for this method.
+# Make a helix with radius of nominal radius of the thread and a pitch of the thread and the height of the needed thread.
+# Sweep the wire along the helix.  Set {{CheckBox|TRUE|Create solid}} and {{CheckBox|TRUE|Frenet}}.
+# You are done.
+
+The step-by-step guide was taken from this [http://forum.freecad.org/viewtopic.php?f=3&t=6506#p52558 forum post by Ulrich1a] ("Creating a thread: Unexpected results"), slightly modified.
+
+The steps are also shown in action on [http://www.youtube.com/watch?v=fxKxSOGbDYs this video by Gaurav Prabhudesai] ("FreeCAD : How to make threads").
+
+=== Pros and cons ===
+
+* [[File:Edit_OK.svg|24px]] a ready-to-use thread-on-a-rod solid shape is created by the sweep directly. 
+* [[File:Edit_OK.svg|24px]] fewer or even no boolean operations are required, so generation speed is very high compared to Method 4.
+* [[File:Edit_OK.svg|24px]] thread ends are nicely cut straight away
+* [[File:Edit_OK.svg|24px]] long threads are not a problem, unless a boolean operation is needed. Otherwise, it is not going to be much better than Method 4.
+* [[File:Edit_OK.svg|24px]] threads without a gap are not a problem.
+
+* [[File:Edit_Cancel.svg|24px]] defining thread profile is complicated.
+* [[File:Edit_Cancel.svg|24px]] using the standard mesher with a thread created in this way generates ugly meshes, which can lead to problems. Other meshers are better, for example, Mefisto seems to give the best results.
+* [[File:Edit_Cancel.svg|24px]] large memory footprint according to [http://forum.freecad.org/viewtopic.php?f=3&t=12593&start=10#p101197 Gathering thread modeling techniques].
+
+== Method 6. Lofting between helical extruded faces ==
+
+=== General ===
+
+Helical splines will extrude coaxial faces that are able to be lofted, while FreeCAD's parametric helix won't.    It takes two helical splines to define a thread.  Those two can be scaled from a library spline, then located and extruded appropriately to get the form right. 
+
+FreeCAD's parametric helixes aren't truly helical, but helical b-splines aren't difficult to lay out. One manual method is to array dodecagons (12-sided polygons) with 5mm radius/10mm diameter at 1/12mm (0.08333.mm) z intervals and trace splines from vertex to vertex in ascending and rotating order, and to consider doing it once with, say, 10 turns, so that that spline can be re-used as a library file for import and reuse.   It's convenient to use 10mm diameter/1mm pitch for ease of scaling.  If you are doing it manually, drawing a Dwire and then converting it to a b-spline is easier than drawing a spline. Dwires don't have curvature computed while being drawn, so they follow the cursor and snap more obediently.
+
+Once the splines are scaled to the right size and located so that the loft will have the right included angle between the thread flanks, they're extruded along their axis, a pitch length's worth for the inner spline, the outer pitch/8.
+
+[[File:splineextrudeloft.png|912px]] 
+
+ISO and other threads have relieved, ie flat,  inner and outer edges rather than sharp, which suits FreeCAD users with this method, because we can loft to the helical face at the nominal fastener size, while an inner face can't be lofted to an outer edge spline because a face is a closed profile, a spline is open.  ISO standard says the nominal size of external threads have a face width pitch/8.  The picture shows how the geometry is arranged, and the helical faces that result.  Then, loft between the faces, and then a cylinder that gives the inner helical face, which ISO puts at pitch/4 width, is added to the threads. 
+
+[[File:Threadform.PNG|761PX]]
+
+This method produces reliable solids that boolean properly.  While it doesn't produce "parametric" screw threads in standard sizes in the sense of having simple access to form by fastener size, it's an easy way of producing an accurate library for reuse, and models of specialised forms like ACME, or Archimedian screws, are also uncomplicated as one-offs.
+
+
+{{Part Tools navi{{#translation:}}}}
+{{PartDesign Tools navi{{#translation:}}}}
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

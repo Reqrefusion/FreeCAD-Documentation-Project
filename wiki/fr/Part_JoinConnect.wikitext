@@ -1,0 +1,109 @@
+<languages/>
+
+{{Docnav/fr
+|[[Part_Common/fr|Intersection]]
+|[[Part_JoinEmbed/fr|Intégrer]]
+|[[Part_Workbench/fr|Atelier Part]]
+|IconL=Part_Common.svg
+|IconR=Part_JoinEmbed.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/fr
+|Name=Part JoinConnect
+|Name/fr=Part Connecter des objets
+|MenuLocation=Part → Joindre → Connecter des objets
+|Workbenches=[[Part_Workbench/fr|Part]]
+|Version=0.16
+|SeeAlso=[[Part_JoinEmbed/fr|Part Intégrer]], [[Part_JoinCutout/fr|Part Découper]], [[Part_Boolean/fr|Part Opération booléenne]], [[Part_Thickness/fr|Part Évider]]
+}}
+
+==Description== 
+
+L'outil [[Image:Part_JoinConnect.svg|24px]] '''Part Connecter''' connecte deux objets creux (par exemple deux tuyaux). Il peut aussi joindre des coques et des polylignes.
+
+[[image:JoinFeatures_Connect.png|600px]]
+
+<span id="Usage"></span>
+==Utilisation== 
+
+# Sélectionnez les objets à connecter. L'ordre de sélection n'est pas important, puisque l'action de l'outil est symétrique. Il suffit de sélectionner une sous-forme de chaque objet (par exemple, les faces). Vous pouvez également sélectionner un composé contenant toutes les formes à connecter, par exemple un [[Draft_OrthoArray/fr|Draft Réseau orthogonal]].
+# Il y a plusieurs façons de lancer l'outil :
+#* Appuyez sur le {{Button|[[Image:Part_JoinConnect.svg|16px]] [[Part_JoinConnect/fr|Connecter des objets]]}}.
+#* Sélectionnez l'option {{MenuCommand|Part → Joindre → [[Image:Part_JoinConnect.svg|16px]] Connecter des objets}} du menu.
+# Un objet paramétrique Connect est créé. Les objets originaux sont masqués et le résultat de la connexion est affiché dans la [[3D_view/fr|vue 3D]].
+
+<span id="Properties"></span>
+==Propriétés== 
+
+{{TitleProperty|Connect}}
+
+* {{PropertyData|Objects}} : liste les objets a connecter. En général deux objets suffisent, un compound d'objets fonctionne (Depuis V0.17, cette propriété n'est pas affichée dans l'[[Property_editor/fr|éditeur de propriétés]] mais seulement disponible via [[#Script|Python]]).
+* {{PropertyData|Refine}} : [[Part_RefineShape/fr|affiner]] ou non la forme finale. Par défaut cette valeur est déterminée par la case ''Affiner les modèles automatiquement après une opération booléenne'' dans les [[PartDesign_Preferences/fr|PartDesign Préférences]].
+* {{PropertyData|Tolerance}} : valeur de "flou". Il s'agit d'une tolérance supplémentaire à appliquer lors de la recherche d'intersections, en plus des tolérances stockées dans les formes d'entrée.
+
+<span id="Example"></span>
+==Exemple== 
+
+# Créer une conduite en appliquant un [[Part_Thickness/fr|Part évidement]] sur un [[Part_Cylinder/fr|Part cylindre]] : <br/>[[image:JoinFeatures_Example_step1.png|320px]]
+# Créer un autre tuyau plus petit, et le [[Placement/fr|Part placer]] pour qu'il perce le premier tuyau : <br />[[image:JoinFeatures_Example_step2.png|320px]]
+# Sélectionner le premier tuyau puis le second, et cliquer sur l'option 'Connecter des objets' du menu déroulant Joindre des objets à paroi.<br/>[[image:JoinFeatures_Example_step3_Connect.png|320px]]
+# Utiliser divers outils de plan de coupe  ([[Std_ToggleClipPlane/fr|Std Couper selon des plans]], [[Arch_SectionPlane/fr|Arch Plan de coupe]], [[Arch_CutPlane/fr|Arch Couper selon un plan]]) pour voir l'intérieur. Dans l'image ci-dessous, un Arch Plan de coupe est utilisé.<br/>[[image:JoinFeatures_Example_step4_Connect.png|320px]]
+
+<span id="Algorithm"></span>
+==Algorithme==
+
+Les algorithmes derrière les outils Joindre sont très simples, et les comprendre est important pour utiliser les outils correctement. L'algorithme de Connecter, en particulier, est plus complexe que les autres, mais il suffit généralement d'y penser comme d'une variante symétrique de l'[[Part_JoinEmbed/fr#Algorithme|algorithme intégré]].
+
+1. Chaque objet est coupé à l'intersection avec l'autre (voir [[Part_BooleanFragments/fr|Part Fragments booléens]]). 
+
+2. Parmi les morceaux d'un objet, seul le plus grand est conservé ; tout le reste est jeté.
+
+3. Les pièces d'intersection qui touchent au moins deux objets sont ajoutées au résultat. Ensuite, les pièces sont jointes pour former le résultat de Connecter.
+
+<span id="Notes"></span>
+===Remarques=== 
+
+* Si, à l'étape 1, chaque objet reste en un seul morceau, le résultat de Connecter sera équivalent à la [[Part_Fuse/fr|Part Union]] des objets.
+* Actuellement, tous les composés fournis sont explosés avant la connexion. Cela signifie que les composés à intersection automatique, qui ne sont pas valides pour toutes les autres opérations booléennes, sont valables pour Connecter. (Cela pourra être changé à l'avenir.)
+* La "plus grande" pièce est celle qui a la plus grande masse. C'est-à-dire que pour les solides, les volumes sont comparés; pour les coques et les faces, les zones sont comparées, etc.
+* Depuis FreeCAD v0.17.8053, et si la version OCC est la version 6.9.0 et ultérieure, Connecter est presque aussi rapide que toutes les autres opérations booléennes. Pour les versions plus anciennes, Connecter est environ 5 fois plus lent qu'une opération booléenne normale et ne fonctionne que sur les solides.
+
+<span id="Scripting"></span>
+==Script==
+
+L'outil Joindre peut être utilisé dans des [[Macros/fr|macros]] à partir de la [[Python_console/fr|console Python]] en utilisant la fonction suivante :
+
+ '''BOPTools.JoinFeatures.makeConnect(name)'''
+
+* Crée une fonction Connect vide. La propriété 'Objets' doit être attribuée explicitement par la suite.
+* Renvoie l'objet nouvellement créé.
+
+Connecter peut également être appliqué à des formes simples, sans avoir besoin d'un objet document, via :
+
+ '''Part.BOPTools.JoinAPI.connect(list_of_shapes, tolerance = 0.0)'''
+
+Cela peut être utile pour créer des fonctionnalités de script personnalisées Python.
+
+Exemple :
+
+{{code|code=
+import Part
+j = Part.BOPTools.JoinFeatures.makeConnect(name= 'Connect')
+j.Objects = FreeCADGui.Selection.getSelection()
+}}
+
+L'outil lui-même est implémenté en Python, voir {{FileName|/Mod/Part/BOPTools/JoinFeatures.py}} ([https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/Part/BOPTools/JoinFeatures.py Github lien]) là où FreeCAD est installé.
+
+
+{{Docnav/fr
+|[[Part_Common/fr|Intersection]]
+|[[Part_JoinEmbed/fr|Intégrer]]
+|[[Part_Workbench/fr|Atelier Part]]
+|IconL=Part_Common.svg
+|IconR=Part_JoinEmbed.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

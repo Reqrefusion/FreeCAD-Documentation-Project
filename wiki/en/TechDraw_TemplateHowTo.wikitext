@@ -1,0 +1,125 @@
+<languages/>
+
+{{TutorialInfo
+|Topic=Drafting
+|Level=Intermediate
+|Time=60 minutes
+|Author=[http://freecadweb.org/wiki/index.php?title=User:wandererfan wandererfan]
+|FCVersion=0.17
+}}
+
+== Introduction ==
+
+This tutorial shows you how to create an [[SVG|SVG]] file that can be used as the background [[TechDraw_Templates|template]] for the [[TechDraw_Workbench|TechDraw Workbench]] pages.
+
+This tutorial assumes you are moderately familiar with [https://en.wikipedia.org/wiki/Inkscape Inkscape] and [[SVG|SVG]], as well as FreeCAD and the [[TechDraw_Workbench|TechDraw Workbench]].
+
+We're going to make a simple template for US Letter size paper in landscape orientation.
+
+A copy of the result of this tutorial is available in
+{{Code|code=
+$INSTALL_DIR/Mod/TechDraw/Templates/HowToExample.svg
+}}
+
+Where {{incode|$INSTALL_DIR}} is the directory where FreeCAD was installed, for example
+{{Code|code=
+/usr/share/freecad/Mod/TechDraw/Templates/HowToExample.svg
+}}
+
+== Create base document ==
+
+1. Open a new document in Inkscape.
+
+2. In Document Properties
+* Select page size "US Letter" or "A4" and orientation "landscape".
+* Set default units to "mm", and the page size to width "279.4" and height "215.9". For DIN-A4 you would use "210" and "297". 
+[[Image:InkDocProp.png|800px|center]]
+{{Caption|align=center|Inkscape: document with page size and orientation}}
+{{clear}}
+
+3. Use the XML Editor to add a "freecad" namespace clause to the {{incode|<svg>}} item.
+: <code>xmlns:freecad="http://www.freecadweb.org/wiki/index.php?title=Svg_Namespace"</code>
+Note that your editable texts will ''not'' work if you use "https://...", even though the wiki is reached via https these days. Since SVG is a human readable format you could also enter the line above into the file with a text editor.
+[[File:InkXMLNameSpace.png|800px|center]]
+{{Caption|align=center|Inkscape: XML Editor adding the "freecad" namespace clause to the <svg> item}}
+{{clear}}
+
+== Create template drawing ==
+
+4. Draw outlines, zone numbers, center lines, and other geometry.
+
+5. Draw the boxes and lines for the title block.
+
+6. Add and position your static text.
+
+7. Add and position the text that will be editable.
+
+8. You now have your finished artwork, that should look something like this:
+[[File:InkFinishedArt.png|800px|center]]
+{{Caption|align=center|Inkscape: tentative template layout}}
+{{clear}}
+
+== Create editable fields ==
+
+9. Use the XML Editor to add a {{incode|freecad:editable}} tag to each editable {{incode|<text>}} item.
+* Assign a meaningful field name to each editable text.
+[[File:InkXMLeditableTag.png|800px|center]]
+{{Caption|align=center|Inkscape: XML Editor adding the "freecad:editable" property to the desired <text> item}}
+{{clear}}
+
+== Adjust size of the SVG ==
+
+10. Use the XML editor to adjust the {{incode|viewBox}} attribute to match your page size in millimeters.
+* It is four values, in the format {{incode|"0 0 width height"}}
+[[File:InkXMLviewBox.png|800px|center]]
+{{Caption|align=center|Inkscape: XML Editor adjusting the viewbox to match the page size in millimeters}}
+{{clear}}
+
+11. Your template will now appear much bigger than desired.
+[[File:InkMuchTooBig.png|800px|center]]
+{{Caption|align=center|Inkscape: tentative template layout exceeding the page size}}
+{{clear}}
+
+12. We need to shrink it.
+* {{MenuCommand|Edit → Select All in All Layers}}, or box select and select all.
+* Adjust the {{Button|W:}} and {{Button|H:}} spinboxes to match your artwork's size in millimeters.
+* Set it to the page size less any applicable margins, for example, {{Button|W: 250}}, and {{Button|H: 200}}.
+
+13. Use "Align and Distribute" or the {{Button|X:}} and {{Button|Y:}} spinboxes to position the artwork within the limits of the page if required.
+
+14. Your template should now look right, just like it did in the finished artwork picture above.
+
+== Remove transformans on the SVG ==
+
+15. Ensure that all your editable texts are "ungrouped" with {{KEY|Shift}}+{{KEY|Ctrl}}+{{KEY|g}}.
+
+16. Select everything on your page, {{MenuCommand|Edit → Select All}}, and then {{MenuCommand|Edit → Copy}} ({{KEY|Ctrl}}+{{KEY|c}}).
+
+17. Then delete the current layer, {{MenuCommand|Layer → Delete Current Layer}}. 
+: Note: if you deleted the layer already (in your layer panel is no layer listed) this step is not required. In that case you should select all ({{KEY|Ctrl}}+{{KEY|a}}), cut the selection ({{KEY|Ctrl}}+{{KEY|x}}) and paste it with the command in the next step.
+
+18. Then paste, {{MenuCommand|Edit → Paste in Place}}.
+: '''Note:''' This command prevents that the text positions are stored in transform tags. <u>It's important that you do not use the normal paste command!</u>
+
+19. Your template should now look right and shouldn't have any unwanted transforms.
+
+20. Save your template. When you use Inkscape, save it preferably as '''Plain SVG''' because FreeCAD can only handle the features of the SVG 1.1 specification. '''Plain SVG''' will remove any Inkscape-specific XML tags.
+
+21. Try it in FreeCAD and [[TechDraw_Workbench|TechDraw Workbench]] with [[TechDraw_PageTemplate|Insert Page using Template]].
+[[File:FCTemplateHow.png|center]]
+{{Caption|align=center|FreeCAD: finished template with an editable text field being modified}}
+{{clear}}
+
+== Notes ==
+Don't use Layers in Inkscape until you've mastered template creation without them. Layers and Groups can automatically insert unwanted transforms into your [[SVG|SVG]] file.
+
+As a final step before using your new template, make sure to remove any transform clauses from the Svg code. Transform clauses '''will cause problems'''.
+
+See a Stackoverflow discussion on [https://stackoverflow.com/questions/13329125/removing-transforms-in-svg-files removing transform clauses in SVG files].
+
+If you do not see the green boxes for your editable texts, there might be something wrong with your document scale. Open your file in Inkscape again and confirm the values of the viewBox and the sizes are matching. 
+
+If texts appear offset in FreeCAD, you may need to remove the {{Incode|xml:space<nowiki>=</nowiki>"preserve"}} attributes in the SVG file. See: https://www.forum.freecadweb.org/viewtopic.php?t=50897.
+
+{{TechDraw Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

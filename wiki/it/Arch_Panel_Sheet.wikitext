@@ -1,0 +1,142 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_Panel_Cut/it|Sagoma pannello]]
+|[[Arch_Nest/it|Nido]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_Panel_Cut.svg
+|IconR=Arch_Nest.svg
+|IconC=Workbench_Arch.svg 
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/it
+|Name=Arch Panel Sheet
+|Name/it=Foglio di pannello
+|MenuLocation=Arch → Strumenti pannello → Foglio pannello
+|Workbenches=[[Arch_Workbench/it|Arch]]
+|Shortcut={{KEY|P}} {{KEY|S}}
+|Version=0.17
+|SeeAlso=[[Arch_Panel/it|Pannello]], [[Arch_Panel_Cut/it|Sagoma pannello]], [[Arch_Nest/it|Nido]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descrizione==
+
+Questo strumento permette di costruire un foglio 2D con un numero qualsiasi di oggetti [[Arch_Panel_Cut/it|Sagoma di pannello]], o qualsiasi altri oggetti 2D come quelli prodotti da [[Draft_Workbench/it|Draft]] e [[Sketcher_Workbench/it|Sketcher]]. Il Foglio pannello consiste tipicamente in un tracciato di tagli che devono essere eseguiti da una macchina CNC. Questi fogli possono poi essere esportati in un file [[Draft_DXF/it|DXF]].
+
+[[Image:Arch Wikihouse 03.jpg|600px]] 
+
+[[Image:Arch Wikihouse 04.jpg|600px]] 
+
+''L'immagine sopra mostra come appaiono i Fogli pannello quando sono esportati in DXF.''
+
+<span id="Usage"></span>
+== Utilizzo ==
+
+<div class="mw-translate-fuzzy">
+# Facoltativamente, selezionare uno o più oggetti [[Arch_Panel_Cut/it|Sagoma pannello]] o qualsiasi altro oggetto 2D posizionato sul piano XY.
+# Premere il pulsante {{Button|[[Image:Arch Panel Sheet.svg|16px]] [[Arch_Panel_Sheet/it|Foglio pannello]]}}, o premere i tasti {{KEY|P}} e poi {{KEY|S}}.
+# Regolare le proprietà desiderate.
+</div>
+
+<span id="Options"></span>
+==Opzioni==
+
+* Dopo aver creato il foglio pannello, con o senza oggetti figlio, con un doppio clic su di esso nella vista ad albero si può aggiungere o rimuovere dal foglio pannello qualsiasi altro oggetto figlio aggiungendo o rimuovendo gli oggetti dalla sua cartella Group
+* Facendo doppio click sul pannello nella vista ad albero consente inoltre di spostare gli oggetti contenuti in questo foglio, o spostare il suo tag
+* È possibile creare automaticamente pannelli composti da più fogli di materiale, incrementando la sua proprietà Sheets
+* Fogli pannello in grado di visualizzare un margine, che è utile per garantire che ci sia sempre un certo spazio tra gli oggetti interni e il bordo del foglio
+* Quando i fogli pannello vengono esportati in DXF, i contorni, i fori interni, i tag dei loro figli interni sono collocati su layer diversi, come mostrato nell'immagine sopra
+
+<span id="Properties"></span>
+==Proprietà==
+
+<span id="Data"></span>
+===Dati===
+
+* {{PropertyData/it|Height}}: L'altezza del foglio
+* {{PropertyData/it|Width}}: La larghezza del foglio
+* {{PropertyData/it|Fill Ratio}}: La percentuale della superficie foglio che viene riempito dalle sagome (automatica)
+* {{PropertyData/it|Tag Text}}: Il testo da visualizzare
+* {{PropertyData/it|Tag Size}}: La dimensione del testo tag
+* {{PropertyData/it|Tag Position}}: La posizione del testo tag. Tenere (0,0,0) per la posizionarlo automaticamente nel centro
+* {{PropertyData/it|Tag Rotation}}: La rotazione del testo tag
+* {{PropertyData/it|Font File}}: Il carattere del testo tag
+* {{PropertyData/it|Make Face}}: Se è True, il pannello è una Part Face, altrimenti è una Part Wire
+* {{PropertyData/it|Grain Direction}}: Ciò consente di sapere la direzione principale della fibra del pannello (senso orario, 0 ° significa in alto)
+
+<span id="View"></span>
+===Vista===
+
+* {{PropertyView/it|Margin}}: Un margine che può essere visualizzato all'interno del bordo del pannello
+* {{PropertyView/it|Show Margin}}: Attiva o disattiva la visualizzazione del margine
+* {{PropertyView/it|Show Grain}}: Mostra la struttura della fibra (Make Face deve essere impostata su True)
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Vedere anche:}} [[Arch_API/it|API di Arch]] e [[FreeCAD_Scripting_Basics/it|Nozioni di base sugli script di FreeCAD]].
+
+Lo strumento Foglio pannello può essere utilizzato nelle [[Macros/it|macro]] e dalla console [[Python/it|Python]] tramite la seguente funzione:
+
+{{Code|code=
+Sheet = makePanelSheet(panels=[], name="PanelSheet")
+}}
+
+* Crea un oggetto {{incode|Sheet}} dai {{incode|panels}}, che sono una lista di oggetti [[Arch Panel/it|Pannello]].
+
+Esempio:
+
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+Rect = Draft.makeRectangle(500, 200)
+Polygon = Draft.makePolygon(5, 750)
+
+p1 = FreeCAD.Vector(1000, 0, 0)
+p2 = FreeCAD.Vector(2000, 400, 0)
+p3 = FreeCAD.Vector(1250, 800, 0)
+Wire = Draft.makeWire([p1, p2, p3], closed=True)
+
+Panel1 = Arch.makePanel(Rect, thickness=36)
+Panel2 = Arch.makePanel(Polygon, thickness=36)
+Panel3 = Arch.makePanel(Wire, thickness=36)
+FreeCAD.ActiveDocument.recompute()
+
+Cut1 = Arch.makePanelCut(Panel1)
+Cut2 = Arch.makePanelCut(Panel2)
+Cut3 = Arch.makePanelCut(Panel3)
+Cut1.ViewObject.LineWidth = 3
+Cut2.ViewObject.LineWidth = 3
+Cut3.ViewObject.LineWidth = 3
+FreeCAD.ActiveDocument.recompute()
+
+Sheet = Arch.makePanelSheet([Cut1, Cut2, Cut3])
+}}
+
+<span id="Tutorials"></span>
+== Tutorial ==
+
+* [[Wikihouse_porting_tutorial/it|Tutorial Wikihouse portabile]]
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_Panel_Cut/it|Sagoma pannello]]
+|[[Arch_Nest/it|Nido]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_Panel_Cut.svg
+|IconR=Arch_Nest.svg
+|IconC=Workbench_Arch.svg 
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

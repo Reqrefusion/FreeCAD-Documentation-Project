@@ -1,0 +1,134 @@
+<languages/>
+
+{{Docnav
+|[[Draft_Rotate|Rotate]]
+|[[Draft_Mirror|Mirror]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_Rotate.svg
+|IconR=Draft_Mirror.svg
+|IconC=Workbench_Draft.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/es
+|Name=Draft Scale
+|Name/es=Draft Scale
+|Workbenches=[[Draft_Workbench/es|Croquis]], [[Arch_Workbench/es|Arquitectura]]
+|MenuLocation=Croquis -> Escala
+|Shortcut={{KEY|S}} {{KEY|C}}
+|SeeAlso=[[Draft Clone/es|Clonar]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descripción==
+
+<div class="mw-translate-fuzzy">
+Esta herramienta escala los objetos seleccionados con respecto a un punto base. Si no se han seleccionado objetos, te invitará a seleccionarlos.
+</div>
+
+The command can be used on 2D objects created with the [[Draft_Workbench|Draft Workbench]] or [[Sketcher_Workbench|Sketcher Workbench]], but also on many 3D objects such as those created with the [[Part_Workbench|Part Workbench]], [[PartDesign_Workbench|PartDesign Workbench]] or [[BIM_Workbench|BIM Workbench]].
+
+[[Image:Draft_Scale_example.png|400px]]
+{{Caption|Scaling an object around a base point}}
+
+<span id="Usage"></span>
+==Utilización==
+
+See also: [[Draft_Snap|Draft Snap]] and [[Draft_Constrain|Draft Constrain]].
+
+<div class="mw-translate-fuzzy">
+# Selecciona los objetos que quieres escalar
+# Presiona el botón {{KEY|[[Image:Draft Scale.png|16px]] [[Draft Scale/es|Escala]]}}, o presiona las teclas {{KEY|S}} y {{KEY|C}}
+# Indica un primer punto en la vista 3D, o escribe unas coordenadas para definir el punto base del escalado. Indica otro punto en la vista 3D, o escribe unas coordenadas
+# Otro menú con opciones de escalado se abrirá. Rellena las diferentes opciones y pulsa {{KEY|OK}} para aceptar
+</div>
+
+<span id="Options"></span>
+==Opciones==
+
+===First task panel===
+
+The single character keyboard shortcuts available in the task panel can be changed. See [[Draft_Preferences|Draft Preferences]]. The shortcuts mentioned here are the default shortcuts.
+
+* To manually enter the coordinates for the base point enter the X, Y and Z component, and press {{KEY|Enter}} after each. Or you can press the {{Button|[[Image:Draft_AddPoint.svg|16px]] Enter point}} button when you have the desired values. It is advisable to move the pointer out of the [[3D_view|3D view]] before entering coordinates.
+* Press {{KEY|G}} or click the {{MenuCommand|Global}} checkbox to toggle global mode. If global mode is on, coordinates are relative to the global coordinate system, else they are relative to the [[Draft_SelectPlane|working plane]] coordinate system.
+* Press {{KEY|S}} to switch [[Draft_Snap|Draft snapping]] on or off.
+* Press the {{Button|Close}} button to abort the command.
+
+===Second task panel===
+
+<div class="mw-translate-fuzzy">
+* Para introducir coordenadas manualmente, simplemente introduce los números, presiona {{KEY|ENTER}} entre cada componente X, Y y Z.
+* Las componentes X, Y, Z del segundo punto definen el factor de escala. Por ejemplo, (1,1,1) no hará nada, (2,2,2) utilizará un factor de escala scale 2x en todas las direcciones, (-1,1,1) hará una simetría en la dirección X.
+* Presionando {{KEY|ALT}} o {{KEY|C}} o pulsando el botón {{KEY|'''Copiar'''}} se creará una copia de los objetos, en lugar de escalar los originales. Si mantienes presionada {{KEY|ALT}} después de indicar el segundo punto, podrás crear más copias, hasta que liberes la tecla {{KEY|ALT}}.
+* Presiona {{KEY|CTRL}} mientras dibujas para forzar el [[Draft_Snap/es|ajuste]] de tu punto a la ubicación de ajuste más cercana, independientemente de la distancia.
+* Presionando {{KEY|SHIFT}} se bloqueará la relación de las coordenadas X e Y, de modo que la forma no se distorsione.
+* Presionando {{KEY|ESC}} o el botón {{KEY|'''Cancelar'''}} para abortar el comando actual.
+* El objeto resultante es una [[Draft Clone/es|clonación]], que permite cambiar el valor de escala después de que se ha creado.
+</div>
+
+==Notes==
+
+* The command can also scale [[Image_CreateImagePlane|Image Planes]], but not in clone mode.
+
+==Preferences==
+
+See also: [[Preferences_Editor|Preferences Editor]] and [[Draft_Preferences|Draft Preferences]].
+
+* To reselect the base objects after copying objects: {{MenuCommand|Edit → Preferences... → Draft → General → Select base objects after copying}}.
+
+==Scripting==
+
+<div class="mw-translate-fuzzy">
+==Programación==
+</div>
+
+<div class="mw-translate-fuzzy">
+La herramienta de Escalar se puede utilizar en [[macros/es|macros]] y desde la consola de Python utilizando la siguiente instrucción:
+</div>
+
+{{Code|code=
+scaled_list = scale(objectslist, scale=Vector(1,1,1), center=Vector(0,0,0), copy=False)
+}}
+
+<div class="mw-translate-fuzzy">
+* Escala los objetos contenidos en objects (que pueden ser una lista de objetos o un objeto) por los factores de escala definidos por el vector dado (en direcciones X, Y y Z) con respecto al centro dado.
+* Si legacy es True, se utiliza el modo directo (antiguo), en caso contrario se crea una copia paramétrica. 
+* Si copy es True, los objetos en realidad no se mueven sino que se crean copias en su lugar. 
+* Devuelve los objetos (o sus copias).
+</div>
+
+Ejemplo:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+pts = [App.Vector(0, 0, 0), App.Vector(500, 500, 0), App.Vector(600, 0, 0)]
+wire1 = Draft.make_wire(pts, closed=True)
+doc.recompute()
+
+scale1 = App.Vector(2.3, 0.75, 0)
+wire2 = Draft.scale(wire1, scale1, copy=True)
+doc.recompute()
+
+scale2 = App.Vector(-2, -1.5, 0)
+wires = Draft.scale([wire1, wire2], scale2, copy=True)
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Draft_Rotate|Rotate]]
+|[[Draft_Mirror|Mirror]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_Rotate.svg
+|IconR=Draft_Mirror.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

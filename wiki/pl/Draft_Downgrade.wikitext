@@ -1,0 +1,97 @@
+<languages/>
+
+{{Docnav/pl
+|[[Draft_Upgrade/pl|Ulepsz kształt]]
+|[[Draft_WireToBSpline/pl|Polilinia na linię złożoną]]
+|[[Draft_Workbench/pl|środowisko pracy Rysunek Roboczy]]
+|IconL=Draft_Upgrade.svg
+|IconR=Draft_WireToBSpline.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{GuiCommand/pl
+|Name=Draft Downgrade
+|Name/pl=Rysunek Roboczy: Rozbij kształt
+|MenuLocation=Modyfikacja → Rozbij kształt
+|Workbenches=[[Draft_Workbench/pl|Rysunek Roboczy]], [[BIM_Workbench/pl|BIM]]
+|Shortcut={{KEY|D}} {{KEY|N}}
+|SeeAlso=[[Draft_Upgrade/pl|Ulepsz kształt]], [[Part_Cut/pl|Wytnij]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Polecenie [[Image:Draft_Downgrade.svg|24px]] '''Rozbij kształt''' spowoduje rozbicie wybranych obiektów. Wynik zależy od liczby wybranych obiektów i ich typu. Polecenie może na przykład zdekomponować bryłę 3D na osobne ściany, a linie łamaną na osobne krawędzie. Jeśli wybrane są dwie ściany, to tworzony jest z nich obiekt środowiska Część - [[Part_Cut/pl|Wytnij]]. Zauważ, że nie wszystkie obiekty mogą zostać zdekomponowane. To polecenie jest odpowiednikiem polecenia środowiska Rysunek Roboczy [[Draft_Upgrade/pl|Ulepsz kształt]].
+
+[[Image:Draft_Downgrade_example.jpg|400px]]
+{{Caption|Dwie nakładające się powierzchnie są degradowane do obiektu Part Cut, który jest degradowany do powierzchni. Ta ściana jest następnie zdekomponowana do zamkniętej linii łamanej, która jest ostatecznie rozbita do oddzielnych krawędzi.}}
+
+<span id="Usage"></span>
+==Użycie==
+
+# Opcjonalnie wybierz jeden lub więcej obiektów.
+# Polecenie można wywołać na kilka sposobów:
+#* Naciśnij przycisk {{Button|[[Image:Draft_Downgrade.svg|16px]] [[Draft_Downgrade/pl|Rozbij kształt]]}},
+#* [[Draft_Workbench/pl|Środowisko pracy Rysunek Roboczy]]: Z menu wybierz opcję {{MenuCommand|Modyfikacja → [[Image:Draft_Downgrade.svg|16px]] Rozbij kształt}}
+#* [[BIM_Workbench/pl|Środowisko pracy BIM]]: Wybierz opcję {{MenuCommand|Modyfikacja → [[Image:Draft_Downgrade.svg|16px]] Rozbij kształt}} z menu.
+#* Użyj skrótu klawiszowego {{KEY|D}}, a następnie {{KEY|N}},
+# Jeśli nie wybrałeś jeszcze obiektu: wybierz obiekt w oknie [[3D_view/pl|widoku 3D]].
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Zobacz również: [https://freecad.github.io/SourceDoc/ Dokumentacja API generowana automatycznie] oraz 
+ [[FreeCAD Scripting Basics/pl|Podstawy pisania skryptów dla FreeCAD]].
+
+Do obracania obiektów służy metoda {{incode|downgrade}} środowiska Rysunek Roboczy.
+
+{{Code|code=
+downgrade_list = downgrade(objects, delete=False, force=None)
+}}
+
+* {{incode|objects}} zawiera obiekty, które mają zostać zdegradowane. Może to być pojedynczy obiekt lub lista obiektów.
+* Jeśli parametr {{incode|delete}} ma wartość {{incode|True}}, obiekty źródłowe są usuwane.
+* {{incode|force}} wymusza określony sposób obniżania klasyfikacji poprzez wywołanie określonej funkcji wewnętrznej. Może to być: {{incode|"explode"}}, {{incode|"shapify"}}, {{incode|"subtr"}}, {{incode|"splitFaces"}}, {{incode|"cut2"}}, {{incode|"getWire"}}, {{incode|"splitWires"}} lub {{incode|"splitCompounds"}}.
+* Zwracana jest lista {{incode|downgrade_list}}. Jest to lista zawierająca dwie listy: listę nowych obiektów i listę obiektów do usunięcia. Jeśli parametr {{incode|delete}} ma wartość {{incode|True}}, to druga lista jest pusta.
+
+===Przykład:===
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+circle = Draft.make_circle(1000)
+rectangle = Draft.make_rectangle(2000, 800)
+doc.recompute()
+
+add_list1, delete_list1 = Draft.upgrade([circle, rectangle], delete=True)
+
+compound = add_list1[0]
+add_list2, delete_list2 = Draft.downgrade(compound, delete=False)
+face = add_list2[0]
+add_list3, delete_list3 = Draft.downgrade(face, delete=False)
+
+box = doc.addObject("Part::Box", "Box")
+box.Length = 2300
+box.Width = 800
+box.Height = 1000
+
+add_list4, delete_list4 = Draft.downgrade(box, delete=True)
+
+doc.recompute()
+}}
+
+
+{{Docnav/pl
+|[[Draft_Upgrade/pl|Ulepsz kształt]]
+|[[Draft_WireToBSpline/pl|Polilinia na BSpline]]
+|[[Draft_Workbench/pl|środowisko pracy Rysunek roboczy]]
+|IconL=Draft_Upgrade.svg
+|IconR=Draft_WireToBSpline.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,124 @@
+<languages/>
+
+{{Docnav/pl
+|[[TechDraw_ShowAll/pl|Pokaż / ukryj niewidoczne krawędzie]]
+|[[TechDraw_SurfaceFinishSymbols/pl|Dodaj symbol wykończenia powierzchni]]
+|[[TechDraw_Workbench/pl|środowisko pracy Rysunek Techniczny]]
+|IconL=TechDraw_ShowAll.svg
+|IconR=TechDraw_SurfaceFinishSymbols.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{GuiCommand/pl
+|Name=TechDraw WeldSymbol
+|Name/pl=Rysunek Techniczny: Dodaj informacje spawalnicze do linii odniesienia
+|MenuLocation=TechDraw → Symbole → Dodaj informacje spawalnicze do linii odniesienia
+|Workbenches=[[TechDraw_Workbench/pl|Rysunek Techniczny]]
+|Version=0.19
+|SeeAlso=[[TechDraw_LeaderLine/pl|TechDraw Leaderline]]
+}}
+
+<span id="Description"></span>
+==Opis== 
+
+Narzędzie '''Dodaj informacje spawalnicze do linii odniesienia''' dodaje specyfikacje spawania do istniejącej linii prowadzącej.
+
+[[Image:TechDraw_WeldingSymbol_example.png|330px]]
+{{Caption|Specyfikacja spawania dodana do linii pomocniczej.}}
+
+<span id="Usage"></span>
+==Użycie== 
+
+# Wybierz istniejącą [[TechDraw_LeaderLine/pl|linię odniesienia]].
+# Istnieje kilka sposobów wywołania narzędzia:
+#* Naciśnij przycisk {{Button|[[Image:TechDraw_WeldSymbol.svg|16px]] '''Dodaj informacje spawalnicze do linii odniesienia'''}}.
+#* Wybierz opcję  z menu {{MenuCommand|Rysunek Techniczny → Symbole → [[Image:TechDraw_WeldSymbol.svg|16px]] Dodaj informacje spawalnicze do linii odniesienia}}.
+# Otworzy się panel zadań.
+# Określ symbole spawania i towarzyszący im tekst, które mają zostać dodane do linii prowadzącej.
+# Naciśnij przycisk {{Button|OK}}.
+
+<span id="Notes"></span>
+==Uwagi==
+
+* Po utworzeniu symbolu spawania można go edytować, klikając go dwukrotnie w oknie [[Tree_view|Widoku drzewa]].
+* Istnieje [[TechDraw_Preferences/pl|parametr preferencji]] dla domyślnego katalogu symboli spawalniczych. Można dodawać własne symbole w katalogu osobistym.
+
+<span id="Properties"></span>
+==Właściwości== 
+
+<span id="Weld_Symbol"></span>
+===Symbol spawu===
+
+* {{PropertyData|Spoina dookoła}}: Pokazuje symbol ''Spoina dookoła'' ''(okrąg)'' na załamaniu linii prowadzącej.
+* {{PropertyData|Spawać na montażu}}: Pokazuje symbol ''Spawać na montażu'' (flaga) na załamaniu linii odniesienia.
+* {{PropertyData|Spoina naprzemienna}}: Przesuwa dolny symbol, aby wskazać spoiny naprzemienne.
+* {{PropertyData|Tekst ogona}}: Tekst wyświetlany na końcu linii prowadzącej.
+
+<span id="Tile"></span>
+===Kafelek===
+
+Każdy pojedynczy symbol ''("strona strzałki" i "druga strona")'' jest reprezentowany przez obiekt "kafelek". Symbol spawania ma 1 lub 2 powiązane z nim kafelki. Każdy z nich ma następujące właściwości:
+* {{PropertyData|Kafelek nadrzędny}}: Nadrzędny symbol spoiny
+* {{PropertyData|Wiersz kafelka}}: Wiersz kafelka. 0 oznacza powyżej linii, -1 poniżej linii. '''Uwaga:''' Jeśli zmienisz rząd jednego kafelka, musisz również zmienić kafelek dla drugiej strony! W ten sposób można odwrócić strony.
+* {{PropertyData|Kolumna kafelka}}: Kolumna kafelka. W tej chwili jest to zawsze 0, dlatego właściwość nie jest edytowalna.
+* {{PropertyData|Plik symbolu}}: Katalog i nazwa pliku SVG symbolu.
+* {{PropertyData|Symbol dołączony}}: Katalog i nazwa pliku SVG rzeczywistego dołączonego symbolu. ''(Jest to katalog tymczasowy)''.
+* {{PropertyData|Tekst z lewej}}: Tekst wyświetlany po lewej stronie symbolu SVG.
+* {{PropertyData|Tekst środkowy}}: Tekst wyświetlany powyżej/poniżej symbolu SVG.
+* {{PropertyData|Tekst z prawej}}: Tekst wyświetlany po prawej stronie symbolu SVG.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów== 
+
+Zobacz również stronę: [https://freecad.github.io/SourceDoc/ Dokumentacja API generowana automatycznie] oraz [[FreeCAD_Scripting_Basics/pl|Podstawy pisania skryptów dla FreeCAD]].
+
+Narzędzie '''Dodaj informacje spawalnicze do linii odniesienia''' może być używane w [[Macros/pl|makrodefinicjach]] i z konsoli [[Python/pl|Python]] za pomocą następujących funkcji:
+
+{{Code|code=
+symbolName = "DrawWeldSymbol001")
+symbolType = "TechDraw::DrawWeldSymbol"
+App.activeDocument().addObject(symbolType, symbolName)
+App.activeDocument().Page.addView(App.activeDocument().DrawWeldSymbol001)
+App.activeDocument().DrawWeldSymbol001.Leader = myLeader
+App.activeDocument().DrawWeldSymbol001.AllAround = True
+App.activeDocument().DrawWeldSymbol001.FieldWeld = True
+App.activeDocument().DrawWeldSymbol001.AlternatingWeld = True
+App.activeDocument().DrawWeldSymbol001.TailText = "process text"
+
+tileName = "DrawTileWeld001"
+tileType = "TechDraw::DrawTileWeld"
+App.activeDocument().addObject(tileType, tileName)
+App.activeDocument().DrawTileWeld001.TileParent = App.activeDocument().DrawWeldSymbol001
+App.activeDocument().DrawTileWeld001.TileRow = 0
+App.activeDocument().DrawTileWeld001.TileColumn = 0
+App.activeDocument().DrawTileWeld001.SymbolFile = fullPathToMySvgFile
+App.activeDocument().DrawTileWeld001.LeftText = "left text"
+App.activeDocument().DrawTileWeld001.RightText = "right text"
+App.activeDocument().DrawTileWeld001.CenterText = "center text"
+}}
+
+<span id="Svg_Symbol_Tiles"></span>
+==Kafelki symboli SVG== 
+
+Poszczególne symbole są tworzone przez pliki SVG 64x64 pikseli. Dodatkowe symbole SVG można utworzyć w programie, takim jak [https://en.wikipedia.org/wiki/Inkscape Inkscape], używając jednego z symboli dostarczonych przez FreeCAD jako szablonu.
+
+[[File:Techdraw-WeldingSymbolLayoutArrow.svg|128px]]
+[[File:Techdraw-WeldingSymbolLayoutOther.svg|128px]]
+
+* Poszczególne symbole są tworzone przez pliki SVG o rozmiarze 64x64 ''(nominalnie)'' pikseli. Kafelki mają w rzeczywistości "obramowanie" o rozmiarze 4px. Obramowanie zapewnia ładne połączenie linii prowadzącej i symbolu.  
+* Symbol jest rysowany w kolorze czarnym na przezroczystym tle. Szerokość obrysu wynosi 0,5 mm.
+* Linia prowadząca przechodzi poniżej symboli po stronie strzałki ''(patrz obrazek po lewej)'' i powyżej symboli po "drugiej" stronie ''(patrz obrazek po prawej)''.
+* Nie ma określonego standardu nazewnictwa innego niż dodanie "Góra / Dół" do symboli strzałki / drugiej strony.
+
+
+{{Docnav/pl
+|[[TechDraw_ShowAll/pl|Pokaż / ukryj niewidoczne krawędzie]]
+|[[TechDraw_SurfaceFinishSymbols/pl|Dodaj symbol wykończenia powierzchni]]
+|[[TechDraw_Workbench/pl|środowisko pracy Rysunek Techniczny]]
+|IconL=TechDraw_ShowAll.svg
+|IconR=TechDraw_SurfaceFinishSymbols.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{TechDraw Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

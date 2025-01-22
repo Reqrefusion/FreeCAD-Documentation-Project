@@ -1,0 +1,125 @@
+<languages/>
+
+{{Docnav/fr
+|[[Surface_GeomFillSurface/fr|Remplir entre les courbes limites]]
+|[[Surface_ExtendFace/fr|Extension de surface]]
+|[[Surface_Workbench/fr|Atelier Surface]]
+|IconL=Surface_GeomFillSurface.svg
+|IconR=Surface_ExtendFace.svg
+|IconC=Workbench_Surface.svg
+}}
+
+{{GuiCommand/fr
+|Name=Surface Sections
+|Name/fr=Surface Sections
+|MenuLocation=Surface → Sections...
+|Workbenches=[[Surface_Workbench/fr|Surface]]
+|Version=0.19
+}}
+
+==Description==
+
+{{Button|[[File:Surface_Sections.svg|16px]] [[Surface_Sections/fr|Surface Sections]]}} est utilisé pour créer une surface à partir d'arêtes qui représentent des sections transversales d'une surface.
+
+[[File:Surface_Sections_edges_example.png|x250px]] [[File:Surface_Sections_example.png|x250px]]
+
+{{Caption|À gauche : les arêtes de contrôle (coupes transversales). À droite : la surface produite à partir de ces arêtes.}}
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Assurez-vous d'avoir au moins deux arêtes ou courbes dans l'espace. Par exemple, ceux-ci peuvent être créés avec des outils de l'[[File:Workbench_Draft.svg|24px]] [[Draft_Workbench/fr|atelier Draft]] ou de l'[[File: Workbench_Sketcher.svg|24px]] [[Sketcher_Workbench/fr|atelier Sketcher]].
+# Appuyez sur le bouton {{Button|[[File: Surface_Sections.svg|16px]] [[Surface_Sections/fr|Surface sections]]}}.
+# Appuyez sur {{Button|Ajouter une arête}}.
+# Utilisez le pointeur pour sélectionner les arêtes souhaitées dans la [[3D_view/fr|vue 3D]]. Un aperçu de la forme finale sera affiché après avoir sélectionné deux arêtes valides.
+# Appuyez sur {{Button|OK}} pour terminer l'opération.
+
+== Options ==
+
+* {{Button|Ajouter une arête}} : appuyez une fois pour commencer à choisir les arêtes dans la [[3D_view/fr|vue 3D]]. Chaque ligne telle que les {{Button|[[File:Draft_BSpline.svg|16px]] [[Draft_BSpline/fr|Draft B-splines]]}} et les {{Button|[[File:Sketcher_CreateBSpline.svg|16px]] [[Sketcher_CreateBSpline/fr|Sketcher B-splines]]}} peut être choisie ainsi que n'importe quelle arête des objets solides, comme celles de {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body/fr|PartDesign Corps]]}} et de {{Button|[[File:Part_Primitives.svg|16px]] [[Part_Primitives/fr|Part Primitives]]}}.
+* {{Button|Supprimer une arête}} : appuyez une fois pour commencer à choisir les arêtes dans la [[3D_view/fr|vue 3D]]. Celles-ci doivent être des arêtes précédemment sélectionnées avec {{Button|Ajouter une arête}}.
+* {{KEY|Bouton droit de la souris}} : ouvrez le menu contextuel et sélectionnez {{Button|Supprimer}} ou appuyez sur {{KEY|Suppr}} au clavier pour supprimer l'arête sélectionné dans la liste.
+* {{MenuCommand|Glisser}} : faites glisser l'élément sélectionné dans la liste afin de changer l'ordre dans lequel il sera traité. La liste est traitée de haut en bas.
+* Appuyez sur {{Button|Annuler}} ou {{KEY|Échap}} pour abandonner l'opération en cours.
+
+<span id="Properties"></span>
+==Propriétés==
+
+Les [[Surface_Sections/fr|Surface Sections]] (classe {{incode|Surface::Sections}}) sont dérivées de la classe de base [[Part_Feature/fr|Part Feature]] (classe {{incode|Part::Feature}} via la sous-classe {{incode|Part::Spline}}). Elles partagent donc toutes les propriétés de cette dernière.
+
+Outre les propriétés décrites dans [[Part Feature/fr|Part Feature]], Surface Section a les propriétés suivantes dans l'[[Property_editor/fr|éditeur de propriétés]].
+
+<span id="Data"></span>
+=== Données ===
+
+{{TitleProperty|Sections}}
+
+* {{PropertyData/fr|NSections|LinkSubList}} : une liste d'arêtes qui seront utilisées pour construire la surface.
+
+<span id="View"></span>
+=== Vue === 
+
+{{TitleProperty|Base}}
+
+* {{PropertyView|Control Points|Bool}} : par défaut {{FALSE}}. Mis à {{TRUE}}, elle affichera une superposition avec les points de contrôle de la surface.
+
+<span id="Twisting_of_the_surface"></span>
+== Torsion de la surface ==
+
+La forme de la surface dépend de la direction des arêtes choisies. Si des arêtes sont sélectionnées et que le résultat est une surface qui "se tord" sur elle-même, l'une des arêtes peut avoir besoin de sa liste de sommets dans l'ordre inverse. Voir les informations dans {{Button|[[File:Surface_GeomFillSurface.svg|16px]] [[Surface_GeomFillSurface/fr|Surface Remplir entre les courbes limites]]}} pour une explication plus complète.
+
+[[File:Surface_twisting_example_smooth.png|330px]] [[File:Surface_twisting_example_twisted.png|330px]]
+
+<span id="Scripting"></span>
+== Script ==
+
+{{Emphasis|Voir aussi :}} [[FreeCAD_Scripting_Basics/fr|FreeCAD Script de base]].
+
+L'outil Surface Sections peut être utilisé dans des [[Macros/fr|macros]] et depuis la console [[Python/fr|Python]] en ajoutant l'objet {{incode|Surface::Sections}}.
+* Les arêtes à utiliser pour définir la surface doivent être affectées en tant que [[FeaturePython_Custom_Properties/fr#App::PropertyLinkSubList|LinkSubList]] à la propriété {{incode|NSections}} de l'objet.
+* Tous les objets avec des arêtes doivent être calculés avant de pouvoir être utilisés comme entrée pour les propriétés de l'objet Sections.
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+pl1 = App.Placement()
+obj1 = Draft.make_circle(50, placement=pl1, face=False, startangle=0, endangle=180)
+
+pl2 = App.Placement(App.Vector(0, 0, 25), App.Rotation())
+obj2 = Draft.make_circle(30, placement=pl2, face=False, startangle=0, endangle=180)
+
+points3 = [App.Vector(18, -10, 50),
+           App.Vector(12, 10, 50),
+           App.Vector(-12, 10, 50),
+           App.Vector(-18, -10, 50)]
+obj3 = Draft.make_bspline(points3)
+
+points4 = [App.Vector(15, -20, 100),
+           App.Vector(0, 6, 100),
+           App.Vector(-15, -20, 100)]
+obj4 = Draft.make_bspline(points4)
+doc.recompute()
+
+surf = doc.addObject("Surface::Sections", "Surface")
+surf.NSections = [(obj1, "Edge1"),
+                  (obj2, "Edge1"),
+                  (obj3, "Edge1"),
+                  (obj4, "Edge1")]
+doc.recompute()
+}}
+
+
+{{Docnav/fr
+|[[Surface_GeomFillSurface/fr|Remplir entre les courbes limites]]
+|[[Surface_ExtendFace/fr|Extension de surface]]
+|[[Surface_Workbench/fr|Atelier Surface]]
+|IconL=Surface_GeomFillSurface.svg
+|IconR=Surface_ExtendFace.svg
+|IconC=Workbench_Surface.svg
+}}
+
+{{Surface Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

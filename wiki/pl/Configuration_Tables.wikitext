@@ -1,0 +1,89 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic=Korzystanie z tabel konfiguracji
+|Level=Początkującyy
+|Time=30 minut
+|Author=Gbroques
+|FCVersion=0.20
+|Files=[https://forum.freecad.org/download/file.php?id=270593 ConfigurationTableExample.FCStd]
+}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Wraz z wydaniem [[Release_notes_0.20/pl#Środowisko_pracy_Arkusz_Kalkulacyjny|FreeCAD V0.20]] pojawiły się dwa nowe potężne narzędzia: ''[[Std_LinkMake/pl|Łącza]] wariantowe'' i ''[https://forum.freecadweb.org/viewtopic.php?f=17&t=42183 Tabele konfiguracji]''. Tabele konfiguracji to specjalny typ łączy wariantowych. Pozwalają na zmianę zestawów predefiniowanych parametrów dla danego obiektu.
+
+Wcześniej można było parametryzować obiekty za pomocą technik takich jak arkusze kalkulacyjne, ale jednoczesne istnienie wielu zróżnicowanych instancji tego samego obiektu było niemożliwe, chyba że użyto technik takich jak kopiowanie plików lub obiektów, co powodowało problemy z utrzymaniem. Tabele konfiguracyjne ułatwiają zarządzanie takimi wariantami oraz możliwość łatwego przełączania się między nimi.
+
+Ten poradnik zakłada, że jesteś już częściowo zaznajomiony ze środowiskami [[PartDesign_Workbench/pl|Projekt Części]] i [[Sketcher_Workbench/pl|Szkicownik]]. Powinieneś też umieć korzystać z [[Tree view/pl|widoku drzewa]] i [[Property_editor/pl|Edytora właściwości]].
+
+Jest tez dostępna [https://www.youtube.com/watch?v=m9C_ahIVKOI wersja wideo tego poradnika].
+
+<span id="Example"></span>
+==Przykład==
+
+Aby lepiej zrozumieć tabele konfiguracji, rozważmy następujący przykład.
+
+Wyobraź sobie prostą sześciokątną nakrętkę ze średnicą gwintu 10mm (M10).
+
+Możemy ponownie wykorzystać ten sam projekt, utworzyć łącze i zmienić pewne parametry aby uzyskać nakrętkę M12.
+
+Dla naszego przykładu opiszemy różnice między tymi dwoma wariantami przy pomocy 3 parametrów:
+# średnica otworu,
+# szerokość między narożnikami,
+# grubość.
+
+Konkretne wartości parametrów dla naszych wariantów są opisane w tej tabeli:
+
+{| class="wikitable"
+|-
+! Wariant !! Średnica (Diameter) !! Szerokość między narożnikami (WidthAcrossCorners) !! Grubość (Thickness)
+|-
+| M10 || style="text-align:right;" | 10 || style="text-align:right;" | 18.48 || style="text-align:right;" | 8.4
+|-
+| M12 || style="text-align:right;" | 12 || style="text-align:right;" | 20.78 || style="text-align:right;" | 10.8
+|}
+
+<span id="Instructions"></span>
+===Wytyczne===
+
+# Utwórz nowy [[Spreadsheet_CreateSheet/pl|arkusz kalkulacyjny]] z nagłówkiem w pierwszym wierszu. Zostaw drugi wiersz pusty. Ten wiersz będzie przechowywał bieżącą konfigurację i zostanie automatycznie wypełniony później. Dodaj parametry dla M10 i M12 w wierszach 3 i 4: <p>[[File:Variant-link-spreadsheet-table-example-before-configuration-table.png]]</p>
+# Użyj [[PartDesign_Workbench/pl|środowiska pracy Projekt Części]] do stworzenia [[PartDesign_Body|Zawartości]] i [[PartDesign_NewSketch|szkicu]] dla nakrętki sześciokątnej. Wiązanie wymiarowe zostanie dodane w dalszym kroku. <p>[[File:Variant-link-example-hex-nut-sketch-unconstrained.png]]</p>
+# [[PartDesign_Pad/pl|Wyciągnij]] szkic. Zaakceptuj domyślną wartość Długości.
+# Kliknij prawym przyciskiem myszy na komórkę A2 w arkuszu kalkulacyjnym i wybierz {{MenuCommand|Tabela konfiguracji...}} z menu kontekstowego.
+# Otworzy się okno dialogowe {{MenuCommand|Konfiguracja Tabeli}}.
+# Wprowadź następujące dane: <p>[[File:Variant-link-example-setup-configuration-table.png]]</p> To wypełnia drugi wiersz w tabeli, dodaje nową właściwość {{PropertyData|Configuration}} do Zawartości i wiąże tabelę konfiguracji z nią.
+# Naciśnij przycisk {{Button|OK}}.
+# Jeśli komórka A2 pokazuje {{Value|#PENDING}}, możesz kliknąć arkusz prawym przyciskiem myszy w [[Tree_view/pl|widoku drzewa]] i wybrać {{MenuCommand|Przelicz obiekt}} aby pokazać poprawną wartość.
+# Nadaj alias dla 3 komórek w wierszu 2 pod nagłówkami <u>Diameter</u>, <u>WidthAcrossCorners</u> i <u>Thickness</u>.  Każdy alias powinien odpowiadać nagłówkowi kolumny komórki. <p>[[File:Variant-link-spreadsheet-table-example.png]]</p>
+# Zwiąż szkic dwoma wiązaniami i przypisz do nich [[Expressions/pl|wyrażenia]] {{Value|Spreadsheet.Diameter}} i {{Value|Spreadsheet.WidthAcrossCorners}}: <p>[[File:Variant-link-example-hex-nut-sketch.png]]</p>
+# Przypisz {{Value|Spreadsheet.Thickness}} do właściwości {{PropertyData|Length}} wyciągnięcia.
+# Utwórz [[PartDesign_SubShapeBinder/pl|łącznik kształtów podrzędnych]].
+# W [[Tree_view/pl|widoku drzewa]] przeciągnij łącznik kształtów podrzędnych z Zawartości i upuść go na węźle Dokumentu.
+# Upuść Zawartość na łącznik, aby ustawić jego właściwość {{PropertyData|Support}} na Zawartość. Upuszczenie jest wymagane, ponieważ ta właściwość jest domyślnie tylko do odczytu.
+# Ustaw właściwość {{PropertyData|Bind Copy on Change}} łącznika na {{Value|Enabled}}.
+# Wybierz {{Value|M12}} dla właściwości {{PropertyData|Configuration}} łącznika.
+# Ustaw właściwość {{PropertyView|Use Binder Style}} na {{FALSE}} dla łącznika.
+# Zmień właściwość {{PropertyData|Placement}} łącznika, aby był oddalony od Zawartości.
+# Po zakończeniu powinieneś mieć coś takiego: <p>[[File:Variant-link-finished-example-document.png|500px]]</p>
+
+<span id="Use_Std_Link_instead_of_PartDesign_SubShapeBinder"></span>
+===Użyj Łącza zamiast Łącznika kształtów podrzędnych===
+
+Dla łącza wariantowego możesz również użyć [[Std_LinkMake/pl|Łącza]] zamiast [[PartDesign_SubShapeBinder/pl|Łącznika kształtów podrzędnych]]:
+1. Wstępne kroki 1-10 opisane powyżej są takie same.
+2. Utwórz Łącze do Zawartości.
+3. Ustaw właściwość Łącza {{PropertyData|Link Copy On Change}} na {{Value|Enabled}}.
+4. Postępuj zgodnie z krokami 16, 18 i 19 opisanymi powyżej.
+
+<span id="Key_considerations"></span>
+==Kluczowe kwestie==
+
+* Jak wspomniano, łącze wariantowe można utworzyć za pomocą [[Std_LinkMake/pl|Łącza]] lub [[PartDesign_SubShapeBinder/pl|Łącznika kształtów podrzędnych]]. Realthunder wyjaśnia różnicę [https://forum.freecadweb.org/viewtopic.php?f=17&t=42183 tutaj]: <p>{{quote|text=Zamiast duplikować połączony obiekt z całą jego hierarchią, [[PartDesign_SubShapeBinder/pl|Łącznik kształtów podrzędnych]] utworzy spłaszczoną kopię zmienionego obiektu. Inną różnicą w stosunku do Łącza jest to, że [[PartDesign_SubShapeBinder/pl|Łącznik kształtów podrzędnych]] synchronizuje wszelkie zmiany oryginalnego obiektu z kopią, nawet jeśli konfiguracje są różne, podczas gdy w przypadku Łącza, po skopiowaniu, dwa obiekty stają się niezależne.}}</p>
+* Chociaż oparte na łączach, łącza wariantowe nie są tak "tanie" jak zwykłe łącza, ponieważ tworzą kopie oryginalnego obiektu. Realthunder udziela wskazówek [https://forum.freecadweb.org/viewtopic.php?p=532130#p532130 tutaj] i [https://forum.freecadweb.org/viewtopic.php?p=358582#p358582 tutaj]: <p>{{quote|text=[Podczas] korzystania z łącza dla alternatywnych konfiguracji, musisz zdawać sobie sprawę, że tworzy to kopię oryginalnego obiektu... lepiej jest stworzyć pojedyncze łącze 'wariantowe' dla każdego [wariantu], aby uniknąć niepotrzebnych duplikatów. A jeszcze lepiej, użyj Łącznika kształtów podrzędnych... I znów, stwórz jeden [[PartDesign_SubShapeBinder/pl|Łącznik kształtów podrzędnych]] dla każdej konfiguracji.}}</p>
+
+
+{{Clear}}
+[[Category:PartDesign{{#translation:}}]]
+[[Category:Spreadsheet{{#translation:}}]]

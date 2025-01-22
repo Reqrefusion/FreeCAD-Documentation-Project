@@ -1,0 +1,1656 @@
+<languages/>
+
+{{Macro/fr
+|Name=Macro Packages
+|Name/fr=Macro Packages
+|Icon=Packages_icon.svg
+|Description=Interface graphique pour pip pour l'installation et la suppression des paquets pypi dans l'environnement Python de FreeCAD.
+|Author=TheMarkster
+|Version=0.4
+|Date=2025.01.18
+|FCVersion=1.0
+|Download=[https://wiki.freecad.org/images/c/c7/Packages_icon.svg Icône de la barre d'outils]
+}}
+
+<span id="Description"></span>
+==Description== 
+
+Il s'agit d'une interface graphique pour pip qui permet d'installer des paquets pypi dans l'environnement Python de FreeCAD.
+
+[[File:Packages_scr001.png|600px]]
+
+{{Caption|Capture d'écran de Packages}}
+
+<span id="Usage"></span>
+==Utilisation== 
+
+Cette macro installera les paquets pypi dans un dossier spécial appelé {{FileName|AdditionalPythonPackages}}. Il s'agit exactement du même dossier que celui utilisé par le gestionnaire d'extensions pour installer les dépendances de diverses extensions. Les fichiers de ce dossier peuvent avoir été installés par le gestionnaire d'extensions ou par cette macro. Vous pouvez cliquer sur le bouton dans le coin inférieur droit pour ouvrir l'emplacement du dossier dans votre navigateur de fichiers par défaut. Notez que si le dossier n'existe pas encore, il sera créé pour vous. Si le dossier doit être créé, FreeCAD ne reconnaîtra pas les paquets qui y sont installés jusqu'à ce que FreeCAD soit redémarré. Après cela, aucun redémarrage de FreeCAD ne devrait être nécessaire. Les paquets sont installés à l'aide de pip. Ceux-ci sont installés à partir de pypi. Seuls les 8000 paquets les plus téléchargés sont listés, mais vous pouvez utiliser le bouton de recherche pour installer ceux qui ne font pas partie des 8000 paquets les plus populaires. Le bouton Appliquer le filtre utilise le contenu de l'édition de la ligne de filtre pour filtrer les paquets de la liste des 8 000 premiers. La case à cocher Trier permet d'alterner entre le tri alphabétique et le tri basé sur la popularité (par défaut, la case n'est pas cochée). Le bouton ouvrir l'url ouvre la page pypi pour le paquet sélectionné dans votre navigateur par défaut.
+
+Notez qu'un paquet peut avoir des dépendances supplémentaires, qui seront également installées, et lorsque vous supprimez le paquet, les dépendances qui ont été installées avec lui seront également supprimées, à moins qu'elles n'aient été installées en tant que dépendances d'un autre paquet. Il est possible d'effacer le dossier entier pour supprimer toutes les dépendances installées avec cette macro et avec le gestionnaire d'extensions. Mais il est évident que cela risque de casser les extensions qui ont besoin de ces paquets.
+
+Les paquets installés seront placés dans un sous-dossier basé sur la version de Python utilisée. Si FreeCAD est mis à jour vers une version plus récente de Python, alors ces paquets devront très probablement être réinstallés. Vous pouvez simplement les copier dans le dossier de la nouvelle version de Python, mais il est préférable d'utiliser pip au cas où la nouvelle version de Python nécessiterait une version plus récente du paquet.
+
+== Script ==
+
+Icône de la barre d'outils
+[[Image:Packages_icon.svg]]
+
+'''packages.py'''
+
+{{MacroCode|code=
+# packages.py
+# 2024, <TheMarkster> LGPL 2.1 or later
+# thanks to forum member hasecilu for help with setting pyside6 icons
+# a utility to install Python packages in FreeCAD
+
+__version__ = "0.4"
+
+from PySide import QtWidgets, QtGui, QtCore
+QDialog = QtWidgets.QDialog
+QVBoxLayout = QtWidgets.QVBoxLayout
+QHBoxLayout = QtWidgets.QHBoxLayout
+QLabel = QtWidgets.QLabel
+QLineEdit = QtWidgets.QLineEdit
+QSpinBox = QtWidgets.QSpinBox
+QPushButton = QtWidgets.QPushButton
+QListWidget = QtWidgets.QListWidget
+QMessageBox = QtWidgets.QMessageBox
+QCheckBox = QtWidgets.QCheckBox
+QApplication = QtGui.QApplication
+QFileDialog = QtGui.QFileDialog
+Qt = QtCore.Qt
+
+import requests
+import re
+import webbrowser
+import subprocess, sys, platform
+import freecad.utils as utils
+import addonmanager_utilities as amutils
+import shutil
+import json
+import importlib
+
+class Packages:
+    def __init__(self):
+        self.python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+        self.pg = FreeCAD.ParamGet(f"User parameter:Plugins/Packages_Macro/{self.python_version}")
+        layout = QVBoxLayout()
+        self.mw = FreeCADGui.getMainWindow()
+        self.pathEdit = QLineEdit()
+        self.pathEdit.setToolTip("Path to python executable.")
+        self.pathEdit.setText(self.findExecutable())
+        self.form = QtWidgets.QWidget()
+        self.form.setLayout(layout)
+        self.mode = "install" # can also be "uninstall"
+        filterLayout = QHBoxLayout()
+        self.filterEdit = QLineEdit()
+        self.filterEdit.setPlaceholderText("Filter packages")
+        self.filterEdit.returnPressed.connect(self.applyFilter)
+        self.filterEdit.textChanged.connect(self.enableButtons)
+        filterLayout.addWidget(QLabel("Filter:"))
+        filterLayout.addWidget(self.filterEdit)
+        self.sortedCheckBox = QCheckBox("Sort")
+        self.sortedCheckBox.setToolTip("""
+Default is sorting by popularity in terms of most downloads in the last 30 days.
+Checked = sort A to Z.
+Note toggling applies the filter.""")
+        self.sortedCheckBox.setChecked(False)
+        self.sortedCheckBox.stateChanged.connect(self.applyFilter)
+        # this is to initialize stateChanged, otherwise first toggle does not update
+        checked = self.sortedCheckBox.isChecked()
+        filterLayout.addWidget(self.sortedCheckBox)
+        
+        self.filterButton = QPushButton("Apply Filter")
+        self.filterButton.clicked.connect(self.applyFilter)
+        filterLayout.addWidget(self.filterButton)
+        
+        self.searchButton = QPushButton("Search")
+        self.searchButton.setIcon(FreeCADGui.getIcon("internet-web-browser"))
+        self.searchButton.setToolTip("Search for filter on pypi.org in default browser")
+        self.searchButton.setEnabled(False)
+        filterLayout.addWidget(self.searchButton)
+        self.searchButton.clicked.connect(self.search)
+        
+        self.packageList = QListWidget()
+        self.packageList.itemSelectionChanged.connect(self.enableButtons)
+
+        self.fetchButton = QPushButton("Fetch summary")
+        self.fetchButton.setIcon(FreeCADGui.getIcon("internet-web-browser"))
+        self.fetchButton.setEnabled(False)
+        self.fetchButton.clicked.connect(self.fetchSummary)
+
+        layout.addLayout(filterLayout)
+
+        layout.addWidget(self.packageList)
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addWidget(self.fetchButton)
+        
+        self.installButton = QPushButton("Install / Update")
+        self.installButton.clicked.connect(self.install)
+        self.installButton.setEnabled(False)
+        self.installButton.setToolTip("""
+If this is disabled with an active selection it means the package is a base package.
+You are allowed to install again an added package because there might be an update
+available for it.""")
+        buttonLayout.addWidget(self.installButton)
+        
+        self.uninstallButton = QPushButton("Uninstall")
+        style = self.form.style()
+        try:
+            trashIcon = style.standardIcon(style.SP_TrashIcon)
+        except:
+            trashIcon = style.standardIcon(style.StandardPixmap.SP_TrashIcon)
+        self.uninstallButton.setIcon(trashIcon)
+        self.uninstallButton.clicked.connect(self.uninstall)
+        self.uninstallButton.setEnabled(False)
+        self.uninstallButton.setToolTip("""
+If this is disabled with an active selection it means the selected package is
+either not already installed or it is a base package included with the packaging
+or distribution.""")
+        buttonLayout.addWidget(self.uninstallButton)
+        
+        self.openUrlButton = QPushButton("Open Url")
+        self.openUrlButton.setIcon(FreeCADGui.getIcon("internet-web-browser"))
+        self.openUrlButton.clicked.connect(self.openUrl)
+        self.openUrlButton.setEnabled(False)
+        buttonLayout.addWidget(self.openUrlButton)
+        
+        layout.addLayout(buttonLayout)
+        
+        pathLayout = QHBoxLayout()
+        layout.addLayout(pathLayout)
+
+        self.pathEdit.setPlaceholderText("Path to python executable")
+        pathLayout.addWidget(QLabel("Python:"))
+        pathLayout.addWidget(self.pathEdit)
+        self.pathButton = QPushButton("...")
+        try:
+            self.pathButton.setIcon(style.standardIcon(style.SP_FileDialogStart))
+        except:
+            self.pathButton.setIcon(style.standardIcon(style.StandardPixmap.SP_FileDialogStart))
+        self.pathButton.setFixedWidth(self.pathButton.sizeHint().width())
+        self.pathButton.setToolTip("Click to browse for python executable.")
+        self.pathButton.clicked.connect(self.setupPath)
+        pathLayout.addWidget(self.pathButton)
+        
+        additionalLayout = QHBoxLayout()
+        layout.addLayout(additionalLayout)
+        additionalLayout.addWidget(QLabel("AdditionalPythonPackages folder:"))
+        self.additionalEdit = QLineEdit()
+        self.additionalEdit.setPlaceholderText("AdditionalPythonPackages folder goes here")
+        pathToPackages = self.pg.GetString("PathToPackages","")
+        if not pathToPackages:
+            pathToPackages = amutils.get_pip_target_directory()
+            if not os.path.exists(pathToPackages):
+                os.makedirs(pathToPackages)
+                self.pg.SetString("PathToPackages", pathToPackages)
+                FreeCAD.Console.PrintMessage("AdditionalPythonPackages folder has been created.  You will likely need to restart FreeCAD to use any newly installed packages.\n")
+        self.additionalEdit.setText(pathToPackages)
+        self.additionalEdit.setReadOnly(True)
+        additionalLayout.addWidget(self.additionalEdit)
+        self.additionalButton = QPushButton("Open")
+        try:
+            self.additionalButton.setIcon(style.standardIcon(style.SP_DirOpenIcon))
+        except:
+            self.additionalButton.setIcon(style.standardIcon(style.StandardPixmap.SP_DirOpenIcon))
+        self.additionalButton.clicked.connect(self.openAdditional)
+        self.additionalButton.setToolTip("""
+Opens the AdditionalPythonPackages folder.  Note that the only things
+that should be in this folder are things installed using this macro
+or additional dependencies installed via the addon manager.  It should
+be relatively safe to remove things from here.  You should take note
+of what extra folders were added when you install something.  These
+dependencies are not being tracked as pip doesn't support tracking
+packages added to custom folders.  When we uninstall something we
+only install what we added, not the additional dependencies pip might
+have added.""")
+        additionalLayout.addWidget(self.additionalButton)
+        
+        self.packages = self.loadPackageData()
+        title = f"Packages {__version__} ({len(self.packages)} packages)"
+        self.form.setWindowTitle(title)
+        self.applyFilter()
+
+        self.form.setWindowIcon(self.QIconFromXPMString(__icon__))
+
+    def loadPackageData(self):
+        # would be faster to cache this locally, but this way it's always up to date
+        url = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages-30-days.json"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+            return data["rows"]
+        except requests.RequestException as e:
+            QMessageBox.critical(self.mw, "Error", f"Could not load data: {e}")
+            return []
+            
+    def openAdditional(self):
+        """
+        open the addtional python packages folder.  note that this is a different
+        folder for each version of python used by various freecad installations, 
+        for example if the user has multiple versions in simultaneous use.  this
+        folder is really for the addon manager to install dependencies when installing
+        various addons, so we do not have exclusive use of it.  but the advantage
+        is the addon manager can also update these for use when updates are available.
+        this folder is made available to python via initGui,py in src/App, which
+        is how addons are able to import the packages installed here.
+        """
+        sys = platform.system()
+        userFolder = self.additionalEdit.text()
+        if 'Windows' in sys:
+            subprocess.Popen('start explorer.exe '+userFolder, shell=True)
+        elif 'Linux' in sys:
+            os.system("xdg-open '%s'" % userFolder)
+        elif 'Darwin' in sys:
+            subprocess.Popen(["open", userFolder])
+        else:
+            msgBox = QtGui.QMessageBox()
+            msg = "We were unable to determine your platform, and thus cannot open your '+userFolder+' for you, but you can still do it manually.\n"
+            msgBox.exec_()
+                    
+    def getStandardButtons(self):
+        return (QtWidgets.QDialogButtonBox.Close)
+        
+    def setupPath(self):
+        """
+        This is for the user to bre able to set a python that he wants to use
+        rather than the default found with the freecad.utils function
+        """
+        path, ok = QFileDialog.getOpenFileName(self.mw, 
+                "Select Python Executable",
+                "",
+                "Python Executable (python*);;All Files (*)")
+        if path:
+            self.pathEdit.setText(path)
+            self.pg.SetString("PathToPython", path)
+
+
+    def applyFilter(self):
+        """
+        This is called when the user clicks the Apply filters button, and also
+        when the user toggles the sort checkbox, and when the enter key is pressed
+        in the filter line edit widget.  If sorting is active, then the filtered
+        packages are sorted alphabetically, otherwise they are sorted based on the 
+        popularity as measured by the number of downloads in the last 30 days.
+        """
+        filter = self.filterEdit.text()
+        try:
+            filtered = [pkg for pkg in self.packages if re.search(filter, pkg["project"], re.IGNORECASE)]
+            exactMatch = False
+            self.packageList.clear()
+            for pkg in filtered:
+                self.packageList.addItem(pkg["project"])
+                if pkg == filter:
+                    exactMatch = True
+            self.packageList.setSortingEnabled(self.sortedCheckBox.isChecked())
+            if filter and not exactMatch:
+                description, version = self.getInfo(filter)
+                if description:
+                    self.packageList.insertItem(0, filter + " (not in top 8000)")
+
+        except re.error as e:
+            QMessageBox.warning(self.mw, "Invalid Regex", f"Error in regular expression: {e}")
+            self.form.setWindowTitle(f"Packages {__version__}")
+
+    def enableButtons(self):
+        """enables or disables buttons based on whether a package is selected
+        in the list widget and whether that package is already installed."""
+        hasSelection = bool(self.packageList.selectedItems())
+        self.openUrlButton.setEnabled(hasSelection)
+        self.fetchButton.setEnabled(hasSelection)
+        hasFilter = bool(self.filterEdit.text())
+        self.searchButton.setEnabled(hasFilter)
+            
+        added, base = (False, False)
+        if hasSelection:
+            added, base = self.isInstalled()
+        self.installButton.setEnabled(not base)
+        self.uninstallButton.setEnabled(added)
+
+    def install(self):
+        self.mode = "install"
+        self.managePackages()
+        
+    def uninstall(self):
+        self.mode = "uninstall"
+        self.managePackages()
+        
+    def findExecutable(self):
+        """
+        find the python executable in use, luckily there is a function for this
+        already in FreeCAD, but we still want to allow the user the flexibility
+        of setting a different python executable if the function gets it wrong
+        """
+        
+        path = self.pg.GetString("PathToPython","")
+        if path:
+            return path
+        
+        pyEx = utils.get_python_exe()
+    
+        if os.path.exists(pyEx):
+            self.pg.SetString("PathToPython", pyEx)
+            return pyEx
+        else:
+            FreeCAD.Console.PrintError(f"Python executable not found.  You may try to find it manually by clicking the '...' button at the bottom of the dialog.\n")
+            return "Path to python executable"
+
+    def managePackages(self):
+        """
+        Here is where the installing and uninstalling happens.  We track which
+        packages we have installed and which dependencies were installed along
+        with them.  The caveat here is the AddonManager might also install stuff
+        in our folder, but I don't think the AM tracks extra dependencies.
+        """
+        package = self.packageList.currentItem().text().replace(" (not in top 8000)", "")
+        python_exe = self.pathEdit.text()
+        vendor_path = self.additionalEdit.text()
+        if "APPIMAGE" in os.environ:
+            
+            os.environ['PYTHONHOME'] = '/usr'
+            os.environ['PYTHONPATH'] = f"/usr/lib/python{self.python_version}/site-packages" 
+
+        if self.mode == "uninstall":
+            added = self.loadAddedSubfolders(package)
+            self.pg.RemString(f"{package}_Subfolders")
+
+            for subfolder in added:
+                item_path = os.path.join(vendor_path, subfolder)
+                if os.path.exists(item_path):
+                    shutil.rmtree(item_path)
+                    print(f"{subfolder} removed\n")
+
+            self.enableButtons()
+            return
+
+        existing = set(os.listdir(vendor_path))
+
+        command = [python_exe, "-m", "pip", self.mode, "--target", vendor_path, package]
+
+        try:
+            result = subprocess.run(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True
+            )
+            FreeCAD.Console.PrintMessage(f"{result.stdout}\n")
+
+
+            new_folders = set(os.listdir(vendor_path)) - existing
+            added = list(new_folders)
+
+            self.saveAddedSubfolders(package, added)
+
+        except subprocess.CalledProcessError as e:
+            FreeCAD.Console.PrintError(f"Error: {e.stderr}\n")
+        except Exception as e:
+            FreeCAD.Console.PrintError(f"An unexpected error occurred: {e}\n")
+        finally:
+            self.enableButtons()
+
+    def saveAddedSubfolders(self, package, added):
+        """
+        Here we track the folders that we added to this AdditionalPythonPackages
+        folder and removed them during uninstallation.  The complication is that
+        sometimes additional dependencies are also added, and when they are, we 
+        should also track them and remove them.  Further complicating this is other
+        packages might have also added the same dependencies.  These we reconcile
+        in the loadAddedSubfolders() method below.
+        """
+        json_string = json.dumps(added)
+        self.pg.SetString(f"{package}_Subfolders", json_string)
+
+    def loadAddedSubfolders(self, package):
+        """
+        We get all of the packages that were added by all installations, this is
+        in allPackages list.  The added list only includes the new subfolders that
+        were added when this package was installed.  Anything in added that is not
+        also in allPackages can be safely removed during uninstallation.
+        """
+        json_string = self.pg.GetString(f"{package}_Subfolders", "")
+        added = json.loads(json_string) if json_string else []
+
+        allPackages = []
+        for key in self.pg.GetStrings():
+            if key.endswith("_Subfolders") and key != f"{package}_Subfolders":
+                other_json = self.pg.GetString(key, "")
+                try:
+                    otherPackages = json.loads(other_json)
+                    allPackages.extend(otherPackages)
+                except json.JSONDecodeError:
+                    print(f"Error decoding subfolder list for {key}.")
+
+        unique = [folder for folder in added if folder not in allPackages]
+        return unique
+
+    def isInstalled(self):
+        """
+        Called only by the enable buttons function.  We return a tuple (added, base)
+        added = True means this was something we added to the additional packages 
+        folder.  base = True means this is installed, but as a base package either
+        through the packaging or user installed into the system environment, either
+        way we don't try to install or uninstall anything we didn't add or that the
+        addon manager didn't add as an additional dependency in our user addon folder
+        """
+        added = False
+        base = False
+        package = self.packageList.currentItem().text().replace(" (not in top 8000)", "")
+        python_exe = self.pathEdit.text()
+        vendor_path = amutils.get_pip_target_directory()
+        if not os.path.exists(vendor_path):
+            os.makedirs(vendor_path)
+        fullpath = os.path.join(vendor_path,package)
+        if os.path.exists(fullpath):
+            added = True
+        try:
+            importlib.import_module(package)
+            if not added: # we didn't add this
+                base = True
+        except ImportError:
+            # added might or might not be false because this might not yet be
+            # available to import if the additionalpythonpackages folder was
+            # only just created this FreeCAD session, so we don't set it False
+            # here, but instead rely on the above test
+            base = False
+
+        return (added, base)
+
+    def fetchSummary(self):
+        selectedItem = self.packageList.currentItem()
+        if not selectedItem:
+            return
+        
+        package = selectedItem.text().replace(" (not in top 8000)","")
+        description, version = self.getInfo(package)
+        
+        QMessageBox.information(self.mw, "Package Summary", 
+                                f"{package} (v{version}): {description}")
+        
+
+    def getInfo(self, package):
+        """
+        called by fetchSummary(), pops up a very brief description of the package
+        in a message box.  User can use the OpenUrl button to get more details.
+        We also use this to check if a custom entered package is available outside
+        the top 8000 list.
+        """
+        
+        url = f"https://pypi.org/pypi/{package}/json"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+            description = data["info"].get("summary", "No description available.")
+            version = data["info"].get("version", "Unknown version")
+            return description, version
+        except requests.RequestException:
+            return "", "Unknown version"
+
+    def search(self):
+        filter = self.filterEdit.text()
+        if not filter:
+            return
+        url = f"https://pypi.org/search/?q={filter}"
+        try:
+            webbrowser.open(url)
+        except Exception as e:
+            QMessageBox.critical(self.mw, "Error", 
+                                f"Unable to open the browser. Error: {e}")
+
+    def openUrl(self):
+        package = self.packageList.currentItem().text().replace(" (not in top 8000)", "")
+        url = f"https://pypi.org/pypi/{package}"
+        try:
+            webbrowser.open(url)
+        except Exception as e:
+            QMessageBox.critical(self.mw, "Error", 
+                                f"Unable to open the browser. Error: {e}")
+
+    def QIconFromXPMString(self, xpm_string):
+        if "/*pixels*/" in xpm_string:
+            xpm = xpm_string.replace("\"","").replace(',','').splitlines()[4:]
+        else:
+            xpm = xpm_string.replace("\"","").replace(',','').splitlines()[3:]
+        for line in reversed(xpm):
+            if line.startswith("/*") and line.endswith("*/"):
+                xpm.pop(xpm.index(line))
+        pixmap = QtGui.QPixmap(xpm)
+        icon = QtGui.QIcon(pixmap)
+        return icon
+
+
+__icon__ = """
+/* XPM */
+static char *dummy[]={
+"64 64 1050 2",
+"Qt c None",
+".g c #010101",
+"br c #020202",
+"a3 c #030202",
+"h3 c #030303",
+"ej c #030304",
+".I c #040404",
+"ao c #050504",
+".# c #050505",
+"m9 c #060605",
+"dI c #060606",
+".J c #070707",
+"a2 c #090907",
+"nl c #090909",
+"mW c #0a0a0a",
+"mV c #0b0a09",
+"aL c #0b0b09",
+"bh c #0b0b0b",
+".s c #0b0c0c",
+"nz c #0c0b0b",
+"oj c #0c0c0c",
+"d3 c #0c0c0d",
+"n9 c #0d0c0c",
+"dJ c #0d0d0d",
+"#b c #0d0d0e",
+".W c #0d0e0f",
+"mL c #0e0e0f",
+"eI c #0f0f10",
+"#T c #0f1317",
+"#x c #0f1417",
+"mK c #100f0d",
+"nN c #11100e",
+"nk c #11100f",
+"mA c #111111",
+"bM c #111112",
+"#a c #111417",
+"c# c #121212",
+"#U c #121415",
+"mo c #131313",
+".t c #131315",
+"mU c #15130e",
+"nA c #151516",
+"aK c #16140d",
+"#y c #16181b",
+"mM c #171717",
+"fj c #181819",
+".X c #181a1c",
+"gY c #191919",
+".f c #191b1d",
+"h# c #1a1a1b",
+"#7 c #1a1e21",
+"m8 c #1c1a15",
+"an c #1d1b15",
+"oi c #1d1d1e",
+"ot c #1e1e1e",
+"mX c #202020",
+"ap c #212328",
+"aM c #212428",
+"nY c #22211c",
+"bs c #222223",
+"h4 c #232325",
+"#8 c #23252a",
+"#c c #23272e",
+"cx c #242425",
+".H c #242629",
+"#z c #242b34",
+"o. c #252526",
+".h c #25272a",
+"ek c #262627",
+".K c #262a2f",
+"cP c #282729",
+"d# c #282829",
+"iM c #29292a",
+"du c #29292b",
+"#d c #2c3845",
+"#A c #2e3d4b",
+"am c #2f2919",
+"aJ c #2f2a1c",
+"m7 c #2f2a1d",
+"nO c #2f2f30",
+".A c #2f6491",
+"mY c #303030",
+".B c #306491",
+".Q c #306591",
+"ib c #306592",
+"nj c #312d23",
+"ny c #312f2a",
+".Y c #313942",
+"#E c #316591",
+"eS c #316592",
+"ja c #323233",
+"a5 c #326592",
+".z c #326692",
+"mT c #332e21",
+"av c #336692",
+"#p c #336792",
+"dC c #336793",
+"a6 c #346792",
+".R c #346793",
+"aw c #346893",
+"n. c #353536",
+".Z c #354658",
+".l c #35658f",
+".m c #356792",
+".6 c #356893",
+"ev c #356894",
+"os c #363637",
+".u c #363d46",
+".P c #366792",
+"#i c #366894",
+"dW c #366994",
+"bg c #373630",
+"mz c #373737",
+"#e c #374d61",
+"#h c #376893",
+"f. c #376994",
+"ax c #376a95",
+"#R c #3775a9",
+".y c #386891",
+".n c #386993",
+"ac c #386994",
+"ew c #386a95",
+"ba c #3875a9",
+"bA c #3876a9",
+"dl c #3876aa",
+".o c #39678f",
+"lj c #3976a9",
+"c2 c #3977aa",
+"nm c #3a3a3c",
+".x c #3a648a",
+"ab c #3a6a94",
+".C c #3a6b95",
+"dB c #3a6b96",
+"aR c #3a6c96",
+"#Q c #3a77aa",
+"#Z c #3b6c96",
+"ad c #3b6c97",
+"ea c #3b6d96",
+"b# c #3b77aa",
+"dK c #3c3b3d",
+".a c #3c4149",
+".0 c #3c5974",
+"#Y c #3c6c94",
+"iw c #3c6c96",
+"aC c #3c78aa",
+"ht c #3c78ab",
+".k c #3d6589",
+".O c #3d688f",
+"#D c #3d6b94",
+"fw c #3d6d95",
+"b. c #3d78aa",
+"k2 c #3d79ab",
+"bi c #3e3e40",
+".D c #3e6c93",
+"fr c #3e6c95",
+"eT c #3e6e98",
+"ae c #3e6f9a",
+"dX c #3e79ab",
+"iq c #3f3f42",
+".w c #3f607d",
+"g# c #3f6c95",
+"gm c #3f6e96",
+".7 c #3f6e98",
+"#F c #3f6f98",
+"lE c #3f79ab",
+"#5 c #3f7aab",
+"cH c #3f7aac",
+"nM c #403c30",
+"gQ c #406e96",
+"au c #406e97",
+"g4 c #406f96",
+"#o c #406f98",
+"cI c #407aab",
+"fY c #407aac",
+"#V c #414b56",
+"aq c #415c76",
+".E c #416789",
+"ds c #417bab",
+"#v c #417bac",
+".r c #42474d",
+"#B c #425a73",
+"a4 c #425c75",
+"aN c #425c76",
+".S c #426f97",
+"ay c #42729b",
+"dD c #427bac",
+"b0 c #427dae",
+"jb c #434343",
+"mN c #434344",
+"#g c #436b91",
+"kk c #437199",
+"ic c #43719a",
+"hr c #43729a",
+"hV c #437cac",
+"iN c #444446",
+"#f c #446482",
+"fs c #446f96",
+"hd c #447299",
+"ia c #44729a",
+"aV c #447dad",
+"ok c #454547",
+"bN c #454548",
+".v c #45576a",
+"fP c #456f97",
+"fx c #45739b",
+"iB c #457dad",
+".i c #465161",
+".T c #466e91",
+"hf c #467dad",
+"n8 c #474541",
+"a7 c #477198",
+"ft c #477298",
+"e9 c #477299",
+"k1 c #47739b",
+"eh c #477ead",
+"eZ c #477eae",
+"cn c #4780b0",
+"ar c #487197",
+"fR c #487298",
+"aa c #487398",
+"e6 c #487399",
+"dV c #48759c",
+"dE c #487fae",
+"nx c #49422f",
+"#C c #496c8e",
+"fQ c #497398",
+"iU c #49749a",
+"eu c #49759b",
+"gn c #4979a2",
+"c3 c #497fae",
+"bV c #4980ad",
+"nB c #4a4a4c",
+"fS c #4a7399",
+"j8 c #4a79a2",
+"g5 c #4a7aa3",
+"bz c #4a80ad",
+"go c #4a80ae",
+"eY c #4a80af",
+".j c #4b647d",
+".N c #4b6b87",
+"eR c #4b769b",
+"cp c #4b80ae",
+"bm c #4b81ae",
+"fu c #4c7398",
+"fv c #4c7499",
+"#M c #4c7ba2",
+"gS c #4c80aa",
+"#P c #4c82af",
+"nn c #4d4d4f",
+"d4 c #4d4d50",
+"e7 c #4d7499",
+"#j c #4d789e",
+"#q c #4d799f",
+"gC c #4d81ad",
+"bD c #4d84b2",
+"ca c #4e4e4f",
+"ex c #4e789e",
+"kl c #4e7ea6",
+"hs c #4e7ea8",
+"i2 c #4e83af",
+"he c #4f7ea7",
+"n# c #504f51",
+".1 c #507495",
+"aQ c #50789c",
+".5 c #507a9f",
+"#L c #507ca2",
+"by c #507fa6",
+"id c #5083b0",
+"lF c #5083b1",
+"ci c #5084b0",
+"dk c #5086b4",
+"#9 c #51667b",
+"hU c #517a9f",
+"ee c #517ea6",
+"ch c #517fa6",
+"dY c #5184b0",
+"fX c #5184b1",
+"aE c #5185b1",
+"aO c #527699",
+"e8 c #52779a",
+"eA c #527ba0",
+"af c #527ea3",
+"#s c #5280a8",
+"c8 c #5284b0",
+"fB c #5285b0",
+"aj c #5285b1",
+"bF c #5285b2",
+"nZ c #535355",
+".L c #535c67",
+".F c #536b81",
+".p c #537390",
+"#X c #537697",
+"a. c #53789a",
+"e# c #53799b",
+"h9 c #537b9f",
+"eU c #537ca0",
+"#J c #537ca1",
+"fA c #5383ad",
+"fc c #5383ae",
+"k3 c #5385b1",
+"do c #5386b1",
+"l2 c #5386b2",
+"ni c #544e3b",
+"ga c #54799c",
+"iX c #547ca0",
+"fT c #547ca1",
+"f# c #547ea2",
+"#r c #5480a6",
+"fV c #5482aa",
+"cJ c #5485b1",
+"aB c #5487b1",
+"#I c #557da1",
+"fU c #5581a7",
+"eF c #5586b2",
+"cY c #5588b3",
+"iz c #567da1",
+"#K c #567ea1",
+"bl c #5681a7",
+"a9 c #5686af",
+"c4 c #5687b2",
+".G c #57626e",
+"at c #577b9d",
+"eB c #5783a8",
+"#u c #5788b2",
+"al c #58543e",
+".b c #586a80",
+"a# c #587b9c",
+"ix c #587da1",
+"#m c #5880a3",
+".8 c #5881a6",
+"fb c #5886ad",
+"fW c #5887b0",
+"bB c #588cb7",
+"iA c #597fa2",
+"iy c #597fa3",
+"#l c #5980a3",
+".9 c #5984a9",
+"fz c #5985ab",
+"cD c #598ab4",
+"c1 c #598cb7",
+"jf c #5a7fa2",
+"#t c #5a88b0",
+"iC c #5a89b3",
+"i# c #5b80a4",
+".2 c #5b81a2",
+"gp c #5b89ae",
+"#4 c #5b8ab3",
+"eJ c #5c5c60",
+"iW c #5c80a4",
+"#G c #5c82a5",
+"#N c #5c88ad",
+"#. c #5c88ae",
+"ig c #5c8bb3",
+"ox c #5d5d61",
+".U c #5d7386",
+"#W c #5d738c",
+".c c #5d7c99",
+"as c #5d7c9c",
+".3 c #5d82a4",
+"#n c #5d83a4",
+"fy c #5d85a8",
+"jj c #5d8bb3",
+"c5 c #5d8bb4",
+"nX c #5e5742",
+"l1 c #5e88ad",
+"cL c #5e8bb3",
+"fC c #5e8cb4",
+"gc c #5e8db4",
+"ir c #5f5f61",
+".V c #5f6a75",
+"ed c #5f83a5",
+"aS c #5f86a8",
+"lk c #5f8cb5",
+"iD c #5f8db4",
+"m6 c #60563a",
+"i. c #6082a4",
+"iY c #6084a5",
+"l0 c #6085a5",
+"#k c #6185a6",
+"cK c #618db5",
+"#O c #618eb5",
+"oh c #626266",
+".e c #626d78",
+".M c #627181",
+".q c #627384",
+"#0 c #6288a9",
+"h5 c #636366",
+"iV c #6385a5",
+"gb c #6388aa",
+"fe c #638fb5",
+"dp c #638fb6",
+"dn c #638fb7",
+"nP c #646467",
+"aP c #64819f",
+"gD c #648ea8",
+"bt c #656569",
+"fa c #658cae",
+"c6 c #658fb6",
+"i0 c #6590b6",
+"bW c #6594bd",
+"nL c #665b3c",
+"mJ c #666152",
+".4 c #6688a8",
+"lG c #6692b9",
+"iO c #676768",
+"az c #678caf",
+"iZ c #678cb0",
+"ie c #6790b7",
+"if c #6791b7",
+"aU c #6792b7",
+"dS c #6888a7",
+"eb c #688aa9",
+"ef c #6891b8",
+"li c #698aa9",
+"a8 c #698cab",
+"ah c #6992b7",
+"i1 c #6992b8",
+"a1 c #6a6452",
+"nC c #6a6a6c",
+"dR c #6a87a4",
+"#H c #6a8baa",
+"dU c #6a8bab",
+"#S c #6a8fb1",
+"eC c #6a92b6",
+"dr c #6a93b7",
+"g. c #6b87a3",
+"#w c #6b90b1",
+"bk c #6c87a1",
+"fq c #6c87a3",
+"et c #6c89a6",
+"ag c #6c91b3",
+"#6 c #6c92b2",
+"gB c #6c94b8",
+"iT c #6d88a5",
+"je c #6d89a5",
+"jI c #6d89a6",
+"kj c #6d8aa6",
+"gR c #6d94b8",
+"eX c #6d95b8",
+".d c #6e879f",
+"iv c #6e88a5",
+"gl c #6e89a5",
+"jv c #6e89a6",
+"hg c #6f94b7",
+"nw c #70623b",
+"bC c #709dc1",
+"c7 c #7197b9",
+"hc c #728da9",
+"gA c #728daa",
+"ey c #7290ae",
+"hI c #7296b6",
+"dj c #729ec2",
+"ou c #737376",
+"ez c #7391af",
+"dZ c #7397bb",
+"ak c #7398b6",
+"aA c #7398b9",
+"ji c #7398bb",
+"l3 c #739bbe",
+"no c #747474",
+"bO c #747477",
+"mn c #747478",
+"hH c #7499ba",
+"lU c #757578",
+"jg c #7591ad",
+"#3 c #7599b9",
+"eg c #7599ba",
+"mZ c #767676",
+"dq c #7699bb",
+"eV c #7795b1",
+"gT c #7797aa",
+"jh c #7896b5",
+"dt c #789cbc",
+"d2 c #789dbd",
+"e5 c #798fa8",
+"## c #7995af",
+"ff c #799dbd",
+"dA c #7a95ae",
+"lD c #7a97b1",
+"aF c #7a9cb3",
+"eG c #7a9fbf",
+"c9 c #7b9ebd",
+"aD c #7b9fbe",
+"ei c #7b9fbf",
+"fD c #7ba0bf",
+"aT c #7c9db9",
+"eD c #7c9dbe",
+"dH c #7c9ebd",
+"bn c #7c9fbf",
+"co c #7ca0c0",
+"dT c #7d96b2",
+"fd c #7d9ebc",
+"bE c #7d9fc0",
+"b1 c #7da0c0",
+"h8 c #7e94ac",
+"bx c #7e98b1",
+"eE c #7e9ebe",
+"ll c #7ea2c2",
+"cb c #7f7f80",
+"el c #7f7f83",
+"eQ c #7f97af",
+"dm c #7fa1c0",
+"e. c #8095ac",
+"di c #809ab3",
+"gq c #809b9f",
+"bU c #819cb4",
+"bj c #82858c",
+"ec c #829ab4",
+"k0 c #8398af",
+"#1 c #839eb9",
+"cG c #83aaca",
+"gd c #84a3bf",
+"mB c #858589",
+"g6 c #85a2bd",
+"bZ c #85aaca",
+"nW c #877748",
+"n0 c #88888a",
+"or c #88888d",
+"hT c #889bb1",
+"nQ c #89898a",
+"hu c #89a3b8",
+"cq c #89a5bb",
+"dG c #89a5c2",
+"dF c #89a6c0",
+"ai c #89a7c2",
+"n7 c #8a8884",
+"e1 c #8a898c",
+"d0 c #8aa5c1",
+"cM c #8aa6c0",
+"mc c #8b8b90",
+"j9 c #8ba2a8",
+"lZ c #8ba2b9",
+"jJ c #8ba3a8",
+"kL c #8ba3a9",
+"iE c #8ca4a8",
+"lH c #8dacc9",
+"is c #919192",
+"eK c #919195",
+"gE c #91a4a1",
+"jc c #929293",
+"#2 c #92a7bd",
+"hW c #92aabf",
+"nK c #938146",
+"bu c #949496",
+"ol c #949498",
+"eW c #94a9bf",
+"lh c #95abbe",
+"mS c #968964",
+"ih c #96aab3",
+"my c #999797",
+"g7 c #99acbb",
+"d1 c #9aafc6",
+"aI c #9b8c5f",
+"nD c #9b9a9b",
+"cy c #9b9a9e",
+"og c #9b9ba0",
+"es c #9ba9ba",
+"mg c #9bafc4",
+"cm c #9cbad4",
+"dQ c #9dabbb",
+"k4 c #9daeb4",
+"cj c #9dbbd5",
+"d5 c #9e9ea3",
+"hJ c #9eacaa",
+"nh c #9f9473",
+"l4 c #9fb6cf",
+"bf c #a09268",
+"o# c #a1a0a3",
+"bP c #a1a1a3",
+"hh c #a1b0b6",
+"eP c #a3acbb",
+"gU c #a3aeaa",
+"lC c #a3b3c4",
+"mf c #a4b2c3",
+"mO c #a5a5a8",
+"na c #a7a7aa",
+"lm c #a7bed3",
+"n1 c #a9a9a8",
+"cQ c #acabae",
+"n6 c #acacae",
+"da c #adacaf",
+"mm c #adadb2",
+"c0 c #adc6dc",
+"lg c #afb7c3",
+"dv c #b0afb3",
+"iP c #b0b0b2",
+"gr c #b1b9ad",
+"lY c #b1bcc9",
+"mh c #b1c1d4",
+"em c #b2b2b5",
+"js c #b3b3b6",
+"dz c #b3b9c4",
+"bX c #b3cade",
+"nv c #b49d59",
+"m5 c #b6a36a",
+"nV c #b6a573",
+"cc c #b6b6b6",
+"nR c #b6b6b7",
+"e2 c #b7b7b9",
+"ow c #b7b7bd",
+"lI c #b7c7d9",
+"cE c #b9cfe1",
+"gF c #baba9d",
+"np c #bbbabb",
+"mI c #bcaa78",
+"hv c #bcba99",
+"ov c #bcbcbf",
+"m0 c #bdbdc0",
+"gZ c #bdbdc2",
+"g8 c #bebea8",
+"fk c #bebec1",
+"d9 c #bec4cc",
+"hX c #bfbc98",
+"om c #bfbec0",
+"dL c #bfbec2",
+"eL c #bfbfbf",
+"gJ c #c0c0c2",
+"fK c #c0c0c3",
+"bv c #c1c1c0",
+"gk c #c1c5cc",
+"a0 c #c3ae6f",
+"it c #c3c3c5",
+"jd c #c3c3c6",
+"mC c #c4c3c8",
+"lB c #c4cad2",
+"bq c #c5b582",
+"oa c #c5c4c3",
+"mp c #c6c6c6",
+"me c #c6cbd1",
+"of c #c7c7c9",
+"l5 c #c7d1de",
+"d6 c #c8c7cb",
+"lT c #c8c8c9",
+"ln c #cacdc7",
+"dy c #cbccd1",
+"f9 c #cbd0d5",
+"ha c #cccccf",
+"bw c #cccfd3",
+"hK c #cdbf7a",
+"hl c #cdcccf",
+"jV c #cdccd0",
+"nE c #cdcdcd",
+"g0 c #cdcdd2",
+"ng c #ceb568",
+"hi c #cec9b0",
+"hC c #cecdcf",
+"h6 c #cecdd1",
+"nb c #ceced0",
+"j5 c #ceced2",
+"kf c #ceced3",
+"nJ c #cfb35b",
+"kE c #cfcdd1",
+"le c #cfced1",
+"lx c #cfced2",
+"bQ c #cfcfcf",
+"mx c #d0be88",
+"lz c #d0ced2",
+"iu c #d0cfd2",
+"jE c #d0cfd3",
+"md c #d0d0d3",
+"hS c #d0d2d7",
+"h7 c #d0d3d7",
+"gz c #d0d4da",
+"ms c #d1d0d4",
+"mE c #d1d0d5",
+"jt c #d1d1d3",
+"iS c #d1d1d4",
+"nc c #d1d1d5",
+"kK c #d1d5d8",
+"be c #d2b65c",
+"n2 c #d2d1d0",
+"jW c #d2d1d6",
+"dP c #d2d6d9",
+"j7 c #d2d6da",
+"ki c #d2d7da",
+"mR c #d3ba71",
+"m1 c #d3d2d4",
+"n5 c #d3d3d5",
+"gN c #d3d3d7",
+"jH c #d3d6da",
+"ju c #d3d7da",
+"bY c #d3e1ec",
+"jD c #d4d3d5",
+"eq c #d4d3d6",
+"cZ c #d4e1ed",
+"hY c #d5c270",
+"gV c #d5c78e",
+"d7 c #d5d4d6",
+"iQ c #d5d5d6",
+"lf c #d5d5d8",
+"hp c #d5d5d9",
+"er c #d5d8da",
+"ho c #d6d5d7",
+"de c #d6d6d8",
+"hG c #d6dbdf",
+"j6 c #d7d7d9",
+"lX c #d7dadb",
+"dh c #d7dadd",
+"cd c #d8d8d9",
+"fp c #d8dce0",
+"aH c #d9bc62",
+"cz c #d9d9d9",
+"g1 c #d9d9db",
+"cS c #dad9db",
+"kg c #dad9dd",
+"jC c #dadad9",
+"e4 c #dadee1",
+"g3 c #dadee2",
+"gP c #dadfe2",
+"jT c #dbdad9",
+"gx c #dbdadb",
+"lw c #dbdbd9",
+"gM c #dbdbdb",
+"f8 c #dbdbdc",
+"gy c #dbdbdd",
+"lJ c #dbe1e8",
+"on c #dcdbd8",
+"lV c #dcdbda",
+"en c #dcdcdb",
+"kI c #dcdcde",
+"m4 c #ddc67d",
+"j4 c #dddcdc",
+"fn c #dddcde",
+"ko c #ded0a6",
+"fL c #dedddd",
+"cT c #dedede",
+"hb c #dededf",
+"ob c #dfdedc",
+"dd c #dfdede",
+"kq c #dfdee1",
+"f7 c #dfdfde",
+"nu c #e0c162",
+"fi c #e0cd94",
+"kH c #e0dfdf",
+"mb c #e0e0e2",
+"bT c #e0e2e4",
+"cg c #e0e2e5",
+"mi c #e0e5ea",
+"bp c #e1c87e",
+"k5 c #e1cc87",
+"nU c #e1dbcd",
+"df c #e1e1e1",
+"gs c #e2cd86",
+"jZ c #e2cd8c",
+"ka c #e2ce94",
+"j0 c #e2ce95",
+"fM c #e2e1e1",
+"kZ c #e2e1e2",
+"eM c #e2e2e0",
+"fl c #e2e2e1",
+"fO c #e2e2e2",
+"oq c #e2e2e3",
+"eO c #e2e3e5",
+"hw c #e3c865",
+"ge c #e3cb75",
+"jP c #e3cd8f",
+"k# c #e3ce90",
+"jz c #e3cf93",
+"ip c #e3cf94",
+"jA c #e3dac3",
+"ly c #e3e2e1",
+"mD c #e3e2e2",
+"fm c #e3e3e2",
+"cA c #e3e3e3",
+"gO c #e3e3e4",
+"lA c #e3e4e2",
+"kM c #e4cc7b",
+"hQ c #e4e3e1",
+"hR c #e4e3e2",
+"kG c #e4e3e3",
+"dx c #e4e4e2",
+"fN c #e4e4e3",
+"kJ c #e4e4e4",
+"ii c #e5cd77",
+"kn c #e5ce88",
+"iL c #e5dfd1",
+"gj c #e5e4e2",
+"kh c #e5e4e4",
+"bR c #e5e5e4",
+"aG c #e6c550",
+"hL c #e6c960",
+"mq c #e6e5e1",
+"cR c #e6e5e3",
+"hF c #e6e5e4",
+"fo c #e6e5e5",
+"d8 c #e6e7e4",
+"dO c #e6e7e5",
+"gG c #e7cc70",
+"gw c #e7e6e4",
+"jF c #e7e6e6",
+"hn c #e7e7e4",
+"kp c #e7e7e5",
+"cU c #e7e7e6",
+"lS c #e7e7e9",
+"cN c #e8cd6d",
+"fJ c #e8cf82",
+"ky c #e8d28f",
+"jq c #e8e3d8",
+"hE c #e8e7e4",
+"nd c #e8e7e5",
+"ep c #e8e7e7",
+"gL c #e8e8e5",
+"cV c #e8e8e8",
+"oe c #e8e8e9",
+"cr c #e9ca5f",
+"hZ c #e9cb64",
+"mH c #e9cb6a",
+"jK c #e9cc6c",
+"ks c #e9cd6c",
+"hy c #e9d28a",
+"ke c #e9e8e5",
+"gv c #e9e8e6",
+"nF c #e9e8e7",
+"cB c #e9e8e8",
+"mt c #e9e8e9",
+"kr c #e9e9e7",
+"mF c #e9e9e9",
+"m2 c #e9e9ea",
+"iF c #eacd6c",
+"jQ c #eace7d",
+"kO c #eacf7a",
+"lo c #ead17f",
+"jR c #ead38a",
+"jp c #eadcb4",
+"nS c #eae8e7",
+"hm c #eae9e6",
+"gK c #eae9e7",
+"hq c #eaeae9",
+"oo c #eaeaec",
+"fG c #ebcf79",
+"ku c #ebcf7a",
+"kv c #ebd07f",
+"jm c #ebd286",
+"k. c #ebd287",
+"i8 c #ebe2c8",
+"j3 c #ebeae7",
+"dN c #ebebe7",
+"lW c #ebebe8",
+"dg c #ebebea",
+"jO c #ecce71",
+"fh c #ecce74",
+"gH c #ecd385",
+"mk c #ecd386",
+"mr c #eceae7",
+"nq c #eceae8",
+"dc c #ecebe7",
+"gi c #ecebe8",
+"nI c #edc95a",
+"gg c #edce72",
+"bL c #edd076",
+"hO c #edd384",
+"lp c #edd484",
+"kY c #edece8",
+"hD c #edece9",
+"ne c #edeced",
+"eo c #ededeb",
+"ce c #ededec",
+"n4 c #ededef",
+"l6 c #edf0f2",
+"aZ c #eec954",
+"d. c #eecc53",
+"fZ c #eecc54",
+"f2 c #eecf70",
+"gh c #eecf72",
+"i3 c #eed385",
+"j2 c #eed483",
+"ik c #eed484",
+"iG c #eed485",
+"ml c #eeebe3",
+"i9 c #eeede8",
+"dM c #eeede9",
+"jU c #eeedea",
+"cW c #eeeeed",
+"nr c #eeeeee",
+"nG c #eeeeef",
+"aW c #efc431",
+"b2 c #efc432",
+"mw c #efc84d",
+"nf c #efcb5d",
+"eH c #efcc53",
+"g9 c #efce60",
+"kN c #efcf6a",
+"km c #efcf6b",
+"f1 c #efcf6c",
+"f4 c #efd06e",
+"fH c #efd171",
+"iI c #efd172",
+"gX c #efd47f",
+"hA c #efd480",
+"lc c #efd483",
+"kX c #efd484",
+"iJ c #efd992",
+"mG c #efe7d3",
+"mP c #efe8d3",
+"lL c #efe9d3",
+"kF c #efedea",
+"dw c #efeee9",
+"db c #efeeea",
+"iR c #efefef",
+"cF c #eff4f8",
+"bd c #f0c12b",
+"bH c #f0cd5d",
+"io c #f0cf69",
+"kP c #f0d068",
+"k7 c #f0d069",
+"e0 c #f0d06a",
+"h2 c #f0d06b",
+"nH c #f0d379",
+"h1 c #f0d380",
+"im c #f0d480",
+"i7 c #f0dea8",
+"iK c #f0e4bf",
+"ns c #f0e7d3",
+"lv c #f0f0f3",
+"ck c #f0f5f9",
+"fF c #f1cf65",
+"k6 c #f1cf67",
+"bI c #f1cf68",
+"hj c #f1d064",
+"jY c #f1d066",
+"gf c #f1d067",
+"c. c #f1d16b",
+"cw c #f1d16c",
+"jo c #f1d98d",
+"e3 c #f1f1ef",
+"ld c #f1f1f2",
+"j# c #f1f1f3",
+"bo c #f2c848",
+"hx c #f2cd52",
+"b4 c #f2ce5e",
+"f3 c #f2cf63",
+"kb c #f2d16a",
+"i6 c #f2d478",
+"jG c #f2f2f0",
+"hM c #f3cf56",
+"i5 c #f3d062",
+"jn c #f3d26c",
+"jB c #f3f2f0",
+"bS c #f3f3f0",
+"cC c #f3f3f1",
+"ma c #f3f3f4",
+"mQ c #f4cf5a",
+"jy c #f4d05d",
+"fI c #f4d05f",
+"kQ c #f4d060",
+"kw c #f4d061",
+"m3 c #f4d370",
+"lM c #f4d470",
+"g2 c #f4f4f1",
+"b3 c #f5cb49",
+"b5 c #f5cf57",
+"bJ c #f5cf58",
+"iH c #f5d05b",
+"kt c #f5d05d",
+"kR c #f5d15e",
+"f5 c #f5d161",
+"eN c #f5f5f2",
+"op c #f5f5f6",
+"cs c #f6cf58",
+"f0 c #f6d057",
+"ct c #f6d260",
+"cX c #f6f6f3",
+"od c #f6f6f7",
+"nt c #f7d053",
+"b6 c #f7d157",
+"kx c #f7d158",
+"kz c #f7d25d",
+"cf c #f7f7f4",
+"lK c #f7f7f8",
+"gW c #f8d150",
+"jx c #f8d153",
+"k8 c #f8d154",
+"j1 c #f8d157",
+"b7 c #f8d259",
+"hP c #f8d25b",
+"hz c #f8d25c",
+"jX c #f8d25d",
+"jk c #f8d35b",
+"il c #f8d35c",
+"lR c #f8f8f9",
+"h0 c #f9d14e",
+"fg c #f9d151",
+"bK c #f9d153",
+"gt c #f9d256",
+"cu c #f9d257",
+"bc c #fac723",
+"mv c #facf46",
+"i4 c #fad14f",
+"jN c #fad151",
+"jr c #fafaf9",
+"n3 c #fafafb",
+"jw c #fbd14c",
+"kc c #fbd24d",
+"bG c #fcc925",
+"hk c #fcd147",
+"jM c #fcd14a",
+"in c #fcd24a",
+"gI c #fcd24b",
+"h. c #fcd24c",
+"b8 c #fcd24d",
+"jS c #fcf9f0",
+"mj c #fcfcfc",
+"m# c #fcfcfd",
+"mu c #fdd145",
+"fE c #fdd146",
+"jl c #fdd147",
+"jL c #fdd246",
+"hN c #fdd247",
+"kd c #fdd248",
+"cO c #fdd249",
+"hB c #fdd24c",
+"oc c #fdfdfd",
+"nT c #fdfdfe",
+"aY c #fec91f",
+"bb c #fec921",
+"gu c #fed243",
+"cv c #fed244",
+"ij c #fed246",
+"j. c #fefefe",
+"aX c #ffc91d",
+"b9 c #ffd242",
+"f6 c #ffd243",
+"m. c #ffd347",
+"kD c #ffd348",
+"l7 c #ffd449",
+"kS c #ffd44b",
+"kA c #ffd54f",
+"lu c #ffd654",
+"kW c #ffd757",
+"lb c #ffd85d",
+"l9 c #ffda65",
+"kC c #ffdc6c",
+"k9 c #ffdd71",
+"l8 c #ffde74",
+"lQ c #ffdf77",
+"lN c #ffdf78",
+"kB c #ffe07e",
+"lq c #ffe48e",
+"kT c #ffe9a2",
+"lt c #ffefbf",
+"kV c #fff2c6",
+"lO c #fff2c8",
+"lP c #fff3cc",
+"kU c #fff5d7",
+"l. c #fff7de",
+"la c #fffae9",
+"lr c #fffaec",
+"l# c #fffefd",
+"ls c #fffffe",
+"cl c #ffffff",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt.#.a.b.c.d.e.f.gQtQtQtQtQtQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt.g.h.i.j.k.l.m.n.o.p.q.r.sQtQtQtQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt.t.u.v.w.x.y.z.A.A.A.B.C.D.E.F.G.H.IQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt.J.K.L.M.N.O.P.Q.A.A.A.A.A.A.A.A.R.S.T.U.V.WQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt.g.X.Y.Z.0.1.2.3.4.5.6.A.A.A.A.A.A.A.A.7.8.9#.###aQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt#b#c#d#e#f#g#h.A#i#j#k#l#m#n#o.Q.A.A#p#q#r#s#t#u#v#w#xQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt.##y#z#A#B#C#D#E.A.A.A.A.A.A#F#G#H#I#J#K#L#M#N#O#P#Q#R#R#S#TQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt#U#V#W#X#Y.A.A.A.A.A.A.A.A.A.A.A#Z#0#1#2#3#4#5#R#R#R#R#R#6#7.gQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt#8#9a.a#aaabac.z.A.A.A.A.A.zadaeafagahaiaj#R#R#R#R#R#R#RakalamanaoQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtapaq.A#parasatau.mav.QawaxayazaAaBaC#RaDaE#R#R#R#R#R#R#RaFaGaHaIaJaKaL.gQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtaMaN.A.A.A.AabaOaPaQaRaSaTaUaV#R#R#R#RaDaE#R#R#R#R#R#R#RaFaWaXaYaZa0a1a2a3.g",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtaMa4.A.A.A.A.Ba5a6a7a8a9b.b#ba#R#R#R#RaDaE#R#R#R#R#R#R#RaFaWaXaXbbbcbdbebfbg",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtbhbibjbk.A.A.A.A.A.A.A#hblbm#R#R#R#R#R#R#RbnaE#R#R#R#R#R#R#RaFaWaXaXaXaXaYbobpbq",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtbrbsbtbubvbwbx.A.A.A.A.A.A.A#pbybzbAbBbCbD#R#R#RbEbF#R#R#R#R#R#R#RaFaWaXaXbGbHbIbJbKbL",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtbMbNbObPbQbRbSbTbU.A.A.A.A.A.A.A#pbybVbWbXbYbZb0#R#Rb1bF#R#R#R#R#R#R#RaFb2b3b4b5b6b7b8b9c.",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtc#cacbcccdcecfcfcfcgbU.A.A.A.A.A.A.A#pchcicjckclcmcn#R#RcobF#R#R#R#R#Rbacpcqcrcsctcucvb9b9b9cw",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtcxcyczcAcBcCcfcfcfcgbU.A.A.A.A.A.A.A#pchcDcEclcFcGcH#R#RcobF#R#R#RcIcJcKcLcMcNcOb9b9b9b9b9b9cw",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtcPcQcRcScTcUcVcWcXbTbU.A.A.A.A.A.A.A#pbycYcjcZc0c1#R#R#Rb1bFc2c3c4c5c6c7c8c9d.b9b9b9b9b9b9b9c.",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtd#dadbdbdcdddedfdgdhdi.B.A.A.A.A.A.A#pbybzc1djdkdl#R#R#Rdmdndodpdqdrds#R#Rdtd.b9b9b9b9b9b9b9cw",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtdudvdbdbdbdbdwdxdydzdA#odBdC.A.A.A.A#pchbV#R#R#R#Rb#dDdEdFdGdHbmbA#R#R#R#Rdtd.b9b9b9b9b9b9b9cw",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQt.gdIdJdKdLdbdbdMdNdOdPdQdRdSdTdUdVdWav.B.A#pchbz#Rbab#dXdYdZd0d1do#R#R#R#R#R#R#Rd2d.b9b9b9b9b9b9b9cw",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtd3d4d5d6d7dbdbd8d9e.e#.6.B.B.QeaebeceddB.AdCeebV#RdDefd0egehbAeiaE#R#R#R#R#R#R#Rd2d.b9b9b9b9b9b9b9c.",
+"QtQtQtQtQtQtQtQtQtQtQtejekelemeneoepeqereseteuacav.A.A.A.A.QevewexeyezeAeBeCeDeEeF#vdXbA#ReGaE#R#R#R#R#R#R#Rd2eHb9b9b9b9b9b9b9cw",
+"QtQtQtQtQtQtQtQtQteIeJeKeLeMeoeNcfeOePeQeRaceS.A.A.A.A.A.A.A.A.A.6eTeUeVeWeXeYeZb.#R#R#R#ReGaE#R#R#R#R#R#R#Rd2d.b9b9b9b9b9b9b9e0",
+"QtQtQtQtQtQtQtQtbMe1e2cTe3cfcfcfcfe4e5e6e7e8e9eS.A.A.A.A.A.A.Af.f#fafbfcfdfebA#R#R#R#R#R#ReiaE#R#R#R#R#R#R#RffeHb9b9b9b9b9fgfhfi",
+"QtQtQtQtQtQtQtQtfjfkflfmfnfocXcfcffpfqavfrfsftfufvfw.A.A#EfxfyfzfAfBeh#QeXfC#R#R#R#R#R#R#RfDaE#R#R#R#R#R#R#Rd2d.b9b9fEfFfGfHfIfJ",
+"QtQtQtQtQtQtQtQtfjfKdMcRfLfMfNfOeofpfq.A.A.B#hfPfQfRfSfTfUfVfWfXfY#R#R#ReXfC#R#R#R#R#R#R#RfDaE#R#R#R#R#R#R#Rd2fZf0f1f2f3f4f5f6cw",
+"QtQtQtQtQtQtQtQtfjfKdbdbdbdcf7f8cAf9g..A.A.A.A.A.zg#gagb#4dEba#R#R#R#R#ReXgc#R#R#R#R#R#R#RfDaE#R#R#R#R#R#RdDgdgegfggghcOb9b9b9c.",
+"QtQtQtQtQtQtQtQtfjfKdbdbdbdbgigjddgkgl.A.A.A.A.A.A.Agmgn#R#R#R#R#R#R#R#ReXfC#R#R#R#R#R#R#RfDaE#R#R#Rb#gogpgqgrgsgtgub9b9b9b9b9cw",
+"QtQtQtQtQtQtQtQtfjfKdbdMgvgwcRgxgygzgA.A.A.A.A.A.A.Agmgn#R#R#R#R#R#R#R#RgBfC#R#R#R#R#R#R#ReiaEba#vgCgDgEgFgGgHgIb9b9b9b9b9b9b9c.",
+"QtQtQtQtQtQtQtQtfjgJgKgLgMgNgOcXcfgPgA.A.A.A.A.A.A.AgQgn#R#R#R#R#R#R#R#RgRfC#R#R#R#R#R#R#Rbn#4gSgTgUgVgWb9b9gXgIb9b9b9b9b9b9b9cw",
+"QtQtQtQtQtQtQtQtgYgZg0g1g2cfcfcfcfg3gA.A.A.A.A.A.A.Ag4g5#R#R#R#R#R#R#R#RgRfC#R#R#R#Rba#Qb.g6g7g8g9cvb9b9b9b9gXh.b9b9b9b9b9b9b9cw",
+"QtQtQtQtQtQtQtQth#d6hahbcfcfcfcfcfg3hc.A.A.A.A.A.A.Ahdhe#R#R#R#R#R#R#R#RgRfC#R#R#R#Rhfhghhhihjhkgub9b9b9b9b9gXh.b9b9b9b9b9b9b9cw",
+"QtQtQtQtQtQtQtQth#hlhmhnhohphqcfcfgPhc.A.A.A.A.A.A.Ahrhs#R#R#R#R#R#R#R#RgRfC#Rhtc5huhvhwhxhyhzb9b9b9b9b9b9b9hAhBb9b9b9b9b9b9b9cw",
+"QtQtQtQtQtQtQtQth#hCdbhDhEhFfOdehbhGhc.A.A.A.A.A.A.Ahrhs#R#R#R#R#R#R#R#ReXhHhIhJhKhLhMhNb9hOhPb9b9b9b9b9b9b9hAgIb9b9b9b9b9b9b9c.",
+"QtQtQtQtQtQtQtQth#hCdbdbdbdMgKhQhRhShThUaw.A.A.A.A.Ahrhs#R#R#R#R#R#RhVfChWhXhYhZh0f6b9b9b9hOhPb9b9b9b9b9b9b9h1h.b9b9b9b9b9b9b9h2",
+"QtQtQtQtQtQth3h4h5h6dbdbdbdbdbdbhDh7h8h9i.i#iaib.A.Aichs#R#R#RaCidieifigihiiijb9b9b9b9b9b9ikilb9b9b9b9b9b9b9imhBb9b9b9b9b9inioip",
+"QtQtQt.gdJiqirisitiudbdbdbdbdbdbdbdPiviwixiyiziAex.ChrhsbAiBiCdpiDcK#4dDiEiFb9b9b9b9b9b9b9iGhzb9b9b9b9b9b9b9imhBb9b9cviHiIiJiKiL",
+"QtbriMiNiOiPiQiRe3iSdbdbdbdbdbdbdbdPiT.A.AaviUiViWiXiYiZiCc5i0i1i2#R#R#RiEiFb9b9b9b9b9b9b9i3hzb9b9b9b9b9b9b9imh.i4i5i6i7i8i9j.j#",
+"jajbjcjdcUcfcfcfe3iSdbdbdbdbdbdbdbdPje.A.A.A.A.A.Cjfjgjhjijjb##R#R#R#R#RiEiFb9b9b9b9b9b9b9i3jkb9b9b9b9b9b9jljmjnjojpjqjrclclclj#",
+"jsjteog2cfcfcfcfe3iSdbdbdbdbdbdbdbjujv.A.A.A.A.A.A.Agmgn#R#R#R#R#R#R#R#RiEiFb9b9b9b9b9b9b9i3ilb9b9b9gujwjxjyjzjAjBj.clclclclclj#",
+"jCjDjEjFjGcCcXcfe3iSdbdbdbdbdbdbdbjHjI.A.A.A.A.A.A.Agmgn#R#R#R#R#R#R#R#RjJjKb9b9b9b9b9b9b9i3ilb9jLjMjNjOjPjQjRjSclclclclclclclj#",
+"jTdbjUgjjVjWe3cXe3iSdbdbdbdbdbdbdbjHjI.A.A.A.A.A.A.Agmgn#R#R#R#R#R#R#R#RjJjKb9b9b9b9b9b9b9i3jXcvjYjZj0j1f6b9j2jSclclclclclclclj#",
+"jTdbdbdMgij3j4j5j6iQdbdbdbdbdbdbdbj7jv.A.A.A.A.A.A.AgQj8#R#R#R#R#R#R#R#Rj9jKb9b9b9b9b9b9b9k.k#kakbkckdcvb9b9j2jSclclclclclclclj#",
+"jTdbdbdbdbdbj3kecRkfkgkhdMdbdbdbdbkikj.A.A.A.A.A.A.Akkkl#R#R#R#R#R#R#R#Rj9jKb9b9b9b9inkmknkokbfgcOf6b9b9b9b9j2jSclclclclclclclj#",
+"jTdbdbdbdbdbdbdbhmh6kpfNg1kqkrdbdbkikj.A.A.A.A.A.A.Ahrhs#R#R#R#R#R#R#R#Rj9ksb9cvktkukvkwkxkykzb9b9b9kAkBkCkDj2jSclclclclclclclj#",
+"jTdbdbdbdbdbdbdbhmkEkFj3kGkhkHkIkJkKjI.A.A.A.A.A.A.Ahrhs#R#R#R#R#R#R#R#RkLkMkNkOkPkQkRgIb9hOhPb9b9kSkTkUkVkWkXjSclclclclclclclj#",
+"jTdbdbdbdbdbdbdbhmkEdbdbdbkYcRkZkGbwk0k1eS.A.A.A.A.Ahrhs#R#R#R#R#R#Rk2k3k4k5k6k7k8gub9b9b9hOhPb9b9k9l.l#lalblcjSclclclclclclclld",
+"jTdbdbdbdbdbdbdbhmledbdbdbdbdbdbj3lflglhlihUiw.A.A.Ahrhs#R#R#RljeZlklllmlnloinb9b9b9b9b9b9lpilb9b9lqlrlsltlulcjSclclclclclj.lvj6",
+"lwdbdbdbdbdbdbdbhmlxdbdbdbdbdbdbdblylzlAlBlClD#Kia.6hrhs#RlElFlGlHlIlJlKlLlMb9b9b9b9b9b9b9iGjkb9b9lNlOlPlQkDkXjSclclcllRlSlTeKlU",
+"lVdbdbdbdbdbdbdbhmlxdbdbdbdbdbdbdblyiudbdblWlXlYlZl0#ll1l2l3l4l5l6j.clcllLlMb9b9b9b9b9b9b9i3hzb9b9l7l8l9m.b9lcjSm#mambjsmcd4.#Qt",
+"jTdbdbdbdbdbdbdbhmlxdbdbdbdbdbdbdblymddbdbdbdbdbcRmemfmgmhmimjclclclclcllLlMb9b9b9b9b9b9b9i3hzb9b9b9b9b9b9cvmkmliQmmmnmo.gQtQtQt",
+"mpmqmrdMdbdbdbdbhmlxdbdbdbdbdbdbdblymsdbdbdbdbdbdbdbgjmtclclclclclclclcllLlMb9b9b9b9b9b9b9i3hzb9b9b9b9mumvmwmxmymz.IQtQtQtQtQtQt",
+"mAmBmCkhdbdbdbdbhmlxdbdbdbdbdbdbdbmDmEdbdbdbdbdbdbdbcRmFclclclclclclclclmGlMb9b9b9b9b9b9b9i3ilb9b9b9cvmHmImJmKh3.gQtQtQtQtQtQtQt",
+"brmLmMmNmOd7gidbhmlxdbdbdbdbdbdbdbmDmEdbdbdbdbdbdbdbcRmFclclclclclclclclmPlMb9b9b9b9b9b9b9i3ilb9mQmRmSmTmUmV.gQtQtQtQtQtQtQtQtQt",
+"QtQtQtmWmXmYmZm0f8m1dbdbdbdbdbdbdbfmmsdbdbdbdbdbdbdbcRm2clclclclclclclclmPm3b9b9b9b9b9b9b9gHm4m5m6m7m8m9QtQtQtQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtbrh#n.n#nanbkpdbdbdbdbdbmDncdbdbdbdbdbdbdbndneclclclclclclclclmPlMb9b9b9b9ijnfngnhninjnkbrQtQtQtQtQtQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtnlnmnnnonpgxnqdbdbfmncdbdbdbdbdbdbdbgKnrclclclclclclclclnsm3b9b9ntnunvnwnxnynzQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtbrnAnBnCnDnEhRlyncdbdbdbdbdbdbdbnFnGclclclclclclclclnsnHnInJnKnLnMnNQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQt.JnOnPnQnRh6gKdbdbdbdbdbdbnSnGclclclclclclnTlKnUnVnWnXnYh3QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtc#nZn0n1n2hQhDdbdbdbkrnGclclclcln3n4n5n6n7n8n9QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQth3o.bOo#oaobhmdMgKnGclocodoeofogohoiQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtojokolomonlyooopoqgZorosbrQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt",
+"QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtotouovgNowoxmLQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt"};
+"""
+
+if __name__ == "__main__":
+    dlg = Packages()
+    if not FreeCADGui.Control.activeDialog():
+        FreeCADGui.Control.showDialog(dlg)
+    else:
+        FreeCAD.Console.PrintError("Already there is an active task dialog.\n")
+}}
+
+<span id="Link"></span>
+==Lien== 
+
+La discussion du forum [https://forum.freecad.org/viewtopic.php?t=91793 Macro Packages]

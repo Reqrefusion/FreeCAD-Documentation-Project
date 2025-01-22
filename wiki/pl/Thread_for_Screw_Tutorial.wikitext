@@ -1,0 +1,260 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic= Projektowanie wyrobu
+|Level= Zaawansowany
+|Time= 60 minut
+|Author=[[User:DeepSOIC|DeepSOIC]], [[User:Murdic|Murdic]], vocx
+|FCVersion=0.19
+|Files= [https://forum.freecad.org/viewtopic.php?f=36&t=44668 Aktualizacja - Przewodnik: Tworzenie gwintów.]
+}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Ten poradnik jest zbiorem technik modelowania gwintów śrubowych w programie FreeCAD. Został on zaktualizowany dla wersji '''0.19''', chociaż ogólny proces jest zasadniczo taki sam od v0.14, kiedy to poradnik ten został pierwotnie napisany. Zaktualizowana zawartość skupia się na użyciu środowiska pracy [[File:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/pl|Projekt Części]], aby utworzyć gwint, ale nie używa narzędzia [[File:PartDesign_AdditiveHelix.svg|24px]] [[PartDesign_AdditiveHelix/pl|Addytywna helisa]] środowiska Projekt Części, ponieważ zostało ono wprowadzone później.
+
+W tradycyjnych systemach CAD modelowanie gwintów śrubowych jest odradzane, ponieważ stanowi duże obciążenie dla jądra modelowania, jak również podczas renderowania kształtów. W tradycyjnych systemach gwint nie musi być przedstawiany bezpośrednio w przestrzeni 3D, ponieważ można go wskazać z jego wymaganą charakterystyką na rysunku technicznym, który jest wysyłany do produkcji. Jednakże, wraz z popularyzacją produkcji dodatków ''(druk 3D)'', istnieje obecnie realna potrzeba modelowania gwintów przestrzennych, aby wydrukować je dokładnie tak, jak zostały zaprojektowane. I właśnie dlatego powstał ten poradnik.
+
+Wiele z prezentowanych tu technik zostało zebranych z różnych wątków forum:
+* [https://forum.freecad.org/viewtopic.php?f=3&t=12593 Techniki modelowania gwintu]
+* [https://forum.freecad.org/viewtopic.php?f=3&t=6506 Tworzenie gwintu: Nieoczekiwane rezultaty]
+
+Zobacz też pomocne filmy:
+* [https://forum.freecad.org/viewtopic.php?f=8&t=44259 Wprowadzenie strategii projektowania śruby bez powszechnie spotykanych problemów.]
+
+Należy pamiętać, że kształty gwintów zajmują dużo pamięci, a posiadanie tylko jednego gwintu w dokumencie może znacznie zwiększyć rozmiar pliku, dlatego zaleca się tworzenie gwintów tylko wtedy, gdy jest to absolutnie konieczne.
+
+<span id="Method_1._Using_utilities_and_parts_from_workbenches"></span>
+=== Metoda 1. Używanie narzędzi i części ze stanowisk pracy===
+
+Korzystanie z narzędzi i części, które opracowały inne osoby, jest wygodne i pozwala zaoszczędzić wiele czasu. Zapoznaj się z stroną zawierającą informacje o [[External_workbenches/pl|zewnętrznych Środowiskach pracy]].
+
+W szczególności polecane są trzy zasoby, które mogą być zainstalowane z narzędzia [[Std_AddonMgr|Addon Manager]]:
+* Środowisko pracy [[Fasteners_Workbench/pl|Elementy Złączne]], aby dodawać i mocować różne elementy złączne do części. Śruby i nakrętki domyślnie nie pokazują gwintu, ale można to kontrolować za pomocą opcji.
+* Środowisko pracy [[BOLTSFC_Workbench/pl|BOLTSFC]], do umieszczania elementów złącznych z biblioteki BOLTS.
+* Środowisko pracy [[ThreadProfile_Workbench/pl|ThreadProfile]], do tworzenia wspólnych gwintów.
+
+[[File:T13_00_Threads_fasteners.png|x300px]]
+{{Caption|Różne standardowe wkręty osadzone w Środowisku pracy Elementy Złączne ''(Fasteners)''. Istnieje możliwość kontroli, czy obiekt przedstawia prawdziwy gwint, czy tylko zwyczajny cylinder.}}
+
+<span id="Method_2._Using_macros_(deprecated)"></span>
+==Metoda 2. Używanie makrodefinicji (przestarzałe)==
+
+* W przeszłości, do wstawiania części z biblioteki BOLTS używano [[Macro_BOLTS|Makra BOLTS]]. Teraz jest już ono nieaktualne. Zamiast tego należy użyć Środowiska pracy [[BOLTSFC_Workbench/pl|BOLTSFC]].
+
+Znany jest skrypt [[Macro_screw_maker1_2/pl|Screw Maker]] autorstwa ulrich1a, został użyty do stworzenia pojedynczych śrub, wkrętów i podkładek. Obecnie jest to już przestarzałe rozwiązanie. Środowisko pracy [[Fasteners_Workbench/pl|Fasteners]] autorstwa shaise, zawiera kompletne makro do tworzenia śrub, wraz z GUI do wyboru odpowiedniego elementu.
+
+<span id="Method_3._Fake_threads:_non-helical"></span>
+==Metoda 3. Imitacja przez ułożenie stosu krążków.==
+
+w wielu przypadkach nie potrzebujemy rzeczywistych gwintów, potrzebujemy tylko wizualnej wskazówki, że gwinty tam będą.
+
+Fałszywy gwint możemy utworzyć za pomocą ścieżki bez spirali, np. obracając profil piły lub układając w stosy tarcze o stożkowych krawędziach. Tego rodzaju sztuczny gwint jest trudny do rozpoznania obok prawdziwie ślimakowego poprzez zwykłą obserwację. Ta metoda jest dobra do wizualizacji obiektu przypominającego gwint, ale nie jest przydatna, jeśli musimy wydrukować rzeczywisty gwint techniką 3D.
+
+[[File:T13_01_Threads_comparison_fake_real.png|x300px]]
+{{Caption|Po lewej: prosta śruba ze sztucznym, nie spiralnym gwintem. Z prawej: zwykła śruba z prawdziwym gwintem spiralnym. Gdy druk 3D nie jest potrzebny, do wizualizacji często wystarcza symulowany gwint.}}
+
+<span id="Revolving_sawtooth_profile"></span>
+===Obrotowy profil piły zębatej===
+
+# Kliknij w przycisk {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body|PatrDesign: Stwórz zawartość]]}}.
+# Kliknij w przycisk {{Button|[[File:PartDesign_NewSketch.svg|16px]] [[PartDesign_NewSketch|PatrDesign: Utwórz nowy szkic]]}}. Wybierz {{Value|Płaszczyznę XZ}}.
+# Narysuj szkic zamknięty z odpowiednią średnicą wewnętrzną {{Value|10mm}}, zewnętrzna średnica wokół {{Value|12.6mm}}, gęstość {{Value|3mm}}, liczba ząbków {{Value|8}}, oraz wysokość całkowita {{Value|30mm}}.
+# Wybierz narysowany szkic, a następnie kliknij na przycisk {{Button|[[File:PartDesign_Revolution.svg|16px]] [[PartDesign_Revolution|PatrDesign: Wyciągnij przez obrót]]}}. Wybierz {{Value|Pionowa oś szkicu}}, i kliknij w  {{Button|OK}}.
+
+[[File:T13_02_Threads_Sawtooth_sketch_profile.png|x300px]]
+{{Caption|Profil używany do stworzenia wyciągnięcia przez obrót, który będzie symulować gwint.}}
+
+[[File:T13_03_Threads_Sawtooth_revolution_1.png|x300px]] [[File:T13_04_Threads_Sawtooth_revolution_2.png|x300px]]
+{{Caption|Widok przekroju powstałego gwintu nie spiralnego poprzez obracanie profilu piły wokół osi pionowej.}}
+
+<span id="Stacking_discs"></span>
+===Krążki ułożone w stosy===
+
+# Powtarzamy dwa pierwsze kroki z poprzedniej sekcji.
+# Narysuj szkic zamknięty z wymaganą średnicą wewnętrzną {{Value|10mm}}, średnicą zewnętrzną wokół {{Value|12,6mm}}, i podziałką {{Value|3mm}}, ale narysuj tylko jeden ząb piły.
+# Wybierz narysowany szkic, a następnie kliknij na przycisk {{Button|[[File:PartDesign_Revolution.svg|16px]] [[PartDesign_Revolution|PatrDesign: Wyciągnij przez obrót]]}}. Wybierz {{Value|Pionowa oś szkicu}}, i kliknij w  {{Button|OK}}.
+# Wybierz obiekt wyjściowy {{Value|Wyciągnięcia przez obrót}}, kolejnie kliknij w  {{Button|[[File:PartDesign_LinearPattern.svg|16px]] [[PartDesign_LinearPattern|PartDesign: Utwórz szyk liniowy]]}}. Wybierz {{Value|Oś pionową szkicu}}. Dla imitacji gwintu z podziałką {{Value|3mm}}, ustaw {{MenuCommand|Długość}} na {{Value|3}}, oraz wartość {{MenuCommand|Wystąpienia}} na {{Value|2}}, następnie naciśnij przycisk {{Button|OK}}. W ten sposób powstaną dwa kolejne krążki, jeden na drugim.
+# Możesz dodać więcej krążków, zwiększając wartość {{MenuCommand|Wystąpienia}} w formacji liniowej oraz zwiększając {{MenuCommand|Długośc}}, która jest całkowitą długością imitowanego gwintu.
+
+Opcje {{MenuCommand|Długośc}} oraz {{MenuCommand|Wystąpienia}} są powiązane ze sobą. Jeśli długość jest zbyt duża, ale liczba wystąpień nie jest wystarczająco duża, nastąpi rozdzielenie krążków, a obliczenie bryły zakończy się niepowodzeniem, ponieważ obiektem wynikowym musi być zawsze [[PartDesign_Body/pl|jedna zwarta bryła]]. Na przykład, aby uzyskać całkowitą wysokość {{Value|30mm}}, ustaw wartość {{MenuCommand|Długość}} na {{Value|27mm}} i {{MenuCommand|Wystąpienia}} na wartość {{Value|10}}.
+
+Jeśli chcesz, możesz dodać {{Button|[[File:PartDesign_AdditiveCylinder.svg|16px]] [[PartDesign_AdditiveCylinder|PartDesign: Dodatkowy cylinder]]}} o średnicy równej wewnętrznej średnicy krążków i o całkowitej wysokości gwintu. Dzięki temu wszystkie krążki zostaną połączone w jedną bryłę, co gwarantuje, że nie zostaną rozłączone.
+
+[[File:T13_05_Threads_Stacked_discs_sketch.png|x300px]]
+{{Caption|Profil używany do tworzenia obrotowego krążka, który będzie używany do imitowania gwintu.}}
+
+[[File:T13_06_Threads_Stacked_discs_1.png|x300px]] [[File:T13_07_Threads_Stacked_discs_2.png|x282px]]
+{{Caption|Po lewej: pojedynczy krążek stworzony przez wyciągnięcie przez obrót. Po prawej: wiele krążków umieszczonych w formacji liniowej w kierunku osi Z, imitującej gwint spiralny.}}
+
+<span id="Method_4._Sweeping_a_vertical_profile"></span>
+==Metoda 4. Modyfikacja ''owinięciem'' profilu pionowego.==
+
+<span id="PartDesign_Workbench"></span>
+===Środowisko pracy Part Design===
+
+Prawdziwy gwint składa się z zamkniętego profilu prowadzącego bryłę wzdłuż spiralnej ścieżki.
+
+# Znajdując się w środowisku pracy [[File:Workbench_Part.svg|24px]] [[Part_Workbench/pl|Część]], kliknij w przycisk {{Button|[[File:Part_Primitives.svg|16px]] [[Part_Primitives/pl|Part: Bryły pierwotne]]}} aby utworzyć {{Button|[[File:Part_Helix.svg|16px]] [[Part_Helix/pl|Part: Helisę]]}}. Podaj odpowiednie wartości dla parametrów {{MenuCommand|Gęstość}} {{Value|3mm}}, {{MenuCommand|Wysokość}} {{Value|23mm}}, oraz {{MenuCommand|Promień}} {{Value|10mm}}.
+# Przejdź do środowiska pracy [[File:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/pl|Projekt Części]], i kliknij na przycisk {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body/pl|Projekt Części: Utwórz zawartość]]}}.
+# Kliknij w przycisk {{Button|[[File:PartDesign_NewSketch.svg|16px]] [[PartDesign_NewSketch/pl|Projekt Części: Utwórz nowy szkic]]}}. Wybierz {{Value|płaszczyznę XZ}}.
+# Narysuj zamknięty szkic z wymaganym profilem zębów gwintu, zwykle w kształcie trójkąta. W tym przypadku użyjemy wysokości {{Value|2,9 mm}}, która jest nieco mniejsza niż skok {{Value|3,0 mm}} stosowany dla ścieżki spirali. Profil nie może tworzyć samoprzecięć przy przesuwaniu się wzdłuż helisy, ani między zakrętami, ani na środku, dlatego nie można użyć szkicu przedstawionego dla układania krążków w stos.
+# Wybierz utworzony szkic, a następnie kliknij na przycisk {{Button|[[File:PartDesign_AdditivePipe.svg|16px]] [[PartDesign_AdditivePipe/pl|Projekt Części: Rozciągnij wybrany rysunek wzdłuż ścieżki ...]]}}. W polu {{MenuCommand|Ścieżka do wyciągnięcia}}, kliknij w pole {{MenuCommand|Obiekt}}, i wybierz wcześniej utworzony obiekt helisy. Następnie zmień {{MenuCommand|Rodzaj orientacji}} to {{Value|Wektor Freneta}} tak aby profil przebiegał po ścieżce bez skręcania, następnie naciśnij przycisk {{Button|OK}}.
+# Gdy okno dialogowe prosi o odnośnik, wybierz {{Value|Twórz odniesienie}}.
+# Tworzona jest cewka spiralna, ale nie ma centralnego korpusu ani wału.
+# Kliknij w przycisk {{Button|[[File:PartDesign_AdditiveCylinder.svg|16px]] [[PartDesign_AdditiveCylinder/pl|Projekt Części: Dodatkowy cylinder]]}} z odpowiednimi wartościami dla {{MenuCommand|Promień}} {{Value|10mm}} oraz {{MenuCommand|Wysokość}} {{Value|29.9mm}} aby dotknąć reszty gwintu spiralnego i automatycznie się z nim połączyć.
+# Dodatkowe operacje logiczne są potrzebne, aby ukształtować ostre końce cewki. Na przykład, można użyć funkcji dodawania, aby dodać łeb do śruby i czubek.
+
+[[File:T13_08_Threads_Helical_thread_profile.png|x300px]] [[File:T13_09_Threads_Helical_thread_path.png|x300px]]
+{{Caption|Z lewej: profil dla gwintu spiralnego. <br>Z prawej: ścieżka spiralna, która zostanie użyta do wyciągnięcia.}}
+
+[[File:T13_10_Threads_Helical_thread_coil.png|x300px]] [[File:T13_11_Threads_Helical_thread_coil_sliced.png|x300px]]
+{{Caption|Z lewej: spirala wynikająca z operacji przeciągnięcia profilu zamkniętego wzdłuż ścieżki spiralnej. <br>Po prawej: widok przekroju zwoju powstałego w wyniku operacji przeciągania.}}
+
+[[File:T13_12_Threads_Helical_thread_cylinder.png|x300px]] [[File:T13_13_Threads_Helical_thread_finished.png|x300px]]
+{{Caption|Z lewej: spirala śrubowa połączona z centralnym cylindrem w celu utworzenia korpusu śruby. <br>Po prawej: więcej elementów, łeb i czubek, dodane w celu poprawienia kształtu śruby.}}
+
+<span id="Part_Workbench"></span>
+===Środowisko pracy Part===
+
+Proces ten można również wykonać za pomocą narzędzi środowiska pracy [[Part_Workbench/pl|Część]].
+# Znajdując się w środowisku pracy [[File:Workbench_Part.svg|24px]] [[Part_Workbench/pl|Część]] kliknij w przycisk {{Button|[[File:Part_Primitives.svg|24px]] [[Part_Primitives/pl|Tworzenie brył parametrycznych]]}} aby utworzyć {{Button|[[File:Part_Helix.svg|24px]] [[Part_Helix/pl|Część: Helisa]]}}. Podaj odpowiednie wartości dla parametrów {{MenuCommand|Gęstość}} {{Value|3mm}}, {{MenuCommand|Wysokość}} {{Value|23mm}} i {{MenuCommand|Promień}} {{Value|10mm}}.
+
+Teraz możesz przystąpić do dodawania innych elementów pierwotnych, takich jak {{Button|[[File:Part_Cylinder.svg|16px]] [[Part_Cylinder/pl|Część: Cylinder]]}} , lub innych kształtów, aby posłużyć się funkcją {{Button|[[File:Part_Fuse.svg|16px]] [[Part_Fuse/pl|Część: Suma]]}} lub {{Button|[[File:Part_Cut.svg|16px]] [[Part_Cut|Część: Wytnij]]}}.
+
+[[File:T13_14_Threads_components.png|x300px]]
+{{Caption|Tworzenie zwoju gwintu poprzez przesuwanie pionowego profilu, ''(1)'' the [[Sketch/pl|szkic profilu]], ''(2)'' [[Part_Helix/pl|helical]] ścieżka przeciągania, oraz ''(3)'' wynik [[Part_Sweep/pl|przeciągnięcia]].}}
+
+<span id="Tips_for_success"></span>
+===Sztuczki wzmagające sukces===
+
+* {{Emphasis|Reguła 1.}}
+Wyciągnięty wzdłuż spirali profil nie może zawierać krawędzi, które się przecinają lub stykają, ponieważ utworzy nieprawidłową bryłę. Dotyczy to zarówno profilu poruszającego się wzdłuż elementu spiralnego, jak i przecięć w jego środku. Próby wykonania z użyciem tego elementu operacji logicznych (bezpiecznik lub przecięcie) najprawdopodobniej się nie powiodą. Należy sprawdzić jakość wykonania cewki za pomocą funkcji {{Button|[[File:Part_CheckGeometry.svg|16px]] [[Part_CheckGeometry/pl|Part: Sprawdź geometrię]]}}. Jeśli będą zgłaszane samoprzecięcia, musisz zwiększyć skok spirali.
+
+[[File:T13_15_Threads_self_intersection.png|x300px]] [[File:T13_16_Threads_no_self_intersections_OK.png|x300px]]
+{{Caption|Po lewej: nieprawidłowy przebieg wygenerowany przez zastosowanie bardzo małego skoku helisy w stosunku do wysokości profilu trójkątnego. <br>Po prawej: skok, który jest wystarczająco duży i nie powoduje samoistnych przecięć.}}
+
+* {{Emphasis|Reguła 2.}} Gdy cylinder jest dodawany do cewki w celu utworzenia głównego trzonu śruby, nie może być styczny z profilem cewki. Oznacza to, że cylinder nie może mieć tego samego promienia jak wewnętrzny promień gwintu, ponieważ jest bardzo prawdopodobne, że nie powiedzie się operacja fuse. Ogólnie rzecz biorąc, należy unikać geometrii stycznych do elementów przeciągnięcia, takich jak ściany styczne lub krawędzie styczne do ścian, z którymi nie są połączone. Aby uzyskać dobre połączenie logiczne, wyciągnięta cewka oraz cylinder muszą się przecinać.
+Sprawdź jakość połączenia za pomocą funkcji {{Button|[[File:Part_CheckGeometry.svg|16px]] [[Part_CheckGeometry/pl|Part: Sprawdź geometrię]]}}, jeśli zgłaszane są powierzchnie współpłaszczyznowe, zwiększ promień cylindra o niewielką wartość.
+* Jeśli cewka i cylinder są ze sobą styczne, to jeśli nawet pierwsza operacja połączenia się powiedzie, to może się nie powieść w kolejnych krokach z trzecią bryłą.
+* Jest to ograniczenie jądra technologii OpenCASCADE ''(OCCT)'', na ogół nie radzi sobie dobrze z operacjami między powierzchniami współpłaszczyznowymi.
+
+[[File:T13_17_Threads_tangent_faces.png|x300px]] [[File:T13_18_Threads_no_tangent_faces_OK.png|x300px]]
+{{Caption|Po lewej: bryła cylindra jest styczna do wewnętrznego promienia gwintu, może to spowodować nieprawidłowe połączenie funkcja logiczną. <br>Po prawej: cylinder ma nieco większy promień, więc dwa elementy brył przecinają się, wówczas połączenie funkcją logiczną będzie prawidłowe.}}
+
+* {{Emphasis|Reguła 3.}} Wewnętrzny cylinder posiada linię szwu. Należy unikać umieszczania początku spirali wzdłuż tego szwu. Należy obrócić spiralę lub cylinder o kilka stopni.
+
+
+* {{Emphasis|Wskazówka nr 1.}} Promień spirali nie ma znaczenia, chyba że spirala jest stożkowa. Liczy się tylko gęstość zwojów (pitch) i wysokość spirali. Oznacza to, że możesz użyć jednej {{Button|[[File:Part_Helix.svg|16px]] [[Part_Helix|Part: Helisy]]}} ''(spirali)'' do wygenerowania określonej liczby zwojów gwintu o jednakowym skoku. To, co decyduje o pozycji powstałej cewki, to pozycja profilu [[Sketch/pl|Szkicu]].
+
+* {{Emphasis|Wskazówka 2.}} Zadbaj o to, aby model gwintu był krótki, posiadał małą liczbę obrotów. Długie gwinty mają tendencję do generowania nieudanych operacji logicznych. Rozważ możliwość układanie długich gwintów z krótkich elementów za pomocą funkcji {{Button|[[File:Draft_OrthoArray.svg|16px]] [[Draft_OrthoArray|Draft: OrthoArray]]}}, w przypadku gdy długi gwint okaże się problematyczny.
+
+* {{Emphasis|Wskazówka 3.}} W przypadku wizualizacji 3D i drukowania 3D może być w porządku pozostawienie cylindra i gwintu niezwiązanego, to znaczy z przecięciami między dwoma bryłami. Zmniejszenie ilości operacji logicznych skutkuje mniejszym zużyciem pamięci i mniejszymi plikami wynikowymi.
+
+<span id="Pros_and_cons"></span>
+===Zalety i wady===
+
+* [[File:Edit_OK.svg|24px]] Koncepcja budowy modelu łatwa do zrozumienia.
+* [[File:Edit_OK.svg|24px]] Bardzo naturalny sposób definiowania profilu gwintu.
+* [[File:Edit_OK.svg|24px]] Brak problemów z zazębieniem się powstałego obiektu, w odróżnieniu od metody 5.
+
+* [[File:Edit_Cancel.svg|24px]] Z powodu zawodności samoczynnie przecinających się kształtów wyciągnięć, prawie niemożliwe jest wygenerowanie gwintu bez szczelin, to znaczy bez powierzchni płaskich na wewnętrznej powierzchni gwintu.
+* [[File:Edit_Cancel.svg|24px]] Operacje logiczne są wymagane do uzyskania pojedynczej zwartej bryły. Obliczenia operacji logicznych zajmują stosunkowo dużo czasu i często kończą się niepowodzeniem.
+* [[File:Edit_Cancel.svg|24px]] Gwinty o dużej liczbie zwojów są problematyczne.
+
+<span id="Method_5._Sweeping_a_horizontal_profile"></span>
+==Metoda 5. Wyciągnięcie profilu poziomego==
+
+<span id="General"></span>
+===Informacje ogólne===
+
+Koncepcja polega na wyciągnięciu poziomego przekroju gwintu wzdłuż spirali. Głównym problemem jest tutaj ustalenie, jakiego profilu użyć, aby uzyskać określony gwint.
+
+[[File:thread-by-horz-profile.png|600px]]
+
+Jeśli użyjemy okręgu jako profilu poziomego, profil gwintu będzie sinusoidalny (środek okręgu musi być umieszczony poza punktem początku, przesunięcie to określa głębokość gwintu). 
+
+Aby otrzymać standardowy profil zęba piły, para lustrzanych odbić spirali łukowych musi zostać połączona w jedną ścieżką.
+W rezultacie tej operacji otrzymamy kształt serca, który staje się ledwie odróżnialny od okręgu, w przypadku gdy głębokość gwintu jest niewielka w zestawieniu z jego średnicą (to dlatego taki "gruby" gwint pokazano na powyższym rysunku).
+
+<span id="Generating_the_profile"></span>
+===Generowanie kształtu===
+
+Nie jest łatwo określić, jak przygotować profil poziomy, aby uzyskać określony kształt pionowy.
+W sytuacjach nieskomplikowanych, dotyczących kształtu trójkątnego lub trapezowego, profil może być wykonany ręcznie. Alternatywnie można go skonstruować, tworząc krótki gwint metodą 4 i pobierając jego kawałek poprzez wykonanie funkcji [[Part Common/pl|common]] pomiędzy płaszczyzną poziomą a gwintem.
+
+<span id="Profile_for_triangular_thread"></span>
+====Kształt dla gwintu trójkątnego====
+
+# stwórz spiralę łukową (archimedian) w płaszczyźnie XY,
+## ustaw liczbę zwojów na 0.5,
+## wartość promienia zdefiniuje wewnętrzny promień gwintu ''(promień zewnętrzny będzie powiększony o głębokość nacięcia)'',
+## oraz wysokość, by podwoić głębokość nacięcia gwintu.
+# [[Part_Mirror/pl|Część: Mirror]] spirala na przeciw płaszczyzny XY.
+# [[Part_Fuse/pl|Część: Suma]] spirala i jej odbicie lustrzane w celu uzyskania zamkniętego odcinka w kształcie serca.
+
+<span id="Profile_for_arbitrary_cross-section"></span>
+====Kształt dla dowolnego przekroju====
+
+[[File:thread-by-horz-profile-profileMake.png|1000px]]
+
+# Stwórz pionowy zarys cięcia; upewnij się, że wysokość szkicu odpowiada skokowi potrzebnego gwintu,
+# Stwórz spiralę 1 o wysokości równej skokowi gwintu, oraz o promieniu spirali równym 0,42 średnicy nominalnej gwintu,
+# Wyciągnij profil cięcia wzdłuż spirali 1; zaznacz opcje {{CheckBox|TRUE|Utwórz bryłę}} i {{CheckBox|TRUE|wektor Freneta}},
+# Wykreśl okrąg o wymiarze promienia równym wymiarowi nominalnego promienia gwintu w płaszczyźnie XY,
+# Przekształć okrąg w płaszczyznę. Można to zrobić funkcją {{Button|[[File:Part_Builder.svg|16px]] [[Part_Builder/pl|Part: Konstruktor kształtów Builder]]}} lub {{Button|[[File:Draft_Upgrade.svg|16px]] [[Draft_Upgrade|Draft: Upgrade]]}}, następnie ustaw wartość {{PropertyData|MakeFace}} na {{TRUE}}.
+# Wytnij ścianę przy pomocy profilu wyciągnięcia.
+# Wykonaj kopię opcją {{Button|[[File:Draft_Clone.svg|16px]] [[Draft_Clone|Draft: Klon]]}} z wyciętego kawałka.
+# Użyj funkcji {{Button|[[File:Draft_Downgrade.svg|16px]] [[Draft_Downgrade/pl|Draft: Downgrade]]}} na klonie, by otrzymać linię łamaną. Utworzy ona poziomy profil potrzebny do tej metody.
+# Wykonaj spiralę o wymiarze promienia równym wymiarowi nominalnemu promienia gwintu i skoku gwintu, oraz potrzebnej wysokości gwintu.
+# Wyciągnij odcinek wzdłuż spirali; zaznacz opcje {{CheckBox|TRUE|Utwórz bryłę}} i {{CheckBox|TRUE|wektor Freneta}},
+# To wszystko.
+
+Przewodnik krok po kroku od [http://forum.freecad.org/viewtopic.php?f=3&t=6506#p52558 forum, post Ulrich1a] ''(Tworzenie gwintu: Nieoczekiwane wyniki)'', nieznacznie zmodyfikowane.
+
+Drogę postępowania zaprezentował Gaurav Prabhudesai w przygotowanym przez siebie [http://www.youtube.com/watch?v=fxKxSOGbDYs filmie instruktażowym] ("FreeCAD: Jak tworzyć gwinty").
+
+<span id="Pros_and_cons"></span>
+===Zalety i wady===
+
+* [[File:Edit_OK.svg|24px]] gotowy do użycia kształt bryły z gwintem na rdzeniu jest tworzony bezpośrednio przez wyciągnięcie.
+* [[File:Edit_OK.svg|24px]] wymagana jest mniejsza liczba operacji logicznych lub nawet ich brak, więc prędkość generowania jest bardzo wysoka w porównaniu z metodą 4.
+* [[File:Edit_OK.svg|24px]] końce gwintów są ładnie przycięte natychmiastowo.
+* [[File:Edit_OK.svg|24px]] długie gwinty nie stanowią problemu, chyba że konieczne jest przeprowadzenie operacji logicznych. W przeciwnym razie nie będzie ona dużo lepsza niż Metoda 4.
+* [[File:Edit_OK.svg|24px]] gwinty bez przerwy nie stanowią problemu.
+
+* [[File:Edit_Cancel.svg|24px]] zdefiniowanie kształtu gwintu jest skomplikowane.
+* [[File:Edit_Cancel.svg|24px]] Użycie standardowej siatki z tak stworzonym gwintem generuje brzydkie oczka, co może prowadzić do problemów. Inne siatki są lepsze, na przykład Mefisto wydaje się dawać najlepsze rezultaty.
+* [[File:Edit_Cancel.svg|24px]] duża ilość pamięci według [http://forum.freecad.org/viewtopic.php?f=3&t=12593&start=10#p101197 Techniki modelowania gwintu].
+
+<span id="Method_6._Lofting_between_helical_extruded_faces"></span>
+==Metoda 6. Wyciąganie pomiędzy wytłaczanymi ścianami ślimakowymi==
+
+<span id="General"></span>
+===Informacje ogólne===
+
+Spiralne wypusty będą wyciskać współosiowe powierzchnie, które mogą być poddane wyciąganiu, podczas gdy spirala parametryczna FreeCAD nie będzie miała takiej możliwości.
+Do zdefiniowania gwintu potrzebne są dwa spiralne wypusty (helical splines).
+Te dwa wypusty mogą być skalowane z biblioteki, a następnie odpowiednio rozmieszczone i wytłoczone, w celu uzyskania właściwego kształtu bryły. 
+
+Parametryczne spirale FreeCAD tak naprawdę nie są spiralne, ale spiralne b-splines nie są trudne do rozmieszczenia.
+Jedną z dostępnych metod jest układanie dwunastokątów o promieniu 5 mm w odstępach Z 1/12 mm (0.08333 mm) i ścieżkami Spline od wierzchołka do wierzchołka w porządku rosnącym i obrotowym, oraz aby rozważyć zrobienie tego raz, z powiedzmy, 10 obrotami, tak aby Spline mógł być ponownie użyty jako plik biblioteczny do importu i ponownego użycia.
+Dla ułatwienia skalowania wygodnie jest używać średnicy 10 mm i rastra 1 mm. Jeśli robisz to ręcznie, narysowanie Dwire, a następnie przekształcenie go w b-spline jest łatwiejsze niż narysowanie Spline. Odcinki Dwire nie mają obliczonej krzywizny podczas rysowania, więc podążają za kursorem i zatrzaskują się bardziej posłusznie.
+
+Po przeskalowaniu Spline do odpowiedniej wielkości i umieszczeniu ich w taki sposób, że wyciągnięcie będzie miało odpowiedni kąt zawarty pomiędzy boczkami gwintu, są one wytłaczane wzdłuż ich osi, długość skoku jest odpowiednia dla Spline wewnętrznego, skok zewnętrzny/8.
+
+[[File:splineextrudeloft.png|912px]] 
+
+ISO i inne gwinty zostały uelastycznione, czyli płaskie, wewnętrzne i zewnętrzne krawędzie, zamiast ostrrych, co odpowiada użytkownikom FreeCAD w tej metodzie, ponieważ możemy wyciągnąć do spiralnej powierzchni czołowej przy nominalnym rozmiarze połączenia, podczas gdy powierzchnia wewnętrzna nie może być wyciągnięta do zewnętrznej krawędzi Spline, ponieważ powierzchnia czołowa jest profilem zamkniętym, Spline jest otwarty. 
+
+[[File:Threadform.PNG|761PX]]
+
+Ta metoda produkuje wysoce stabilne bryły, które prawidłowo działają z funkcjami logicznymi.
+Chociaż nie wytwarza ona "parametrycznych" gwintów śrubowych w standardowych rozmiarach w sensie prostego dostępu do kształtu poprzez rozmiar łącznika, jest to łatwy sposób na stworzenie wiarygodnej biblioteki do ponownego użycia. Modele o specjalnych kształtach, takich jak ACME czy śruby z serii Archimedian, są również nieskomplikowane do modelowania jako rozwiązania jednorazowe.
+
+
+{{Part Tools navi{{#translation:}}}}
+{{PartDesign Tools navi{{#translation:}}}}
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

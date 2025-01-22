@@ -1,0 +1,39 @@
+<languages/>
+
+<span id="Overview"></span>
+==Informacje ogólne==
+
+[[Image:Sketcher_helper_constraint_example1.png|thumb|500px|Przykład wiązania pomocniczego ''(Constraint5 - punkt na okręgu)'' dla wiązania stycznego ''(Constraint6 w trybie styczna-przez-punkt)''. W tym przypadku używane jest tylko jedno wiązanie pomocnicze, ponieważ punkt styczności jest punktem końcowym głównej średnicy elipsy, która z natury leży na elipsie.]]
+
+Wiązanie pomocnicze jest zwykłym wiązaniem szkicownika, które jest potrzebne jako część bardziej złożonego wiązania, ale jest widoczne w interfejsie użytkownika, aby pomóc w radzeniu sobie z redundancją. Na przykład, dla [[Sketcher_ConstrainSnellsLaw/pl|prawo Snell'a]], dwie linie reprezentujące promienie światła muszą być połączone ([[Sketcher_ConstrainCoincident/pl|zbieżnością punktów]]), a złącze musi leżeć na interfejsie ([[Sketcher_ConstrainPointOnObject/pl|Zwiąż punkt na obiekcie]]). 
+
+Wiązania pomocnicze są dodawane automatycznie, gdy są potrzebne. Decyzja o tym, czy są one potrzebne, jest obecnie podejmowana przez ocenę błędu wiązania pomocniczego dla bieżącego stanu geometrii ''(może to się zmienić w przyszłych wersjach)''. Jeśli błąd jest wystarczająco mały, wiązanie jest uważane za niepotrzebne i nie jest dodawane. W niektórych przypadkach ta logika może prowadzić do błędów ''(wiązanie może zostać spełnione przez przypadek, co może się łatwo zdarzyć, gdy włączona jest funkcja przyciągania siatki szkicownika)''. 
+
+Jeśli tak się stanie ''(brakuje jakiegoś wiązania pomocniczego, a wymagane warunki nie są spełnione w inny sposób)'', wiązanie złożone zostanie uszkodzone. Wykona ono coś, ale rzeczywiste zachowanie jest niezdefiniowane. Takie uszkodzone wiązanie może być naprawione przez ręczne dodanie brakującego wiązania pomocniczego.
+
+Wiązania pomocnicze są obecnie wymagane dla:
+* [[Sketcher_ConstrainTangent/pl|wiązań styczności]] ''(w trybie styczna-przez-punkt, potrzebne są dwa wiązania punkt na obiekcie)'',
+* [[Sketcher_ConstrainPerpendicular/pl|wiązań prostopadłości]] ''(w trybie prostopadle-przez-punkt, potrzebne są dwa wiązania punkt na obiekcie)'',
+* [[Sketcher_ConstrainAngle/pl|wiązań kąta]] ''(w trybie kątowym, potrzebne są dwa wiązania punkt na obiekcie)'',
+* [[Sketcher_ConstrainSnellsLaw/pl|wiązań prawa Snell'a]] ''(potrzebne są wiązania zbieżności i punkt na obiekcie)''.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Gdy wiązania wymagające elementów pomocniczych są dodawane z poziomu środowiska Python, żadne wiązania pomocnicze nie są dodawane automatycznie. Można odtworzyć automatyczne podejmowanie decyzji przez polecenia UI w skrypcie, testując funkcje, specjalnie dodane w tym celu i używane w procedurach UI:
+
+{{Code|code=
+Sketch.isPointOnCurve(icurve,x,y)
+}}
+
+{{Incode|isPointOnCurve}} sprawdza, czy punkt wirtualny określony przez współrzędne szkicu {{Incode|x,y}} ''(wartości zmiennoprzecinkowe)'' spełnia wymogi wirtualnego punktu na obiekcie - tj. leży na krzywej określonej przez indeks krzywej {{Incode|icurve}}. Zwraca wartość {{True/pl}}, jeśli punkt jest na krzywej, i {{False/pl}}, jeśli tak nie jest.
+
+{{Code|code=
+Sketch.calculateConstraintError(iconstr)
+}}
+
+{{Incode|calculateConstraintError}} ocenia funkcję błędu wiązania określonego przez jego indeks {{Incode|iconstr}} w szkicu. Jeśli w wiązaniu występuje tylko jedna funkcja błędu, zwracaną wartością jest podpisana wartość zwracana przez funkcję błędu. Jeśli z więzem związana jest więcej niż jedna funkcja błędu ''(tj. wiązanie usuwa więcej niż jeden stopień swobody)'', zwracaną wartością jest RMS wszystkich funkcji błędu ''(zawsze dodatnia)''.
+
+
+{{Sketcher_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

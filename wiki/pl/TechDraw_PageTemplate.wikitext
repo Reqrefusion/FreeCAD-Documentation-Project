@@ -1,0 +1,101 @@
+<languages/>
+{{Docnav
+|[[TechDraw_PageDefault/pl|Wstaw nową domyślna stronę rysunku]]
+|[[TechDraw_FillTemplateFields/pl|Wypełnij pola szablonu]]
+|[[TechDraw_Workbench/pl|środowisko pracy Rysunek Techniczny]]
+|IconL=TechDraw_PageDefault.svg
+|IconR=TechDraw_FillTemplateFields.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{GuiCommand
+|Name=TechDraw PageTemplate
+|Name/pl=Rysunek Techniczny: Wstaw nową stronę przy użyciu szablonu
+|MenuLocation=Rysunek Techniczny → Strona → Wstaw nową stronę przy użyciu szablonu
+|Workbenches=[[TechDraw_Workbench/pl|Rysunek Techniczny]]
+|SeeAlso=[[TechDraw_PageDefault/pl|Wstaw nową domyślna stronę rysunku]], [[TechDraw_Templates/pl|Szablony]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie '''Wstaw nową stronę przy użyciu szablonu''' tworzy nowy obiekt strony przy użyciu pliku szablonu wybranego z okna dialogowego.
+
+Katalog startowy dla okna dialogowego można określić w [[TechDraw_Preferences/pl|Ustawieniach]].
+
+[[Image:A4_Landscape_ISO7200_Pep.svg|400px]]
+{{Caption|Jeden z dołączonych szablonów: A4_Landscape_ISO7200_Pep.svg}}
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wymagany jest aktywny dokument.
+# Istnieje kilka sposobów wywołania narzędzia:
+#* Naciśnij przycisk {{Button|[[Image:TechDraw PageTemplate.svg|16px]] '''Wstaw nową stronę przy użyciu szablonu'''}}.
+#* Wybierz opcję  z menu {{MenuCommand|Rysunek Techniczny → Strona → [[Image:TechDraw_PageTemplate.svg|16px]] Wstaw nową stronę przy użyciu szablonu}}.
+
+<span id="Properties"></span>
+==Właściwości==
+
+Zobacz stronę [[TechDraw_PageDefault/pl#Właściwości|Wstaw nową domyślną stronę rysunku]].
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Zobacz również stronę: [https://freecad.github.io/SourceDoc/ Dokumentacja API generowana automatycznie] oraz [[FreeCAD_Scripting_Basics/pl|Podstawy pisania skryptów dla FreeCAD]].
+
+Stronę opartą na wybranym szablonie można utworzyć za pomocą [[Macros/pl|makrodefinicji]] i z konsoli [[Python/pl|Python]] przy użyciu następujących funkcji:
+
+{{Code|code=
+import FreeCAD as App
+from PySide import QtGui
+
+doc = App.ActiveDocument
+default_dir = App.getResourceDir() + "Mod/TechDraw/Templates"
+param = App.ParamGet("User parameter:BaseApp/Preferences/Mod/TechDraw/Files")
+template_dir = param.GetString("TemplateDir", default_dir)
+
+template_file = QtGui.QFileDialog.getOpenFileName(QtGui.QApplication.activeWindow(),
+                                                  "Select a Template File", 
+                                                  template_dir,
+                                                  "Template (*.svg)")
+                                                  
+page = doc.addObject("TechDraw::DrawPage", "Page")
+template = doc.addObject("TechDraw::DrawSVGTemplate", "Template")
+template.Template = template_file[0]
+page.Template = template
+
+doc.recompute()
+}}
+
+<span id="Editable_text_fields"></span>
+===Pola tekstowe do edycji===
+
+{{Emphasis|Zobacz również:}} [[TechDraw_Templates/pl|Rysunek Techniczny: Szablony]] aby uzyskać więcej informacji na temat tworzenia szablonów.
+
+Po utworzeniu nowej strony, jej atrybut {{incode|Template}} przechowuje słownik {{incode|EditableTexts}} zawierający nazwy edytowalnych pól ''(klucze)'' i ich wartości tekstowe. Skopiuj ten słownik do zmiennej, wprowadź zmiany, a następnie ponownie przypisz słownik do atrybutu {{incode|EditableTexts}}, aby zobaczyć zmiany.
+
+{{Code|code=
+page = FreeCAD.ActiveDocument.Page
+texts = page.Template.EditableTexts
+
+for key, value in texts.items():
+    print("{0} = {1}".format(key, value))
+
+texts["FC-Title"] = "The title of my page"
+page.Template.EditableTexts = texts
+}}
+
+
+{{Docnav
+|[[TechDraw_PageDefault/pl|Wstaw nową domyślna stronę rysunku]]
+|[[TechDraw_FillTemplateFields/pl|Wypełnij pola szablonu]]
+|[[TechDraw_Workbench/pl|środowisko pracy Rysunek Techniczny]]
+|IconL=TechDraw_PageDefault.svg
+|IconR=TechDraw_FillTemplateFields.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{TechDraw Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+{{clear}}

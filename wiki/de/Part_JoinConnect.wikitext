@@ -1,0 +1,110 @@
+<languages/>
+
+{{Docnav/de
+|[[Part_Common/de|Schnitt]]
+|[[Part_JoinEmbed/de|Einbetten]]
+|[[Part_Workbench/de|Part]]
+|IconL=Part_Common.svg
+|IconR=Part_JoinEmbed.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/de
+|Name=Part JoinConnect
+|Name/de=Part Verbinden
+|MenuLocation=Formteil → Verbinden → Objekte verbinden
+|Workbenches=[[Part_Workbench/de|Part]]
+|Version=0.16
+|SeeAlso=[[Part_JoinEmbed/de|Part Einbetten]], [[Part_JoinCutout|Part Ausschneiden]], [[Part_Boolean/de|Part Boolesche Operationen]], [[Part_Thickness/de|Part Dicke]]
+}}
+
+<span id="Description"></span>
+==Beschreibung== 
+
+Das Werkzeug [[Image:Part_JoinConnect.svg|24px]] '''Part Verbinden''' verbindet die Innenbereiche von zwei Hohlkörpern (z.B. Rohre). Es kann auch Schalenobjekte und Drähte verbinden.
+
+[[image:JoinFeatures_Connect.png|600px]]
+
+<span id="Usage"></span>
+==Anwendung== 
+
+# Die zu verbindenden Objekte auswählen. Die Reihenfolge der Auswahl ist nicht wichtig, da die Wirkung des Werkzeugs symmetrisch ist. Es genügt, von jedem Objekt  eine Teilform (z.B. Flächen) auszuwählen. Es kann auch ein Verbund ausgewählt werden, der alle zu verbindenden Formen enthält, z.B. eine [[Draft_OrthoArray/de|Draft RechtwinkligeAnordnung]].
+# Es gibt mehrere Möglichkeiten, den Befehl aufzurufen:
+#* Die Schaltfläche  {{Button|[[Image:Part_JoinConnect.svg|16px]] [[Part_JoinConnect/de|Objekte verbinden]]}} drücken.
+#* Den Menüeintrag {{MenuCommand|Part → Verbinden → [[Image:Part_JoinConnect.svg|16px]] Objekte verbinden}} auswählen.
+# Ein parametrisches Connect-Objekt wird erstellt. Die originalen Objekte werden ausgeblendet und das Ergebnis des Verbindens wird in der [[3D_view/de|3D-Ansicht]] angezeigt.
+
+<span id="Properties"></span>
+==Eigenschaften== 
+
+{{TitleProperty|Connect}}
+
+* {{PropertyData/de|Objects}}: Liste der zu verbindenden Objekte. Im Allgemeinen werden mindestens zwei Objekte benötigt, aber ein einziger Verbund, der die zu verbindenden Formen enthält, reicht ebenfalls aus. (seit FreeCAD v0.17.8053 wird diese Eigenschaft nicht mehr im [[Property_editor/de|Eigenschafteneditor]] angezeigt und kann nur über [[#Skripten|Python]] aufgerufen werden).
+* {{PropertyData/de|Refine}}: Legt fest, ob die Operation [[Part RefineShape/de|FormAufbereiten]] auf die endgültige Form angewendet werden soll oder nicht. Der Standardwert wird durch ein Kontrollkästchen 'Form nach boolescher Operation automatisch aufbereiten' in den [[PartDesign_Preferences/|PartDesign Einstellungen]] bestimmt.
+* {{PropertyData/de|Tolerance}}: "Unschärfe" Wert. Dies ist eine zusätzliche Toleranz, die bei der Suche nach Schnittmengen zusätzlich zu den in den Eingangsformen gespeicherten Toleranzen anzuwenden ist.
+
+<span id="Example"></span>
+==Beispiel== 
+
+# Erstelle ein Rohr, indem Du [[Part_Thickness/de|Dicke]] auf einen [[Part_Cylinder/de|Zylinder]] anwendest: <br/>[[image:JoinFeatures_Example_step1.png|320px]]
+# Erstelle ein weiteres Rohr mit kleinerem Durchmesser und platziere es so, dass es die Wand des ersten Rohres durchdringt: <br />[[image:JoinFeatures_Example_step2.png|320px]]
+# Wähle das erste Rohr und das zweite Rohr aus und klicke auf die Option "Objekte verbinden" in der Symbolleiste der Verbindungswerkzeuge. <br />[[image:JoinFeatures_Example_step3_Connect.png|320px]]
+# Verwende ein Querschnittswerkzeug ([[Std_ToggleClipPlane/de|Ausschnittebene]], [[Arch_SectionPlane/de|Arch Abschnittebene]], [[Arch_CutPlane/de|Arch Schneideebene]]), um Einbauten freizulegen. Auf dem Bild unten wird die Bogenschnittebene verwendet.<br />[[image:JoinFeatures_Example_step4_Connect.png|320px]]
+
+<span id="Algorithm"></span>
+==Algorithmus==
+
+Die Algorithmen hinter den Fügewerkzeugen sind recht einfach, und es ist wichtig, sie zu verstehen, um die Werkzeuge richtig zu verwenden. Insbesondere der Algorithmus von Verbinden ist etwas komplexer als andere, aber es genügt im Allgemeinen, ihn als symmetrische Variante des Einbetten-[[Part_JoinEmbed/de#Algorithms|Algorithmus]] zu betrachten.
+
+1. Jedes Objekt wird durch Überschneidungen mit anderen Objekten in Stücke zerlegt. (siehe [[Part_BooleanFragments/de|Part BoolescheFragmente]]) 
+
+2. Von den Teilen eines Objekts wird nur das größte beibehalten; alle anderen werden entfernt.
+
+3. Überschneidungselemente, die mindestens zwei Objekte berühren, werden dem Ergebnis hinzugefügt. Anschließend werden die Teile miteinander verbunden, um das Ergebnis von Verbinden zu bilden.
+
+<span id="Notes"></span>
+===Hinweise=== 
+
+* Wenn bei Schritt 1 jedes Objekt in einem Stück verbleibt, entspricht das Ergebnis von Verbinden dem von [[Part Union/de|Vereinigen]] von Objekten.
+* Jetzt werden alle gelieferten Verbindungen vor dem Anschluss zerlegt. Das bedeutet, dass selbstverschneidende Verbindungen, die für alle anderen booleschen Operationen ungültig sind, für Verbinden gültig sind. (Dies kann in Zukunft geändert werden.)
+* Das "größte" Stück ist dasjenige mit der größten Masse. Das heißt, für Festkörper werden Volumen verglichen; für Hüllen und Flächen werden Flächen verglichen, usw.
+* Seit FreeCAD v0.17.8053 und wenn die OCC-Version 6.9.0 und höher ist, ist Verbinden fast so schnell wie alle anderen booleschen Operationen. Bei älteren Versionen ist Verbinden etwa 5 mal langsamer als ein normaler boolescher Vorgang und funktioniert nur bei Festkörpern.
+
+<span id="Scripting"></span>
+==Skripten==
+
+Die Fügewerkzeuge können in [[Macros/de|Makros]] und von der [[Python/de|Python]]-Konsole aus mit folgender Funktion verwendet werden:
+
+ '''BOPTools.JoinFeatures.makeConnect(name)'''
+
+* Erstellt eine leere Verbindungsfunktion. Die Eigenschaft 'Objekte' muss anschließend explizit zugewiesen werden.
+* Liefert das neu erstellte Objekt.
+
+Verbinden kann auch auf einfache Formen angewendet werden, ohne dass ein Dokumentenobjekt benötigt wird:
+
+ '''Part.BOPTools.JoinAPI.connect(list_of_shapes, tolerance = 0.0)'''
+
+Dies kann nützlich sein, um benutzerdefinierte Python Skriptfunktionen zu erstellen.
+
+Beispiel:
+
+{{code|code=
+import Part
+j = Part.BOPTools.JoinFeatures.makeConnect(name= 'Connect')
+j.Objects = FreeCADGui.Selection.getSelection()
+}}
+
+Das Werkzeug selbst ist in Python implementiert, siehe {{FileName|/Mod/Part/BOPTools/JoinFeatures.py}} ([https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/Part/BOPTools/JoinFeatures.py GitHub link]) innerhalb des FreeCAD-Installationsverzeichnisses.
+
+
+{{Docnav/de
+|[[Part_Common/de|Schnitt]]
+|[[Part_JoinEmbed/de|Einbetten]]
+|[[Part_Workbench/de|Part]]
+|IconL=Part_Common.svg
+|IconR=Part_JoinEmbed.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

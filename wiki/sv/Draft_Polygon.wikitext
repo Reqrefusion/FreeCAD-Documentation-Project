@@ -1,0 +1,138 @@
+<languages/>
+
+{{Docnav
+|[[Draft_Rectangle|Rectangle]]
+|[[Draft_BSpline|BSpline]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_Rectangle.svg
+|IconR=Draft_BSpline.svg
+|IconC=Workbench_Draft.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/sv|Name=Draft_Polygon|Workbenches=[[Draft_Workbench/sv|Skiss]]|MenuLocation=Draft -> Polygon}}
+</div>
+
+==Description== 
+
+<div class="mw-translate-fuzzy">
+====Beskrivning====
+
+Detta verktyg frågar användaren efter en centrumpunkt och en radie. Du kan sedan specificera antalet sidor, och en regelbunden  polygon kommer att skapas inuti den givna radiens cirkel. Antalet sidor  och om polygonen är inskriven eller omskriven cirkeln kan ändras när som helst i objektets egenskaper. Den nyss skapade polygonen kommer att ha nuvarande linkefärg och -tjocklek.
+
+Punkterna kan markeras med musen i 3D vyn eller genom att mata in koordinater med tangentbordet.
+</div>
+
+A Draft Polygon can be switched from inscribed to circumscribed by changing its {{PropertyData|Draw Mode}} property. The corners of a Draft Polygon can be filleted (rounded) or chamfered by changing its {{PropertyData|Fillet Radius}} or {{PropertyData|Chamfer Size}} respectively.
+
+[[Image:Draft_polygon_example.jpg|400px]]
+<div class="mw-translate-fuzzy">
+[[Image:Draft_polygon_example.jpg|400px]]
+</div>
+
+==Usage== 
+
+See also: [[Draft_Tray|Draft Tray]], [[Draft_Snap|Draft Snap]] and [[Draft_Constrain|Draft Constrain]].
+
+<div class="mw-translate-fuzzy">
+====Bruk====
+
+* Markera en punkt på ett tomt område i 3D vyn, eller på ett existerande objekt.
+* Om du håller ned {{KEY|CTRL}} så kommer din punkt att [[Draft_Snap/sv|snäppa]] till tillgängliga snäpp platser.
+* Om du håller ned{{KEY|SKIFT}} så kommer din punkt att [[Draft_Constrain/sv|begränsas]] i relation till den sista punkten.
+* Skriv in siffror för att mata in en koordinat manuellt
+* Om du trycker ned {{KEY|ESC}} så kommer operationen att avbrytas.
+* Polygonen kan visas som en yta eller som en trådmodell, genom att ändra dess visningsläge.
+</div>
+
+==Options==
+
+The single character keyboard shortcuts available in the task panel can be changed. See [[Draft_Preferences|Draft Preferences]]. The shortcuts mentioned here are the default shortcuts (for version 1.0).
+
+* To manually enter the coordinates for the center enter the X, Y and Z component, and press {{KEY|Enter}} after each. Or you can press the {{Button|[[Image:Draft_AddPoint.svg|16px]] Enter point}} button when you have the desired values. It is advisable to move the pointer out of the [[3D_view|3D view]] before entering coordinates.
+* Press {{KEY|G}} or click the {{MenuCommand|Global}} checkbox to toggle global mode. If global mode is on, coordinates are relative to the global coordinate system, else they are relative to the [[Draft_SelectPlane|working plane]] coordinate system.
+* Press {{KEY|F}} or click the {{MenuCommand|Filled}} checkbox to toggle filled mode. If filled mode is on, the created polygon will have {{PropertyData|Make Face}} set to {{TRUE}} and will have a filled face.
+* Press {{KEY|N}} or click the {{MenuCommand|Continue}} checkbox to toggle continue mode. If continue mode is on, the command will restart after finishing, allowing you to continue creating polygons.
+* Press {{KEY|S}} to switch [[Draft_Snap|Draft snapping]] on or off.
+* Press {{KEY|Esc}} or the {{Button|Close}} button to abort the command.
+
+==Notes==
+
+* A Draft Polygon can be edited with the [[Draft_Edit|Draft Edit]] command.
+
+==Preferences==
+
+See also: [[Preferences_Editor|Preferences Editor]] and [[Draft_Preferences|Draft Preferences]].
+
+* If the {{MenuCommand|Edit → Preferences... → Draft → General → Create Part primitives if possible}} option is checked, the command will create a [[Part_RegularPolygon|Part RegularPolygon]] instead of a Draft Polygon.
+
+==Properties==
+
+See also: [[Property_editor|Property editor]].
+
+A Draft Polygon object is derived from a [[Part_Part2DObject|Part Part2DObject]] and inherits all its properties. It also has the following additional properties:
+
+===Data===
+
+{{TitleProperty|Draft}}
+
+* {{PropertyData|Area|Area}}: (read-only) specifies the area of the face of the polygon. The value will be {{value|0.0}} if {{PropertyData|Make Face}} if {{FALSE}}.
+* {{PropertyData|Chamfer Size|Length}}: specifies the length of the chamfers at the corners of the polygon.
+* {{PropertyData|Draw Mode|Enumeration}}: specifies if the polygon is {{value|inscribed}} in a circle or {{value|circumscribed}} around a circle.
+* {{PropertyData|Faces Number|Integer}}: specifies the number of sides of the polygon.
+* {{PropertyData|Fillet Radius|Length}}: specifies the radius of the fillets at the corners of the polygon.
+* {{PropertyData|Make Face|Bool}}: specifies if the polygon makes a face or not. If it is {{TRUE}} a face is created, otherwise only the perimeter is considered part of the object.
+* {{PropertyData|Radius|Length}}: specifies the radius of the circle that defines the polygon.
+
+===View===
+
+{{TitleProperty|Draft}}
+
+* {{PropertyView|Pattern|Enumeration}}: specifies the [[Draft_Pattern|Draft Pattern]] with which to fill the face of the polygon. This property only works if {{PropertyData|Make Face}} is {{TRUE}} and if {{PropertyView|Display Mode}} is {{value|Flat Lines}}.
+* {{PropertyView|Pattern Size|Float}}: specifies the size of the [[Draft_Pattern|Draft Pattern]].
+
+==Scripting==
+
+See also: [https://freecad.github.io/SourceDoc/ Autogenerated API documentation] and [[FreeCAD Scripting Basics|FreeCAD Scripting Basics]].
+
+To create a Draft Polygon use the {{incode|make_polygon}} method ({{Version|0.19}}) of the Draft module. This method replaces the deprecated {{incode|makePolygon}} method.
+
+{{Code|code=
+polygon = make_polygon(nfaces, radius=1, inscribed=True, placement=None, face=None, support=None)
+}}
+* Creates a {{incode|polygon}} object with the given number of faces ({{incode|nfaces}}), and based on a circle of {{incode|radius}} in millimeters.
+* If {{incode|inscribed}} is {{incode|True}}, the polygon is inscribed in the circle, otherwise it will be circumscribed.
+* If {{incode|placement}} is {{incode|None}} the polygon is created at the origin and one of its vertices will lie on the X axis.
+* If {{incode|face}} is {{incode|True}}, the polygon will make a face, that is, it will appear filled.
+
+Example:
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+polygon1 = Draft.make_polygon(4, radius=500)
+polygon2 = Draft.make_polygon(5, radius=750)
+
+zaxis = App.Vector(0, 0, 1)
+p3 = App.Vector(1000, 1000, 0)
+place3 = App.Placement(p3, App.Rotation(zaxis, 90))
+
+Polygon3 = Draft.make_polygon(6, radius=1450, placement=place3)
+
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Draft_Rectangle|Rectangle]]
+|[[Draft_BSpline|BSpline]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_Rectangle.svg
+|IconR=Draft_BSpline.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

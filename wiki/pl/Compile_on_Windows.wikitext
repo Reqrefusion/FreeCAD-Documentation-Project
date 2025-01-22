@@ -1,0 +1,606 @@
+<languages/>
+
+{{Docnav/pl
+|[[License/pl|Licencja]]
+|[[Compile_on_Linux/pl|Kompilacja w systemie Linux]]
+}}
+
+{{TOCright}}
+
+Ta strona wyjaśnia krok po kroku '''jak skompilować FreeCAD 0.19 lub nowszy w systemie Windows''' przy użyciu kompilatora MSVC firmy Microsoft. Informacje na temat korzystania z MSYS2/MinGW można znaleźć na stronie [[Compile_on_MinGW/pl|Kompilacja z MinGW]]. Dla innych platform zobacz opis [[Compiling/pl|kompilacji]].
+
+<span id="Prerequisites"></span>
+==Wymagania wstępne==
+
+Kompilacja FreeCAD w systemie Windows wymaga kilku narzędzi i bibliotek.
+
+<span id="Required"></span>
+===Niezbędne===
+
+* Kompilator. FreeCAD jest testowany z Visual Studio (MSVC) - inne kompilatory mogą działać, ale instrukcje użytkowania nie są tutaj zawarte. Więcej szczegółów można znaleźć w sekcji [[#Kompilator|Kompilator]] poniżej.
+
+* [http://git-scm.com/ Git] (dostępne są również interfejsy GUI dla Git, patrz następna sekcja)
+
+* [https://cmake.org/download/ CMake] version 3.11.x or newer. </br> ''Wskazówka:'' Wybranie opcji ''Add CMake to the system PATH for all users'' podczas instalacji CMake sprawi, że CMake będzie dostępny z wiersza poleceń systemu Windows, co może być przydatne.
+
+* [https://github.com/FreeCAD/FreeCAD-LibPack LibPack]. Jest to pojedynczy pakiet zawierający wszystkie biblioteki niezbędne do kompilacji FreeCAD na Windows. Pobierz wersję LibPack odpowiadającą wersji FreeCAD, którą chcesz skompilować. Aby skompilować FreeCAD 0.20 pobierz [https://github.com/FreeCAD/FreeCAD-LibPack/releases/tag/2.6 LibPack w wersji 2.6], a dla FreeCAD 0.19 pobierz [https://github.com/FreeCAD/FreeCAD-LibPack/releases/tag/1.0 LibPack w wersji 1.0]. Wypakuj LibPack do wygodnej lokalizacji (jeśli twój komputer nie rozpoznaje rozszerzenia .7z, musisz zainstalować program [https://www.7-zip.org 7-zip])</br> '''Uwaga''': Zdecydowanie zaleca się kompilację FreeCAD za pomocą wersji kompilatora, dla której zaprojektowano LibPack. Na przykład, możesz napotkać problemy podczas kompilacji FreeCAD 0.20 używając MSVC&nbsp;2017, ponieważ LibPack jest zaprojektowany do kompilacji za pomocą MSVC&nbsp;2019 lub nowszego.</br>Aby zaktualizować swój LibPack później, zobacz sekcję [[#Aktualizacja_LibPack|Aktualizacja LibPack]].
+
+<span id="Optional_programs"></span>
+===Programy opcjonalne===
+
+* GUI dla Git. Istnieje kilka dostępnych interfejsów, zobacz [https://en.wikipedia.org/wiki/Comparison_of_Git_GUIs tę listę]. Główną zaletą interfejsu graficznego jest to, że nie musisz uczyć się komend Git, aby uzyskać kod źródłowy FreeCAD lub wysyłać poprawki do repozytorium FreeCAD na GitHub.
+
+W poniższym opisie przedstawiamy obsługę kodu źródłowego za pomocą interfejsu [https://tortoisegit.org/ TortoiseGit]. Ten interfejs integruje się bezpośrednio z eksploratorem plików Windows i ma dużą społeczność użytkowników, która może pomóc w przypadku napotkania problemów.
+
+[http://sourceforge.net/projects/nsis/ NSIS] jest używany do generowania instalatora FreeCAD dla systemu Windows.
+
+<span id="Source_code"></span>
+===Kod źródłowy===
+
+Teraz możesz pobrać kod źródłowy programu FreeCAD:
+
+<span id="Using_a_frontend"></span>
+====Używanie interfejsu====
+
+Korzystając z [https://en.wikipedia.org/wiki/Comparison_of_Git_GUIs interfejsu Git] TortoiseGit:
+# Utwórz nowy folder, do którego zostanie pobrany kod źródłowy.
+# Kliknij prawym przyciskiem myszy na tym folderze w eksploratorze plików Windows i wybierz '''Git Clone''' w menu kontekstowym.
+# Pojawi się okno dialogowe. Wprowadź w nim adres URL repozytorium Git programu FreeCAD.
+
+''https://github.com/FreeCAD/FreeCAD.git''
+
+i kliknij '''OK'''.
+
+Najnowszy kod źródłowy zostanie pobrany z repozytorium Git programu FreeCAD, a folder będzie śledzony przez Git.
+
+<span id="Using_the_command_line"></span>
+====Używanie wiersza poleceń====
+
+Aby utworzyć lokalną gałąź śledzącą i pobrać kod źródłowy, otwórz terminal (wiersz poleceń) i przejdź do katalogu, w którym chcesz umieścić kod źródłowy, a następnie wpisz:
+
+{{Code|code=
+git clone --recurse-submodules https://github.com/FreeCAD/FreeCAD.git
+}}
+
+<span id="Compiler"></span>
+===Kompilator===
+
+Domyślnym (zalecanym) kompilatorem jest MS Visual Studio (MSVC). Choć możliwe jest użycie innych kompilatorów, na przykład gcc za pośrednictwem Cygwin lub MinGW, nie jest to testowane ani opisane w tym miejscu.
+
+Możesz uzyskać darmową wersję MSVC (do użytku indywidualnego), pobierając [https://visualstudio.microsoft.com/vs/community/ edycję ''Community'' oprogramowania MS Visual Studio].
+
+Jeśli chcesz uniknąć instalacji ogromnego MSVC tylko w celu posiadania kompilatora, zobacz [[CompileOnWindows_-_Reducing _Disk_Footprint/pl|Kompilacja w Windows OS - zmniejszanie zajętości dysku]].
+
+'''Uwaga:''' Choć edycja ''Community'' MSVC jest darmowa, aby korzystać z IDE przez więcej niż 30 dni, musisz stworzyć konto Microsoft. Jeśli zamierzasz jedynie kompilować za pomocą wiersza poleceń, nie potrzebujesz IDE i tym samym nie musisz tworzyć konta Microsoft.
+
+Jako darmową i otwarto-źródłową alternatywę IDE możesz użyć [https://www.kdevelop.org/download KDevelop]. Możesz używać KDevelop do modyfikowania i pisania kodu C++, ale kompilację musisz przeprowadzać za pomocą wiersza poleceń.
+
+<span id="Optional_system_path_configuration"></span>
+===Opcjonalna konfiguracja ścieżek systemowych===
+
+Opcjonalnie możesz dodać ścieżki do niektórych folderów do zmiennej systemowej PATH. Jest to przydatne, jeśli chcesz uzyskać dostęp do programów w tych folderach z poziomu wiersza poleceń/powershell lub jeśli chcesz, aby specjalne programy były odnajdywane przez kompilator lub CMake. Poza tym dodanie folderów do PATH może być konieczne, jeśli nie użyłeś odpowiednich opcji podczas instalacji programu.
+
+* Możesz dodać folder swojego LibPack do zmiennej systemowej PATH. Jest to przydatne, jeśli planujesz budować wiele konfiguracji/wersji FreeCAD.
+* Jeśli nie użyłeś opcji dodania CMake do PATH podczas instalacji, dodaj jego folder instalacyjny.
+
+''C:\Program Files\CMake\bin'' do PATH.
+* Jeśli nie użyłeś opcji dodania TortoiseGit do PATH podczas instalacji, dodaj jego folder instalacyjny.
+
+''C:\Program Files\TortoiseGit\bin'' do PATH.
+
+Aby dodać ścieżki folderów do zmiennej PATH:
+# W menu Start systemu Windows kliknij prawym przyciskiem myszy na ''Komputer'' i wybierz ''Właściwości''.
+# W pojawiającym się oknie kliknij na ''Zaawansowane ustawienia systemu''.
+# Otworzy się kolejne okno. Kliknij tam na zakładkę ''Zaawansowane'' i wybierz '''Zmienne środowiskowe'''.
+# Otworzy się następne okno. Wybierz zmienną ''Path'' i kliknij '''Edytuj'''.
+# Otworzy się kolejne okno. Kliknij tam na '''Nowy''' i dodaj ścieżkę do folderu Git lub LibPack.
+# Na koniec naciśnij '''OK''' i zamknij wszystkie okna, klikając '''OK'''.
+
+<span id="Configuration"></span>
+==Konfiguracja==
+
+Gdy masz już wszystkie niezbędne narzędzia, biblioteki i kod źródłowy FreeCAD, możesz przystąpić do procesu konfiguracji i kompilacji. Proces ten przebiega w pięciu krokach:
+# Uruchom CMake, aby sprawdzić system i rozpocząć proces konfiguracji (początkowo zgłosi błąd).
+# Dostosuj odpowiednie ustawienia CMake, aby ustawić lokalizacje LibPack i włączyć Qt5.
+# Uruchom ponownie CMake, aby zakończyć konfigurację (tym razem powinno się udać).
+# Użyj CMake do wygenerowania systemu budowania Visual Studio.
+# Użyj Visual Studio do zbudowania FreeCAD.
+
+===CMake===
+
+Najpierw skonfiguruj środowisko budowania za pomocą CMake:
+# Otwórz interfejs graficzny CMake.
+# Wskaż folder źródłowy FreeCAD.
+# Wskaż folder budowania. Może to być '''build''' w folderze, do którego sklonowano repozytorium, ponieważ ta ścieżka jest ignorowana przez git. Nie używaj folderu źródłowego. CMake utworzy ten folder, jeśli nie istnieje.
+# Kliknij '''Configure'''.
+# W pojawiającym się oknie dialogowym wskaż generator, który chcesz użyć: w większości przypadków będziesz używać domyślnych opcji w tym oknie. Dla standardowego MS Visual Studio wybierz ''Visual Studio xx 2yyy'', gdzie xx to wersja kompilatora, a 2yyy rok jego wydania. Zaleca się użycie domyślnej opcji ''Use default native compilers''.
+
+'''Uwaga:''' Ważne jest, aby określić odpowiednią wersję bitową. Jeśli masz 64-bitową wersję LibPack, musisz również używać kompilatora x64.
+
+To rozpocznie konfigurację i ''nie powiedzie się'' z powodu brakujących ustawień. Jest to normalne, ponieważ jeszcze nie określiłeś lokalizacji LibPack. Jednak mogą wystąpić inne błędy, które będą wymagały dodatkowych działań z Twojej strony.
+
+Jeśli pojawi się komunikat o błędzie, że Visual Studio nie może zostać znalezione, oznacza to, że wsparcie CMake w MSVC nie jest jeszcze zainstalowane. Aby to zrobić:
+# Otwórz IDE MSVC.
+# Użyj menu Narzędzia → Pobierz narzędzia i funkcje.
+# W zakładce ''Obciążenia'' zaznacz ''Rozwój aplikacji na desktopie w C++''.
+# Po prawej stronie powinieneś teraz zobaczyć, że komponent ''Narzędzia Visual C++ dla CMake'' zostanie zainstalowany.
+# Zainstaluj go.
+
+Jeśli pojawi się błąd dotyczący nieprawidłowej wersji Pythona lub braku Pythona, wtedy:
+# Użyj pola "Search:" w CMake, aby wyszukać ciąg "Python".
+# Jeśli zobaczysz ścieżkę taką jak ''C:/Program Files/Python38/python.exe'', CMake rozpoznał Pythona, który jest już zainstalowany na twoim komputerze, ale ta wersja jest niekompatybilna z LibPack. Ponieważ LibPack zawiera kompatybilną wersję Pythona, zmodyfikuj następujące ustawienia Pythona w CMake na jego ścieżki (zakładając, że LibPack znajduje się w folderze ''D:/FreeCAD-build/FreeCADLibs_2_8_x64_VC2019''):
+[[File:CMake_Python_settings.png]]
+
+Jeśli nie występują błędy dotyczące Visual Studio lub Pythona, wszystko jest w porządku, ale CMake nadal nie zna wszystkich niezbędnych ustawień. Dlatego teraz:
+# W CMake wyszukaj zmienną '''FREECAD_LIBPACK_DIR''' i wskaż lokalizację folderu LibPack, który pobrałeś wcześniej.
+# (''Jeśli budujesz FreeCAD 0.19'') Wyszukaj zmienną '''BUILD_QT5''' i włącz tę opcję.
+# (''Jeśli planujesz uruchamianie bezpośrednio z folderu budowania, na przykład do debugowania'') Wyszukaj i włącz następujące opcje:
+#* '''FREECAD_COPY_DEPEND_DIRS_TO_BUILD'''
+#* '''FREECAD_COPY_LIBPACK_BIN_TO_BUILD'''
+#* '''FREECAD_COPY_PLUGINS_BIN_TO_BUILD'''
+# Kliknij '''Configure''' ponownie.
+
+Nie powinno już być żadnych błędów. Jeśli nadal napotykasz błędy, których nie możesz zdiagnozować, odwiedź forum [https://forum.freecadweb.org/viewforum.php?f=4 Install/Compile] na stronie forum FreeCAD. Jeśli CMake przebiegł poprawnie, kliknij '''Generate'''. Po zakończeniu możesz zamknąć CMake i rozpocząć kompilację FreeCAD za pomocą Visual Studio. Jednak podczas pierwszej kompilacji trzymaj CMake otwarte, na wypadek gdybyś chciał lub musiał zmienić niektóre opcje procesu kompilacji.
+
+<span id="Options_for_the_build_process"></span>
+===Opcje kompilacji===
+
+System kompilacji CMake daje Ci kontrolę nad niektórymi aspektami procesu kompilacji. W szczególności możesz włączać i wyłączać niektóre funkcje lub moduły za pomocą zmiennych CMake.
+
+Oto opis niektórych z tych zmiennych:
+
+{| class="wikitable" style="text-align:left"
+|-
+! Nazwa zmiennej       !! Opis  !! Domyślna wartość
+|-
+| BUILD_XXX || Kompiluj FreeCAD z komponentem XXX. Jeśli nie chcesz/nie musisz kompilować np. środowiska pracy ''OpenSCAD'', wyłącz zmienną ''BUILD_OPENSCAD''. FreeCAD nie będzie wtedy miał tego środowiska pracy.
+'''Uwaga:''' Niektóre komponenty są wymagane dla innych komponentów. Jeśli na przykład odznaczysz ''BUILD_ROBOT'', CMake poinformuje Cię, że komponent ''Path'' nie może być poprawnie skompilowany. Dlatego sprawdź wynik CMake po zmianie opcji BUILD_XXX! || zależy
+|-
+| BUILD_ENABLE_CXX_STD || Wersja standardu języka C++. '''C++14''' jest najwyższą możliwą wersją dla FreeCAD 0.19, podczas gdy dla FreeCAD 0.20 wymagana jest przynajmniej '''C++17'''. Zobacz także uwagi w sekcji [[#Kompilacja_Release|Kompilacja z Visual Studio 15 (2017) i 16 (2019)]] || zależy
+|-
+| BUILD_DESIGNER_PLUGIN || Aby zbudować wtyczkę Qt Designer, zobacz [[Compile_on_Windows/pl#Plugin_Qt_Designer|tę sekcję poniżej]] || OFF
+|-
+| BUILD_FLAT_MESH || Konieczne do uzyskania kompilacji zawierającej funkcję [[MeshPart_CreateFlatMesh/pl|Projekt Siatki: Rozwiń siatkę]] || OFF
+|-
+| CMAKE_INSTALL_PREFIX   || Folder wyjściowy podczas kompilacji celu ''INSTALL'', zobacz także sekcję [[#Uruchamianie_i_instalowanie_FreeCAD|Uruchamianie i instalowanie FreeCAD]] || Domyślny folder instalacji programów w Windows
+|-
+| FREECAD_COPY_DEPEND_DIRS_TO_BUILD || Kopiuje potrzebne biblioteki zależne do folderu budowania, aby uruchomić FreeCAD.exe. Zobacz także sekcję [[#Uruchamianie_i_instalacja_FreeCAD|Uruchamianie i instalowanie FreeCAD]].</br> '''Uwaga:''' opcje FREECAD_COPY_XXX pojawiają się tylko wtedy, gdy biblioteki nie zostały już skopiowane. Jeśli potrzebujesz tylko zaktualizować/zamienić wersję LibPack, zobacz sekcję [[#Aktualizacja_LibPack|Aktualizacja LibPack]]. Jeśli chcesz przywrócić opcje z jakiegoś powodu, musisz usunąć wszystkie foldery w folderze budowania, oprócz folderu LibPack. W CMake usuń pamięć podręczną i rozpocznij jak przy pierwszej kompilacji. || OFF
+|-
+| FREECAD_COPY_LIBPACK_BIN_TO_BUILD || Kopiuje pliki binarne LibPack potrzebne do uruchomienia FreeCAD.exe do folderu budowania. Zobacz także sekcję [[#Uruchamianie_i_instalowanie_FreeCAD|Uruchamianie i instalowanie FreeCAD]]. || OFF
+|-
+| FREECAD_COPY_PLUGINS_BIN_TO_BUILD || Kopiuje pliki wtyczek Qt potrzebne do uruchomienia FreeCAD.exe do folderu budowania. Zobacz także sekcję [[#Uruchamianie_i_instalowanie_FreeCAD|Uruchamianie i instalowanie FreeCAD]]. || OFF
+|-
+| FREECAD_LIBPACK_USE || Włącza lub wyłącza użycie LibPack FreeCAD || ON
+|-
+| FREECAD_LIBPACK_DIR || Katalog, w którym znajduje się LibPack || Folder z kodem źródłowym FreeCAD
+|-
+| FREECAD_RELEASE_PDB || Tworzy biblioteki debugowania (*.pdb) również dla kompilacji wersji release. Nie wpływa na prędkość (jak prawdziwa kompilacja debug) i może być bardzo przydatne do lokalizowania awarii w kodzie FreeCAD. W przypadku awarii FreeCAD zostanie utworzony plik ''crash.dmp'', który można załadować w MSVC, a jeśli masz odpowiednie pliki PDB i kod źródłowy tej wersji, możesz debugować kod. Bez plików PDB nie można debugować kodu, a wszystko, co pokazuje debugger, to nazwa DLL, w której wystąpiła awaria. || ON
+|-
+| FREECAD_USE_MP_COMPILE_FLAG || Dodaje opcję /MP (multiprocessor) do projektów Visual Studio, co umożliwia przyspieszenie na wielordzeniowych CPU. Może to znacznie przyspieszyć kompilacje na nowoczesnych procesorach.</br>'''Uwaga:''' Jeśli wyłączysz '''FREECAD_USE_PCH''', kompilacja może szybko przeciążyć pamięć operacyjną, nawet jeśli masz 16 GB RAM. || ON
+|-
+| FREECAD_USE_PCH || [https://en.wikipedia.org/wiki/Precompiled_header Prekompiluje nagłówki] w celu zaoszczędzenia czasu kompilacji. || ON
+|-
+| FREECAD_USE_PYBIND11 || Włącza bibliotekę [https://github.com/pybind/pybind11 PyBind11]. Konieczne do uzyskania kompilacji zawierającej funkcję [[MeshPart_CreateFlatMesh/pl|Projekt Siatki: Rozwiń siatkę]].</br>'''Uwaga:''' po włączeniu tej opcji możesz otrzymać błąd konfiguracji. Wystarczy skonfigurować ponownie, a problem powinien zniknąć. || OFF
+|}
+
+<span id="Building_FreeCAD"></span>
+==Kompilacja FreeCAD==
+
+W zależności od używanego kompilatora proces kompilacji FreeCAD może się nieco różnić. W poniższych sekcjach opisane są znane podejścia. Jeśli kompilujesz za pomocą Qt Creator, przejdź do [[#Kompilacja_z_Qt_Creator_(niekatualne)|Kompilacja z Qt Creator (nieaktualne)]], w przeciwnym razie kontynuuj bezpośrednio:
+
+<span id="Building_from_cmd.exe_command_line"></span>
+=== Kompilacja z linii poleceń cmd.exe ===
+
+Jeśli chcesz kompilować z wiersza poleceń, dane wyjściowe z CMake pokażą Ci odpowiednie polecenie do uruchomienia (które zależy od skonfigurowanego katalogu wydania). Jednak to polecenie spowoduje wykonanie kompilacji ''Debug'', która nie działa w systemie Windows i skutkuje błędem importu Numpy w FreeCAD (co jest znanym problemem, ale trudnym do naprawienia). Musisz określić opcję ''--config Release'', aby wymusić kompilację ''Release'':
+
+{{Code|code=
+cmake --build E:/release --config Release
+}}
+
+Należy pamiętać, że ustawienie zmiennych CMake, takich jak ''CMAKE_BUILD_TYPE'', nie ma żadnego wpływu; jedynie określenie opcji ''--config'' jak pokazano powyżej działa.
+
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<span id="Building_with_Visual_Studio_15_(2017)_or_newer"></span>
+===Kompilacja w Visual Studio 15 (2017) lub nowszym===
+
+<div class="mw-collapsible-content">
+
+<span id="Release_Build"></span>
+====Kompilacja Release====
+
+# Uruchom IDE Visual Studio. Można to zrobić, klikając przycisk ''Open Project'' w GUI CMake lub klikając dwukrotnie na plik ''FreeCAD.sln'', który znajdziesz w swoim folderze kompilacji.
+# Na pasku narzędzi IDE MSVC upewnij się, że dla pierwszej kompilacji wybrana jest opcja ''Release''.
+# Istnieje okno o nazwie ''Solution Explorer''. Wyświetla ono wszystkie możliwe cele kompilacji. Aby rozpocząć pełną kompilację, kliknij prawym przyciskiem myszy na cel '''ALL_BUILD''' i wybierz '''Build'''.
+To potrwa dość długo.
+
+Aby skompilować gotowy do użycia FreeCAD, skompiluj cel ''INSTALL'', zobacz sekcję [[#Uruchamianie_i_instalowanie_FreeCAD|Uruchamianie i instalowanie FreeCAD]].
+
+Jeśli nie napotkałeś żadnych błędów, skończyłeś. '''Gratulacje!''' Możesz zamknąć MSVC lub pozostawić je otwarte.
+
+'''Ważne:''' Od wersji Visual Studio 17.4 nie można używać optymalizacji kodu, która jest domyślnie włączona dla celu '''SketcherGui'''. Jeśli to zrobisz, wiązania kątowe będą źle umieszczone w szkicach. Aby to naprawić, kliknij prawym przyciskiem myszy na ten cel w eksploratorze rozwiązań MSVC i wybierz ostatnią pozycję '''Properties''' w menu kontekstowym. W pojawiającym się oknie przejdź do C/C++ → Optimization i tam wyłącz ustawienie '''Optimization'''. Na koniec zbuduj cel '''ALL_BUILD''' ponownie.
+
+<span id="Debug_Build"></span>
+====Kompilacja Debug====
+
+Aby przeprowadzić kompilację Debug, konieczne jest użycie Pythona, który jest dołączony do LibPack. Aby to zapewnić:
+# W GUI CMake wyszukaj "Python".
+# Jeśli zobaczysz tam ścieżkę, taką jak ''C:/Program Files/Python38/python.exe'', CMake rozpoznał Pythona zainstalowanego na Twoim komputerze, a nie tego z LibPack. W takim wypadku dostosuj te różne ustawienia Pythona w CMake do tego (zakładając, że LibPack znajduje się w folderze ''D:\FreeCAD-build\FreeCADLibs_12.5.2_x64_VC17''):
+[[File:CMake_Python_settings.png]]
+
+Jako warunek wstępny dla kompilacji Debug, musisz wykonać następujące kroki:
+# Skopiuj zawartość folderu LibPack ''bind'' do folderu ''bin'' w folderze kompilacji FreeCAD (nadpisz istniejące pliki).
+# Skopiuj zawartość folderu LibPack ''libd'' do folderu ''lib'' w folderze kompilacji FreeCAD.
+
+Teraz możesz przystąpić do kompilacji:
+# Uruchom IDE Visual Studio. Można to zrobić, klikając przycisk ''Open Project'' w GUI CMake lub klikając dwukrotnie na plik ''FreeCAD.sln'', który znajdziesz w swoim folderze budowania.
+# Na pasku narzędzi IDE MSVC upewnij się, że dla pierwszej kompilacji wybrana jest opcja ''Debug''.
+# Istnieje okno o nazwie ''Solution Explorer''. Wyświetla ono wszystkie możliwe cele kompilacji. Aby rozpocząć pełną kompilację, kliknij prawym przyciskiem myszy na cel '''ALL_BUILD''' i wybierz '''Build''' w menu kontekstowym.
+To potrwa dość długo.
+
+Jeśli nie było błędów kompilacji, a opcje '''FREECAD_COPY_*''' wspomniane w [[#CMake|kroku konfiguracji CMake]] były włączone, możesz rozpocząć kompilację Debug:
+# Kliknij prawym przyciskiem myszy na cel '''FreeCADMain''' i wybierz '''Set as Startup Project''' w menu kontekstowym.
+# Na koniec kliknij na pasku narzędzi przycisk z zielonym trójkątem o nazwie '''Local Windows Debugger'''.
+
+To rozpocznie kompilację Debug programu FreeCAD i będziesz mógł używać IDE MSVC do debugowania.
+
+==== Materiał wideo ====
+Dostępny jest anglojęzyczny samouczek, który zaczyna się od konfiguracji w CMake Gui i kontynuuje do polecenia `Build` w Visual Studio 16 2019. Jest on dostępny jako niepubliczny film na YouTube pod adresem [https://youtu.be/s4pHvlDOSZQ Tutorial: Build FreeCAD from source on Windows 10].
+</div>
+</div>
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<span id="Building_with_Qt_Creator_(outdated)"></span>
+===Kompilacja z Qt Creator (nieaktualne)===
+
+<div class="mw-collapsible-content">
+
+<span id="Installation_and_configuration_of_Qt_Creator"></span>
+====Instalacja i konfiguracja Qt Creator====
+
+* Pobierz i zainstaluj [https://www.qt.io/offline-installers Qt Creator]
+* Tools → Options → Text Editor → Behavior:
+** File Encodings → Default Encodings:
+** Ustaw na: '''ISO-8859-1 /...csISOLatin1''' (Niektóre znaki powodują błędy/ostrzeżenia w Qt Creator, jeśli pozostaną ustawione na UTF-8. To powinno rozwiązać problem.)
+* Tools → Options → Build & Run:
+** Zakładka CMake
+*** Wypełnij pole Executable ścieżką do cmake.exe
+** Zakładka Kits
+*** Name: MSVC 2008
+*** Compiler: Microsoft Visual C++ Compiler 9.0 (x86)
+*** Debugger: Automatycznie wykryty...
+*** Qt version: Brak
+** Zakładka General
+*** Odznacz: Always build project before deploying it
+*** Odznacz: Always deploy project before running it
+
+<span id="Import_project_and_building"></span>
+====Import projektu i kompilacja====
+
+* File → Open File or Project
+* Otwórz '''CMakeLists.txt''' znajdujący się na najwyższym poziomie źródła
+* To uruchomi CMake
+* Wybierz katalog kompilacji i kliknij next
+* Ustaw generator na '''NMake Generator (MSVC 2008)'''
+* Kliknij Run CMake. Postępuj zgodnie z instrukcjami opisanymi powyżej, aby skonfigurować CMake według własnych potrzeb.
+
+Teraz FreeCAD można skompilować
+* Build → Build All
+* To zajmie dużo czasu...
+
+Po zakończeniu można uruchomić:
+W lewym dolnym rogu znajdują się dwa zielone trójkąty. Jeden to debug.
+Drugi to run. Wybierz ten, który chcesz.
+</div>
+</div>
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<span id="Command_line_build"></span>
+===Kompilacja z linii poleceń===
+
+<div class="mw-collapsible-content">
+
+Kroki, jak skompilować z linii poleceń, zależą od kompilatora. Dla MSVC 2017 kroki są następujące:
+# W menu Start systemu Windows przejdź do {{MenuCommand|Visual Studio 2017 → Visual Studio Tools}} i wybierz '''Developer Command Prompt for VS 2017'''
+# Przejdź do folderu kompilacji.
+# Wykonaj polecenie
+
+{{Code|code=msbuild ALL_BUILD.vcxproj /p:Configuration=Release}}
+
+lub
+
+{{Code|code=msbuild INSTALL.vcxproj /p:Configuration=Release}}
+
+Te kroki można również zautomatyzować. Oto przykład rozwiązania dla MSVC 2017:
+# Pobierz skrypt [https://forum.freecadweb.org/download/file.php?id=92135 compile-FC.txt].
+# Zmień nazwę na ''compile-FC.bat''
+# W Eksploratorze plików Windows, przytrzymaj Shift+prawy przycisk myszy na swoim folderze kompilacji i użyj opcji ''Wiersz poleceń tutaj'' z menu kontekstowego.
+# Wykonaj polecenie
+
+{{Code|code=compile-FC install}}
+
+Zamiast wywoływać '''compile-FC''' z opcją ''install'', możesz również użyć ''debug'' lub ''release'':
+
+''debug'' &nbsp; - kompiluje FreeCAD w konfiguracji debugowania
+
+''release'' - kompiluje FreeCAD w konfiguracji release
+
+''install'' &nbsp;&nbsp; - kompiluje FreeCAD w konfiguracji release i tworzy instalator
+
+</div>
+</div>
+
+<span id="Running_and_installing_FreeCAD"></span>
+==Uruchamianie i instalowanie FreeCAD==
+
+Istnieją 2 metody uruchamiania skompilowanego programu FreeCAD:
+
+''Metoda 1'': Uruchomiasz FreeCAD.exe, który znajdziesz w folderze kompilacji w podfolderze ''bin''
+
+''Metoda 2'': Kompilujesz cel ''INSTALL''
+
+Metoda 2 jest prostsza, ponieważ automatycznie zapewnia, że wszystkie biblioteki potrzebne do uruchomienia FreeCAD.exe znajdują się w odpowiednim folderze. FreeCAD.exe i biblioteki zostaną zapisane w folderze, który określiłeś w zmiennej CMake ''CMAKE_INSTALL_PREFIX''.
+
+W przypadku Metody 1 musisz włączyć opcje '''FREECAD_COPY_*''' wspomniane w [[#CMake|kroku konfiguracji CMake]] powyżej.
+
+<span id="Troubleshooting"></span>
+===Rozwiązywanie problemów===
+
+Podczas uruchamiania FreeCAD możesz napotkać brakujące pliki DLL przy korzystaniu z niektórych środowisk pracy lub funkcji środowisk pracy. Komunikat o błędzie w konsoli FreeCAD nie wskaże, które DLL jest brakujące. Aby się dowiedzieć, musisz użyć zewnętrznego narzędzia:
+
+* Pobierz najnowszą wersję programu '''Dependencies''': https://github.com/lucasg/Dependencies/releases (wybierz plik ''Dependencies_x64_Release.zip'')
+* W [[Python_console/pl|konsoli Pythona]] progrmau FreeCAD wykonaj te polecenia:
+ <nowiki>import os
+os.system(r"~\DependenciesGui.exe")</nowiki>
+'''Uwaga''': Zamiast ~ musisz podać pełną ścieżkę do ''DependenciesGui.exe'' w swoim systemie.
+* Teraz przeciągnij plik *.pyd środowiska pracy, dla którego zgłaszane są brakujące pliki DLL.
+
+<span id="Updating_the_build"></span>
+==Aktualizacja kompilacji==
+
+FreeCAD jest bardzo aktywnie rozwijany. Dlatego jego kod źródłowy zmienia się niemal codziennie. Nowe funkcje są dodawane, a błędy naprawiane. Aby skorzystać z tych zmian w kodzie źródłowym, musisz ponownie zbudować FreeCAD. Obejmuje to dwa kroki:
+# Aktualizacja kodu źródłowego
+# Rekompilacja
+
+<span id="Updating_the_source_code"></span>
+===Aktualizacja kodu źródłowego===
+
+<span id="Using_a_frontend"></span>
+====Używanie interfejsu====
+
+Korzystając z [https://en.wikipedia.org/wiki/Comparison_of_Git_GUIs interfejsu Git] TortoiseGit:
+# Kliknij prawym przyciskiem myszy na folder z kodem źródłowym programu FreeCAD w Eksploratorze plików Windows i wybierz '''Pull''' w menu kontekstowym.
+# Pojawi się okno dialogowe. Wybierz tam, którą gałąź rozwojową chcesz pobrać. '''master''' to główna gałąź, więc używaj jej, chyba że chcesz skompilować specjalną nową funkcję z gałęzi, która nie została jeszcze scalona z ''master''. (Aby uzyskać więcej informacji o gałęziach Git, zobacz [[Source_code_management/pl#Proces_rozwoju_w_Git|Proces rozwoju w Git]].)
+
+Wreszcie kliknij '''OK'''.
+
+<span id="Using_the_command_line"></span>
+====Używanie wiersza poleceń====
+
+Otwórz terminal (wiersz poleceń) i przejdź do katalogu źródłowego. Następnie wpisz:
+
+{{Code|code=
+git pull https://github.com/FreeCAD/FreeCAD.git master
+}}
+
+gdzie ''master'' to nazwa głównej gałęzi rozwojowej. Jeśli chcesz pobrać kod z innej gałęzi, użyj jej nazwy zamiast ''master''.
+
+<span id="Recompilation"></span>
+===Rekompilacja===
+
+# Otwórz IDE MSVC, klikając dwukrotnie na plik ''FreeCAD.sln'' lub na plik ''ALL_BUILD.vcxproj'' w folderze kompilacji.
+# Kontynuuj od kroku 2 z sekcji [[#Kompilacja_w_Visual_Studio_15_(2017)_lub_nowszym|Kompilacja w Visual Studio 15 (2017) lub nowszym]].
+
+<span id="Updating_the_LibPack"></span>
+==Aktualizacja LibPack==
+
+Jeśli zostanie wydana nowa duża wersja zależności zewnętrznej, takiej jak Open Cascade, lub jeśli zależność zewnętrzna otrzyma ważne poprawki błędów, zostanie wydana nowa wersja LibPack. Najnowszą wersję można znaleźć [https://github.com/FreeCAD/FreeCAD-LibPack/releases/ tutaj].
+
+Aby zaktualizować swój LibPack, najlepiej postępować zgodnie z poniższymi krokami:
+# Usuń folder ''bin'' w folderze kompilacji.
+# Przejdź do lokalnego folderu LibPack i usuń z niego wszystkie pliki.
+# Wypakuj zawartość nowego pliku ZIP LibPack do istniejącego, ale teraz pustego lokalnego folderu LibPack.
+# Otwórz CMake, kliknij przycisk '''Configure''', a następnie przycisk '''Generate'''. Spowoduje to ponowne utworzenie folderu ''bin'', który właśnie usunąłeś, oraz skopiowanie nowych plików LibPack do tego folderu.
+# W CMake kliknij przycisk '''Open Project''', a IDE MSVC zostanie otwarte.
+# W IDE MSVC zbuduj cel ''INSTALL''.
+
+<span id="Tools"></span>
+==Przybory==
+
+Aby dołączyć do rozwoju FreeCAD, należy skompilować i zainstalować następujące narzędzia:
+
+<span id="Qt_Designer_plugin"></span>
+===Plugin Qt Designer===
+
+FreeCAD używa [https://en.wikipedia.org/wiki/Qt_(software) Qt] jako narzędzia do budowy interfejsu użytkownika. Wszystkie okna dialogowe są definiowane w plikach UI, które można edytować za pomocą programu [https://doc.qt.io/qt-5/qtdesigner-manual.html Qt Designer], będącego częścią każdej instalacji Qt i również zawartego w LibPack. FreeCAD posiada własny zestaw widżetów Qt, które zapewniają specjalne funkcje, takie jak dodawanie jednostek do pól wejściowych i ustawianie właściwości preferencji.
+
+<span id="Compilation"></span>
+====Kompilacja====
+
+Wtyczka nie może być załadowana przez Qt Designer, jeśli została skompilowana przy użyciu innej wersji Qt niż ta, na której oparty jest Twój Qt Designer/Qt Creator. Dlatego wtyczka musi być kompilowana razem z FreeCAD.
+
+* W opcjach CMake (zobacz [[Compile_on_Windows/pl#Opcje_kompilacji|tę sekcję powyżej]]) włącz opcję BUILD_DESIGNER_PLUGIN i przeprowadź rekonfigurację.
+* Otwórz MSVC i zbuduj cel '''FreeCAD_widgets'''
+
+W wyniku tego otrzymasz plik wtyczki '''FreeCAD_widgets.dll''' w folderze</br>''~\src\Tools\plugins\widget\Release''
+
+<span id="Installation"></span>
+====Instalacja====
+
+Aby zainstalować wtyczkę, skopiuj plik DLL do jednego z poniższych folderów:
+* Jeśli używasz LibPack: do folderu</br>''~\FreeCADLibs_2_8_x64_VC2019\plugins\designer''
+* Jeśli masz pełną instalację Qt: możesz wybrać jeden z folderów:</br>''C:\Qt\5.15.2\msvc2019_64\plugins\designer''</br>lub</br>''C:\Qt\5.15.2\msvc2019_64\bin\designer'' (musisz najpierw utworzyć podfolder ''designer'').</br>(dostosuj ścieżki do swojej instalacji!).
+
+Na koniec (ponownie) uruchom Qt Designer i sprawdź jego menu {{MenuCommand|Help → Plugins}}. Jeśli wtyczka '''FreeCAD_widgets.dll''' jest wymieniona jako załadowana, możesz teraz projektować i zmieniać pliki .ui FreeCAD. Jeśli nie, musisz [[#Kompilacja|skompilować]] DLL samodzielnie.
+
+Jeśli wolisz używać [https://en.wikipedia.org/wiki/Qt_Creator Qt Creatora] zamiast Qt Designera, plik wtyczki należy umieścić w tym folderze:</br>''C:\Qt\Qt5.15.2\Tools\QtCreator\bin\plugins\designer''</br> Następnie (ponownie) uruchom Qt Creator, przełącz się na tryb '''Design''', a następnie sprawdź menu {{MenuCommand|Tools → Form Editor → About Qt Designer Plugins}}. Jeśli wtyczka '''FreeCAD_widgets.dll''' jest wymieniona jako załadowana, możesz teraz projektować i zmieniać pliki .ui programu FreeCAD. Jeśli nie, musisz [[#Kompilacja|skompilować]] DLL samodzielnie.
+
+===Thumbnail Provider===
+
+FreeCAD ma funkcję zapewniania podglądu miniatur dla plików *.FCStd. Oznacza to, że w Eksploratorze Windows pliki *.FCStd są wyświetlane ze zrzutem ekranu modelu, który zawierają. Aby zapewnić tę funkcję, FreeCAD musi mieć plik '''FCStdThumbnail.dll''' zainstalowany w Windows.
+
+<span id="Installation"></span>
+====Instalacja====
+
+DLL jest instalowany w następujący sposób:
+# Pobierz [https://forum.freecadweb.org/download/file.php?id=13404 ten plik ZIP] i rozpakuj go.
+# Otwórz wiersz poleceń Windows z uprawnieniami administratora (te uprawnienia są wymagane).
+# Przejdź do folderu, w którym znajduje się DLL.
+# Wykonaj to polecenie {{Code|code=regsvr32 FCStdThumbnail.dll}}
+
+Aby sprawdzić, czy to działa, upewnij się, że w programie FreeCAD preferencja '''[[Preferences_Editor/pl#Dokument|Zapisz miniaturę do pliku projektu podczas zapisywania dokumentu]]''' jest włączona i zapisz model. Następnie, w Eksploratorze Windows, otwórz folder zapisanych modeli używając widoku symboli. Powinieneś teraz zobaczyć zrzut ekranu modelu w widoku folderu.
+
+<span id="Compilation"></span>
+====Kompilacja====
+
+Aby skompilować plik FCStdThumbnail.dll:
+# Przejdź do folderu źródłowego FreeCAD:</br>''~\src\Tools\thumbs\ThumbnailProvider''
+# Otwórz GUI CMake
+# Jako folder źródłowy wskaż bieżący folder.
+# Użyj tego samego folderu jako folderu kompilacji.
+# Kliknij '''Configure'''
+# W pojawiającym się oknie dialogowym wybierz generator zgodnie z tym, który chcesz użyć. Dla standardowego MS Visual Studio użyj ''Visual Studio xx 2yyy'', gdzie xx to wersja kompilatora, a 2yyy to rok wydania. Zaleca się użycie domyślnej opcji ''Use default native compilers''.</br>'''Uwaga:''' Ważne jest, aby określić prawidłowy wariant bitowy. Jeśli masz 64-bitowy wariant LibPack, musisz również użyć kompilatora x64.
+# Kliknij '''Generate'''.
+# Powinieneś teraz mieć plik '''ALL_BUILD.vcxproj''' w folderze ''~\src\Tools\thumbs\ThumbnailProvider''. Kliknij na niego dwukrotnie, aby otworzyć MSVC IDE.
+# W pasku narzędzi MSVC IDE upewnij się, że używasz celu kompilacji ''Release''.
+# W oknie ''Solution Explorer'' kliknij prawym przyciskiem myszy na '''ALL_BUILD''' i wybierz '''Build'''.
+# W wyniku kompilacji powinieneś teraz mieć plik '''FCStdThumbnail.dll''' w folderze ''~\src\Tools\thumbs\ThumbnailProvider\release'', który możesz zainstalować zgodnie z opisem powyżej.
+
+<span id="Compiling_Open_Cascade"></span>
+== Kompilacja Open Cascade==
+
+LibPack zawiera wersję [https://en.wikipedia.org/wiki/Open_Cascade Open Cascade] odpowiednią do ogólnego użytku. Jednak w pewnych okolicznościach możesz chcieć skompilować program z użyciem innej wersji Open Cascade, na przykład jednej z ich oficjalnych wersji lub zmodyfikowanej wersji.
+
+Podczas kompilacji Open Cascade dla FreeCAD należy pamiętać, że nie ma gwarancji, iż FreeCAD będzie działać ze wszystkimi wersjami Open Cascade. Należy również pamiętać, że jeśli używasz biblioteki Netgen, musisz używać wersji Netgen zatwierdzonej do kompilacji z wersją Open Cascade, której chcesz użyć do kompilacji.
+
+Aby skompilować:
+* Najpierw zdobądź kod źródłowy Open Cascade, bezpośrednio z [https://github.com/Open-Cascade-SAS/OCCT repozytorium git Open Cascade] lub klonując inne repozytorium, na przykład [https://gitlab.com/blobfish/occt fork "blobfish"] utrzymywany przez członka forum FreeCAD [https://forum.freecadweb.org/memberlist.php?mode=viewprofile&u=208 tanderson69].
+
+* Następnie otwórz GUI CMake, aby skonfigurować system kompilacji w sposób podobny do kompilacji FreeCAD. Te opcje CMake muszą być ustawione (lub jawnie nie ustawione):
+{| class="wikitable" style="text-align:left"
+|-
+! Nazwa zmiennej       !! Opis !! Domyślna wartość
+|-
+| 3RDPARTY_DIR|| Ścieżka do komponentów zewnętrznych. Zaleca się używanie folderu, w którym znajduje się używany LibPack. Jawnie pozostaw to pole puste.
+|| puste
+|-
+| 3RDPARTY_DOXYGEN_EXECUTABLE|| Ścieżka do pliku wykonywalnego komponentu zewnętrznego [https://en.wikipedia.org/wiki/Doxygen Doxygen]. Zaleca się zainstalowanie Doxygen. CMake znajdzie go automatycznie.
+|| puste
+|-
+| 3RDPARTY_FREETYPE_DIR|| Ścieżka do niezbędnego komponentu zewnętrznego [https://en.wikipedia.org/wiki/FreeType Freetype]. Zaleca się używanie folderu, w którym znajduje się używany LibPack.
+|| puste
+|-
+| 3RDPARTY_RAPIDJSON_DIR|| Dostępne tylko jeśli '''USE_RAPIDJSON''' jest używane. Ścieżka do komponentu zewnętrznego [https://rapidjson.org/ RapidJSON]. Zaleca się NIE używać istniejącego folderu LibPack jako wejścia. Możesz użyć folderu RapidJSOn z LibPack, ale skopiuj go do nowego folderu i użyj tego nowego folderu jako wejścia.
+|| puste
+|-
+| 3RDPARTY_TCL_DIR|| Ścieżka do niezbędnego komponentu zewnętrznego [https://en.wikipedia.org/wiki/Tcl TCL]. Zaleca się NIE używać istniejącego folderu LibPack jako wejścia. Wybierz na przykład jedno z [https://github.com/teclab-at/tcltk/releases tych wydań], rozpakuj je i użyj tego folderu jako wejścia dla CMake.
+|| puste
+|-
+| 3RDPARTY_TK_DIR|| Ścieżka do niezbędnego komponentu zewnętrznego [https://en.wikipedia.org/wiki/Tk_(software) TK]. Zaleca się NIE używać istniejącego folderu LibPack jako wejścia. Wybierz na przykład jedno z [https://github.com/teclab-at/tcltk/releases tych wydań], rozpakuj je i użyj tego folderu jako wejścia dla CMake.
+|| puste
+|-
+| 3RDPARTY_VTK_DIR|| Dostępne tylko jeśli '''USE_VTK''' jest używane. Ścieżka do niezbędnego komponentu zewnętrznego [https://en.wikipedia.org/wiki/VTK VTK]. Zaleca się używanie folderu, w którym znajduje się używany LibPack. Jeśli używasz innego folderu, upewnij się, że nie używasz VTK 9.x lub nowszego.
+|| puste
+|-
+| BUILD_RELEASE_DISABLE_EXCEPTIONS|| Wyłącza obsługę wyjątków dla kompilacji wydania. Dla FreeCAD musisz ustawić na '''OFF'''.
+|| ON
+|-
+| INSTALL_DIR|| Folder wyjściowy przy budowaniu celu ''INSTALL''. Jeśli kompilacja zakończyła się sukcesem, weź pliki z tego folderu, aby zaktualizować swój LibPack.
+|| domyślny folder instalacji programów w systemie Windows
+|-
+| INSTALL_DIR_BIN|| Podfolder wyjściowy dla DLL przy budowaniu celu ''INSTALL''. Musisz zmienić na '''bin'''
+|| win64/vc14/bin
+|-
+| INSTALL_DIR_LIB|| Podfolder wyjściowy dla plików .lib przy budowaniu celu ''INSTALL''. Musisz zmienić na '''lib'''
+|| win64/vc14/lib
+|-
+| USE_RAPIDJSON|| Kompilacja Open Cascade z obsługą RapidJSON. Włączenie tej opcji jest obowiązkowe, aby uzyskać wsparcie dla formatu pliku [https://en.wikipedia.org/wiki/Gltf glTF].
+|| OFF
+|-
+| USE_VTK|| Kompilacja Open Cascade z obsługą VTK. Włączenie tej opcji jest optymalne. Możesz użyć tego do budowy VTK Open Cascade bridge.
+|| OFF
+|}
+
+* Otwórz projekt w Visual Studio i najpierw zbuduj cele ALL_BUILD, a następnie INSTALL w trybie '''Release'''.
+* Powtórz budowanie obu celów w trybie '''Debug'''.
+
+Aby zbudować FreeCAD przy użyciu samodzielnie skompilowanego Open Cascade, należy wykonać następujące kroki:
+* Skopiuj wszystkie foldery z INSTALL_DIR do folderu LibPack (nadpisz istniejące pliki).
+* Przejdź do folderu LibPack i wejdź do podfolderu ''cmake''.
+* Otwórz plik ''OpenCASCADEDrawTargets.cmake'' w edytorze tekstu.
+* Wyszukaj tam bezwzględne ścieżki do folderu LibPack i usuń je. Na przykład bezwzględna ścieżka </br>''D:/FreeCADLibs_12.5.4_x64_VC17/lib/freetype.lib''</br> zmienia się na </br>''freetype.lib''</br>.
+* Zrób to samo dla pliku ''OpenCASCADEVisualizationTargets.cmake''.
+
+<span id="Compiling_Netgen"></span>
+== Kompilacja Netgen==
+
+LibPack zawiera wersję [https://ngsolve.org Netgen], która była testowana pod kątem zgodności z wersją Open Cascade LibPack. Problem polega na tym, że każda nowa wersja Netgen zmienia API. Każda nowa wersja Open Cascade również to robi. Dlatego nie można łatwo zmienić wersji Netgen.
+
+Możesz jednak spróbować zbudować Netgen samodzielnie. To stosunkowo łatwe zadanie:
+
+* Najpierw pobierz kod źródłowy Netgen, bezpośrednio z [https://github.com/NGSolve/netgen repozytorium Git Netgen].
+* Następnie otwórz GUI CMake, aby skonfigurować system kompilacji w sposób podobny do kompilacji FreeCAD. Należy ustawić następujące opcje CMake:
+{| class="wikitable" style="text-align:left"
+|-
+! Nazwa zmiennej       !! Opis  !! Domyślna wartość
+|-
+| CMAKE_INSTALL_PREFIX|| Folder wyjściowy podczas kompilacji celu ''INSTALL''. Jeśli kompilacja zakończyła się sukcesem, przenieś pliki z tego folderu, aby zaktualizować swój LibPack.
+|| C:/netgen
+|-
+| OpenCasCade_DIR|| Ścieżka do plików CMake Open Cascade. Jeśli zbudowałeś Open Cascade zgodnie z opisem w sekcji [[#Kompilacja_Open_Cascade|Kompilacja Open Cascade]], możesz użyć podfolderu ''cmake'' folderu, który użyłeś jako INSTALL_DIR. Jeśli nie, użyj podfolderu ''cmake'' swojego LibPack. Niezależnie od używanego folderu, musisz również stworzyć podfolder ''lib'' i skopiować do niego pliki ''freetype.lib'' i ''freetyped.lib'' z Twojego LibPack.
+|| puste
+|-
+| USE_GUI|| ustaw na '''OFF'''
+|| ON
+|-
+| USE_NATIVE_ARCH|| ustaw na '''OFF'''; jest to ważne tylko w celu wsparcia starszych CPU, które nie obsługują zestawu instrukcji [https://en.wikipedia.org/wiki/Advanced_Vector_Extensions AVX2]
+|| ON
+|-
+| USE_OCC|| ustaw na '''ON'''
+|| OFF
+|-
+| USE_PYTHON|| ustaw na '''OFF'''
+|| ON
+|-
+| USE_SUPERBUILD|| ustaw na '''OFF'''
+|| ON
+|-
+| ZLIB_INCLUDE_DIR|| Ścieżka do niezbędnego komponentu zewnętrznego [https://en.wikipedia.org/wiki/Zlib zlib]. Zaleca się użycie folderu, w którym znajduje się Twój używany LibPack.
+|| puste
+|-
+| ZLIB_LIBRARY_DEBUG|| Ścieżka do pliku ZLib ''zlibd.lib''. Znajduje się w podfolderze ''lib'' Twojego folderu LibPack.
+|| puste
+|-
+| ZLIB_LIBRARY_RELEASE|| Ścieżka do pliku ZLib ''zlib.lib''. Znajduje się w podfolderze ''lib'' Twojego folderu LibPack.
+|| puste
+|}
+
+* Dodatkowo musisz dodać nowy wpis CMake: nazwa: ''CMAKE_DEBUG_POSTFIX'', typ: ''string'', zawartość: '''_d'''</br>
+To zapewnia, że nazwy plików bibliotek debugujących będą miały inny nazwę niż biblioteki release, co zapobiega przypadkowemu zamienieniu ich później.
+
+* Naciśnij przycisk ''Configure'' w CMake, aby wygenerować pliki *.cmake.
+* Tylko jeśli starsze CPU, które nie posiadają zestawu instrukcji AVX2, mają być obsługiwane:
+** Poszukaj w folderze kompilacji Netgen pliku ''netgen-targets.cmake'' i otwórz go w edytorze tekstu. Usuń ustawienie '';/arch:AVX2'' w opcji INTERFACE_COMPILE_OPTIONS.
+** Naciśnij przycisk ''Configure'' w CMake ponownie.
+* Naciśnij przycisk ''Generate'' w CMake.
+* Otwórz projekt w Visual Studio i najpierw zbuduj cele ALL_BUILD, a następnie INSTALL w trybie '''Release'''.
+* Powtórz budowanie dwóch celów w trybie '''Debug'''.
+
+Aby zbudować FreeCAD przy użyciu samodzielnie skompilowanego Netgen, musisz wykonać następujące kroki:
+* Skopiuj wszystkie foldery z CMAKE_INSTALL_PREFIX do folderu LibPack (nadpisując istniejące pliki).
+
+<span id="References"></span>
+==Źródła==
+
+Zobacz też
+* [[Compiling_(Speeding_up)/pl|Kompilacja (przyspieszamy)]]
+
+
+{{Docnav/pl
+|[[License/pl|Licencja]]
+|[[Compile_on_Linux/pl|Kompilacja w systemie Linux]]
+}}
+
+{{Userdocnavi{{#translation:}}}}
+[[Category:Developer_Documentation{{#translation:}}]]
+[[Category:Developer{{#translation:}}]]

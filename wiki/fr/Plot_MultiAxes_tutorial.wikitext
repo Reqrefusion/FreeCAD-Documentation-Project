@@ -1,0 +1,134 @@
+<languages/>
+
+{{TutorialInfo/fr
+|Topic=Atelier Plot
+|Level=Intermediaire
+|Time=
+|Author=
+|FCVersion=0.19
+|Files=
+}}
+
+Veuillez effectuer le [[Plot_Basic_tutorial/fr|tutoriel de base]] avant de commencer avec ce tutoriel. Dans ce didacticiel, nous allons apprendre à créer et à modifier un tracé multiaxes. Vous pouvez en savoir plus sur l'[[Plot_Workbench/fr|Atelier Plot ici]].
+
+[[Image:Plot_MultiAxes_Example.png|600px]]
+{{Caption|Exemple de tracé multiaxe}}
+
+Dans l'image, vous pouvez voir le résultat que nous obtiendrons approximativement. En suivant ce tutoriel, vous apprendrez :
+* Comment créer un graphe multi-axes à partir de la [[Python_console/fr|console Python]].
+* Comment éditer les propriétés des axes.
+* Comment contrôler la grille et la légende lorsque plusieurs ensembles d'axes sont présents.
+* Comment éditer la position des étiquettes, titres et légendes.
+
+<span id="Plotting_data"></span>
+==Traçage des données==
+
+Comme nous l'avons fait dans le [[Plot_Basic_tutorial/fr|tutoriel précédent]], nous allons utiliser la [[Python_console/fr|console Python]] ou des [[Macros/fr|macros]] pour tracer les données, mais dans ce cas, nous allons tracer les données en utilisant deux ensembles d'axes.
+
+<span id="Creating_plot_data"></span>
+===Création de données de tracé===
+
+Dans cet exemple, nous allons tracer 3 fonctions, les deux utilisées dans le [[Plot_Basic_tutorial/fr|tutoriel précédent]] et une nouvelle fonction polynomiale. L'étendue de la fonction polynomiale est différente des autres fonctions, donc de nouveaux axes sont nécessaires. Les commandes suivantes vont créer les tableaux de données pour nous :
+
+{{Code|code=
+import math
+p = range(0,1001)
+x = [2.0*xx/1000.0 for xx in p]
+y = [xx**2.0 for xx in x]
+t = [tt/1000.0 for tt in p]
+s = [math.sin(math.pi*2.0*tt) for tt in t]
+c = [math.cos(math.pi*2.0*tt) for tt in t]
+}}
+
+Comme ''x'' se déplace de 0 à 2, la fonction ''y'' a une valeur maximale de 4, donc si nous essayons de tracer cette fonction avec les fonctions trigonométriques, au moins une fonction sera tronquée ou mal mise à l'échelle, donc nous avons besoin d'un tracé multi-axes. Un tracé multiaxe dans FreeCAD est destiné à obtenir un tracé avec plusieurs axes, et non à obtenir plusieurs tracés dans le même document.
+
+<span id="Drawing_functions,_adding_new_axes"></span>
+===Fonctions de dessin, ajout de nouveaux axes===
+
+Nous allons tracer les fonctions trigonométriques en utilisant les axes principaux. Si tous vos axes ont la même taille, il n'est pas important de savoir quelle fonction est tracée en premier. Mais si ce n'est pas le cas, la fonction qui utilise les plus grands axes, dans notre cas la fonction polynomiale, doit être tracée en dernier. La légende sera attachée au dernier système d'axes et il est plus pratique que ce soit le plus grand. Pour tracer les fonctions trigonométriques, il suffit de lancer quelques commandes.
+
+{{Code|code=
+try:
+    from FreeCAD.Plot import Plot
+except ImportError:
+    from freecad.plot import Plot
+
+Plot.plot(t,s,r"$\sin\left( 2 \pi t \right)$")
+Plot.plot(t,c,r"$\cos\left( 2 \pi t \right)$")
+}}
+
+Dans cet exemple, nous transmettons directement les étiquettes des séries pour la légende. Notez que les chaînes d'étiquettes ont le préfixe ''r'' afin d'empêcher Python d'essayer d'interpréter des caractères spéciaux (le symbole ''\'' est fréquemment utilisé dans la syntaxe [http://www.latex-project.org LaTeX]).
+
+Avant de pouvoir tracer la fonction polynomiale, nous devons créer de nouveaux axes. Dans l'[[Plot_Workbench/fr|atelier Plot]], les nouveaux axes sont automatiquement sélectionnés comme axes actifs et les nouveaux tracés seront associés à ces axes.
+
+{{Code|code=
+Plot.addNewAxes()
+Plot.plot(x,y,r"$x^2$")
+}}
+
+Comme vous pouvez le constater, votre graphique est devenu fou, avec des repères d'axes qui se chevauchent, des courbes de la même couleur, etc. Nous devons maintenant utiliser l'[[Plot_Workbench/fr|atelier Plot]] pour corriger ce graphique.
+
+<span id="Configuring_plot"></span>
+==Configurer Plot==
+
+<span id="Configuring_axes"></span>
+===Configurer les axes===
+
+L'[[Plot_Workbench/fr|atelier Plot]] fournit un outil permettant de modifier les propriétés des axes.
+
+[[Image:Plot_Axes.svg‎]]
+{{Caption|Icône de l'outil de configuration des axes}}
+
+Avec l'outil [[Plot_Axes/fr|axes]], vous pouvez ajouter ou supprimer des axes, et définir les axes actifs, qui seront ensuite utilisés si vous tracer d'autres données.
+
+Pour modifier la taille du premier ensemble d'axes, associé aux fonctions trigonométriques, il faut d'abord l'activer en faisant passer les axes actifs de 1 à 0. Nous pouvons ensuite déplacer les curseurs de dimension horizontale et verticale pour réduire sa taille (essayez d'imiter l'exemple). Nous devons également modifier l'alignement des axes : sélectionnez respectivement haut et droite.
+
+<span id="Configuring_series"></span>
+===Configurer les séries===
+
+Définissez les propriétés de la série comme nous l'avons fait dans le [[Plot_Basic_tutorial/fr|tutoriel précédent]].
+
+<span id="Showing_grid_and_legend"></span>
+===Affichage de la grille et de la légende===
+
+La [[Plot_Grid/fr|grille]] et la [[Plot_Legend/fr|légende]] peuvent être affichées, et masquées, avec les outils déjà décrits dans le [[Plot_Basic_tutorial/fr|tutoriel précédent]] mais dans ce cas le comportement est un peu différent car il y a deux ensembles d'axes.
+
+Les lignes de la grille sont ajoutées à l'ensemble des axes actifs. Pour ajouter des lignes au deuxième ensemble d'axes dans notre exemple, il faut d'abord l'activer en faisant passer les axes actifs de 0 à 1 dans l'outil [[Plot_Axes/fr|axes]].
+
+Comme déjà mentionné, la légende sera positionnée par rapport aux derniers axes définis. Si vous montrez la légende maintenant, vous verrez qu'elle est vraiment mal placée mais nous corrigerons cela plus tard.
+
+<span id="Setting_axes_labels"></span>
+===Définir les étiquettes des axes===
+
+Lorsqu'il s'agit de définir les [[Plot_Labels/fr|étiquettes]] des axes, nous devons à nouveau composer avec nos deux ensembles d'axes. Mais comme les étiquettes sont généralement définies pour tous les axes, la procédure est la même que celle décrite dans le [[Plot_Basic_tutorial/fr|tutoriel précédent]]. L'[[Plot_Workbench/fr|atelier Plot]] vous permet de définir un titre par ensemble d'axes. Dans ce cas, nous voulons seulement définir un titre pour le dernier ensemble d'axes, le plus grand.
+
+'''Axes 0:'''
+* X Label = $t$
+* Y Label = $\mathrm{f} \left( t \right)$
+'''Axes 1:'''
+* Title = Exemple multiaxes
+* X Label = $x$
+* Y Label = $\mathrm{f} \left( x \right)$
+
+Modifiez la taille de la police de toutes les étiquettes à 20, et celle du titre à 24. Encore une fois, il y a un élément, le titre, qui est mal placé.
+
+<span id="Setting_elements_position"></span>
+===Définir la position des éléments===
+
+L'[[Plot_Workbench/fr|atelier Plot]] fournit un outil permettant de modifier la position de plusieurs éléments de tracé, tels que les titres, les étiquettes et les légendes.
+
+[[Image:Plot_Positions.svg]]
+{{Caption|Icône de l'éditeur de position}}
+
+Lorsque vous exécutez l'outil, vous verrez une liste de tous les éléments modifiables. Les titres et les légendes peuvent être déplacés dans les deux sens, mais les étiquettes d'axe ne peuvent être déplacées que le long de l'axe auquel elles appartiennent. Sélectionnez le titre de l'axe 1 et déplacez-le vers (0,24,1,01), puis sélectionnez la légende et déplacez-la vers une meilleure position. Vous pouvez également augmenter la taille de la police des étiquettes de la légende.
+
+<span id="Saving_plot"></span>
+==Sauvegarder un fichier Plot==
+
+Vous pouvez maintenant enregistrer votre travail. Voir le [[Plot_Basic_tutorial/fr|tutoriel précédent]] si vous ne savez pas comment faire.
+
+
+{{Plot_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:External_Workbenches{{#translation:}}]]
+[[Category:Addons{{#translation:}}]]

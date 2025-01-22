@@ -1,0 +1,137 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_Rebar_BentShape/it|Armatura sagomata]]
+|[[Arch_Rebar_ColumnReinforcement/it|Armatura di pilastro]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_Rebar_BentShape.svg
+|IconR=Arch_Rebar_ColumnReinforcement.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/it
+|Name=Arch Rebar Helical
+|Name/it=Armatura elicoidale
+|MenuLocation=Arch → Strumenti armatura → Armatura elicoidale<br>3D/BIM → Reinforcement tools → Armatura elicoidale
+|Workbenches=[[Arch_Workbench/it|Arch]], [[BIM_Workbench/it|BIM]]
+|Version=0.17
+|SeeAlso=[[Reinforcement_Workbench/it|Ambiente Rinforzi]], [[Arch_Rebar/it|Armatura]], [[Arch_Rebar_Stirrup/it|Staffe]], [[Arch_Rebar_ColumnReinforcement/it|Armatura di pilastro]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descrizione==
+
+<div class="mw-translate-fuzzy">
+Lo strumento [[Arch Rebar Helical/it|Armatura elicoidale]] consente all'utente di creare una barra di rinforzo elicoidale continua all'interno di un oggetto [[Arch Structure/it|Struttura]].
+</div>
+
+<div class="mw-translate-fuzzy">
+Questo comando fa parte dell'ambiente aggiuntivo [[Reinforcement Workbench/it|Reinforcement]], che si può installare con [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr/it|Addon manager]], tramite il menu {{MenuCommand|Strumenti → Addon manager → Reinforcement}}.
+</div>
+
+: [[Image:Arch_Rebar_Helical_example.png|80px]]
+{{Caption|Una barra di rinforzo elicoidale continua all'interno di una [[Arch Structure/it|Struttura]]}}
+
+<span id="Usage"></span>
+==Utilizzo==
+
+<div class="mw-translate-fuzzy">
+# Selezionare una qualsiasi faccia dell'oggetto {{Button|[[Image:Arch_Structure.svg|16px]] [[Arch Structure/it|Struttura]]}}.
+# Quindi selezionare {{Button|[[Image:Arch_Rebar_Helical.svg|16px]] [[Arch Rebar Helical/it|Armatura elicoidale]]}} dagli strumenti dell'armatura.
+# Sul lato sinistro dello schermo appare un [[task_panel/it|pannello]] come quello sottostante.
+# Selezionare l'orientamento desiderato.
+# Fornire i dati per 'Copriferro sinistro', 'Copriferro destro', 'Top Cover', 'Bottom Cover', 'Front Cover', 'Bent Angle', 'Bent Factor', 'Rounding' e 'Diametro' dell'armatura.
+# Selezionare la modalità di distribuzione 'Quantità' o 'Passo'.
+#* Se è selezionato 'Passo', l'utente può anche optare per un [[Custom_Spacing/it|Passo personalizzato]].
+# {{Button|Usa lato selezionato}} serve per verificare o modificare la faccia per la distribuzione dell'armatura.
+# Cliccare {{Button|OK}} o {{Button|Applica}} per generare l'armatura.
+# Cliccare {{Button|Annulla}} per uscire dal pannello.
+</div>
+
+[[Image:HelicalRebarDialog.png|250px]]
+<div class="mw-translate-fuzzy">
+{{Caption|Pannello per lo strumento Armatura elicoidale di Arch}}
+</div>
+
+<span id="Properties"></span>
+== Proprietà == 
+
+* {{PropertyData/it|Side Cover}}: La distanza tra l'armatura e la faccia curva.
+* {{PropertyData/it|Bottom Cover}}: La distanza tra l'armatura e la parte inferiore della struttura. Copriferro inferiore
+* {{PropertyData/it|Top Cover}}: La distanza tra l'armatura e la parte superiore della struttura. Copriferro superiore
+* {{PropertyData/it|Pitch}}: Il passo dell'elica, che è l'altezza di un giro completo di elica, misurato parallelo all'asse dell'elica.
+* {{PropertyData/it|Diameter}}: Diametro della barra elicoidale.
+
+==Scripting==
+
+{{Emphasis|Vedere anche:}} [[Arch API/it|API Arch]], [[Reinforcement API/it|API Reinforcement]] e [[FreeCAD Scripting Basics/it|Script di base per FreeCAD]].
+
+<div class="mw-translate-fuzzy">
+Lo strumento Armatura elicoidale può essere usato nelle [[Macros/it|macro]] e dalla console [[Python/it|Python]] utilizzando la seguente funzione:
+</div>
+
+{{Code|code=
+Rebar = makeHelicalRebar(s_cover, b_cover, diameter, t_cover, pitch, structure=None, facename=None)
+}}
+
+* Crea un oggetto {{incode|Rebar}} da una data {{incode|structure}}, che è una [[Arch Structure/it|Struttura]], e da una {{incode|facename}}, che è una faccia di quella struttura.
+** Se non è data nessuna {{incode|structure}} e neppure una {{incode|facename}}, prende come riferimento la faccia selezionata dall'utente..
+* {{incode|s_cover}}, {{incode|b_cover}}, e {{incode|t_cover}} sono le distanze di offset interne per gli elementi dell'armatura rispetto alle facce della struttura. Sono rispettivamente gli offset laterali, inferiori e superiori.
+* {{incode|diameter}} è il diametro della spirale di rinforzo all'interno della struttura.
+* {{incode|pitch}} è il parametro che determina la distanza tra le spire dell'armatura.
+
+<span id="Example"></span>
+=== Esempio ===
+
+{{Code|code=
+import FreeCAD, Draft, Arch, HelicalRebar
+
+Circle = Draft.makeCircle(radius=250)
+Structure = Arch.makeStructure(Circle)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = HelicalRebar.makeHelicalRebar(10, 50, 8, 50, 50, structure, "Face2")
+}}
+
+=== Edition of the rebar ===
+
+<div class="mw-translate-fuzzy">
+=== Modifica delle barre ===
+È possibile modificare le proprietà dell'armatura con la seguente funzione:
+</div>
+
+{{Code|code=
+editHelicalRebar(Rebar, s_cover, b_cover, diameter, t_cover, pitch, structure=None, facename=None)
+}}
+
+* {{incode|Rebar}} è l'oggetto {{incode|HelicalRebar}} creato in precedenza.
+* Gli altri parametri sono gli stessi richiesti dalla funzione {{incode|makeHelicalRebar()}}.
+* {{incode|structure}} e {{incode|facename}} possono essere omesse in modo che l'armatura rimanga nella struttura originale.
+
+{{Code|code=
+import HelicalRebar
+
+HelicalRebar.editHelicalRebar(Rebar, 20, 100, 20, 20, 100)
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/it
+|[[Arch_Rebar_BentShape/it|Armatura sagomata]]
+|[[Arch_Rebar_ColumnReinforcement/it|Armatura di pilastro]]
+|[[Arch_Workbench/it|Arch]]
+|IconL=Arch_Rebar_BentShape.svg
+|IconR=Arch_Rebar_ColumnReinforcement.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

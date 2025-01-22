@@ -1,0 +1,127 @@
+<languages/>
+
+{{Docnav/pl
+|[[TechDraw_DetailView/pl|Wstaw widok szczegółu]]
+|[[TechDraw_ClipGroup/pl|Wstaw grupę wycinków]]
+|[[TechDraw_Workbench/pl|środowisko pracy Rysunek Techniczny]]
+|IconL=TechDraw_DetailView.svg
+|IconR=TechDraw_ClipGroup.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{GuiCommand/pl
+|Name=TechDraw ProjectionGroup
+|Name/pl=Rysunek Techniczny: Wstaw grupę rzutów
+|MenuLocation=Rysunek Techniczny → Widoki → Wstaw grupę rzutów
+|Workbenches=[[TechDraw_Workbench/pl|Rysunek Techniczny]]
+|SeeAlso=[[TechDraw_View/pl|Wstaw widok]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie Wstaw grupę rzutów tworzy [https://en.wikipedia.org/wiki/Multiview_projection rzuty z wielu widoków] jednego lub więcej obiektów 3D, używając tradycyjnego [https://en.wikipedia.org/wiki/Multiview_orthographic_projection#First-angle_projection rzutowania metodą pierwszego kąta (europejskiego)] lub [https://en.wikipedia.org/wiki/Multiview_orthographic_projection#Third-angle_projection rzutowania metodą trzeciego kąta (amerykańskiego)]. Można również dołączyć izometryczne widoki 4 przednich narożników.
+
+{{Version/pl|1.0}}: Narzędzie [[TechDraw_View/pl|Wstaw widok]] również może utworzyć grupę rzutów. Zalecane jest używanie tamtego narzędzia.
+
+[[Image:TechDraw_ProjGroup_example.png|400px]]
+{{Caption|Trzy widoki ortogonalne i jeden izometryczny widok na obiekt bryły.}}
+
+<span id="Usage"></span>
+==Użycie==
+
+Zobacz stronę [[TechDraw_View/pl#Usage_Part_View_and_Projection_Group|Wstaw widok]], ale do wywołania narzędzia wybierz opcję {{MenuCommand|Rysunek Techniczny → Widoki → [[Image:TechDraw_ProjectionGroup.svg|16px]] Wstaw grupę rzutów}} z menu.
+
+<span id="Properties"></span>
+==Właściwości==
+
+Zapoznaj się również z informacjami na stronie: [[Property_editor/pl|Edytor właściwości]].
+
+Grupa rzutów, formalnie obiekt {{Incode|TechDraw::DrawProjGroup}} ma [[TechDraw_View/pl#Właściwości|właściwości]] wspólne dla wszystkich typów Widoków. Ma też następujące dodatkowe właściwości:
+
+<span id="Data"></span>
+===Dane===
+
+{{TitleProperty|Podstawa}}
+
+* {{PropertyData|Źródło|LinkList}}: Łącza do obiektów rysunkowych, które mają zostać przedstawione.
+* {{PropertyData|XSource|XLinkList}}: Łącza do obiektów rysunkowych w pliku zewnętrznym.
+* {{PropertyData|Kotwica|Link}}: Główny widok w grupie. Zwykle jest to widok z przodu.
+* {{PropertyData|Typ rzutowania|Enumeration}}: {{Value|Kąt pierwszy}} lub {{Value|Kąt trzeci}}.
+
+{{TitleProperty|Kolekcja}}
+
+* {{PropertyData|Widoki|LinkList}}: Łącza do widoków w tej Grupie rzutów.
+
+{{TitleProperty|Rozmieść}}
+
+* {{PropertyData|Rozmieszczenie automatyczne|Bool}}: Jeśli opcja ma wartość {{TRUE/pl}}, poszczególne widoki będą rozmieszczane automatycznie. Użyj {{FALSE/pl}}, aby rozmieścić je samodzielnie.
+* {{PropertyData|odstęp X|Length}}: Poziomy odstęp między widokami przy automatycznym pozycjonowaniu. Należy pamiętać, że Skala i rozmiar innych widoków w grupie również wpływają na odstępy. 
+* {{PropertyData|odstęp Y|Length}}: Pionowy odstęp między widokami przy automatycznym pozycjonowaniu.
+
+<span id="Notes"></span>
+==Uwagi==
+
+Grupa Rzutów jako całość dziedziczy właściwości X, Y, Typ Skali, Skala i Obrót z widoku podstawowego.
+
+Pojedyncze widoki w grupie dziedziczą wszystkie właściwości widoku części, ale obiekt '''Grupa rzutów''' kontroluje skalę wszystkich swoich prezentowanych widoków.
+
+Właściwość '''Wektor obrotu''' poszczególnych widoków w grupie jest przestarzała od wersji '''0.19'''. Zamiast tego użyj '''Kierunek X'''.
+
+Należy pamiętać, że w polu środkowym wyświetlany jest bieżący kierunek projekcji widoku głównego. Nie można go użyć do zmiany kierunku.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Zobacz również stronę: [https://freecad.github.io/SourceDoc/ Dokumentacja API generowana automatycznie] oraz [[FreeCAD_Scripting_Basics/pl|Podstawy pisania skryptów dla FreeCAD]].
+
+Nowa grupa rzutów może zostać utworzona za pomocą [[Macros/pl|makrodefinicji]] i z konsoli [[Python/pl|Python]] przy użyciu następujących funkcji:
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.ActiveDocument
+cyl = doc.addObject("Part::Cylinder", "Cylinder")
+doc.recompute()
+
+page = doc.addObject("TechDraw::DrawPage", "Page")
+template = doc.addObject("TechDraw::DrawSVGTemplate", "Template")
+template.Template = App.getResourceDir() + "Mod/TechDraw/Templates/A4_LandscapeTD.svg"
+page.Template = template
+
+# Toggle the visibility of the page to ensure its width and height are updated (hack):
+page.Visibility = False
+page.Visibility = True
+
+group = doc.addObject("TechDraw::DrawProjGroup", "ProjGroup")
+page.addView(group)
+group.Source = [cyl]
+group.ProjectionType = "Third Angle"
+
+front_view = group.addProjection("Front") # First projection will become the Anchor.
+group.Anchor.Direction = (0, 1, 0)
+group.Anchor.RotationVector = (1, 0, 0)
+
+left_view = group.addProjection("Left")
+top_view = group.addProjection("Top")
+
+group.X = page.PageWidth / 2
+group.Y = page.PageHeight / 2
+
+doc.recompute()
+}}
+
+Uwaga: Przed dodaniem rzutów do grupy należy zawsze dodać '''Grupę rzutów''' do strony {{Incode|page.addView(group)}}. Dzięki temu Grupa rzutów może używać domyślnych wartości parametrów pochodzących ze strony nadrzędnej.
+
+
+{{Docnav/pl
+|[[TechDraw_DetailView/pl|Wstaw widok szczegółu]]
+|[[TechDraw_ClipGroup/pl|Wstaw grupę wycinków]]
+|[[TechDraw_Workbench/pl|środowisko pracy Rysunek Techniczny]]
+|IconL=TechDraw_DetailView.svg
+|IconR=TechDraw_ClipGroup.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{TechDraw_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

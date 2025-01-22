@@ -1,0 +1,149 @@
+<languages/>
+
+{{Docnav/fr
+|[[CAM_Deburr/fr|Ebavurage]]
+|[[CAM_Pocket_3D/fr|Évidement 3D]]
+|[[CAM_Workbench/fr|Atelier CAM]]
+|IconL=CAM_Deburr.svg
+|IconR=CAM_Pocket_3D.svg
+|IconC=Workbench_CAM.svg
+}}
+
+{{GuiCommand/fr
+|Name=CAM Vcarve
+|Name/fr=CAM Gravure en V
+|MenuLocation=CAM → Graver en V
+|Workbenches=[[CAM_Workbench/fr|CAM]]
+|Version=0.19
+}}
+
+==Description==
+
+L'outil [[Image:CAM_Vcarve.svg|24px]] [[CAM_Vcarve/fr|Gravure en V]] est principalement destiné à la gravure de la ligne centrale d'une [[Image:Draft_ShapeString.svg|24px|link=Draft_ShapeString/fr]] [[Draft_ShapeString/fr|Draft Forme à partir d'un texte]] sur une pièce. Cependant, cela peut être utile pour d'autres types de 2D.
+
+Contrairement à la gravure qui suit les lignes d'une Forme à partir texte, la gravure en V utilise un couteau en forme de V et tente de dégager la zone en déplaçant le couteau au centre de la région et en variant la profondeur de coupe. Étant donné qu'un rayon de coupe en V varie avec la profondeur, la largeur de coupe varie également. Le résultat est une coupe plus naturelle, en particulier pour les polices serif.
+
+[[File:Engravepath.png|thumb]]
+[[File:Vcarvepath.png|thumb|Example Vcarving Path]]
+[[Image:Vcarved.png|thumb]]
+[[File:Scrolltest.png|thumb]]
+
+L'algorithme V-carve calcule une trajectoire le long de la ligne centrale d'une région à l'aide d'un diagramme de Voronoï. Cette ligne centrale est le parcours que l'outil suivra dans le plan XY. Il calcule ensuite un "cercle inscrit maximal" le long du parcours. Il s'agit du plus grand cercle qui peut être tracé à ce point et qui reste entièrement à l'intérieur de la zone de dégagement. La profondeur de coupe est calculée à l'aide du rayon du cercle et de l'angle de la pointe de l'outil.  
+
+<span id="Usage"></span>
+==Utilisation==
+
+<span id="Prepare_the_shapes_to_engrave"></span>
+=== Préparation des formes à graver ===
+
+* Les {{Button|[[File:Draft_ShapeString.svg|24px]] [[Draft_ShapeString/fr|Draft Formes à partir d'un texte]]}} sont utilisables immédiatement.
+* Les fichiers SVG nécessitent un certain traitement, à la fois dans l'éditeur et dans l'[[File: Workbench_Draft.svg|24px|link=Draft_Workbench/fr]] [[Draft_Workbench/fr|atelier Draft]] :
+** Dans l'éditeur (par exemple [https://www.inkscape.org Inkscape]) : assurez-vous que le fichier ne contient que des parcours et que les parcours sont dissociés. Assurez-vous qu'il n'y a pas de parcours auto-sécants, (dans Inkscape) utilisez Path → Simplify and union to join CAMs that overlap.
+** Basculez vers l'[[File:Workbench_Draft.svg|24px|link=Draft_Workbench/fr]] [[Draft_Workbench/fr|atelier Draft]] depuis le [[Std_Workbench/fr|sélecteur d'atelier]]
+** Importez le SVG en utilisant {{MenuCommand|Fichier → Importer → sélectionnez "SVG as geometry"}}
+** Le résultat devrait ressembler à ceci :
+**:[[File:Svgimport.png|frameless]]
+**:{{Caption|Ci-dessus: Résultats de l'importation de "SVG as geometry"}}
+:::Les trajectoires avec des trous (lettres, la vigne dans l'image ci-dessus) sont importés comme 2 parcours séparés (nommés le long des lignes de {{incode|CAM905}} et {{incode|CAM905001}} dans la [[Tree_view/fr|vue en arborescence]]), l'un d'eux est le trou et l'autre est le contour. Nous traiterons de cela dans la prochaine étape
+** Pour obtenir les faces 2D, [[CAM_Vcarve/fr|CAM Gravure en V]] a besoin de :
+*** Pour les parcours <u>sans</u> trous :
+***# Sélectionnez le parcours
+***# Choisissez {{MenuCommand|Modification → [[Image:Draft_Upgrade.svg|16px|link=Draft_Upgrade/fr]] [[Draft_Upgrade/fr|Agréger]]}}
+***# Suivi de {{MenuCommand|Modification → [[Image:Draft_Downgrade.svg|16px|link=Draft_Downgrade/fr]] [[Draft_Downgrade/fr|Désagréger]]}}
+*** Pour les parcours <u>avec</u> trous :
+***# Sélectionnez le parcours extérieur puis le parcours intérieur
+***# Choisissez {{MenuCommand|Modification → [[Image:Draft_Downgrade.svg|16px|link=Draft_Downgrade]] [[Draft_Downgrade/fr|Désagréger]]}} '''deux fois'''
+**: Certains parcours se comportent différemment, vous devrez donc peut-être jouer avec {{KEY|[[Image:Draft_Upgrade.svg|16px]] Agréger}} et {{KEY|[[Image:Draft_Downgrade.svg|16px]] Désagréger}} jusqu'à ce que vous obteniez quelque chose nommé : {{incode|Face<number>}}
+**:Le résultat final devrait ressembler à ceci :
+**:[[File:Svgfaces.png|frameless]]
+
+<span id="Create_the_Vcarve_operation"></span>
+=== Création de l'opération Gravure en V ===
+
+* Passer à l'{{Button|[[File:Workbench_CAM.svg|16px]] [[CAM_Workbench/fr|atelier CAM]]}} depuis le [[Std_Workbench/fr|sélecteur d'atelier]]
+* Ajouter une tâche, utilisez les objets nommés {{incode|Face<number>}} (ou la Forme à partir d'un texte) comme base, ajouter contrôleur d'objets coupants en V, définir les avances, les vitesses, etc.
+* L'opération ne prend en charge qu'un seul objet (soit un seul objet Face, soit une Forme à partir d'un texte), donc pour chaque objet :
+** Sélectionner {{MenuCommand|CAM → [[Image:CAM_Vcarve.svg|24px]] Gravure en V}} du menu supérieur. Cela ouvre le panneau de configuration.
+** Ouvrir l'onglet {{KEY|Géométrie de base}} et ajouter toutes les faces de la Forme à partir d'un texte, ou la face d'un seul objet Face obtenu ci-dessus.
+** Cliquer sur {{Button|Appliquer}} et inspecter le parcours généré; si nécessaire, ajuster les paramètres d'opération (le seuil peut être réglé plus haut dans la plupart des situations).
+** Appuyez sur {{Button|OK}} pour terminer.
+
+==Options==
+
+Vide
+
+<span id="Properties"></span>
+==Propriétés==
+
+<span id="Data"></span>
+===Données===
+
+{{TitleProperty|Base}}
+
+* {{PropertyData|Placement}}: -
+* {{PropertyData|Label}}: -
+
+{{TitleProperty|Depth}}
+
+* {{PropertyData|ClearanceHeight}}: -
+* {{PropertyData|FinalDepth}}: -
+* {{PropertyData|SafeHeight}}: -
+* {{PropertyData|StartDepth}}: -
+* {{PropertyData|StepDown}}: -
+
+{{TitleProperty|Op Values}}
+
+* {{PropertyData|OpFinalDepth}}: -
+* {{PropertyData|OpStartDepth}}: -
+* {{PropertyData|OpStockZMax}}: -
+* {{PropertyData|OpStockZMin}}: -
+* {{PropertyData|OpToolDiameter}}: -
+
+{{TitleProperty|Path}}
+
+* {{PropertyData|Active}}: -
+* {{PropertyData|Comment}}: -
+* {{PropertyData|CoolantMode}}: -
+* {{PropertyData|StartVertex}}: -
+* {{PropertyData|ToolController}}: -
+* {{PropertyData|UserLabel}}: -
+
+====Hidden====
+
+* {{PropertyData|Base}}: -
+* {{PropertyData|BaseObject}}: -
+* {{PropertyData|BaseShapes}}: -
+* {{PropertyData|ExpressionEngine}}: -
+* {{PropertyData|Label2}}: -
+* {{PropertyData|Path}}: -
+* {{PropertyData|Proxy}}: -
+* {{PropertyData|Visibility}}: -
+
+<span id="View"></span>
+===Vue===
+
+Vide
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Voir aussi:}} [[FreeCAD_Scripting_Basics/fr|FreeCAD Script de base]].
+
+Exemple :
+
+{{Code|code=
+#Place code example here.
+}}
+
+
+{{Docnav/fr
+|[[CAM_Deburr/fr|Ebavurage]]
+|[[CAM_Pocket_3D/fr|Évidement 3D]]
+|[[CAM_Workbench/fr|Atelier CAM]]
+|IconL=CAM_Deburr.svg
+|IconR=CAM_Pocket_3D.svg
+|IconC=Workbench_CAM.svg
+}}
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

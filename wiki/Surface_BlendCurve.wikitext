@@ -1,0 +1,105 @@
+<languages/>
+
+{{Docnav
+|[[Surface_CurveOnMesh|CurveOnMesh]]
+|
+|[[Surface_Workbench|Surface]]
+|IconL=Surface_CurveOnMesh.svg
+|IconR=
+|IconC=Workbench_Surface.svg
+}}
+
+{{GuiCommand
+|Name=Surface BlendCurve
+|MenuLocation=Surface → Blend Curve
+|Workbenches=[[Surface_Workbench|Surface]]
+|Version=0.21
+}}
+
+==Description==
+
+{{Button|[[File:Surface_BlendCurve.svg|16px]] [[Surface_BlendCurve|Surface Blend Curve]]}} creates a Bezier curve between two edges, with desired continuity.
+
+The base geometry can belong to curves created with the [[Draft_Workbench|Draft Workbench]] or the [[Sketcher_Workbench|Sketcher Workbench]], but can also belong to solid objects such as those created with the [[Part_Workbench|Part Workbench]].
+
+[[File:Surface_BlendCurve_G3_example.png|400px]]
+[[File:Surface_BlendCurve_Comb.png|400px]]
+{{Caption|Surface Blend Curve joining 2 edges with G3 continuity. Orange polygon represent the control points. Curvature comb (from [[Curves_Workbench|Curves addon]]) is smooth at contact points.}}
+
+==Usage==
+
+# Select two edges in the [[3D_view|3D view]]
+# There are several ways to invoke the command:
+#* Press the {{Button|[[Image:Surface_BlendCurve.svg|16px]] [[Surface_BlendCurve|Surface Blend Curve]]}} button.
+#* Select the {{MenuCommand|Surface → [[Image:Surface_BlendCurve.svg|16px]] Blend Curve}} option from the menu.
+# Adjust the curve shape in the object Data properties
+
+==Properties==
+
+A [[Surface_BlendCurve|Surface Blend Curve]] is derived from the basic [[Part_Feature|Part Feature]] ({{incode|Part::Feature}} class, through the {{incode|Part::Spline}} subclass), therefore it shares all the latter's properties.
+
+In addition to the properties described in [[Part_Feature|Part Feature]], the Surface Blend Curve has the following properties in the [[Property_editor|property editor]].
+
+=== Data ===
+
+{{TitleProperty|Blend Curve}}
+
+* {{PropertyData|Start Edge|LinkSub}}: First input edge.
+* {{PropertyData|Start Continuity|Integer}}: Geometric continuity value
+* {{PropertyData|Start Parameter|Float}}: Normalized parameter along edge; from {{Value|0.0}}(edge start) to {{Value|1.0}}(edge end).
+* {{PropertyData|Start Size|Float}}: Size of the tangent.
+* {{PropertyData|End Edge|LinkSub}}: Second input edge.
+* {{PropertyData|End Continuity|Integer}}: Geometric continuity value
+* {{PropertyData|End Parameter|Float}}: Normalized parameter along edge; from {{Value|0.0}}(edge start) to {{Value|1.0}}(edge end).
+* {{PropertyData|End Size|Float}}: Size of the tangent.
+
+=== View ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyView|Control Points|Bool}}: it defaults to {{FALSE}}; if set to {{TRUE}}, it will show an overlay with the control points of the curve.
+
+== Scripting ==
+
+{{Emphasis|See also:}} [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+The Blend Curve tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by adding the {{incode|Surface::FeatureBlendCurve}} object.
+* The edges to be used to define the curve must be assigned as [[FeaturePython_Custom_Properties#App::PropertyLinkSub|LinkSub]] to the {{incode|StartEdge}} and {{incode|EndEdge}} properties of the object.
+* All objects with edges need to be computed before they can be used as input for the properties of the Blend Curve object.
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+points1 = [App.Vector(-20, -20, 0), App.Vector(-20, -8, 0), App.Vector(-17, 7, 0), App.Vector(-18, 25, 0)]
+obj1 = Draft.make_bspline(points1)
+
+points2 = [App.Vector(60, 26, 0), App.Vector(37, 4, 0), App.Vector(33, -20, 0)]
+obj2 = Draft.make_bspline(points2)
+
+doc.recompute()
+
+bcurve = doc.addObject("Surface::FeatureBlendCurve","BlendCurve")
+bcurve.StartEdge = (obj1, 'Edge1')
+bcurve.EndEdge = (obj2, 'Edge1')
+bcurve.EndParameter = 1.00
+bcurve.StartSize = -5.00
+bcurve.EndSize = -5.00
+
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Surface_CurveOnMesh|CurveOnMesh]]
+|
+|[[Surface_Workbench|Surface]]
+|IconL=Surface_CurveOnMesh.svg
+|IconR=
+|IconC=Workbench_Surface.svg
+}}
+
+{{Surface Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

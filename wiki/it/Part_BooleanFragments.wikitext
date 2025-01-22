@@ -1,0 +1,116 @@
+<languages/>
+
+{{Docnav/it
+|[[Part_JoinCutout/it|Asporta con oggetto]]
+|[[Part_SliceApart/it|Affetta in parti]]
+|[[Part_Workbench/it|Part]]
+|IconL=Part_JoinCutout.svg
+|IconR=Part_SliceApart.svg
+|IconC=Workbench_Part.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/it
+|Name=Part BooleanFragments
+|Name/it=Part Frammenti booleani
+|MenuLocation=Parte → Dividi → Frammenti booleani
+|Workbenches=[[Part_Workbench/it|Part]]
+|Version=0.17
+|SeeAlso=[[Part_Slice/it|Affetta in composto]], [[Part_XOR/it|Part XOR]], [[Part_CompJoinFeatures/it|Giunzione]], [[Part Boolean/it|Operazione booleana]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descrizione== 
+
+<div class="mw-translate-fuzzy">
+Strumento per calcolare tutti i frammenti che possono derivare dall'applicazione delle operazioni booleane tra le forme in ingresso. Ad esempio, per due sfere intersecanti, vengono generati tre solidi non sovrapposti, ma a contatto.
+</div> 
+
+[[image:Part_BooleanFragments_Demo.png|600px]]
+{{Caption|Nella figura qui sopra, i pezzi sono stati separati manualmente dopo l'operazione, per rendere visibili le singole parti.}}
+
+La forma in uscita è sempre un composto. Il contenuto del composto dipende dai tipi di forme di ingresso e dalla modalità in cui l'operazione viene eseguita. Ciò significa che non si ottiene immediatamente l'accesso ai singoli pezzi del risultato, ma i pezzi rimangono raggruppati insieme. I singoli pezzi possono essere estratti dividendo il composto con [[Draft_Downgrade/it|Draft Declassa]].
+
+Lo strumento dispone di tre modalità: "Standard", "Split", e "CompSolid".
+
+Le modalità "Standard" e "Split" differiscono per l'azione dello strumento su polilinee, gusci e compsolids. Se si usa "Split", essi sono separati; se si usa "Standard", essi sono mantenuti insieme (si ottengono dei segmenti in più).
+
+La struttura del composto nelle modalità "Split" e "Standard" segue la struttura dei composti in ingresso. Cioè, se si forniscono due composti, ciascuno contenente una sfera come su nell'esempio precedente, anche il risultato contiene due composti, ciascuno contenente i pezzi della sfera originariamente contenuta. Ciò significa che nel risultato il pezzo comune è ripetuto due volte. Solo se le sfere in ingresso sono entrambi dei non composti, il risultato contiene il pezzo comune una volta sola.
+
+In modalità  "CompSolid", i solidi vengono uniti in un compsolid (il compsolid è formato da un gruppo di solidi collegati dalle facce, esse si rapportano ai solidi come le polilinee (wire) si rapportano ai bordi (edge), e i gusci (shell) si rapportano alle facce, il nome è probabilmente l'abbreviazione di "solido composito"). L'output è un composto non-annidato di compsolids.
+
+<span id="Usage"></span>
+==Utilizzo== 
+
+<div class="mw-translate-fuzzy">
+# Selezionare gli oggetti da intersecare. <br /> L'ordine di selezione non è importante, poiché l'azione dello strumento è simmetrica. È sufficiente selezionare un sotto-forma di ogni oggetto (ad esempio una faccia). Inoltre, è possibile selezionare un composto contenente diverse forme collegate, ad es. una [[Draft_OrthoArray/it|Serie ortogonale]].
+# Richiamare il comando Part Frammenti booleani in diversi modi:
+#* Premendo il pulsante [[Image:Part_BooleanFragments.svg|24px|link=Part_BooleanFragments]] nella barra degli strumenti
+#* Usando la voce {{MenuCommand|Parte → Dividi → Frammenti booleani}} nel menu Parte
+</div>
+
+<span id="Properties"></span>
+==Proprietà== 
+
+{{TitleProperty|Boolean Fragments}}
+* {{PropertyData|Objects}}: Elenco degli oggetti da intersecare. Generalmente, sono necessari almeno due oggetti, ma va anche bene un unico composto contenente le forme di intersecare. (da FreeCAD v0.17.8053, questa proprietà non viene visualizzata nell'editor delle proprietà, e si può accedere solo tramite Python).
+* {{PropertyData|Mode}}: "Standard", "Split", o "CompSolid". "Standard" è il default. Standard e Split differiscono per l'azione dello strumento sull'aggregazione delle forme; se "Split", essi sono separati; se "Standard", essi sono mantenuti insieme (si ottengono dei segmenti in più).
+* {{PropertyData|Tolerance}}: valore di "confusione". Questa è una tolleranza supplementare da applicare durante la ricerca delle intersezioni, oltre alle tolleranze memorizzate nelle forme in ingresso.
+
+<span id="Implementation_details"></span>
+==Dettagli di implementazione==
+
+Lo strumento Frammenti booleani in "Modalità Standard" è un General Fuse Operator (GFA) di OpenCascade. Esso accetta una combinazione di tutti tipi di forme probabili, e la logica dell'output è piuttosto complicata. Vedere [https://www.opencascade.com/doc/occt-7.0.0/overview/html/occt_user_guides__boolean_operations.html OpenCascade user guide: Boolean operations].
+
+Per le modalità "Split" e "CompSolid", la post-elaborazione in più è fatta da FreeCAD.
+
+<span id="Scripting"></span>
+==Script== 
+
+Lo strumento può essere utilizzato nelle [[Macros/it|macro]] e dalla console [[Python/it|python]] utilizzando la seguente funzione:
+ '''BOPTools.SplitFeatures.makeBooleanFragments(name)'''
+
+* Crea una funzione BooleanFragments vuota. Le proprietà 'Objects' devono essere assegnate in modo esplicito, in seguito.
+* Restituisce l'oggetto appena creato.
+
+BooleanFragments può essere applicato anche a forme piane, senza la necessità di avere un document object, attraverso:
+
+{{code|code=
+import BOPTools.SplitAPI
+BOPTools.SplitAPI.booleanFragments(list_of_shapes, mode, tolerance = 0.0)
+
+# OR, for Standard mode:
+
+list_of_shapes = [App.ActiveDocument.Sphere.Shape, App.ActiveDocument.Sphere001.Shape]
+pieces, map = list_of_shapes[0].generalFuse(list_of_shapes[1:], tolerance)
+# pieces receives a compound of shapes; map receives a list of lists of shapes, defining list_of_shapes <--> pieces correspondence 
+}}
+Questo può essere utile per creare delle funzioni personalizzate con script Python.
+
+Esempio:
+{{code|code=
+import BOPTools.SplitFeatures
+j = BOPTools.SplitFeatures.makeBooleanFragments(name= 'BooleanFragments')
+j.Objects = FreeCADGui.Selection.getSelection() 
+}}
+
+Lo strumento stesso è implementato in Python, vedere /Mod/Part/BOPTools/SplitFeatures.py nell'installazione di FreeCAD.
+
+<span id="Notes"></span>
+==Note== 
+
+Lo strumento è stato introdotto in FreeCAD v0.17.8053. FreeCAD deve essere compilato con OCC 6.9.0 o superiore; altrimenti lo strumento non è disponibile.
+
+
+{{Docnav/it
+|[[Part_JoinCutout/it|Asporta con oggetto]]
+|[[Part_SliceApart/it|Affetta in parti]]
+|[[Part_Workbench/it|Part]]
+|IconL=Part_JoinCutout.svg
+|IconR=Part_SliceApart.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

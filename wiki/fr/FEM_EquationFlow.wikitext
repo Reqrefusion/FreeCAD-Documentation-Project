@@ -1,0 +1,91 @@
+<languages/>
+
+{{Docnav/fr
+|[[FEM_EquationMagnetodynamic2D/fr|Équation magnétodynamique 2D]]
+|[[FEM_EquationFlux/fr|Équation de flux]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_EquationMagnetodynamic2D.svg
+|IconR=FEM_EquationFlux.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommand/fr
+|Name=FEM EquationFlow
+|Name/fr=FEM Equation d'écoulement
+|MenuLocation=Résolution → Équation d'écoulement
+|Workbenches=[[FEM_Workbench/fr|FEM]]
+|Version=0.17
+|SeeAlso=
+}}
+
+==Description==
+
+Cette équation calcule les mouvements de fluides visqueux à l'aide des [https://fr.wikipedia.org/wiki/%C3%89quations_de_Navier-Stokes équations de Navier-Stokes].
+
+Pour plus d'informations sur les mathématiques de l'équation, voir [http://www.elmerfem.org/blog/documentation/ Elmer models manual], section ''Navier-Stokes Equations''.
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Après avoir ajouté un solveur Elmer comme décrit [[FEM_SolverElmer/fr#.C3.89quations|ici]], sélectionnez-le dans la [[Tree_view/fr|Vue en arborescence]]
+# Utilisez maintenant le bouton de la barre d'outils [[Image:FEM_EquationFlow.svg|24px]] ou le menu {{MenuCommand|Résolution → Équation d'écoulement}}.
+# Modifiez les [[#Param.C3.A8tres_du_solveur|paramètres du solveur de l'équation]] ou les [[FEM_SolverElmer_SolverSettings/fr|paramètres généraux du solveur]] si nécessaire.
+
+<span id="Solver_Settings"></span>
+==Paramètres du solveur==
+
+Pour les paramètres généraux du solveur, voir les [[FEM_SolverElmer_SolverSettings/fr|paramètres du solveur Elmer]].
+
+L'équation d'écoulement fournit ces paramètres spéciaux :
+* {{PropertyData|Div Discretization}} : défini à ''true'' pour un écoulement incompressible pour une discrétisation plus stable lorsque le [https://fr.wikipedia.org/wiki/Nombre_de_Reynolds nombre de Reynolds] augmente.
+* {{PropertyData|Flow Model}} : modèle d'écoulement à utilisé. La valeur par défaut ''Full'' inclut la convection et les termes de la dérivée temporelle dans le modèle. Le modèle ''No convection'' désactive les termes de convection et le modèle ''Stokes'' désactive les termes de convection et les termes de dérivée temporelle (explicite).
+* {{PropertyData|Gradp Discretization}} : si défini à ''true'', les [https://fr.wikipedia.org/wiki/Condition_aux_limites_de_Dirichlet conditions aux limites de Dirichlet] de la pression peuvent être utilisées. Le flux de masse est également disponible comme condition limite naturelle.
+* {{PropertyData|Variable}} : optionnel uniquement pour les calculs en 2D : vous pouvez changer la valeur par défaut de ''3'' à ''2''.</br>'''Remarque''' : dans ce cas, aucune des conditions limites de vitesse d'écoulement ne peut avoir une composante z spécifiée.
+
+Équation :
+* {{PropertyData|Convection}} : type de convection à utiliser dans l'[[Image:FEM_EquationHeat.svg|24px]] [[FEM_EquationHeat/fr|équation de chaleur]].</br>'''Remarque''' : pour les écoulements thermiques, cette propriété doit être réglée à ''Computed'' (par défaut).
+* {{PropertyData|Magnetic Induction}} : si définie à ''true'', l'équation d'induction magnétique sera résolue en même temps que les [https://fr.wikipedia.org/wiki/%C3%89quations_de_Navier-Stokes Équations de Navier-Stokes].
+
+<span id="Notes_for_Convergence"></span>
+===Remarques à propos de convergence ===
+
+Si les résultats du solveur ne convergent pas, vous pouvez essayer les choses suivantes (dans l'ordre donné) :
+# Réduire la valeur de {{PropertyData|Relaxation Factor}}, voir les [[FEM_SolverElmer_SolverSettings/fr#Facteur_de_relaxation|réglages de systèmes non linéaires]].
+# Augmenter la valeur de {{PropertyData|Nonlinear Newton After Iterations}}, voir [[FEM_SolverElmer_SolverSettings/fr#Système_non_linéaire|réglages de systèmes non linéaires]].
+# Réduire le nombre de cœurs CPU utilisés, voir les [[FEM_Preferences/fr#Elmer|FEM Préférences]].
+# Augmenter la densité du maillage (le rendre plus fin).
+
+<span id="Analysis_Feature_Information"></span>
+==Informations sur les caractéristiques d'analyse==
+
+L'équation d'écoulement prend en compte les caractéristiques d'analyse suivantes si elles sont définies :
+
+* [[Image:FEM_ConstraintFlowVelocity.svg|32px]] [[FEM_ConstraintFlowVelocity/fr|Vitesse d'écoulement comme condition limite]]
+* [[Image:FEM_ConstraintInitialFlowVelocity.svg|32px]] [[FEM_ConstraintInitialFlowVelocity/fr|Vitesse initiale d'écoulement]]
+* [[Image:FEM_ConstraintPressure.svg|32px]] [[FEM_ConstraintPressure/fr|Charge de pression]]
+* [[Image:FEM_ConstraintInitialPressure.svg|32px]] [[FEM_ConstraintInitialPressure/fr|Pression initiale]] ({{Version/fr|0.21}})
+
+<span id="Notes"></span>
+===Remarques===
+
+* Sauf pour les calculs en 2D, pour toutes les conditions limites ci-dessus, il est important qu'elles agissent sur une face ou un corps. Les conditions aux limites pour la 3D définies sur des lignes ou des sommets ne sont pas reconnues par le solveur d'Elmer.
+* Puisque la [[Image:FEM_ConstraintPressure.svg|24px]] [[FEM_ConstraintPressure/fr|Charge de pression]] ne peut être définie que sur des faces, les charges de pression ne peuvent pas être utilisées pour les calculs en 2D.
+* S'il n'y a pas de [[Image:FEM_ConstraintPressure.svg|24px]] [[FEM_ConstraintPressure/fr|Charge de pression]], la [[Image:FEM_ConstraintInitialPressure.svg|24px]] [[FEM_ConstraintInitialPressure/fr|Pression initiale]] ne sera prise en compte que si {{PropertyData|Gradp Discretization}} est réglé sur ''true''.
+
+<span id="Results"></span>
+==Résultats==
+
+Les résultats sont la vitesse en <math>\rm m/s</math> et la pression en <math>\rm Pa</math>. S'il n'y a pas de [[Image:FEM_ConstraintInitialPressure.svg|24px]] [[FEM_ConstraintInitialPressure/fr|Pression initiale]] et de [[Image:FEM_ConstraintPressure.svg|24px]] [[FEM_ConstraintPressure/fr|Charge de pression]], la pression résultante sera relative et non absolue. Comme une pression doit agir sur une face, les résultats de pression absolue ne peuvent pas être obtenus dans les simulations 2D.
+
+
+{{Docnav/fr
+|[[FEM_EquationMagnetodynamic2D/fr|Équation magnétodynamique 2D]]
+|[[FEM_EquationFlux/fr|Équation de flux]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_EquationMagnetodynamic2D.svg
+|IconR=FEM_EquationFlux.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

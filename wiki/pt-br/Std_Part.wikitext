@@ -1,0 +1,215 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|
+|[[Std_Group/pt-br|Std Group]]
+|[[Std_Base/pt-br|Std Base]]
+|IconL=
+|IconR=Std_Group.svg
+|IconC=Freecad.svg
+}}
+</div>
+
+{{GuiCommand  
+|Name=Std Part  
+|MenuLocation=Nenhum  
+|Workbenches=Todas  
+|Version=0.17  
+|SeeAlso=[[Std_Group/pt-br|Grupo Std]], [[PartDesign_Body/pt-br|Corpo PartDesign]]  
+}}
+
+<span id="Description"></span>
+==Descrição==
+
+{{Button|[[File:Std_Part.svg|16px]] [[Std_Part/pt-br|Parte Std]]}} (também chamada internamente de [[App_Part/pt-br|Parte App]]) é um contêiner usado para organizar e agrupar objetos. Ele permite que esses objetos sejam movimentados juntos como uma única unidade na [[3D_view/pt-br|vista 3D]].
+
+O elemento **Parte Std** foi desenvolvido como um bloco básico para criar [[assembly/pt-br|montagens]] mecânicas. Ele é especialmente útil para organizar objetos que possuem uma [[Part_TopoShape/pt-br|Forma Topológica (TopoShape) de Parte]], como [[Part_Primitives/pt-br|Primitivas de Parte]], [[PartDesign_Body/pt-br|Corpos PartDesign]] e outras [[Part_Feature/pt-br|Funcionalidades de Parte]].  
+
+A **Parte Std** inclui um [[#Origin/pt-br|Objeto de Origem]] com eixos locais X, Y e Z, além de planos padrão, que podem ser usados como referência para posicionar os objetos contidos. Além disso, é possível aninhar **Partes Std** dentro de outras **Partes Std**, permitindo criar uma montagem maior a partir de submontagens menores.
+
+Embora seja principalmente destinado a corpos sólidos, a **Parte Std** pode ser usada para gerenciar qualquer objeto que possua a propriedade de [[Placement/pt-br|Posicionamento]]. Isso significa que ela também pode conter [[Mesh_Feature/pt-br|Elementos de Malha]], [[Sketch/pt-br|Esboços]] e outros objetos derivados da classe [[App_GeoFeature/pt-br|App GeoFeature]].
+
+Não confunda o {{Button|[[File:PartDesign_Body.svg|16px]] [[PartDesign_Body/pt-br|Corpo PartDesign]]}} com o {{Button|[[File:Std_Part.svg|16px]] [[Std_Part/pt-br|Parte Std]]}}.  
+
+O primeiro é um objeto específico usado na [[File:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/pt-br|Bancada PartDesign]], destinado a modelar um [[PartDesign_Body#Single_contiguous_solid/pt-br|sólido único e contínuo]] por meio de [[PartDesign_Feature/pt-br|Recursos PartDesign]]. Por outro lado, a **Parte Std** não é utilizada para modelagem, mas sim para organizar diferentes objetos no espaço, com o objetivo de criar [[assembly/pt-br|montagens]].
+
+A ferramenta {{Button|[[File:Std_Part.svg|16px]] [[Std_Part/pt-br|Parte Std]]}} não é definida por uma bancada específica, mas sim pelo sistema base, portanto, ela está disponível na {{MenuCommand|barra de ferramentas de estrutura}}, que pode ser encontrada em todas as [[Workbenches/pt-br|bancadas de trabalho]].  
+
+Para agrupar objetos de forma arbitrária, sem considerar sua posição, use {{Button|[[File:Std_Group.svg|16px]] [[Std_Group/pt-br|Grupo Std]]}}; este objeto não afeta o posicionamento dos elementos que contém, sendo essencialmente apenas uma pasta usada para manter a [[Tree_view/pt-br|Vista em Árvore]] organizada.
+
+[[File:Std Part-tree.png]][[File:Std Part example.png]]
+
+{{Caption|Esquerda: elementos dentro de uma Parte Std na [[Tree_view/pt-br|Vista em Árvore]]. Direita: objetos posicionados no espaço, referenciados à Origem da Parte Std.}}
+
+==Usage==
+
+# Press the {{Button|[[File:Std_Part.svg|16px]] [[Std_Part|Create part]]}} button.
+# An empty Part is created and automatically becomes ''[[Std_Part#Active_status|active]]''.
+# To add objects to the Part, select them in [[Tree_view|Tree view]], and drag and drop them onto the Part.
+# To remove objects from the Part, drag them out of the Part, and onto the document label at the top of the [[Tree_view|Tree view]].
+# Objects can also be added and removed by editing the {{PropertyData|Group}} property of the Part.
+
+== Notes ==
+
+* An object can only belong to a single Part.
+* 3D operations like [[Part_Boolean|Part Boolean]] cannot be applied to Parts. For example, you cannot select two Parts, and perform a [[Part_Fuse|Part Fuse]] or [[Part_Cut|Part Cut]].
+
+==Properties==
+
+The [[Std_Part|Std Part]], internally called [[App_Part|App Part]] ({{incode|App::Part}} class), is derived from the [[App_GeoFeature|App GeoFeature]] ({{incode|App::GeoFeature}} class) and inherits all its properties. It also has several additional properties. Notably properties that help it manage information in the context of an assembly, for example, {{PropertyData|Type}}, {{PropertyData|Id}}, {{PropertyData|License}}, {{PropertyData|LicenseURL}} and {{PropertyData|Group}}.
+
+These are the properties available in the [[Property_editor|property editor]]. Hidden properties can be shown by using the {{MenuCommand|Show all}} command in the context menu of the [[Property_editor|property editor]].
+
+=== Data ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyData|Type|String}}: a description for this object. By default, it is an empty string {{value|""}}.
+* {{PropertyData|Material|Link}}: the material for this object.
+* {{PropertyData|Meta|Map|Hidden}}: map with additional meta information. By default, it is empty <code>{}</code>.
+* {{PropertyData|Id|String}}: an identification or part number for this object. By default, it is an empty string {{value|""}}.
+* {{PropertyData|Uid|UUID|Hidden}}: the [https://en.wikipedia.org/wiki/Universally_unique_identifier universally unique identifier] (UUID) (128-bit number) of the object. This is assigned at creation time.
+* {{PropertyData|License|String}}: a field to specify the license for this object. By default, it is an empty string {{value|""}}.
+* {{PropertyData|LicenseURL|String}}: a field to specify the web address to the license or contract for this object. By default, it is an empty string {{value|""}}.
+* {{PropertyData|Color|Color}}: a tuple of four floating point RGBA values {{value|(r,g,b,a)}} to define the color of the object; by default it is {{value|(1.0, 1.0, 1.0, 1.0)}}, which is displayed as {{value|[255,255,255]}} on base 255, <span style="background-color:#fff; color:#000; border: 1px solid #888888; width:3em; height:12pt; padding: 2px 1em 2px;">white color</span>.
+* {{PropertyData|Placement|Placement}}: the position of the object in the [[3D_view|3D view]]. The placement is defined by a {{incode|Base}} point (vector), and a {{incode|Rotation}} (axis and angle). See [[Placement|Placement]].
+** {{PropertyData|Angle}}: the angle of rotation around the {{PropertyData|Axis}}. By default, it is {{value|0°}} (zero degrees).
+** {{PropertyData|Axis}}: the unit vector that defines the axis of rotation for the placement. Each component is a floating point value between {{value|0}} and {{value|1}}. If any value is above {{value|1}}, the vector is normalized so that the magnitude of the vector is {{value|1}}. By default, it is the positive Z axis, {{value|(0, 0, 1)}}.
+** {{PropertyData|Position}}: a vector with the 3D coordinates of the base point. By default, it is the origin {{value|(0, 0, 0)}}.
+* {{PropertyData|Label|String}}: the user editable name of this object, it is an arbitrary UTF8 string.
+* {{PropertyData|Label2|String|Hidden}}: a longer, user editable description of this object, it is an arbitrary UTF8 string that may include newlines. By default, it is an empty string {{value|""}}.
+* {{PropertyData|Expression Engine|ExpressionEngine|Hidden}}: a list of expressions. By default, it is empty {{value|[]}}.
+* {{PropertyData|Visibility|Bool|Hidden}}: whether to display the object or not.
+* {{PropertyData|Origin|Link|Hidden}}: the [[App_OriginGroupExtension|App Origin]] object that is the positional reference for all elements listed in {{PropertyData|Group}}.
+* {{PropertyData|Group|LinkList}}: a list of referenced objects. By default, it is empty {{value|[]}}.
+* {{PropertyData|_ Group Touched|Bool|Hidden}}: whether the group is touched or not.
+
+=== View ===
+
+{{TitleProperty|Display Options}}
+
+* {{PropertyView|Display Mode|Enumeration}}: {{value|Group}}.
+* {{PropertyView|Show In Tree|Bool}}: if it is {{TRUE}}, the object appears in the [[Tree_view|Tree view]]. Otherwise, it is set as invisible.
+* {{PropertyView|Visibility|Bool}}: if it is {{TRUE}}, the object appears in the [[3D_view|3D view]]; otherwise it is invisible. By default this property can be toggled on and off by pressing the {{KEY|Space}} bar in the keyboard.
+
+{{TitleProperty|Selection}}
+
+* {{PropertyView|On Top When Selected|Enumeration}}: {{value|Disabled}} (default), {{value|Enabled}}, {{value|Object}}, {{value|Element}}.
+* {{PropertyView|Selection Style|Enumeration}}: {{value|Shape}} (default), {{value|BoundBox}}. If the option is {{value|Shape}}, the entire shape (vertices, edges, and faces) will be highlighted in the [[3D_view|3D view]]; if it is {{value|BoundBox}} only the bounding box will be highlighted.
+
+== Detailed explanation ==
+
+===Active status===
+
+An open document can contain multiple Parts. But only one Part can be active. The active Part is displayed in the [[Tree_view|tree view]] with the background color specified by the {{MenuCommand|Active container}} value in the [[Preferences_Editor#Colors|preferences editor]] (by default, light blue). It will also be shown with bold text.
+
+To activate or de-activate a Part:
+* Double click on it on the [[Tree_view|Tree view]], or
+* Open the context menu (right click) and select {{MenuCommand|Active object}}.
+
+[[File:Std_Part_active.png]]
+
+{{Caption|Document with two Std Parts, of which the second one is active.}}
+
+===Origin===
+
+The Origin consists of the three standard axes (X, Y, Z) and three standard planes (XY, XZ and YZ). [[Sketch|Sketches]] and other objects can be attached to these elements when creating them.
+
+[[File:Part_Origin_tree.png]] [[File:Part_Origin_view.png]]
+
+{{Caption|Left: Part Origin in the [[Tree_view|Tree view]]. Right: representation of the Origin elements in the [[3D_view|3D view]].}}
+
+{{Emphasis|Note:}} the Origin is an [[App_OriginGroupExtension|App Origin]] object ({{incode|App::Origin}} class), while the axes and planes are objects of type {{incode|App::Line}} and {{incode|App::Plane}} respectively. Each of these elements can be hidden and unhidden individually with the {{KEY|Space}} bar; this is useful to choose the correct reference when creating other objects.
+
+{{Emphasis|Note 2:}} all elements inside the Part are referenced to the Part's Origin which means that the Part can be moved and rotated in reference to the global coordinate system without affecting the placement of the elements inside.
+
+===Visibility Management===
+
+The Part's visibility supersedes the visibility of any object it contains. If the Part is hidden, the objects it contains will be hidden as well, even if their individual {{PropertyView|Visibility}} property is set to {{TRUE}}. If the Part is visible, then each object's {{PropertyView|Visibility}} determines whether the object is shown or not.
+
+[[File:Part_Visibility_off.png]] [[File:Part_Visibility_on.png]]
+{{Caption|The visibility of the Std Part determines whether the objects grouped under it are shown in the [[3D_view|3D view]] or not. Left: the Part is hidden, so none of the objects will be shown in the [[3D_view|3D view]]. Right: the Part is visible, so each object controls its own visibility.}}
+
+== Scripting ==
+
+{{Emphasis|See also:}} [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]] and [[Scripted_objects|scripted objects]].
+
+See [[Part_Feature|Part Feature]] for the general information on adding objects to the document.
+
+A Std Part ([[App_Part|App Part]]) is created with the {{incode|addObject()}} method of the document. Once a Part exists, other objects can be added to it with the {{incode|addObject()}} or {{incode|addObjects()}} methods.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+part = App.ActiveDocument.addObject("App::Part", "Part")
+
+obj1 = App.ActiveDocument.addObject("PartDesign::Body", "Body")
+obj2 = App.ActiveDocument.addObject("Part::Box", "Box")
+
+part.addObjects([obj1, obj2])
+App.ActiveDocument.recompute()
+}}
+
+You cannot create a scripted {{incode|App::Part}}. However, you can add {{incode|App::Part}} behavior to a scripted {{incode|Part::FeaturePython}} object by using the following code:
+
+{{Code|code=
+class MyGroup(object):
+    def __init__(self, obj=None):
+        self.Object = obj
+        if obj:
+            self.attach(obj)
+
+    def dumps(self):
+        return
+
+    def loads(self, _state):
+        return
+
+    def attach(self, obj):
+        obj.addExtension("App::OriginGroupExtensionPython")
+        obj.Origin = FreeCAD.ActiveDocument.addObject("App::Origin", "Origin")
+
+    def onDocumentRestored(self, obj):
+        self.Object = obj
+
+class ViewProviderMyGroup(object):
+    def __init__(self, vobj=None):
+        if vobj:
+            vobj.Proxy = self
+            self.attach(vobj)
+        else:
+            self.ViewObject = None
+
+    def attach(self, vobj):
+        vobj.addExtension("Gui::ViewProviderOriginGroupExtensionPython")
+        self.ViewObject = vobj
+
+    def dumps(self):
+        return None
+
+    def loads(self, _state):
+        return None
+
+App.ActiveDocument.addObject("Part::FeaturePython",
+                             "Group",
+                             MyGroup(),
+                             ViewProviderMyGroup(),
+                             True)
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|
+|[[Std_Group/pt-br|Std Group]]
+|[[Std_Base/pt-br|Std Base]]
+|IconL=
+|IconR=Std_Group.svg
+|IconC=Freecad.svg
+}}
+</div>
+
+{{Std_Base_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

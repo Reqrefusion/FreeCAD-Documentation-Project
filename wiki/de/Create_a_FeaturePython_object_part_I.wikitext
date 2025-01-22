@@ -1,0 +1,375 @@
+<languages/>
+
+{{Docnav/de
+|
+|[[Create_a_FeaturePython_object_part_II/de|Ein FeaturePython-Objekt, erstellen Teil II]]
+|IconL=
+|IconR=
+}}
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Einführung==
+
+FeaturePython-Objekte (auch als [[Scripted_objects/de|Skriptgenerierte Objekte]] bezeichnet) bieten die Möglichkeit, FreeCAD mit Objekten zu erweitern, die sich nahtlos in die FreeCAD-Struktur integrieren.
+
+Das ermutigt:
+*Schnelle Prototypenerstellung von neuen Objekten und Werkzeugen mit benutzerdefinierten Python-Klassen.
+*Speichern und Wiederherstellen von Daten (auch als Serialisierung bekannt) durch {{incode|App::Property}}-Objekte, ohne dass ein Skript in die FreeCAD-Dokumentdatei eingebettet wird.
+*Kreative Freiheit, FreeCAD für jede Aufgabe anzupassen.
+
+Auf dieser Seite werden wir ein funktionierendes Beispiel für eine benutzerdefinierte FeaturePython-Klasse konstruieren, wobei wir alle wichtigen Komponenten identifizieren und ein Verständnis dafür gewinnen, wie alles funktioniert, während wir vorankommen.
+
+<span id="How_does_it_work?"></span>
+==Wie funktioniert es?==
+
+FreeCAD wird mit einer Reihe von standard Objekttypen zur Verwaltung verschiedener Arten von Geometrie ausgeliefert. Einige von ihnen haben "FeaturePython"-Alternativen, die eine Anpassung mit einer benutzerdefinierten Python-Klasse ermöglichen.
+
+Diese benutzerdefinierte Python-Klasse nimmt einen Verweis auf eines dieser Objekte und modifiziert es. Zum Beispiel kann die Python-Klasse dem Objekt Eigenschaften hinzufügen oder es mit anderen Objekten verknüpfen. Außerdem kann die Python-Klasse bestimmte Methoden implementieren, um das Objekt in die Lage zu versetzen, auf Dokumentereignisse zu reagieren, wodurch es möglich wird, Änderungen von Objekteigenschaften und Neuberechnungen von Dokumenten abzufangen.
+
+Bei der Arbeit mit benutzerdefinierten Klassen und FeaturePython-Objekten ist es wichtig zu wissen, dass die benutzerdefinierte Klasse und ihr Zustand nicht im Dokument gespeichert werden, da dies die Einbettung eines Skripts in eine FreeCAD-Dokumentdatei erfordern würde, was ein erhebliches Sicherheitsrisiko darstellen würde. Nur das FeaturePython-Objekt selbst wird gespeichert (serialisiert). Da aber der Pfad des Skriptmoduls im Dokument gespeichert ist, muss ein Benutzer nur den Code der benutzerdefinierten Python-Klasse als importierbares Modul installieren und dabei der gleichen Ordnerstruktur folgen, um die verlorene Funktionalität wiederzuerlangen.
+
+[[#top|Anfang]]
+
+<span id="Setting_things_up"></span>
+==Einrichten der Dinge==
+
+FeaturePython-Objektklassen müssen in FreeCAD als importierbare Module fungieren. Das bedeutet, dass du sie in einem Pfad platzieren musst, der in deiner Python Umgebung existiert (oder füge ihn speziell hinzu). Für die Zwecke dieses Tutoriums werden wir den FreeCAD-Benutzerordner Macro verwenden. Aber wenn du eine andere Idee im Kopf hast, kannst du diese stattdessen verwenden.
+
+Wenn du nicht weißt, wo sich der FreeCAD Macro-Ordner befindet, gib {{incode|FreeCAD.getUserMacroDir(True)}} in die [[Python_console|Python-Konsole]] von FreeCAD ein:
+* Unter Linux ist es normalerweise {{FileName|/home/<username>/.local/share/FreeCAD/Macro/}} ({{VersionPlus|0.20}}) oder {{FileName|/home/<username>/.FreeCAD/Macro/}} ({{VersionMinus|0.19}}).
+* Unter Windows ist es {{FileName|%APPDATA%\FreeCAD\Macro\}}, was normalerweise {{FileName|C:\Users\<username>\Appdata\Roaming\FreeCAD\Macro\}} ist.
+* Unter macOS ist es normalerweise {{FileName|/Users/<username>/Library/Application Support/FreeCAD/Macro/}}.
+
+Jetzt müssen wir einige Ordner und Dateien erstellen:
+*Erstelle im Ordner {{FileName|Macro}} einen neuen Ordner namens {{FileName|fpo}}.
+*Erstelle im Ordner {{FileName|fpo}} eine leere Datei: {{FileName|__init__.py}}.
+*Erstelle im Ordner {{FileName|fpo}} einen neuen Ordner namens {{FileName|box}}.
+*Erstelle im Ordner {{FileName|box}} zwei Dateien: {{FileName|__init__.py}} und {{FileName|box.py}} (lasse beide vorerst leer).
+
+Deine Ordnerstruktur sollte folgendermaßen aussehen:
+
+ Macro/
+     |--> fpo/
+         |--> __init__.py
+         |--> box/
+             |--> __init__.py
+             |--> box.py
+
+Der Ordner {{FileName|fpo}} eignet sich gut zum Spielen mit neuen FeaturePython-Objekten und der Ordner {{FileName|box}} ist das Modul, in dem wir arbeiten werden. {{FileName|__init__.py}} teilt Python mit, dass sich im Ordner ein importierbares Modul befindet und {{FileName|box.py}} wird die Klassendatei für unser neues FeaturePython-Objekt sein.
+
+Nachdem wir unsere Modulpfade und Dateien erstellt haben, stellen wir sicher, dass FreeCAD richtig eingerichtet ist:
+*Starte FreeCAD (falls du dies noch nicht getan hast).
+*Aktiviere die [[Report_view|Berichtsansicht]] ({{MenuCommand|Ansicht → Bedienfelder → Berichtsansicht}}).
+*Aktiviere die [[Python_console|Python-Konsole]] ({{MenuCommand|Ansicht → Bedienfelder → Python-Konsole}}), siehe [[FreeCAD_Scripting_Basics|Grundlagen der FreeCAD-Skripterstellung]].
+
+Navigiere abschließend zum Ordner {{FileName|Macro/fpo/box}} und öffne {{FileName|box.py}} in deinem bevorzugten Code-Editor. Wir werden nur diese Datei bearbeiten.
+
+[[#top|Anfang]]
+
+<span id="A_FeaturePython_object"></span>
+==Ein FeaturePython-Objekt==
+
+Beginnen wir mit dem Schreiben unserer Klasse und ihres Konstruktors:
+
+{{Code|code=
+class box():
+
+    def __init__(self, obj):
+        """
+        Default constructor
+        """
+
+        self.Type = 'box'
+
+        obj.Proxy = self
+}}
+
+'''Die Aufschlüsselung der {{incode|__init__()}}-Methode:'''
+
+'{|class="wikitable" cellpadding="5px" width="100%"
+|style="width:25%" | {{incode|def __init__(self, obj):}}
+|style="width:75%" | Parameter beziehen sich auf die Python-Klasse selbst und das FeaturePython-Objekt, an das sie angehängt ist.
+|-
+| {{incode|self.Type <nowiki>=</nowiki> 'box'}}
+| String-Definition des benutzerdefinierten Python-Typs.
+|-
+| {{incode|obj.Proxy <nowiki>=</nowiki> self}}
+| Speichert einen Verweis auf die Python-Instanz im FeaturePython-Objekt.
+|}
+
+Füge oben in der Datei den folgenden Code hinzu:
+
+{{Code|code=
+import FreeCAD as App
+
+def create(obj_name):
+    """
+    Object creation method
+    """
+
+    obj = App.ActiveDocument.addObject('App::FeaturePython', obj_name)
+
+    box(obj)
+
+    return obj
+}}
+
+A'''Die Aufschlüsselung der {{incode|create()}}-Methode:'''
+
+{|class="wikitable" cellpadding="5px" width="100%"
+|style="width:25%" | {{incode|import FreeCAD as App}}
+|style="width:75%" | Standardimport für die meisten Python-Skripte, der App-Alias ​​ist nicht erforderlich.
+|-
+| {{incode|obj <nowiki>=</nowiki> ... addObject(...)}}
+| Erstellt ein neues FreeCAD FeaturePython-Objekt mit dem an die Methode übergebenen Namen. Wenn es keine Namenskollision gibt, sind dies die Bezeichnung und der Name des erstellten Objekts. Andernfalls werden ein eindeutiger Name und eine eindeutige Bezeichnung basierend auf „obj_name“ erstellt.
+|-
+| {{incode|box(obj)}}
+| Erstellt unsere benutzerdefinierte Klasseninstanz.
+|-
+| {{incode|return obj}}
+| Gibt das FeaturePython-Objekt zurück.
+|}
+
+Die Methode {{incode|create()}} ist nicht erforderlich, bietet aber eine gute Möglichkeit, den Code zur Objekterstellung zu kapseln.
+
+[[#top|Anfang]]
+
+<span id="Testing_the_code"></span>
+===Testen des Codes===
+
+Jetzt können wir unser neues Objekt testen. Speichere deinen Code und kehre zu FreeCAD zurück. Stelle sicher, dass du ein neues Dokument geöffnet hast. Du kannst dies tun, indem du {{KEY|Ctrl}}+{{KEY|N}} drückst oder {{MenuCommand|File → New}} auswählst.
+
+Gib in der Python-Konsole Folgendes ein:
+
+{{Code|code=
+from fpo.box import box
+}}
+
+Jetzt müssen wir unser Objekt erstellen:
+
+{{Code|code=
+mybox = box.create('my_box')
+}}
+
+[[Image:Fpo_treeview.png | right]]
+Du solltest ein neues Objekt in der [[Tree_view|Baumansicht]] mit der Bezeichnung „my_box“ erscheinen sehen.
+
+Beachte, dass das Symbol grau ist. FreeCAD teilt uns mit, dass das Objekt in der [[3D_view|3D-Ansicht]] nichts anzeigen kann. Klicke auf das Objekt und sieh dir seine Eigenschaften im [[Property_editor|Eigenschafteneditor]] an. Dort steht nicht viel, nur der Name des Objekts.
+
+Beachte auch, dass sich in der Strukturansicht neben dem FeaturePython-Objekt ein kleines blaues Häkchen befindet. Das liegt daran, dass ein Objekt beim Erstellen oder Ändern „berührt“ wird und neu berechnet werden muss. Dies wird durch Drücken der Schaltfläche {{Button|[[Image:Std_Refresh.svg|16px]] [[Std_Refresh|Std Refresh]]}} erreicht. Wir werden später etwas Code hinzufügen, um dies zu automatisieren.
+
+{{Clear}}
+
+Schauen wir uns die Attribute unseres Objekts an:
+{{Code|code=
+dir(mybox)
+}}
+
+Das Ergebnis ist:
+
+{{Code|code=
+['Content', 'Document', 'ExpressionEngine', 'FullName', 'ID', 'InList',
+...
+'setPropertyStatus', 'supportedProperties', 'touch']
+}}
+
+Es gibt viele Attribute, weil wir auf das native FreeCAD FeaturePyton-Objekt zugreifen, das in der ersten Zeile unserer {{incode|create()}}-Methode erstellt wurde. Die {{incode|Proxy}}-Eigenschaft, die wir in unserer {{incode|__init__()}}-Methode hinzugefügt haben, ist ebenfalls vorhanden.
+
+Lass es uns mit der Methode {{incode|dir()}} untersuchen:
+
+{{Code|code=
+dir(mybox.Proxy)
+}}
+
+Das Ergebnis ist:
+
+{{Code|code=
+['Type', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__',
+...
+'__str__', '__subclasshook__', '__weakref__']
+}}
+
+Wir können unsere {{incode|Type}}-Eigenschaft sehen. Schauen wir sie uns an:
+
+{{Code|code=
+mybox.Proxy.Type
+}}
+
+Das Ergebnis ist:
+
+{{Code|code=
+'box'
+}}
+
+Dies ist tatsächlich der zugewiesene Wert, sodass wir wissen, dass wir über das FeaturePython-Objekt auf die benutzerdefinierte Klasse zugreifen.
+
+Nun wollen wir sehen, ob wir unseren Unterricht etwas interessanter und vielleicht auch nützlicher gestalten können.
+
+[[#oben|oben]]
+
+<span id="Adding_properties"></span>
+===Hinzufügen von Eigenschaften===
+
+Eigenschaften sind das Lebenselixier einer FeaturePython-Klasse. Glücklicherweise unterstützt FreeCAD [[FeaturePython_Custom_Properties|eine Reihe von Eigenschaftstypen]] für FeaturePython-Klassen. Diese Eigenschaften werden direkt an das FeaturePython-Objekt angehängt und beim Speichern der Datei vollständig serialisiert. Um zu vermeiden, dass Sie Daten selbst serialisieren müssen, ist es ratsam, nur diese Eigenschaftstypen zu verwenden.
+
+Das Hinzufügen von Eigenschaften erfolgt mit der Methode {{incode|add_property()}}. Die Syntax für die Methode lautet:
+
+<!--Do not use Code template to avoid syntax highlighting-->
+ add_property(type, name, section, description)
+
+Du kannst die Liste der unterstützten Eigenschaften anzeigen, indem du Folgendes eingibst:
+
+{{Code|code=
+mybox.supportedProperties()
+}}
+
+Versuchen wir, unserer Box-Klasse eine Eigenschaft hinzuzufügen. Wechsle zu deinem Code-Editor, gehe zur Methode {{incode|__init__()}} und füge am Ende der Methode Folgendes hinzu:
+
+{{Code|code=
+obj.addProperty('App::PropertyString', 'Description', 'Base', 'Box description').Description = ""
+}}
+
+Beachte, dass wir den Verweis auf das (serialisierbare) FeaturePython-Objekt {{incode|obj}} und nicht auf die (nicht serialisierbare) Python-Klasseninstanz {{incode|self}} verwenden.
+
+Wenn du fertig bist, speichere die Änderungen und wechsle zurück zu FreeCAD. Bevor wir die an unserem Code vorgenommenen Änderungen beobachten können, müssen wir das Modul neu laden. Dies kann durch einen Neustart von FreeCAD erreicht werden, aber ein Neustart von FreeCAD jedes Mal, wenn wir den Code bearbeiten, wäre unpraktisch. Um die Dinge einfacher zu machen, gib Folgendes in die Python-Konsole ein:
+
+{{Code|code=
+from importlib import reload
+reload(box)
+}}
+
+Nachdem wir das Modul neu geladen haben, sehen wir uns an, was wir erhalten, wenn wir ein Objekt erstellen:
+
+{{Code|code=
+box.create('box_property_test')
+}}
+
+Du solltes das neue Boxobjekt in der Strukturansicht sehen:
+*Wähle es aus und sehe dir den Eigenschafteneditor an. Dort solltest du die Eigenschaft „Beschreibung“ sehen.
+*Bewege den Mauszeiger über den Eigenschaftennamen auf der linken Seite und der Tooltip sollte mit der von dir angegebenen Beschreibung erscheinen.
+*Wähle das Feld aus und gib ein, was du möchtest. Du wirst feststellen, dass Python-Aktualisierungsbefehle ausgeführt und in der Konsole angezeigt werden, während du Buchstaben eingibst und sich die Eigenschaft ändert.
+
+[[#top|Anfang]]
+
+Lass uns noch einige weitere Eigenschaften hinzufügen. Kehre zu deinem Quellcode zurück und füge der Methode {{incode|__init__()}} die folgenden Eigenschaften hinzu:
+
+{{Code|code=
+obj.addProperty('App::PropertyLength', 'Length', 'Dimensions', 'Box length').Length = 10.0
+obj.addProperty('App::PropertyLength', 'Width', 'Dimensions', 'Box width').Width = '10 mm'
+obj.addProperty('App::PropertyLength', 'Height', 'Dimensions', 'Box height').Height = '1 cm'
+}}
+
+Und fügen wir auch etwas Code hinzu, um das Dokument automatisch neu zu berechnen. Füge die folgende Zeile über der {{incode|return()}}-Anweisung in der {{incode|create()}}-Methode hinzu:
+
+{{Code|code=
+App.ActiveDocument.recompute()
+}}
+
+'''Sei vorsichtig, wenn du ein FeaturePython-Objekt neu berechnest. Die Neuberechnung sollte von einer Methode außerhalb seiner Klasse durchgeführt werden.'''
+
+[[Image:fpo_box_properties.png | right]]
+
+Teste nun deine Änderungen wie folgt:
+*Speichere deine Änderungen und lade dein Modul neu.
+*Lösche alle Objekte in der Strukturansicht.
+*Erstelle ein neues Box-Objekt aus der Python-Konsole, indem du {{incode|box.create('myBox')}} aufrufst.
+
+Sobald die Box erstellt ist und du überprüft hast, ob sie neu berechnet wurde, wähle das Objekt aus und sehe dir seine Eigenschaften an. Dabei solltest du zwei Dinge beachten:
+*Eine neue Eigenschaftengruppe: „Abmessungen“.
+*Drei neue Eigenschaften: „Höhe“, „Länge“ und „Breite“.
+
+Beachte auch, dass die Eigenschaften Einheiten haben. Genauer gesagt haben sie die linearen Einheiten übernommen, die in den Benutzereinstellungen festgelegt sind ({{MenuCommand|Bearbeiten → Einstellungen... → Allgemein → Einheiten}}).
+{{Clear}}
+
+Sicherlich ist dir aufgefallen, dass für die Abmessungen drei verschiedene Werte eingegeben wurden: ein Gleitkommawert ({{incode|10.0}}) und zwei verschiedene Zeichenfolgen ({{incode|'10 mm'}} und {{incode|'1 cm'}}). Der Typ {{incode|App::PropertyLength}} geht davon aus, dass Gleitkommawerte in Millimetern vorliegen, Zeichenfolgenwerte werden gemäß den angegebenen Einheiten analysiert und in der GUI werden alle Werte in die in den Benutzereinstellungen angegebenen Einheiten konvertiert ({{incode|mm}} im Bild). Aufgrund dieses integrierten Verhaltens ist der Typ {{incode|App::PropertyLength}} ideal für Abmessungen.
+
+[[#top|Anfang]]
+
+<span id="Trapping_events"></span>
+===Ereignisse abfangen===
+
+Das letzte für ein grundlegendes FeaturePython-Objekt erforderliche Element ist das Abfangen von Ereignisen. Ein FeaturePython-Objekt kann mit Rückruffunktionen auf Ereignisse reagieren. In unserem Fall möchten wir, dass das Objekt reagiert, wenn es neu berechnet wird. Mit anderen Worten, wir möchten Neuberechnungen abfangen. Um dies zu erreichen, müssen wir der Objektklasse eine Funktion mit einem bestimmten Namen, {{incode|execute()}}, hinzufügen. Es gibt mehrere andere Ereignisse, die abgefangen werden können, sowohl im FeaturePython-Objekt selbst als auch im [[Viewprovider|ViewProvider]], die wir in [[Create_a_FeaturePython_object_part_II|Erstellen eines FeaturePython-Objekts, Teil II]] behandeln werden.
+
+Eine vollständige Referenz der für die Implementierung in FeautrePython-Klassen verfügbaren Methoden findest du unter [[FeaturePython_methods|FeaturePython-Methoden]].
+
+Füge nach der Funktion {{incode|__init__()}} Folgendes hinzu:
+
+{{Code|code=
+def execute(self, obj):
+    """
+    Called on document recompute
+    """
+
+    print('Recomputing {0:s} ({1:s})'.format(obj.Name, self.Type))
+}}
+
+Teste den Code, indem du diese Schritte erneut ausführst:
+*Speichern und Modul neu laden.
+*Alle Objekte löschen.
+*Neues Box-Objekt erstellen.
+
+Du solltest die gedruckte Ausgabe in der Python-Konsole sehen, dank des Aufrufs {{incode|recompute()}}, den wir der Methode {{incode|create()}} hinzugefügt haben. Natürlich tut die Methode {{incode|execute()}} hier nichts, außer uns mitzuteilen, dass sie aufgerufen wurde, aber sie ist der Schlüssel zur Magie der FeaturePython-Objekte.
+
+Das war es, du weißt jetzt, wie du ein einfaches, funktionales FeaturePython-Objekt erstellst!
+
+[[#top|Anfang]]
+
+<span id="Complete_code"></span>
+===Vollständiger Code===
+
+{{Code|code=
+import FreeCAD as App
+
+def create(obj_name):
+    """
+    Object creation method
+    """
+
+    obj = App.ActiveDocument.addObject('App::FeaturePython', obj_name)
+
+    box(obj)
+
+    App.ActiveDocument.recompute()
+
+    return obj
+
+class box():
+
+    def __init__(self, obj):
+        """
+        Default constructor
+        """
+
+        self.Type = 'box'
+
+        obj.Proxy = self
+
+        obj.addProperty('App::PropertyString', 'Description', 'Base', 'Box description').Description = ""
+        obj.addProperty('App::PropertyLength', 'Length', 'Dimensions', 'Box length').Length = 10.0
+        obj.addProperty('App::PropertyLength', 'Width', 'Dimensions', 'Box width').Width = '10 mm'
+        obj.addProperty('App::PropertyLength', 'Height', 'Dimensions', 'Box height').Height = '1 cm'
+
+    def execute(self, obj):
+        """
+        Called on document recompute
+        """
+
+        print('Recomputing {0:s} ({1:s})'.format(obj.Name, self.Type))
+}}
+
+[[#top|Anfang]]
+
+{{Docnav/de
+|
+|[[Create_a_FeaturePython_object_part_II/de|Ein FeaturePython-Objekt, erstellen Teil II]]
+|IconL=
+|IconR=
+}}
+
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}

@@ -1,0 +1,192 @@
+<languages/>
+
+{{VeryImportantMessage|This is an unfinished experimental feature. [[CAM_experimental|Enable Experimental Features]]}}
+
+{{UnfinishedDocu{{#translation:}}}}
+
+{{Docnav
+|[[CAM_Surface|Surface]]
+|[[CAM_DressupAxisMap|DressupAxisMap]]
+|[[CAM_Workbench|CAM]]
+|IconL=CAM_Surface.svg
+|IconR=CAM_DressupAxisMap.svg
+|IconC=Workbench_CAM.svg
+}}
+
+{{GuiCommand
+|Name=CAM Waterline
+|MenuLocation=CAM → Waterline
+|Workbenches=[[CAM_Workbench|CAM]]
+|Version=0.19
+}}
+
+==Description== 
+
+The tool [[Image:CAM_Waterline.svg|24px]] [[CAM_Waterline|Waterline]] creates a new Waterline operation. As of 0.19_pre, the operation works on the entire model to generate G-code for the Job. Currently, within the operation's settings there is no functionality to select specific areas, faces, or regions of the model.
+
+The Waterline operation has two algorithms: OCL Drop Cutter and Experimental.
+* The OCL Drop Cutter algorithm interfaces to OCL.pyd, a 3rd party Open Source module titled [[OpenCamLib|OpenCamLib]], that generates tool paths from a 3D Model. OpenCamLib is not integrated directly into FreeCAD.
+* The Experimental algorithm makes use of the built-in Path.Area() class.
+
+''' ''Note'' ''': In order to use the Waterline operation you must:
+# Properly install [[OpenCamLib|OpenCamLib]].
+# Enable [[CAM_experimental|Experimental Features]] for the CAM Workbench.
+# Check {{MenuCommand|Edit → Preferences... → CAM → Advanced → Enable OCL dependent features}}.
+
+==Usage==
+
+Usage instructions for multiple variations of the [[CAM_Waterline|Waterline]] operation are presented here.
+
+====Basic Operation==== 
+
+# Press the {{KEY|[[Image:CAM Waterline.svg|24px]] [[CAM Waterline|Waterline]]}} icon, or select the [[CAM Waterline|Waterline]] tool from the '''CAM''' menu.
+# Select the tool controller for the Operation from the Tool controller dialogue pop up window.
+# Adjust the operation depths as needed in the Depths tab: Start Depth, Final Depth, Step Down.
+# Make adjustments in Heights tab if needed.
+# Configure settings in the Operations tab based on the Algorithm selected:
+## OCL Dropcutter
+### Choose the BoundBox: Stock or BaseBoundBox.
+### Set the Layer Mode: Single-pass or Multi-pass.
+### Set the Sample Interval used for the OCL scan.
+## Experimental
+### Choose the BoundBox: Stock or BaseBoundBox.
+### Set the Layer Mode: Single-pass or Multi-pass.
+### Set the Cut Pattern if clearing is desired at each layer.
+### Set the Boundary Adjustment (material allowance).
+# If you wish to preview the result before accepting the settings, click Apply
+# Click '''OK''' button to confirm and generate paths.
+
+To achieve different, or more complex, effects, adjust additional operation properties within the Data tab of the Properties View for the operation.
+
+=====Notes About Experimental Algorithm=====
+
+* It does not handle overhangs correctly.
+* It only returns paths for an End Mill type cutter (tool bit).
+* It might not correctly catch all interior features.
+* It is just that, experimental, and not ready for mainstream integration. Please inspect paths with the built-in {{KEY|[[Image:CAM_Simulator.svg|16px]] [[CAM_Simulator|CAM Simulator]]}}, or other 3rd-party G-code inspection tools, before cutting with your machine.
+
+====Available Tool (Cutter) Shapes====
+
+When using the ''' ''OCL Dropcutter'' ''' algorithm, the Waterline operation uses OpenCamLib [OCL|OCL] to extract paths from the part base. As such, a tool translation is required between the FreeCAD tool controller and OCL in order to complete the scan with your chosen tool(cutter) shape. These tool shapes are(should be) respected and available for the OCL Dropcutter so long as the built-in tool shapes are used, whether Legacy or ToolBit tools:
+
+* End mill
+* Ball end mill
+* Bull nose end mill
+* Chamfer bit
+* Engraver
+
+====Additional Notes====
+
+* Should you choose to run the path simulator, {{KEY|[[Image:CAM_Simulator.svg|16px]] [[CAM_Simulator|CAM Simulator]]}}, in the CAM Workbench, you might not see tool-shape-specific material removal. Be cautious. A small trial job using foam or other very non-dense material is recommended to verify paths are correct with your selected tool controller. 
+* As of May 2020, only the End Mill has any type of testing to determine accuracy of the FreeCAD-to-OCL tool settings translation. Please post any feedback for non-end-mill usage to the [https://forum.freecadweb.org/viewforum.php?f=15 Path/CAM] section in the FreeCAD forums.
+
+==Properties==
+
+''' ''Note'' ''': Not all of these Properties are available in the Task Window Editor. Some are only accessible in the Data tab of the Properties View panel for this Operation.
+
+{{TitleProperty|Base}}
+
+Note: It is suggested that you do not edit the Placement property of path operations. Rather, move or rotate the CAM Job model as needed.
+
+* {{PropertyData|Placement}}: Overall placement[position and rotation] of the object - with respect to the origin (or origin of parent object container)
+** {{PropertyData|Angle}}: Angle in degrees applied to rotation of the object around Axis property value
+** {{PropertyData|Axis}}:  Axis (one or multiple) around which to rotate the object, set in sub-properties: X, Y, Z
+*** {{PropertyData|X}}: X axis value
+*** {{PropertyData|Y}}: Y axis value
+*** {{PropertyData|Z}}: Z axis value
+** {{PropertyData|Position}}: Position of the object, set in sub-properties: X, Y, Z - with respect to the origin (or origin of parent object container)
+*** {{PropertyData|X}}: X distance value
+*** {{PropertyData|Y}}: Y distance value
+*** {{PropertyData|Z}}: Z distance value
+* {{PropertyData|Label}}: User-provided name of the object (UTF-8)
+
+{{TitleProperty|Clearing Options}}
+
+* {{PropertyData|Algorithm}}: The library to use to generate the path
+* {{PropertyData|BoundBox}}: Should the operation be limited by the stock object or by the bounding box of the base object
+* {{PropertyData|Clear Last Layer}}: Set to clear last layer in `Multi-pass` operation.
+* {{PropertyData|Cut Mode}}: The direction that the toolpath should go around the part: Climb (ClockWise) or Conventional (CounterClockWise)
+* {{PropertyData|Cut Pattern}}: Clearing pattern to use
+* {{PropertyData|Depth Offset}}: 
+* {{PropertyData|Ignore Outer Above}}: 
+* {{PropertyData|Layer Mode}}: The completion mode for the operation: single or multi-pass
+* {{PropertyData|Step Over}}: 
+
+{{TitleProperty|Depth}}
+
+* {{PropertyData|Clearance Height}}: The height needed to clear clamps and obstructions
+* {{PropertyData|Final Depth}}: Final Depth of Tool- lowest value in Z
+* {{PropertyData|Safe Height}}: The above which Rapid motions are allowed.
+* {{PropertyData|Start Depth}}: Starting Depth of Tool- first cut depth in Z
+* {{PropertyData|Step Down}}: Incremental Step Down of Tool
+
+{{TitleProperty|Path}}
+
+* {{PropertyData|Active}}: Make False, to prevent operation from generating code
+* {{PropertyData|Base}}: The base geometry for this operation
+* {{PropertyData|Comment}}: An optional comment for this Operation
+* {{PropertyData|Coolant Mode}}: 
+* {{PropertyData|Cycle Time}}: 
+* {{PropertyData|Tool Controller}}: Defines the Tool controller used in the Operation
+* {{PropertyData|User Label}}: User assigned label
+
+{{TitleProperty|Start Point}}
+
+* {{PropertyData|Start Point}}: The custom start point for the path of this operation.
+** {{PropertyData|X}}: X distance value
+** {{PropertyData|Y}}: Y distance value
+** {{PropertyData|Z}}: Z distance value
+* {{PropertyData|Use Start Point}}: Make True, if specifying a Start Point
+
+==Tasks Window Editor Layout== 
+
+''Descriptions for the settings are provided in the Properties list above.''
+
+This section is simply a layout map of the settings in the window editor for the Operation.
+
+===Base Location=== 
+
+* '''Add''': Adds selected element(s) which should be the base(s) for the path(s).
+* '''Remove''': Remove the selected item(s) in the Base Location list.
+* '''Edit''': Clear all items in the Base Location list.
+
+===Depths=== 
+
+* {{PropertyData|Start Depth}}
+* {{PropertyData|Final Depth}}
+* {{PropertyData|Step Down}}
+
+===Heights=== 
+
+* {{PropertyData|Safe Height}}
+* {{PropertyData|Clearance Height}}
+
+===Operation=== 
+
+* {{PropertyData|Tool Controller}}
+* {{PropertyData|Coolant Mode}}
+* {{PropertyData|Algorithm}}
+* {{PropertyData|BoundBox}}
+* {{PropertyData|Layer Mode}}
+* {{PropertyData|Cut Pattern}}~
+* {{PropertyData|Boundary Adjustment}}~
+* {{PropertyData|Sample Interval}}~
+~Visibility changes with other settings. 
+
+==Resources== 
+
+* G-code(path) simulator: [https://ncviewer.com/ NCViewer]
+* G-code(path) simulator: [https://www.camotics.org/ CAMotics]
+
+
+{{Docnav
+|[[CAM_Surface|Surface]]
+|[[CAM_DressupAxisMap|DressupAxisMap]]
+|[[CAM_Workbench|CAM]]
+|IconL=CAM_Surface.svg
+|IconR=CAM_DressupAxisMap.svg
+|IconC=Workbench_CAM.svg
+}}
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

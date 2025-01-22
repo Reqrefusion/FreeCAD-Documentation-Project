@@ -1,0 +1,110 @@
+<languages/>
+
+{{Docnav/it
+|[[Part_JoinConnect/it|Congiungi oggetti]]
+|[[Part_JoinCutout/it|Ritaglio per l'oggetto]]
+|[[Part_Workbench/it|Part]]
+|IconL=Part JoinConnect.svg
+|IconR=Part JoinCutout.svg
+|IconC=Workbench_Part.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/it
+|Name=Part JoinEmbed
+|Name/it=Part Incorpora
+|MenuLocation=Part → Giunzione → Incorpora oggetto
+|Workbenches=[[Part_Workbench/it|Part]]
+|Version=0.16
+|SeeAlso=[[Part_JoinConnect/it|Congiungi oggetti]], [[Part_JoinCutout/it|Ritaglio per l'oggetto]], [[Part_Boolean/it|Operazione booleana]], [[Part_Thickness/it|Spessore]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descrizione==
+
+<div class="mw-translate-fuzzy">
+Lo strumento Incorpora, incorpora un oggetto con pareti (es. un tubo) in un altro oggetto con pareti.
+</div>
+
+[[image:JoinFeatures_Embed.png|600px]]
+
+<span id="Usage"></span>
+==Utilizzo==
+
+<div class="mw-translate-fuzzy">
+# Selezionare prima l'oggetto base, quindi l'oggetto da incorporare. L'ordine di selezione è importante. È sufficiente selezionare una sottoforma di ciascun oggetto (ad esempio, facce).
+# Richiamare il comando Part Incorpora.
+</div>
+
+==Properties==
+
+{{TitleProperty|Base}}
+
+* {{PropertyData|Base}}: Riferisce l'oggetto di base (l'oggetto in cui si vuole incorporare l'altro oggetto). L'oggetto deve essere un solido unico.
+* {{PropertyData|Tool}}: Riferisce l'oggetto da usare come utensile (l'oggetto da incorporare). L'oggetto può essere un solido unico, oppure un [[Part_Compound/it|composto valido]] di solidi.
+* {{PropertyData|Mode}}: Stabilisce la modalità dell'operazione di Giunzione, che in questo caso è uguale a 'Connect' (cambiando modalità si trasforma lo strumento in uno strumento Giunzione diverso). Il valore 'bypass' può essere usato per disabilitare temporaneamente i lunghi calcoli (in questo caso, viene creato un oggetto Composto formato dagli oggetti Base e Tool , che è un'operazione veloce).
+* {{PropertyData|Refine}}: Stabilisce se alla forma finale deve essere applicata l'operazione [[Part RefineShape/it|Affina]], oppure no. Il valore di default è stabilito dalla casella di controllo 'Affina automaticamente la forma dopo l'operazione booleana' nelle preferenze di PartDesign. Quando la proprietà Mode è impostata su 'bypass', Affina viene ignorato (Refine non è mai applicato).
+
+<span id="Example"></span>
+==Esempio==
+
+# Creare un tubo applicando uno [[Part_Thickness/it|Spessore]] a un [[Part_Cylinder/it|cilindro]]:<br />[[Image:JoinFeatures_Example_step1.png|320px]]
+# Creare un nuovo tubo di diametro inferiore e [[Placement/it|posizionarlo]] in modo da perforare la parete del primo tubo:<br />[[image:JoinFeatures_Example_step2.png|320px]]
+# Selezionare il primo tubo, poi il secondo tubo (l'ordine di selezione è importante), infine selezionare l'opzione 'Incorpora' dalla barra degli strumenti a discesa degli strumenti Giunzione. <br />[[image:JoinFeatures_Example_step3_Embed.png|320px]]
+# Per visualizzare gli interni, utilizzare uno degli strumenti di sezione: [[Std_ToggleClipPlane/it|Piano di taglio]] del menu Visualizza, [[Arch_SectionPlane/it|Piano di sezione]] di Arch, o  [[Arch_CutPlane/it|Piano di taglio]] di Arch. Nell'immagine seguente, è stato utilizzato il Piano di sezione di Arch.<br />[[image:JoinFeatures_Example_step4_Embed.png|320px]]
+
+<span id="Algorithm"></span>
+==Algoritmo==
+
+Gli algoritmi sottostanti agli strumenti di Giunzione sono abbastanza semplici, ed è importante comprenderli per utilizzarli correttamente.
+
+1. L'oggetto Base viene [[Part Cut/it|tagliato]] dall'oggetto Tool con una operazione booleana. La forma risultante è un [[Part_Compound/it|composto]], cioè un insieme di solidi non intersecanti (tipicamente, due). 
+
+2. Il composto risultante viene filtrato e viene conservato solo il solido più grande.
+
+3. Il solido più grande viene [[Part_Fuse/it|unito]] con l'oggetto Tool tramite una operazione booleana.
+
+4. Se la proprietà Refine è impostata su true, la forma risultante viene [[Part RefineShape/it|affinata]].
+<br /><br />[[image:JoinFeatures-Algo-Embed.png|800px]]
+
+<span id="Notes"></span>
+===Note===
+
+* Se dopo il passaggio 1, l'oggetto rimane ancora in un pezzo unico, il risultato dell'incastro è equivalente a una [[Part_Fuse/it|unione booleana]] di Base con Tool, ma richiede più tempo per il calcolo.
+* Attualmente, quando viene fornito un composto come Base lo strumento produce un risultato inaspettato. Questo potrà essere modificato in futuro.
+* Poiché il pezzo più grande è determinato confrontando i volumi, lo strumento può funzionare solo con i solidi. Questo potrà essere modificato in futuro.
+
+<span id="Scripting"></span>
+==Script==
+
+Lo strumento Giunzione può essere utilizzato nelle [[macros/it|macro]] e dalla [[FreeCAD_Scripting_Basics/it|console di Python]] tramite la seguente funzione:
+
+{{Code|code=JoinFeatures.makePartJoinFeature(name = 'Embed', mode = 'Embed')}}
+
+* Crea una funzione Embed vuota (o altra funzione Join, secondo la modalità passata). Le proprietà Base e Tool devono essere assegnate in modo esplicito, in seguito.
+* Restituisce l'oggetto appena creato.
+
+Esempio:
+
+{{code|code=
+import JoinFeatures
+j = JoinFeatures.makePartJoinFeature(name = 'Embed', mode = 'Embed' )
+j.Base = FreeCADGui.Selection.getSelection()[0]
+j.Tool = FreeCADGui.Selection.getSelection()[1]
+}}
+
+Lo strumento è implementato in Python, vedere {{FileName|/Mod/Part/JoinFeatures.py}} ([https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/Part/JoinFeatures.py Github link]) in cui è installato FreeCAD.
+
+
+{{Docnav/it
+|[[Part_JoinConnect/it|Congiungi oggetti]]
+|[[Part_JoinCutout/it|Ritaglio per l'oggetto]]
+|[[Part_Workbench/it|Part]]
+|IconL=Part JoinConnect.svg
+|IconR=Part JoinCutout.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

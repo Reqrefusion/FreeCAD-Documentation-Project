@@ -1,0 +1,132 @@
+<languages/>
+
+{{Docnav
+|[[Draft_AnnotationStyleEditor|AnnotationStyleEditor]]
+|[[Draft_Rotate|Rotate]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_AnnotationStyleEditor.svg
+|IconR=Draft_Rotate.svg
+|IconC=Workbench_Draft.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/ro
+|Name=Draft Move
+|Name/ro=Draft Move
+|MenuLocation=Draft → Move
+|Workbenches=[[Draft_Workbench/ro|Draft]], [[Arch_Workbench/ro|Arch]]
+|Shortcut={{KEY|M}} {{KEY|V}}
+|Version=0.7
+|SeeAlso=[[Draft_SubelementHighlight|Draft SubelementHighlight]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descriere==
+
+<div class="mw-translate-fuzzy">
+Instrumentul Mutare deplasează sau copiază obiectele selectate dintr-un punct în altul pe [[Draft SelectPlane|work plane]]. Dacă nu este selectat niciun obiect, veți fi invitat să selectați unul.
+</div>
+
+The command can be used on 2D objects created with the [[Draft_Workbench|Draft Workbench]] or [[Sketcher_Workbench|Sketcher Workbench]], but also on many 3D objects such as those created with the [[Part_Workbench|Part Workbench]], [[PartDesign_Workbench|PartDesign Workbench]] or [[BIM_Workbench|BIM Workbench]].
+
+[[Image:Draft_Move_example.jpg|400px]]
+{{Caption|Moving an object from one point to another}}
+
+<span id="Usage"></span>
+== Cum se folosește ==
+
+See also: [[Draft_Snap|Draft Snap]] and [[Draft_Constrain|Draft Constrain]].
+
+<div class="mw-translate-fuzzy">
+# Select objects you wish to move or copy
+# Press the {{KEY|[[Image:Draft Move.png|16px]] [[Draft Move]]}} button, or press {{KEY|M}} then {{KEY|V}} keys
+# Click a first point on the 3D view, or type a coordinate
+# Click another point on the 3D view, or type a coordinate
+</div>
+
+<span id="Options"></span>
+== Opţiuni ==
+
+The single character keyboard shortcuts available in the task panel can be changed. See [[Draft_Preferences|Draft Preferences]]. The shortcuts mentioned here are the default shortcuts (for version 1.0).
+
+<div class="mw-translate-fuzzy">
+* Apăsați {{KEY | X}}, {{KEY | Y}} sau {{KEY | Z}} după un punct pentru a restrânge următorul punct de pe axa dată.
+* Pentru a introduce manual coordonatele, pur și simplu introduceți numerele, apoi apăsați {{KEY | ENTER}} între fiecare componentă X, Y și Z.
+* Apăsați tasta {{KEY | R}} sau faceți clic pe caseta de selectare pentru a bifa / debifa butonul {{KEY | '' 'Relativ' ''}}. Dacă modul relativ este activ, coordonatele punctului următor sunt relativ la ultima. Dacă nu, ele sunt absolute, luate din punctul de origine (0,0,0).
+* Apăsați tasta {{KEY | T}} sau faceți clic pe caseta de selectare pentru a bifa / debifa butonul {{KEY | '' 'Continue' '}}. Dacă modul continuat este activat, instrumentul Mutare se va reporni după ce îl terminați sau îl închideți, permițându-vă să mutați sau să copiați obiectele altfel fără să apăsați din nou butonul Mutare.
+* Apăsând butonul {{KEY | ALT}} sau {{KEY | C}} sau făcând clic pe butonul {{KEY | '''Copiere'''}} va face o copie a obiectelor, în loc să le mutați. Dacă țineți apăsat {{KEY | ALT}} după ce faceți clic pe cel de-al doilea punct, veți putea plasa mai multe copii până când eliberați tasta {{KEY | ALT}}.
+* Apăsați {{KEY | CTRL}} în timp ce desenați pentru a forța ancorarea [[Draft_Snap | snapping]] punctul dvs. către cea mai apropiată locație, independent de distanță.
+* Apăsați pe {{KEY | SHIFT}} în timp ce desenați [[Draft_Constrain | constrain]] următorul punct pe orizontală sau pe verticală în raport cu ultimul.
+* Apăsați butonul {{KEY | ESC}} sau butonul {{KEY | '''Anulare'''}} pentru a întrerupe comanda curentă.
+</div>
+
+==Notes==
+
+* An Object that is [[Part_EditAttachment|attached]] cannot be moved with the Draft Move command. To move it either its {{PropertyData|Support}} object has to be moved, or its {{PropertyData|Attachment Offset}} has to be changed.
+
+==Preferences==
+
+See also: [[Preferences_Editor|Preferences Editor]] and [[Draft_Preferences|Draft Preferences]].
+
+* To change the initial focus of the task panel to the {{MenuCommand|Length}} input box: {{MenuCommand|Edit → Preferences... → Draft → General → Set focus on Length instead of X coordinate}}. Note that you must move the pointer in the [[3D_view|3D view]] for the change to take effect.
+* To reselect the base objects after copying objects: {{MenuCommand|Edit → Preferences... → Draft → General → Select base objects after copying}}.
+
+==Scripting==
+
+<div class="mw-translate-fuzzy">
+==Script==
+</div>
+
+<div class="mw-translate-fuzzy">
+Instrumentul de mutare poate fi folosit în [[macros]] și din consola python utilizând următoarea funcție:
+</div>
+
+{{Code|code=
+moved_list = move(objectslist, vector, copy=False)
+}}
+
+<div class="mw-translate-fuzzy">
+* Mută obiectul dat sau obiectele conținute în lista dată în direcția și distanța indicată de vectorul dat.
+* Dacă copymode este True, obiectele reale nu sunt mutate, în schimb sunt create copii. Returnează obiectele (sau copiile lor dacă modelul de copiere a fost Tru)
+* Se întoarce o listă a obiectului mutat (sau a copiilor)
+</div>
+
+Exempluː
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+polygon1 = Draft.make_polygon(5, radius=1000)
+polygon2 = Draft.make_polygon(3, radius=500)
+polygon3 = Draft.make_polygon(6, radius=220)
+
+Draft.move(polygon1, App.Vector(500, 500, 0))
+Draft.move(polygon1, App.Vector(500, 500, 0))
+Draft.move(polygon2, App.Vector(1000, -1000, 0))
+Draft.move(polygon3, App.Vector(-500, -500, 0))
+
+list1 = [polygon1, polygon2, polygon3]
+
+vector = App.Vector(-2000, -2000, 0)
+list2 = Draft.move(list1, vector, copy=True)
+list3 = Draft.move(list1, -2*vector, copy=True)
+
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Draft_AnnotationStyleEditor|AnnotationStyleEditor]]
+|[[Draft_Rotate|Rotate]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_AnnotationStyleEditor.svg
+|IconR=Draft_Rotate.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

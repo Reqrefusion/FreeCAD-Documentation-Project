@@ -1,0 +1,125 @@
+<languages/>
+
+{{Docnav
+|[[Mesh_Workbench|Mesh Workbench]]
+|[[Part_Workbench|Part Workbench]]
+|IconL=Workbench_Mesh.svg
+|IconR=Workbench_Part.svg
+}}
+
+[[Image:Workbench_OpenSCAD.svg|thumb|128px|OpenSCAD workbench icon]]
+
+{{TOCright}}
+
+== Introduction ==
+
+The [[Image:Workbench_OpenSCAD.svg|24px]] [[OpenSCAD_Workbench|OpenSCAD Workbench]] is intended to offer interoperability with the open source software [http://www.openscad.org/ OpenSCAD]. This program is not distributed as part of FreeCAD, but should be installed to make full use of this workbench. OpenSCAD should not be confused with [[OpenCASCADE|OpenCASCADE]], which is the geometrical kernel that FreeCAD uses to build geometry on screen. The OpenCASCADE libraries are always needed to use FreeCAD, while the OpenSCAD executable is entirely optional.
+
+It contains a [[OpenSCAD_CSG|CSG]] importer to open the CSG files from OpenSCAD, and an exporter to output a CSG based tree. Geometry which is not based on CSG operations will be exported as a mesh.
+
+This workbench contains functions to modify the CSG feature tree and repair models. It also contains general purpose tools that do not require installation of OpenSCAD; they can be used in conjunction with other workbenches. For example, the [[Mesh_Workbench|Mesh Workbench]] internally uses the OpenSCAD functions to perform operations with [[mesh|meshes]], as they are quite robust.
+
+[[Image:OpenSCADexamaple1.png]]
+
+== Dependencies ==
+
+In FreeCAD 0.19, the Ply (Python-Lex-Yacc) module, which is used to import CSG files, was removed from the FreeCAD source code, as it is a third party library not developed by FreeCAD. As a result, you now need to install Ply before using the OpenSCAD Workbench. When using a pre-packaged, stable version of FreeCAD this dependency should be installed automatically in all platforms; in other cases, for example, when [[Compiling|compiling]] from source, you may have to install it from an online repository.
+
+In openSUSE this is done by:
+
+{{Code|code=
+sudo zypper install python3-ply
+}}
+
+In Debian/Ubuntu based systems this is done like the following:
+
+{{Code|code=
+sudo apt install python3-ply
+}}
+
+The general installation in all platforms can be done from the Python package index.
+
+{{Code|code=
+pip3 install --user ply
+}}
+
+== OpenSCAD language and file format ==
+
+The OpenSCAD language allows the use of variables and loops. It allows you to specify sub-modules to reuse geometry and code. This high degree of flexibility makes parsing very complex. Currently the OpenSCAD Workbench cannot handle the OpenSCAD language natively.
+Instead, if OpenSCAD is installed, it can be used to convert the input to the CSG format, which is a subset of the OpenSCAD language, and can be used as the input to OpenSCAD for further processing.
+During conversion all parametric behavior is lost, meaning that all variable names are discarded, loops expanded, and mathematical expressions evaluated.
+
+== Tools ==
+
+* [[Image:OpenSCAD_ColorCodeShape.svg|32px]] [[OpenSCAD_ColorCodeShape|Color Code Shape]]: Change the color of selected or all shapes based on their validity.
+* [[Image:OpenSCAD_ReplaceObject.svg|32px]] [[OpenSCAD_ReplaceObject|Replace Object]]: Replace an object in the feature tree.
+* [[Image:OpenSCAD_RemoveSubtree.svg|32px]] [[OpenSCAD_RemoveSubtree|Remove Subtree]]: Removes the selected objects and all children that are not referenced from other objects.
+* [[Image:OpenSCAD_RefineShapeFeature.svg|32px]] [[OpenSCAD_RefineShapeFeature|Refine Shape Feature]]: Cleans unnecessary lines.
+* [[Image:OpenSCAD_MirrorMeshFeature.svg|32px]] [[OpenSCAD_MirrorMeshFeature|Mirror Mesh Feature]]: Create Mirror Mesh Feature.
+* [[Image:OpenSCAD_ScaleMeshFeature.svg|32px]] [[OpenSCAD_ScaleMeshFeature|Scale Mesh Feature]]: Scale a Mesh Feature.
+* [[Image:OpenSCAD_ResizeMeshFeature.svg|32px]] [[OpenSCAD_ResizeMeshFeature|Resize Mesh Feature]]: Resize a Mesh Feature.
+* [[Image:OpenSCAD_IncreaseToleranceFeature.svg|32px]] [[OpenSCAD_IncreaseToleranceFeature|Increase Tolerance Feature]]: Increases tolerance of edges/faces/vertex of selected object(s).
+* [[Image:OpenSCAD_Edgestofaces.svg|32px]] [[OpenSCAD_Edgestofaces|Convert Edges To Faces]]: Convert edges to faces. Useful to prepare imported DXF geometry for extrusion.
+* [[Image:OpenSCAD_ExpandPlacements.svg|32px]] [[OpenSCAD_ExpandPlacements|Expand Placements]]: Expand all placements downwards the FeatureTree.
+* [[Image:OpenSCAD_ExplodeGroup.svg|32px]] [[OpenSCAD_ExplodeGroup|Explode Group]]: Explodes fused part primitives.
+* [[Image:OpenSCAD_AddOpenSCADElement.svg|32px]] [[OpenSCAD_AddOpenSCADElement|Add OpenSCAD Element]]: Add an OpenSCAD element by entering OpenSCAD code into the task panel.
+* [[Image:OpenSCAD_MeshBoolean.svg|32px]] [[OpenSCAD_MeshBoolean|Mesh Boolean]]: Creates new mesh object by boolean operation from shapes.
+* [[Image:OpenSCAD_Hull.svg|32px]] [[OpenSCAD_Hull|Hull]]: Applies a hull to selected shapes.
+* [[Image:OpenSCAD_Minkowski.svg|32px]] [[OpenSCAD_Minkowski|Minkowski]]: Applies a minkowski sum to selected shapes.
+
+== Preferences ==
+
+* [[Image:Std_DlgPreferences.svg|32px]] [[OpenSCAD_Preferences|Preferences]]: preferences available for the OpenSCAD tools.
+
+== Limitations ==
+
+OpenSCAD creates constructive solid geometry, as well as imports mesh files and extrudes 2D geometry from [[DXF|DXF]] files. FreeCAD allows you to create CSG with primitives as well. The FreeCAD geometry kernel (OCCT) works using a boundary representation. Therefore conversion from CSG to BREP should, in theory, be possible whereas conversion from BREP to CSG is, in general, not.
+
+OpenSCAD works internally on meshes. Some operations which are useful on meshes are not meaningful on a BREP model and can not be fully supported. Among these are convex hull, minkowski sum, glide and subdiv. Currently we run the OpenSCAD binary in order to perform hull and minkwoski operations and import the result. This means that the involved geometry will be triangulated. In OpenSCAD non-uniform scaling is often used, which does not impose any problems when using meshes. In our geometry kernel geometric primitives (lines, circular sections, etc) are converted to BSpline prior to performing such deformations. Those BSplines are known to cause trouble in later boolean operations. An automatic solution is not available at the moment. Please feel free to post to the forum if you encounter such problems. Often such problems can be solved be remodeling small parts. A deformation of a cylinder can substituted by an extrusion of an ellipses.
+
+== Importing text ==
+
+Importing OpenSCAD code with texts requires that the fonts that are used are properly installed on your system. You can verify this by opening OpenSCAD as a standalone tool and checking the list in {{MenuCommand|Help → Font List}}. The list will also give you the correct font names. If a font does not appear in the list after installing, you may have to manually copy the font file to the appropriate system directory.
+
+Importing texts is relatively slow. Behind the scenes FreeCAD uses a DXF file created by OpenSCAD. The more contours there are the slower the import.
+
+It can be a good idea to first import a simple test case (replace {{Incode|NameOfFont}} with the correct font name):
+
+<pre>
+TESTFONT="NameOfFont";
+linear_extrude(0.001) {
+  text("A", size=5, font=TESTFONT, script="Latn");
+};
+</pre>
+
+The {{Incode|<nowiki>script="Latn"</nowiki>}} parameter can be left out here, but is required if the text string does not contain any letters, but only punctuation and/or numbers.
+
+Please note that {{Incode|<nowiki>use <FONT>;</nowiki>}} statements in your source files are ignored when importing in FreeCAD. Under OpenSCAD the effect of a {{Incode|use}} statement is that the provided font file is temporarily added to the list of known fonts (although even there the statement does not work when a script is modified interactively).
+
+== Hints ==
+
+When importing [[DXF|DXF]] set the Draft precision to a sensible amount as this will affect the detection of connected edges.
+
+If FreeCAD crashes when importing CSG, it is strongly recommended that you enable "automatically check model after boolean operation" in {{MenuCommand|Menu → Edit → Preferences → Part Design → Model setting}}.
+
+== Tutorials ==
+
+* [[Import_OpenSCAD_code|Import OpenSCAD code]]
+
+== Links ==
+
+* The official OpenSCAD project source code repository hosted on [https://github.com/openscad/openscad GitHub]
+* Open tickets tagged "OpenSCAD" on the [https://github.com/FreeCAD/FreeCAD/labels/WB%20OpenSCAD FreeCAD Github issue tracker]. There are also tickets on the now archived [https://freecadweb.org/tracker/search.php?tag_string=OpenSCAD mantis bugtracker].   
+* Models tagged with "OpenSCAD" on [http://www.thingiverse.com/tag:openscad Thingiverse]
+
+
+{{Docnav
+|[[Mesh_Workbench|Mesh Workbench]]
+|[[Part_Workbench|Part Workbench]]
+|IconL=Workbench_Mesh.svg
+|IconR=Workbench_Part.svg
+}}
+
+{{OpenSCAD Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Workbenches{{#translation:}}]]

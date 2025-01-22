@@ -1,0 +1,120 @@
+<languages/>
+
+{{Docnav/de
+|[[Reinforcement_BentShapeRebar/de|AbgesetzteBewehrung]]
+|[[Reinforcement_ColumnRebars/de|Stützenbewehrung]]
+|[[Reinforcement_Workbench/de|Reinforcement]]
+|IconL=Reinforcement_BentShapeRebar.svg
+|IconR=Reinforcement_ColumnRebars.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+{{GuiCommand/de
+|Name=Reinforcement HelicalRebar
+|Name/de=Reinforcement Wendelbewehrung
+|MenuLocation=3D/BIM → Bewehrungswerkzeuge → Wendelbewehrung
+|Workbenches=[[Reinforcement_Workbench/de|Reinforcement]], [[BIM_Workbench/de|BIM]]
+|Version=0.17
+|SeeAlso=
+}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+Das Werkzeug [[Reinforcement_HelicalRebar|Reinforcement Wendelbewehrung]] erlaubt dem Anwender, einen fortlaufenden spiralförmigen Bewehrungsstab in einem [[Arch_Structure/de|Struktur]]-Objekt zu erstellen.
+
+Dieses Werkzeug ist Teil des Arbeitsbereichs [[Reinforcement_Workbench/de|Reinforcement]]; dieser ist ein [[External_workbenches/de|externer Arbeitsbereich]], der mit dem [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr/de|Addon-Manager]] installiert werden kann.
+
+: [[Image:Arch_Rebar_Helical_example.png|80px]]
+{{Caption|Ein fortlaufender spiralförmiger Bewehrungsstab in einer [[Arch_Structure/de|Struktur]]}}
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Eine beliebige Fläche eines vorher erstellten {{Button|[[Image:Arch_Structure.svg|16px]] [[Arch_Structure/de|Struktur]]}}-Objekts auswählen.
+# Dann {{Button|[[Image:Reinforcement_HelicalRebar.svg|16px]] [[Reinforcement_HelicalRebar/de|Wendelbewehrung]]}} aus den Armierungswerkzeugen auswählen.
+# Ein [[Task_panel/de|Aufgaben-Bereich]] wird auf der linken Seite des Bildschirm angezeigt wie im folgenden Bild dargestellt.
+# Die gewünschte Ausrichtung auswählen.
+# Die Werte für 'Left Cover' (linke Fläche), 'Right Cover' (rechte), 'Top Cover' (obere), 'Bottom Cover' (untere), 'Front Cover' (vordere), 'Anchor length' (Ankerlänge), 'Bent Angle' (Biegungswinkel), 'Bent Factor', 'Rounding' und 'Diameter' (Durchmesser) des Bewehrungsstabes eingeben.
+# Die Art der Verteilung auswählen, entweder {{incode|'Amount'}} (Menge) oder {{incode|'Spacing'}} (Abstand).
+# Falls 'Spacing' gewählt wurde, kann auch [[Reinforcement_Custom_Spacing/de|benutzerdefinierter Abstand]] gewählt werden.
+# {{Button|Pick selected face}} wird verwendet, um die Fläche für die Verteilung der Bewehrungsstäbe zu bestätigen oder zu ändern.
+# Schaltfläche {{Button|OK}} oder {{Button|Anwenden}} drücken, um die Bewehrungsstäbe zu erstellen.
+# Schaltfläche {{Button|Abbrechen}} drücken, um den Aufgaben-Bereich zu verlassen.
+
+[[Image:HelicalRebarDialog.png|250px]]
+{{Caption|Aufgaben-Bereich für das Werkzeug}}
+
+<span id="Properties"></span>
+==Eigenschaften== 
+
+* {{PropertyData/de|Side Cover}}: Der Abstand zwischen dem Bewehrungsstab und der gekrümmten Fläche.
+* {{PropertyData/de|Top Cover}}: Der Abstand zwischen dem Bewehrungsstab und der oberen Fläche der Struktur.
+* {{PropertyData/de|Bottom Cover}}: Der Abstand zwischen dem Bewehrungsstab und der unteren Fläche der Struktur.
+* {{PropertyData/de|Pitch}}: Die Höhe einer vollständigen Helixumdrehung, gemessen parallel zu den Achsen der Helix.
+* {{PropertyData/de|Diameter}}: Durchmesser des Bewehrungsstabs.
+
+<span id="Scripting"></span>
+==Skripten==
+
+{{Emphasis|Siehe auch:}} [[Arch_API/de|Arch API]],[[Reinforcement_API/de|Reinforcement-API]] und [[FreeCAD_Scripting_Basics/de|FreeCAD Grundlagen Skripten]].
+
+Das Werkzeug Reinforcement Wendelbewehrung kann in [[Macros/de|Makros]] und von der [[Python/de|Python]]-Konsole aus mit folgender Funktion verwendet werden:
+
+{{Code|code=
+Rebar = makeHelicalRebar(s_cover, b_cover, diameter, t_cover, pitch, structure=None, facename=None)
+}}
+
+* Erstellt ein {{incode|Rebar}}-Objekt aus der gegebenen {{incode|structure}}, die eine [[Arch Structure/de|Arch Struktur]] ist, und {{incode|facename}}, die eine Fläche dieser Struktur ist.
+** Falls weder {{incode|structure}} noch {{incode|facename}} gegeben sind, wird die vom Benutzer gewählte Fläche als Eingabe genommen.
+* {{incode|s_cover}}, {{incode|b_cover}} und {{incode|t_cover}} sind innere Abstände von den Bewehrungsstabelementen zu den Flächen der Struktur. Dies sind entsprechend die seitlichen, unteren und oberen Abstände.
+* {{incode|diameter}} ist der Durchmesser der Verstärkungsstäbe innerhalb der Struktur.
+* {{incode|pitch}} ist der Parameter, der festlegt, wie groß der Abstand der Windungen von einander ist.
+
+<span id="Example"></span>
+=== Beispiel ===
+
+{{Code|code=
+import FreeCAD, Draft, Arch, HelicalRebar
+
+Circle = Draft.makeCircle(radius=250)
+Structure = Arch.makeStructure(Circle)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = HelicalRebar.makeHelicalRebar(10, 50, 8, 50, 50, structure, "Face2")
+}}
+
+<span id="Edition_of_the_rebar"></span>
+===Bearbeiten der Bewehrung===
+
+Die Eigenschaften des Bewehrungsstabes lassen sich mit der folgenden Funktion verändern
+
+{{Code|code=
+editHelicalRebar(Rebar, s_cover, b_cover, diameter, t_cover, pitch, structure=None, facename=None)
+}}
+
+* {{incode|Rebar}} ist ein vorher erzeugtes {{incode|HelicalRebar}}-Objekt.
+* Die anderen Parameter sind die gleichen wie die für die {{incode|makeHelicalRebar()}}-Funktion erforderlichen.
+* {{incode|structure}} und {{incode|facename}} können weggelassen werden, so dass die Bewehrung in der ursprünglichen Struktur bleibt.
+
+{{Code|code=
+import HelicalRebar
+
+HelicalRebar.editHelicalRebar(Rebar, 20, 100, 20, 20, 100)
+}}
+
+
+{{Docnav/de
+|[[Reinforcement_BentShapeRebar/de|AbgesetzteBewehrung]]
+|[[Reinforcement_ColumnRebars/de|Stützenbewehrung]]
+|[[Reinforcement_Workbench/de|Reinforcement]]
+|IconL=Reinforcement_BentShapeRebar.svg
+|IconR=Reinforcement_ColumnRebars.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

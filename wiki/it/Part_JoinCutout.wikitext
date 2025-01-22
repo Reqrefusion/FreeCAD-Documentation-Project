@@ -1,0 +1,102 @@
+<languages/>
+
+{{Docnav/it
+|[[Part_JoinEmbed/it|Incorpora oggetto]]
+|[[Part_BooleanFragments/it|Frammenti booleani]]
+|[[Part_Workbench/it|Part]]
+|IconL=Part_JoinEmbed.svg
+|IconR=Part_BooleanFragments.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/it
+|Name=Part JoinCutout
+|Name/it=Part Ritaglio per l'oggetto
+|MenuLocation=Part → Giunzione → Ritaglio per l'oggetto
+|Workbenches=[[Part_Workbench/it|Part]]
+|Version=0.16
+|SeeAlso=[[Part_JoinConnect/it|Congiungi oggetto]], [[Part_JoinEmbed/it|Incorpora oggetto]], [[Part_Boolean/it|Operazioni booleane]], [[Part_Thickness/it|Spessore]]}}
+
+<span id="Description"></span>
+==Descrizione==
+
+Lo strumento [[Image:Part_JoinCutout.svg|24px]] '''Ritaglio per l'oggetto''' crea un ritaglio in un oggetto con pareti (es. un tubo) per adattarlo a un altro oggetto con pareti.
+
+[[image:JoinFeatures_Cutout.png|600px]]
+
+<span id="Usage"></span>
+==Utilizzo== 
+
+# Selezionare prima l'oggetto base, quindi l'oggetto per definire il ritaglio. L'ordine di selezione è importante. È sufficiente selezionare una sottoforma di ciascun oggetto (ad esempio facce).
+# Esistono diversi modi per richiamare lo strumento:
+#* Premere il pulsante {{Button|[[Image:Part_JoinCutout.svg|16px]] [[Part_JoinCutout/it|Ritaglio per l'oggetto]]}}.
+#* Selezionare l'opzione {{MenuCommand|Part → Giunzioni → [[Image:Part_JoinCutout.svg|16px]] Ritaglio per l'oggetto}} dal menu.
+# Viene creato un oggetto Part JoinFeature, con la modalità impostata su "Cutout" (ritaglio). Gli oggetti originali vengono nascosti e il risultato del taglio viene mostrato nella [[3D_view/it|Vista 3D]].
+
+<span id="Properties"></span>
+==Proprietà== 
+
+{{TitleProperty|Base}}
+
+* {{PropertyData|Base}}: Riferisce l'oggetto di base (quello da cui si vuole asportare una porzione). L'oggetto deve essere un solido unico.
+* {{PropertyData|Tool}}: Riferisce l'oggetto da usare come utensile (l'oggetto che crea il ritaglio). L'oggetto può essere un solido unico, oppure un [[Part_Compound/it|composto valido]] di solidi.
+* {{PropertyData|Mode}}: Stabilisce la modalità dell'operazione di Giunzione, che in questo caso è uguale a 'Cutout' (cambiando modalità si trasforma lo strumento in uno strumento Giunzione diverso). Il valore 'bypass' può essere usato per disabilitare temporaneamente i lunghi calcoli (in questo caso, viene creato un oggetto Composto formato dagli oggetti Base e Tool , che è un'operazione veloce).
+* {{PropertyData|Refine}}: Stabilisce se alla forma finale deve essere applicata l'operazione [[Part_RefineShape/it|Affina]], oppure no. Il valore di default è stabilito dalla casella di controllo 'Affina automaticamente la forma dopo l'operazione booleana' nelle preferenze di PartDesign. Quando la proprietà Mode è impostata su 'bypass', Affina viene ignorato (Refine non è mai applicato).
+
+<span id="Example"></span>
+==Esempio== 
+
+# Creare un tubo applicando uno [[Part_Thickness/it|Spessore]] a un [[Part_Cylinder/it|cilindro]]: <br />[[image:JoinFeatures_Example_step1.png|320px]]
+# Creare un nuovo tubo di diametro inferiore e [[Placement/it|posizionarlo]] in modo da perforare la parete del primo tubo: <br />[[image:JoinFeatures_Example_step2.png|320px]]
+# Selezionare il primo tubo, poi il secondo tubo (l'ordine di selezione è importante), infine selezionare l'opzione 'Ritaglio per l'oggetto' dalla barra degli strumenti a discesa degli strumenti Giunzione. <br />[[image:JoinFeatures_Example_step3_Cutout.png|320px]]
+
+<span id="Algorithm"></span>
+==Algoritmo== 
+
+Gli algoritmi sottostanti agli strumenti di Giunzione sono abbastanza semplici, ed è importante comprenderli per utilizzarli correttamente.
+
+1. L'oggetto Base viene [[Part_Cut/it|tagliato]] dall'oggetto Tool con una operazione booleana. La forma risultante è un [[Part_Compound/it|composto]], cioè un insieme di solidi non intersecanti (tipicamente, due). 
+
+2. Il composto risultante viene filtrato e viene conservato solo il solido più grande.
+
+3. Se la proprietà Refine è impostata su true, la forma risultante viene [[Part_RefineShape/it|affinata]].
+<br /><br />[[image:JoinFeatures-Algo-Cutout.png|800px]]
+
+<span id="Notes"></span>
+===Note=== 
+
+* Se dopo il passaggio 1, l'oggetto rimane ancora in un pezzo unico, il risultato dell'asportazione è equivalente a un [[Part_Cut/it|taglio booleano]] di Base con Tool.
+* Attualmente, quando viene fornito un composto come Base lo strumento produce un risultato inaspettato. Questo potrà essere modificato in futuro.
+* Poiché il pezzo più grande è determinato confrontando i volumi, lo strumento può funzionare solo con i solidi. Questo potrà essere modificato in futuro.
+
+<span id="Scripting"></span>
+== Script ==
+
+Lo strumento Giunzione può essere utilizzato nelle [[macros/it|macro]] e dalla [[FreeCAD_Scripting_Basics/it|console di Python]] tramite la seguente funzione:
+
+{{Code|code=JoinFeatures.makePartJoinFeature(name = 'Cutout', mode = 'Cutout')}}
+* Crea una funzione Cutout vuota (o altra funzione Join, secondo la modalità passata). Le proprietà Base e Tool devono essere assegnate in modo esplicito, in seguito.
+* Restituisce l'oggetto appena creato.
+
+Esempio:
+{{code|code=
+import JoinFeatures
+j = JoinFeatures.makePartJoinFeature(name = 'Cutout', mode = 'Cutout' )
+j.Base = FreeCADGui.Selection.getSelection()[0]
+j.Tool = FreeCADGui.Selection.getSelection()[1]
+}}
+
+Lo strumento è implementato in Python, vedere {{FileName|/Mod/Part/JoinFeatures.py}} ([https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/Part/JoinFeatures.py Github link]) in cui è installato FreeCAD.
+
+
+{{Docnav/it
+|[[Part_JoinEmbed/it|Incorpora oggetto]]
+|[[Part_BooleanFragments/it|Frammenti booleani]]
+|[[Part_Workbench/it|Part]]
+|IconL=Part_JoinEmbed.svg
+|IconR=Part_BooleanFragments.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

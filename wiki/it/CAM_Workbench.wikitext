@@ -1,0 +1,260 @@
+<languages/>
+
+{{Docnav/it
+|[[BIM_Workbench/it|Ambiente BIM]]
+|[[Draft_Workbench/it|Ambiente Draft]]
+|IconL=Workbench_BIM.svg
+|IconR=Workbench_Draft.svg
+}}
+
+[[Image:Workbench_CAM.svg|thumb|128px|L'icona di Path]]
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Introduzione==
+
+L'[[CAM_Workbench/it|Ambiente CAM]] [[Image:Workbench_CAM.svg|24px]] viene utilizzato per produrre istruzioni macchina per [https://en.wikipedia.org/wiki/CNC_router Macchine CNC] da un modello 3D di FreeCAD. Questi producono oggetti 3D del mondo reale su macchine CNC come frese, torni, taglio laser e simili. In genere, le istruzioni sono un dialetto [https://en.wikipedia.org/wiki/G-code G-code]. Di seguito viene presentato un [https://www.ange-softs.com/SIMULCNCHTML/index.html esempio generale di simulazione della sequenza del percorso utensile del tornio CNC].
+
+[[Image:pathwb.png|600px]]
+
+L'ambiente CAM di FreeCAD crea le istruzioni macchina con il seguente flusso di lavoro:
+* Un modello 3D è l'oggetto di base, generalmente creato utilizzando uno o più ambienti tra [[Image:Workbench_PartDesign.svg|24px]] [[PartDesign_Workbench/it|Part Design]], [[Image:Workbench_Part.svg|24px]] [[ Part_Workbench/it|Part]] o [[Image:Workbench_Draft.svg|24px]] [[Draft_Workbench/it|Draft]].
+* Viene creata una [[CAM_Job/it|Lavorazione]] nell'ambiente CAM. Questa contiene tutte le informazioni necessarie per generare il G-code necessario per elaborare la lavorazione su una fresa CNC: c'è il pezzo grezzo, la fresa ha un certo [[CAM_ToolBitLibraryOpen|set di utensili]] e segue determinati comandi che controllano velocità e movimenti (di solito G-code).
+* Gli [[CAM_Tools/it|Utensili]] vengono selezionati come richiesto dalle operazioni di lavorazione.
+* I percorsi di fresatura sono creati utilizzando, ad es. le operazioni di [[CAM_Profile/it|Profilo]] e [[CAM_Pocket_3D/it|Cavità 3D]]. Questi oggetti Percorso (CAM) utilizzano il linguaggio G-code interno di FreeCAD, indipendente dalla macchina CNC.
+* Si può esportare la lavorazione con un G-code, corrispondente alla propria macchina. Questo passaggio è chiamato "post-elaborazione"; sono disponibili diversi post processori.
+
+<span id="General_concepts"></span>
+== Concetti generali ==
+
+L'ambiente CAM genera un G-code che definisce i percorsi richiesti per fresare il Progetto rappresentato dal modello 3D nel [[CAM_scripting#The_FreeCAD_Internal_GCode_Format/it|linguaggio G-code usato da FreeCAD per le operazioni di lavorazione di CAM]], che viene successivamente tradotto nel codice appropriato per il controllo CNC di destinazione selezionando il post processore appropriato.
+
+Il G-code è generato dalle direttive e dalle operazioni contenute in un percorso di lavorazione. Il flusso di lavorazione le elenca nell'ordine in cui verranno eseguiti.  L'elenco può essere popolato aggiungendo operazioni sui percorsi, ottimizzazioni dei percorsi, comandi parziali dei percorsi e modifiche ai percorsi, dal menu CAM o dai pulsanti della GUI.
+
+CAM offre un Gestore degli utensili (Libreria, Tabella utensili), un analizzatore del G-code e strumenti di simulazione.  Collega il post processore e consente di importare ed esportare i modelli di lavorazioni.
+
+L'ambiente CAM ha delle dipendenze esterne tra cui:
+# Le unità del modello 3D di FreeCAD sono definite nelle impostazioni {{MenuCommand|Modifica → Preferenze ... → Generale → Sistema di unità:}}.  La configurazione del postprocessore definisce le unità G-code finali.
+# Il percorso del file macro e le tolleranze geometriche sono definiti nella scheda {{MenuCommand|Modifica → Preferenze ... → CAM → Preferenze lavorazione}}.
+# I colori sono definiti in {{MenuCommand|Modifica → Preferenze ... → CAM → GUI}}.
+# I parametri dei lembi di fermo pezzo (tag) sono definiti nella scheda {{MenuCommand|Modifica → Preferenze ... → CAM → Ottimizzazione}}.
+# Se la qualità del modello Base 3D supporta i requisiti di CAM, supera la Verifica della geometria.
+
+<span id="Limitations"></span>
+==Limitazioni==
+
+Alcune limitazioni attuali di cui dovreste essere consapevoli sono:
+* La maggior parte degli strumenti CAM non sono veri strumenti 3D ma solo 2.5D. Questo significa che prendono una forma 2D fissa e possono tagliarla fino ad una data profondità. Tuttavia, ci sono due strumenti che producono veri percorsi 3D: {{KEY|[[Image:CAM_3DPocket.svg|24px]] [[CAM_Pocket_3D/it|Cavità 3D]]}} and {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface/it|Sfacciatura 3D]]}} (Sono una [[CAM_experimental/it|caratteristica sperimentale]] iniziata a novembre del 2020).
+* La maggior parte dell'ambiente CAM è progettato per una semplice fresa/router CNC standard a 3 assi (xyz), ma gli strumenti per il tornio sono in fase di sviluppo nella 0.19_pre.
+* La maggior parte delle operazioni nell'ambiente CAM restituirà percorsi basati solo su un utensile/bit standard, indipendentemente dal tipo di utensile/bit assegnato in un dato controllore di utensili, ad eccezione delle operazioni {{KEY|[[Image:CAM_Engrave.svg|24px]] [[CAM_Engrave/it|Incisione]]}} e {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface/it|Sfacciatura 3D]]}}.
+* Le operazioni all'interno dell'ambiente CAM non sono a conoscenza dei meccanismi di bloccaggio in uso per fissare il modello alla vostra macchina.  Di conseguenza, si prega di rivedere e simulare i percorsi generati prima di inviare il codice alla macchina.  Se necessario, modellare i propri meccanismi di serraggio in FreeCAD per controllare meglio i percorsi generati.  Cercare le possibili collisioni con i morsetti o altri ostacoli lungo i percorsi.
+
+<span id="Units"></span>
+== Unità di misura ==
+
+La gestione delle unità di misura in CAM può essere fonte di confusione. Ci sono alcuni punti da chiarire:
+# Le unità base di FreeCAD per lunghezza e tempo sono rispettivamente 'mm' e 's'. La velocità è quindi 'mm/s'. Questo è ciò che FreeCAD salva internamente a prescindere da qualsiasi altra cosa
+# Lo schema predefinito delle unità utilizza le unità predefinite. Se si utilizza lo schema predefinito e si inserisce una velocità di avanzamento senza una stringa di unità, essa viene immessa come 'mm/s'
+# La maggior parte delle macchine CNC prevede una velocità di avanzamento sotto forma di "mm/min" o "in/min". La maggior parte dei post-processori converte automaticamente l'unità durante la generazione del G-Code.
+
+Schemi delle unità di misura:
+# La modifica dello schema delle unità nelle preferenze modifica la stringa dell'unità predefinita per i campi di input. Se siete utenti di CAM e preferite progettare nel sistema metrico, si consiglia vivamente di utilizzare lo schema "Metric Small Parts & CNC". Se progettate in unità USA, funzionano Imperial Decimal e Building US
+# La modifica dello schema delle unità preferite non ha alcun effetto sull'output, ma aiuta a evitare errori di input
+
+Output:
+# La generazione dell'unità corretta in uscita è responsabilità del post-processore e viene eseguita solo in quel momento.
+# L'unità di output della macchina non è in nessun modo correlata allo schema dell'unità selezionata.
+# I post-processori producono un output metrico (G21), imperiale (G20) o configurabile.
+# Post processori configurabili predefiniti per il sistema metrico (G21).
+# Se si desidera che il post-processore configurabile emetta il G-Code nel sistema imperiale (G20), impostare l'argomento corretto nella configazione dell'output della lavorazione (es. --Inches per linuxcnc). Questo può essere memorizzato in un modello di lavorazione e impostato come modello predefinito per renderlo automatico per tutte le lavorazioni future.
+
+Ispezionare il codice CAM:
+# Se si usa lo strumento Ispeziona il G-Code per vedere il codice, lo si vede in 'mm/s' perché non è ancora stato post-elaborato.
+
+<span id="Heights_and_depths"></span>
+== Altezze e profondità ==
+
+Molti comandi hanno varie altezze e profondità:
+
+[[Image:Path-DepthsAndHeights.gif|500px]]
+{{Caption|Riferimento visivo per le proprietà Depth (impostazioni)}}
+
+<span id="Commands"></span>
+==Comandi==
+
+Alcuni comandi sono sperimentali e non disponibili per impostazione predefinita. Per abilitarli, vedere [[CAM_experimental/it|CAM sperimentale]].
+
+<span id="Project_Commands"></span>
+=== Comandi del progetto ===
+
+* [[Image:CAM_Job.svg|32px]] [[CAM_Job/it|Lavorazione]]:  Crea una nuova lavorazione CNC.
+
+* [[Image:CAM_Post.svg|32px]] [[CAM_Post/it|Post elaborazione]]: Esporta un progetto in G-code.
+
+* [[Image:CAM_Sanity.svg|32px]] [[CAM_Sanity/it|Controllare il percorso del lavoro per errori comuni]]: Controlla la lavorazione CAM selezionata alla ricerca di valori mancanti.
+
+* [[Image:CAM_ExportTemplate.svg|32px]] [[CAM_ExportTemplate/it|Esporta come modello]]: Esporta la lavorazione corrente come modello.
+
+<span id="Tool_Commands"></span>
+=== Comandi Utensile ===
+
+* [[Image:CAM_Inspect.svg|32px]] [[CAM_Inspect/it|Ispeziona i comandi CAM]]: Mostra il G-code per verifica.
+
+* [[Image:CAM_Simulator.svg|32px]] [[CAM_Simulator/it|Simulatore CAM]]: Mostra l'operazione di fresatura così come viene eseguita sulla macchina
+
+* [[Image:CAM_SimulatorGL.svg|32px]] [[CAM_SimulatorGL/it|CAM SimulatorGL]]: abilita il nuovo simulatore CAM migliorato. {{Version/it|1.0}}
+
+* [[Image:CAM_SelectLoop.svg|32px]] [[CAM_SelectLoop/it|Chiudi il ciclo]]: Completa un ciclo basato su due bordi selezionati
+
+* [[Image:CAM_OpActiveToggle.svg|32px]] [[CAM_OpActiveToggle/it|Attiva o disattiva l'operazione]]: Attivare o disattivare un'operazione di lavorazione.
+
+* [[Image:CAM_ToolBitLibraryOpen.svg|32px]] [[CAM_ToolBitLibraryOpen/it|Editor della libreria delle geometrie utensile]]: Apre un editor per gestire le librerie delle geometrie utensile.
+
+* [[Image:CAM_ToolBitDock.svg|32px]] [[CAM_ToolBitDock/it|Pannello geometrie utensile]]: Apre un editor per gestire le librerie delle geometrie utensile.
+
+<span id="Basic_Operations"></span>
+===Operazioni di Base===
+
+* [[Image:CAM_Profile.svg|32px]] [[CAM_Profile/it|Profila]]: Crea un'operazione di profilo dell'intero modello o da una o più facce o spigoli selezionati.
+
+* [[Image:CAM_Pocket_Shape.svg|32px]] [[CAM_Pocket_Shape/it|Tasca]]: Crea un'operazione di scavo da uno o più scavi selezionati.
+
+* [[Image:CAM_Drilling.svg|32px]] [[CAM_Drilling/it|Foratura]]: Esegue un ciclo di perforazione.
+
+* [[Image:CAM_MillFace.svg|32px]] [[CAM_MillFace/it|Sfacciatura]]: Crea un percorso di sfacciatura.
+
+* [[Image:CAM_Helix.svg|32px]] [[CAM_Helix/it|Elica]]: Crea un percorso elicoidale.
+
+* [[Image:CAM_Adaptive.svg|32px]] [[CAM_Adaptive/it|Adattiva]]: Crea un'operazione adattiva di compensazione e profilazione.
+
+* [[Image:CAM_Slot.svg|32px]] [[CAM_Slot/it|Scanalatura]]: Crea un'operazione di scanalatura da funzioni selezionate o punti personalizzati. [[CAM_experimental/it|{{Emphasis|Sperimentale}}]].
+
+* [[Image:CAM_Engrave.svg|32px]] [[CAM_Engrave/it|Incisione]]: Crea un percorso di incisione.
+
+* [[Image:CAM_Deburr.svg|32px]] [[CAM_Deburr/it|Sbavatura]]: Crea un percorso di sbavatura.
+
+* [[Image:CAM_Vcarve.svg|32px]] [[CAM_Vcarve/it|Incisione a V]]: Crea un percorso di incisione utilizzando una forma dello strumento V.
+
+<span id="3D_Operations"></span>
+=== Operazioni 3D ===
+
+* [[Image:CAM_Pocket_3D.svg|32px]] [[CAM_Pocket_3D/it|Tasca 3D]]: Crea un percorso per una tasca 3D.
+
+* [[Image:CAM_Surface.svg|32px]] [[CAM_Surface/it|Sfacciatura 3D]]: crea un percorso per una sfacciatura 3D. [[CAM_experimental/it|{{Emphasis|Sperimentale}}]].
+
+* [[Image:CAM_Waterline.svg|32px]] [[CAM_Waterline/it|Piani orizzontali]]: Crea un percorso di lavorazione per piani orizzontali per una superficie 3D. [[CAM_experimental/it|{{Emphasis|Sperimentale}}]].
+
+<span id="Path_Dressup"></span>
+=== Ottimizzazione del percorso ===
+
+* [[Image:CAM_DressupAxisMap.svg|32px]] [[CAM_DressupAxisMap/it|Axis Map]]: Rimappa un asse su un altro.
+
+* [[Image:CAM_DressupPathBoundary.svg|32px]] [[CAM_DressupPathBoundary/it|Contorno]]: aggiunge un contorno di limitazione del percorso ad un percorso selezionato.
+
+* [[Image:CAM_DressupDogbone.svg|32px]] [[CAM_DressupDogbone/it|Lavorazione degli angoli]]: Aggiunge una modifica di adattamento osso-di-cane (dogbone) per la lavorazione degli angoli ad un percorso selezionato.
+
+* [[Image:CAM_DressupDragKnife.svg|32px]] [[CAM_DressupDragKnife/it|Percorso di lama]]: Aggiunge una modifica di percorso di lama (dragknife) a un percorso selezionato.
+
+* [[Image:CAM_DressupLeadInOut.svg|32px]] [[CAM_DressupLeadInOut/it|Mascheratura di LeadInOut]]: Aggiunge un punto di entrata o di uscita ad un percorso selezionato.
+
+* [[Image:CAM_DressupRampEntry.svg|32px]] [[CAM_DressupRampEntry/it|Rampa d'ingresso]]: Aggiunge la modifica di dressup Rampa di ingresso a un percorso selezionato.
+
+* [[Image:CAM_DressupTag.svg|32px]] [[CAM_DressupTag/it|Lembi di fermo]]: Aggiunge un lembo ferma pezzo a un percorso di lavorazione selezionato.
+
+* [[Image:CAM_DressupZCorrect.svg|32px]] [[CAM_DressupZCorrect/it|Mascheratura della Correzione di Profondità Z]]: Corregge la profondità Z utilizzando Probe Map.
+
+<span id="Supplemental_Commands"></span>
+===Comandi Supplementari===
+
+* [[Image:CAM_Fixture.svg|32px]] [[CAM_Fixture/it|Punto di fissaggio]]: Cambia la posizione del punto di fissaggio.
+
+* [[Image:CAM_Comment.svg|32px]] [[CAM_Comment/it|Commento]]: Inserisce un commento nel codice G di un percorso.
+
+* [[Image:CAM_Stop.svg|32px]] [[CAM_Stop/it|Stop]]: Inserisce un punto di fermo macchina.
+
+* [[Image:CAM_Custom.svg|32px]] [[CAM_Custom/it|Personalizza]]: Inserisce del G-code personalizzato.
+
+* [[Image:CAM_Probe.svg|32px]] [[CAM_Probe/it|Sonda]]: Crea una griglia di tastatura da uno stock di lavoro.
+
+* [[Image:CAM_Shape.svg|32px]] [[CAM_Shape/it|Percorso da una forma]]: Crea un oggetto percorso da un oggetto Parte selezionato. [[CAM_experimental/it|{{Emphasis|Sperimentale}}]].
+
+<span id="Path_Modification"></span>
+=== Modifica del percorso ===
+
+* [[Image:CAM_Copy.svg|32px]] [[CAM_Copy/it|Copia l'operazione nella lavorazione]]: Crea una copia parametrica di un oggetto percorso selezionato.
+
+* [[Image:CAM_Array.svg|32px]] [[CAM_Array/it|Copia in serie]]: Crea una serie duplicando un percorso selezionato.
+
+* [[Image:CAM_SimpleCopy.svg|32px]] [[CAM_SimpleCopy/it|Copia semplice]]: Crea una copia non parametrica di un oggetto percorso selezionato.
+
+<span id="Specialty_Operations"></span>
+=== Operazioni speciali ===
+
+* [[Image:CAM_ThreadMilling.svg|32px]] [[CAM_ThreadMilling/it|Filettatura]]: Crea un percorso per un'operazione CAM di filettatura con fresa dalle caratteristiche di un oggetto di base. [[CAM_experimental/it|{{Emphasis|Experimental}}]].
+
+<span id="Miscellaneous"></span>
+=== Varie ===
+
+* [[Image:CAM_Area.svg|32px]] [[CAM_Area/it|Area]]: Crea un'area caratteristica dagli oggetti selezionati. [[CAM_experimental/it|{{Emphasis|Sperimentale}}]].
+
+* [[Image:CAM_Area_Workplane.svg|32px]] [[CAM_Area_Workplane/it|Piano di lavoro]]: Crea un piano di lavoro di un'area operativa. [[CAM_experimental/it|{{Emphasis|Sperimentale}}]].
+
+<span id="ToolBit_architecture"></span>
+== Architettura utensile ==
+
+Gestisce utensili, geometrie e la Libreria degli strumenti. Basato sull'architettura utensile.
+
+* [[CAM_Tools/it|Percorso Utensile]]
+* [[CAM_ToolShape/it|Percorso Forma Utensile]]
+* [[CAM_ToolBit/it|Percorso Geometria Utensile]]
+* [[CAM_ToolBit_Library/it|Percorso Libreria Geometria Utensile]]
+* [[CAM_ToolController/it|Percorso Controllore Utensile]]
+
+<span id="Other"></span>
+== Altro ==
+
+* [[CAM_FAQ/it|FAQ di CAM]]: L'ambiente CAM condivide molti concetti con altri pacchetti software CAM ma ha le sue peculiarità. Se qualcosa sembra sbagliato, questo è un buon punto di partenza.
+* [[CAM_SetupSheet/it|Scheda di configurazione di CAM]]: È possibile utilizzare una scheda di configurazione per personalizzare il modo in cui vengono calcolati i diversi valori delle proprietà per le operazioni.
+* [[CAM_Postprocessor_Customization/it|Personalizzazione del postprocessore di CAM]]: Se si dispone di una macchina speciale che non può utilizzare uno dei post-processori disponibili, potrebbe essere necessario scrivere il proprio post-processore.
+* [[CAM_fourth_axis/it|CAM a quattro assi]]: Fresatura sperimentale a quattro assi.
+
+<span id="Preferences"></span>
+==Preferenze==
+
+* [[Image:Preferences-cam.svg|32px]] [[CAM_Preferences/it|Preferenze...]]: Preferenze disponibili per l'Ambiente CAM.
+
+<span id="Scripting"></span>
+==Script==
+
+Vedere la pagina [[CAM_scripting/it|Script di CAM]].
+
+<span id="Tutorials"></span>
+== Tutorial ==
+
+* [[CAM_Walkthrough_for_the_Impatient/it|Guida per gli impazienti]]: un breve tutorial per familiarizzare con CAM.
+
+<span id="Videos"></span>
+== Video ==
+
+* [https://www.youtube.com/playlist?list=PLEuOia-QxyFKgzAeTyH62GKqWKVURiWJL FreeCAD Path: Custom paths with Python - Part 1 - 5]: Una playlist con una serie di 5 video in inglese di sliptonic. Questa serie mostra come lavorare con l'[[CAM_Workbench/it|Ambiente Path]].
+* [https://www.youtube.com/playlist?list=PLUrr_kHPp4vhGdLlj6IemtF-OPUlRvSTC  FreeCAD CAM Path Workbench]: Una playlist con una serie di 7 video lezioni di CAD CAM in inglese .
+* [https://www.youtube.com/playlist?list=PLUrr_kHPp4vh2n6DcIlegK4dEKIFjmISJ FreeCAD CAM CNC]: Una playlist con una serie di 8 video lezioni di CAD CAM in inglese.
+* Vedere anche la [[Video_tutorials/it#Computer-Aided_Manufacturing_(CAM)|Sezione Computer-Aided Manufacturing (CAM)]] della pagina wiki [[Video_tutorials/it|Video tutorial]].
+
+<span id="Roadmap"></span>
+== Tabella di marcia ==
+
+* [[CAM_Development_Roadmap|Tabella di marcia per lo sviluppo di CAM]]: Leggi questo se sei uno sviluppatore e vuoi contribuire a CAM.
+
+
+{{Docnav/it
+|[[BIM_Workbench/it|Ambiente BIM]]
+|[[Draft_Workbench/it|Ambiente Draft]]
+|IconL=Workbench_BIM.svg
+|IconR=Workbench_Draft.svg
+}}
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Workbenches{{#translation:}}]]

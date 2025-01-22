@@ -1,0 +1,104 @@
+<languages/>
+
+{{Docnav
+|[[FEM_ConstraintRigidBody|Constraint rigid body]]
+|[[FEM_ConstraintContact|Constraint contact]]
+|[[FEM_Workbench|FEM]]
+|IconL=FEM_ConstraintRigidBody.svg
+|IconR=FEM_ConstraintContact.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommandContainer|
+{{GuiCommand
+|Name=FEM ConstraintDisplacement
+|MenuLocation=Model → Mechanical boundary conditions and loads → Displacement boundary condition
+|Workbenches=[[FEM_Workbench|FEM]]
+|Shortcut=
+|SeeAlso=[[FEM_tutorial|FEM tutorial]]
+}}
+{{GuiCommandFemInfo
+|Solvers=CalculiX, Elmer
+}}
+}}
+
+==Description==
+
+Creates a FEM boundary condition for a prescribed displacement of a selected object for specified degrees of freedom.
+
+==Usage==
+
+# Press the {{Button|[[Image:FEM_ConstraintDisplacement.svg|16px]] [[FEM_ConstraintDisplacement|Displacement boundary condition]]}} button or select the menu {{MenuCommand|Model → Mechanical boundary conditions and loads → [[Image:FEM_ConstraintDisplacement.svg|16px]] Displacement boundary condition}}.
+# Press the {{Button|Add}} button.
+# In the [[3D_view|3D view]] select the object the boundary condition should be applied to, which can be a vertex, edge, or face (but all the selected objects have to be of the same type). To remove objects from the list, press the {{Button|Remove}} button and click on them.
+# Check the boxes next to the degrees of freedom that you want to use. By default, they are set to zero (fixed) but any value ({{Version|0.21}}: or a formula for Elmer) can be specified. Rotations make sense only for beam and shell elements.
+
+==Formulas==
+
+{{Version|0.21}}
+
+===General===
+
+For the [[Image:FEM_SolverElmer.svg|32px]] [[FEM_SolverElmer|solver Elmer]] it is possible to  define the displacement as a formula. In this case the solver sets the displacement according to the given formula variable.
+
+Take for example the case that we want to perform a [[FEM_SolverElmer_SolverSettings#Timestepping_(transient_analyses)|transient analysis]]. For every time step the displacement <math>d</math> should be increased by 6 mm:
+
+<math>\quad
+d(t)=0.006\cdot t
+</math>
+
+enter this in the ''Formula'' field:</br>
+{{incode| Variable "time"; Real MATC "0.006*tx"}}
+
+This code has the following syntax:
+* the prefix ''Variable'' specifies that the displacement is not a constant but a variable
+* the variable is the current time
+* the displacement values are returned as ''Real'' (floating point) values
+* ''MATC'' is a prefix for the Elmer solver indicating that the following code is a formula
+* ''tx'' is always the name of the variable in ''MATC'' formulas, no matter that ''tx'' in our case is actually ''t''
+
+===Rotations===
+
+Elmer only uses the '''Displacement *''' fields of the boundary condition. To define rotations, we need a formula.
+
+If for example a face should be rotated according to this condition:
+
+<math>\quad
+\begin{align}
+d_{x}(t)= & \left(\cos(\phi)-1\right)x-\sin(\phi)y\\
+d_{y}(t)= & \left(\cos(\phi)-1\right)y+\sin(\phi)x
+\end{align}
+</math>
+
+then we need to enter for '''Displacement x'''</br>
+{{incode|  Variable "time, Coordinate"
+Real MATC "(cos(tx(0)*pi)-1.0)*tx(1)-sin(tx(0)*pi)*tx(2)}}
+
+and for '''Displacement y'''</br>
+{{incode|  Variable "time, Coordinate"
+Real MATC "(cos(tx(0)*pi)-1.0)*tx(2)+sin(tx(0)*pi)*tx(1)}}
+
+This code has the following syntax:
+* we have 4 variables, the time and all possible coordinates (x, y z)
+* ''tx'' is a vector, ''tx(0)'' refers to the first variable, the time, while ''tx(1)'' refers to the first coordinate ''x''
+* ''pi'' denotes <math>\pi</math> and was added so that after <math>t=1\rm\, s</math> a rotation  of 180° is performed
+
+==Notes==
+
+For the [[Image:FEM_SolverCalculixCxxtools.svg|32px]] [[FEM_SolverCalculixCxxtools|solver CalculiX]]:
+* This tool uses the [https://web.mit.edu/calculix_v2.7/CalculiX/ccx_2.7/doc/ccx/node163.html *BOUNDARY card].
+* Fixing a degree of freedom is explained at http://web.mit.edu/calculix_v2.7/CalculiX/ccx_2.7/doc/ccx/node164.html
+* Prescribing a displacement for a degree of freedom is explained at http://web.mit.edu/calculix_v2.7/CalculiX/ccx_2.7/doc/ccx/node165.html
+
+
+{{Docnav
+|[[FEM_ConstraintRigidBody|Constraint rigid body]]
+|[[FEM_ConstraintContact|Constraint contact]]
+|[[FEM_Workbench|FEM]]
+|IconL=FEM_ConstraintRigidBody.svg
+|IconR=FEM_ConstraintContact.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,1276 @@
+<languages/>
+{{TOCright}}
+
+<span id="Overview"></span>
+== 概要 ==
+
+オブジェクトのプロパティーを数式で定義することが可能です。GUIでは、プロパティーを表す数値調整ボックスまたは入力フィールドを選択すると、青いアイコン[[Image:Bound-expression.svg|16px]]が表示されます。アイコンをクリックするか等号記号{{KEY|&#61;}}をキーボードから入力すると、そのプロパティーの数式エディターが開きます。もしインプットフィールドに青いアイコンではなく{{Button|...}}ボタンが表示されている場合は、プロパティーを右クリックし、コンテキスト・メニューから{{MenuCommand|数式...}}を選択すると数式エディターが開きます。
+
+FreeCADにおける数式は、以下で説明する[[#Supported_operators|演算子]]、[[#Supported_functions|関数]]、[[#Supported_constants|定義済み定数]]を組み合わせた数式です。これらに加えて、他のオブジェクト・プロパティー（の値）を参照したり、[[#Conditional_expressions|条件式]]も使えます。数式における数値に[[#Units|単位]]を与えることも可能です。
+
+数値の整数部分と小数部分を分けるには、コンマ{{incode|,}}または小数点{{incode|.}}のどちらも使えます。小数点（または小数コンマ）がある場合、''少なくとも1桁以上''の小数が必須です。したがって、{{incode|1. + 2.}}や{{incode|1, + 2,}}は正しい数式ではありませんが、{{incode|1.0 + 2.0}}や{{incode|1,0 + 2,0}}は正しい数式です。
+
+もし単位が与えられた場合、演算子や関数は単位が正しく揃っていることを要求します。例えば、{{incode|2mm + 4mm}}は正しい数式ですが、{{incode|2mm + 4}}は正しい数式ではありません。これは他のオブジェクト・プロパティーを参照するときにも適用されます。オブジェクトプロパティーが長さを表している場合、{{incode|Pad001.Length + 1}}は、長さと無次元数を加算しようとしているので、正しい数式ではありません。これは、{{incode|Pad001.Length + 1mm}}のように書かなければなりません。
+
+単位に関連するエラーは直感的でない場合があります。式が拒否されたり、式の結果の単位が設定するプロパティの単位と一致しないことがあります。以下にいくつかの例を示します：
+
+{{incode|1/2mm}}は0.5ミリメートルになりません。これは{{incode|1/(2mm)}}と解釈された結果、{{incode|0.5 mm^-1}}になります。
+
+{{incode|sqrt(2)mm}}は正しい数式ではありません。なぜなら、関数（sqrt）は数ではないためです（訳注：単位の前は数でなければならない）。したがって{{incode|sqrt(2) * 1mm}}のように記述する必要があります。
+
+<span id="Function_arguments"></span>
+=== 関数の引数 ===
+
+関数に複数の引数を与える場合、各引数は、セミコロン{{incode|;}}またはコンマ<em>+空白</em>{{incode|, }}で区切る必要があります。後者の場合、コンマは入力後セミコロンに置き換えられます。セミコロンを使う場合、その後に空白をつける必要はありません。
+
+スプレッドシートのセルを引数として使うこともできます。セルの参照は、{{incode|A1}}のように大文字の列名に行番号をつなげて表した形で参照できます。あるいは、セルに別名が定義されている場合、{{incode|Spreadsheet.MyPartWidth}}のように別名でも参照できます。
+
+<span id="Referencing_objects"></span>
+=== オブジェクトの参照 ===
+
+既に上で例を示したとおり、オブジェクトを{{PropertyData|Name}}（名前）あるいは{{PropertyData|Label}}（ラベル）で参照できます。{{PropertyData|Label}}で参照する場合、ラベル名を{{incode|<<}}と{{incode|>>}}で括り、{{incode|<<ラベル>>}}のようにしなければなりません。
+
+オブジェクトのプロパティーも参照できます。例えば、円柱（Cylinder）の高さ（Height）は、{{incode|Cylinder.Height}}あるいは{{incode|<<Cylinderのラベル>>.Height}}で参照できます。
+
+オブジェクトの参照の詳細については、[[#Reference_to_CAD_data|CADデーターの参照]]を参照してください。
+{{Top}}
+<span id="Supported_constants"></span>
+== 定義済み定数 ==
+
+以下が定義済みの定数です。
+
+{| class="wikitable"
+!style="width: 33%;"|定数
+!style="width: 66%;"|説明
+|-
+| style="text-align:center;" | '''e'''
+| [https://ja.wikipedia.org/wiki/%E3%83%8D%E3%82%A4%E3%83%94%E3%82%A2%E6%95%B0 ネイピア数（自然対数の底）]
+|-
+| style="text-align:center;" | '''pi'''
+| [https://ja.wikipedia.org/wiki/%E5%86%86%E5%91%A8%E7%8E%87 円周率（π）]
+|}
+{{Top}}
+<span id="Supported_operators"></span>
+== 演算子 ==
+
+以下の演算子を使えます。
+
+{| class="wikitable"
+!style="width: 33%;"|演算子
+!style="width: 66%;"|説明
+|-
+| style="text-align:center;" |'''+'''
+| [https://ja.wikipedia.org/wiki/%E5%8A%A0%E6%B3%95 加算]
+|-
+| style="text-align:center;" |'''-'''
+| [https://ja.wikipedia.org/wiki/%E6%B8%9B%E6%B3%95 減算]
+|-
+| style="text-align:center;" | '''*'''
+| [https://ja.wikipedia.org/wiki/%E4%B9%97%E6%B3%95 乗算]
+|-
+| style="text-align:center;" | '''/'''
+| 浮動小数点の[https://ja.wikipedia.org/wiki/%E9%99%A4%E6%B3%95 除算]
+|-
+| style="text-align:center;" | '''%'''
+| [https://ja.wikipedia.org/wiki/%E5%89%B0%E4%BD%99 剰余]
+|-
+| style="text-align:center;" | '''^'''
+| [https://ja.wikipedia.org/wiki/%E5%86%AA%E4%B9%97 べき算（指数）]
+|}
+{{Top}}
+<span id="Supported_functions"></span>
+== 関数 ==
+
+<span id="General_mathematical_functions"></span>
+=== 数学関数 ===
+
+以下の数学関数を使えます。
+
+<span id="Trigonometric_functions"></span>
+==== 三角関数 ====
+
+[https://ja.wikipedia.org/wiki/%E4%B8%89%E8%A7%92%E9%96%A2%E6%95%B0 三角関数]はデフォルトで度を単位として使います。もしラジアンを使いたい場合は、<em>最初の引数</em>の後に{{incode|rad}}を続けてください。例えば、{{incode|cos(45)}}と{{incode|cos(pi rad / 4)}}は同じです。数式が度であることを表すには、例えば{{incode|360deg - atan2(3; 4)}} or {{incode|360&deg; - atan2(3; 4)}}のように、{{incode|deg}}または{{incode|°}}をつけてください。もし数式が無次元数で、度またはラジアンに変換したい場合は、例えば{{incode|(360 - X) * 1deg}}、{{incode|(360 - X) * 1°}}、{{incode|(0.5 + pi / 2) * 1rad}}のように、{{incode|1deg}}、{{incode|1°}}、あるいは{{incode|1rad}}を乗じてください。
+
+{| class="wikitable"
+!style="width: 15%;"|関数
+!style="width: 55%;"|説明
+!style="width: 30%;"|入力の定義域
+|-
+| {{incode|acos(x)}}
+| [https://ja.wikipedia.org/wiki/逆三角関数 逆余弦（arccosine）]
+| -1 <= x <= 1 
+|-
+| {{incode|asin(x)}}
+| [https://ja.wikipedia.org/wiki/逆三角関数 逆正弦（arcsine）]
+| -1 <= x <= 1 
+|-
+| {{incode|atan(x)}}
+| [https://ja.wikipedia.org/wiki/逆三角関数 逆正接（arctangent）]、-90° < 返り値 < 90°
+| すべて
+|-
+| {{incode|atan2(y; x)}}
+| ''y/x''の[https://ja.wikipedia.org/wiki/逆三角関数 逆正接（arctangent）]、象限によって-180° < 返り値 <= 180°
+| すべて、ただし無効入力である x = y = 0 の場合は0を返す
+|-
+| {{incode|cos(x)}}
+| [https://ja.wikipedia.org/wiki/%E4%B8%89%E8%A7%92%E9%96%A2%E6%95%B0 余弦（cos）]
+| すべて
+|-
+| {{incode|cosh(x)}}
+| [https://ja.wikipedia.org/wiki/%E5%8F%8C%E6%9B%B2%E7%B7%9A%E9%96%A2%E6%95%B0 双曲線余弦関数（cosh）]
+| すべて
+|-
+| {{incode|sin(x)}}
+| [https://ja.wikipedia.org/wiki/%E4%B8%89%E8%A7%92%E9%96%A2%E6%95%B0 正弦（sin）]
+| すべて
+|-
+| {{incode|sinh(x)}}
+| [https://ja.wikipedia.org/wiki/%E5%8F%8C%E6%9B%B2%E7%B7%9A%E9%96%A2%E6%95%B0 双曲線正弦（sinh）]
+| すべて
+|-
+| {{incode|tan(x)}}
+| [https://ja.wikipedia.org/wiki/%E4%B8%89%E8%A7%92%E9%96%A2%E6%95%B0 正接（tan）]
+| all, except x = n*90 with n = odd integer
+|-
+| {{incode|tanh(x)}}
+| [https://ja.wikipedia.org/wiki/%E5%8F%8C%E6%9B%B2%E7%B7%9A%E9%96%A2%E6%95%B0 双曲線正接（tanh）]
+| すべて
+|-
+| {{incode|hypot(x; y)}}
+| [https://en.wikipedia.org/wiki/Pythagorean_addition ピタゴラス和]、<math>\sqrt{x^2 + y^2}</math>（訳注：関数名は斜辺（hypotensue）から）、例えば hypot(4; 3) = 5
+| x >=0 かつ y >= 0
+|-
+| {{incode|cath(x; y)}}
+| 直角三角形の斜辺と一辺が与えられたとき、残る一辺を返す。例えば cath(5; 3) = 4
+| x >= y >= 0
+|}
+
+<span id="Exponential_and_logarithmic_functions"></span>
+==== 指数関数・対数関数 ====
+
+{| class="wikitable"
+!style="width: 33%;"|関数
+!style="width: 33%;"|説明
+!style="width: 33%;"|入力の定義域
+|-
+| {{incode|exp(x)}}
+| [https://ja.wikipedia.org/wiki/%E5%BA%95%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8B%E6%8C%87%E6%95%B0%E5%87%BD%E6%95%B0 指数関数]
+| すべて
+|-
+| {{incode|log(x)}}
+| [https://ja.wikipedia.org/wiki/%E8%87%AA%E7%84%B6%E5%AF%BE%E6%95%B0 自然対数（eを底とする対数）]
+| x > 0 
+|-
+| {{incode|log10(x)}}
+| [https://ja.wikipedia.org/wiki/%E5%B8%B8%E7%94%A8%E5%AF%BE%E6%95%B0 常用対数（10を底とする対数）]
+| x > 0 
+|-
+| {{incode|pow(x; y)}}
+| [https://ja.wikipedia.org/wiki/%E5%86%AA%E4%B9%97 べき乗]
+| すべて
+|-
+| {{incode|sqrt(x)}}
+| [https://ja.wikipedia.org/wiki/%E5%B9%B3%E6%96%B9%E6%A0%B9 平方根]
+| x >= 0
+|-
+| {{incode|cbrt(x)}} {{Version|0.21}}
+| [https://ja.wikipedia.org/wiki/%E7%AB%8B%E6%96%B9%E6%A0%B9 立方根]
+| すべて
+|}
+
+<span id="Rounding,_truncation_and_remainder_functions"></span>
+==== 端数処理関数・剰余関数 ====
+
+{| class="wikitable"
+!style="width: 20%;"|関数
+!style="width: 55%;"|説明
+!style="width: 25%;"|入力の値域
+|-
+| {{incode|abs(x)}}
+| [https://ja.wikipedia.org/wiki/%E7%B5%B6%E5%AF%BE%E5%80%A4 絶対値]
+| すべて
+|-
+| {{incode|ceil(x)}}
+| [https://ja.wikipedia.org/wiki/%E5%BA%8A%E9%96%A2%E6%95%B0%E3%81%A8%E5%A4%A9%E4%BA%95%E9%96%A2%E6%95%B0 切り上げ]、xと同じかそれよりも大きい最小の整数
+| すべて
+|-
+| {{incode|floor(x)}}
+| [https://ja.wikipedia.org/wiki/%E5%BA%8A%E9%96%A2%E6%95%B0%E3%81%A8%E5%A4%A9%E4%BA%95%E9%96%A2%E6%95%B0 切り捨て]、xと同じかそれよりも小さい最大の整数
+| すべて
+|-
+| {{incode|mod(x; y)}}
+| [https://ja.wikipedia.org/wiki/剰余 剰余]、xをyで割ったときの余り。結果の符号は、被除数（x）の符号と一致。
+| y = 0 以外
+|-
+| {{incode|round(x)}}
+| [https://ja.wikipedia.org/wiki/%E7%AB%AF%E6%95%B0%E5%87%A6%E7%90%86 四捨五入]、もっとも近い整数。
+| すべて
+|-
+| {{incode|trunc(x)}}
+| [https://ja.wikipedia.org/wiki/%E7%AB%AF%E6%95%B0%E5%87%A6%E7%90%86 0への丸め]、0の方向にも最も近い整数。
+| すべて
+|}
+{{Top}}
+<span id="Statistical_/_aggregate_functions"></span>
+=== 統計関数・集約関数 ===
+
+[https://en.wikipedia.org/wiki/Aggregate_function 集約関数]は1または複数の引数を取ります。<br>
+
+集約関数の個々の引数には、セルのレンジ（範囲）を指定することができます。セルのレンジは、2つのセルを{{Incode|:}}でつなげたもので、例えば{{Incode|average(B1:B8)}}や{{Incode|sum(A1:A4; B1:B4)}}という形をしています。 {{Incode|average(StartTemp:EndTemp)}}のように、セルの参照は別名でも可能です。
+
+以下の集約関数を使うことができます。
+
+{| class="wikitable"
+!style="width: 20%;"|関数
+!style="width: 55%;"|説明
+!style="width: 25%;"|入力の定義域
+|-
+| {{incode|average(a; b; c; ...)}}
+| 引数の値の[https://ja.wikipedia.org/wiki/%E7%AE%97%E8%A1%93%E5%B9%B3%E5%9D%87 平均]、sum(a; b; c; ...) / count(a; b; c; ...) と同じ。
+| すべて
+|-
+| {{incode|count(a; b; c; ...)}}
+| [https://en.wikipedia.org/wiki/Counting 計数]、すなわち引数の個数。セルのレンジとともに使われることが多い。
+| すべて
+|-
+| {{incode|max(a; b; c; ...)}}
+| 引数の中の[https://ja.wikipedia.org/wiki/%E6%A5%B5%E5%80%A4 最大値]。
+| すべて
+|-
+| {{incode|min(a; b; c; ...)}}
+| 引数の中の[https://ja.wikipedia.org/wiki/%E6%A5%B5%E5%80%A4 最小値]。
+| すべて
+|-
+| {{incode|stddev(a; b; c; ...)}}
+| 引数の[https://ja.wikipedia.org/wiki/%E6%A8%99%E6%BA%96%E5%81%8F%E5%B7%AE 標準偏差]。
+| すべて
+|-
+| {{incode|sum(a; b; c; ...)}}
+| 引数すべての[https://ja.wikipedia.org/wiki/%E7%B7%8F%E5%92%8C 合計]。セルのレンジとともに使われることが多い。
+| すべて
+|}
+{{Top}}
+<span id="String_manipulation"></span>
+=== 文字列操作 ===
+
+<span id="String_identification"></span>
+==== 文字列の定義 ====
+
+数式中の文字列は、ラベルと同じように、{{incode|<<}}と{{incode|>>}}で括る必要があります。
+
+以下の例では、{{incode|<<TEXT>>}}は文字列「TEXT」の意味です。
+
+<span id="String_concatenation"></span>
+==== 文字列の連結 ====
+
+文字列は「+」を使って連結することができます。
+
+{{incode|<<MY>> + <<TEXT>>}}は「MYTEXT」という文字列になります。
+
+<span id="String_conversion"></span>
+==== 文字列への変換 ====
+
+数値は{{incode|str}}関数を使って文字列に変換できます。
+
+{{incode|str(Box.Length.Value)}}
+
+<span id="String_formatting"></span>
+==== 文字列の整形 ====
+
+Pythonの（旧式の）%スタイル整形（フォーマッティング）をサポートしています。
+
+すべての%指定子は、[https://docs.python.org/3/library/stdtypes.html#printf-style-string-formatting Pythonドキュメンテーション]に定義されています。
+
+例として、「Box」という名前の、一辺が10mmの立方体があるとします。式{{incode|<<Cube length : %s>> % Box.Length}}は「Cube length : 10.0 mm」になります。
+
+一つ以上の%指定子を使う場合、次のようにしてください：{{incode|<<Cube length is %s and width is %s>> % tuple(Box.Length; Box.Width)}}。あるいは連結を使ってください：{{incode|<<Cube length is %s>> % Box.Length + << and width is %s>> % Box.Width}}。どちらも、「Cube length is 10.0 mm and width is 10.0 mm」になります。
+
+文字列の整形を使ったFreeCADのサンプルファイルが[https://forum.freecadweb.org/viewtopic.php?f=8&t=58657 フォーラム]にあります。
+{{Top}}
+<span id="Object_creation_functions"></span>
+=== オブジェクト生成関数 ===
+
+以下のオブジェクトは、数式の中で下記の関数を使って生成することが可能です。
+
+{| class="wikitable"
+! 型
+! 関数
+! 説明
+|-
+| {{incode|Tuple}}
+| {{incode|tuple(a; b; ...)}}
+| 例：{{incode|tuple(2; 1; 2)}}
+|-
+| {{incode|List}}
+| {{incode|list(a; b; ...)}}
+| 例：{{incode|list(2; 1; 2)}}
+|-
+| rowspan="2" | [[Vector API|{{incode|Vector}}]]
+| {{incode|vector(x; y; z)}}
+| rowspan="2" | 3つの無次元数または{{incode|長さ}}の単位を持つ数でベクトルを生成する。
+例：{{incode|vector(2; 1; 3)}}
+|-
+| {{incode|create(<<vector>>; x; y; z)}}
+|-
+| rowspan="2" | [[Matrix API|{{incode|Matrix}}]]
+|
+ matrix(
+   a<sub>11</sub>; a<sub>12</sub>; a<sub>13</sub>; a<sub>14</sub>;
+   a<sub>21</sub>; a<sub>22</sub>; a<sub>23</sub>; a<sub>24</sub>;
+   a<sub>31</sub>; a<sub>32</sub>; a<sub>33</sub>; a<sub>34</sub>;
+   a<sub>41</sub>; a<sub>42</sub>; a<sub>43</sub>; a<sub>44</sub>
+ )
+| rowspan="2" | 4行4列の行列を[https://en.wikipedia.org/wiki/Row-_and_column-major_order 行優先順]で作成:
+<math>
+\begin{bmatrix}
+a_{11} & a_{12} & a_{13} & a_{14} \\
+a_{21} & a_{22} & a_{23} & a_{24} \\
+a_{31} & a_{32} & a_{33} & a_{34} \\
+a_{41} & a_{42} & a_{43} & a_{44} \\
+\end{bmatrix}
+</math>
+
+{{incode|matrix(1)}}のように引数を1つだけ与えることもできます。これは恒等行列（訳注：{{incode|((1,0,0,0)(0,1,0,0)(0,0,1,0)(0,0,0,1))}}）を作成します。
+
+例： {{incode|matrix(1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15; 16)}}
+|-
+| {{incode|create(<<matrix>>; a<sub>11</sub>; a<sub>12</sub>; ...; a<sub>44</sub>)}}
+|-
+| rowspan="4" | {{incode|Rotation}}
+（回転）
+| {{incode|rotation(axis; angle)}}
+| rowspan="4" | {{incode|Rotation}}を、その軸{{incode|axis}}（{{incode|ベクトル}}）と角度{{incode|angle}} （{{incode|角度}}の単位または無次元数）、あるいは3つのオイラー角{{incode|α}}、{{incode|β}}、{{incode|γ}}を与えて生成。
+例：
+* {{incode|rotation(vector(0; 1; 0); 45)}}
+* {{incode|create(<<rotation>>; 30; 30; 30)}}
+|-
+| {{incode|rotation(α; β; γ)}}
+|-
+| {{incode|create(<<rotation>>; axis; angle)}}
+|-
+| {{incode|create(<<rotation>>; α; β; γ)}}
+|-
+| rowspan="5" | [[Placement_API|{{incode|Placement}}]]
+（配置 = 位置 + 回転）
+| {{incode|placement(base; rotation)}}
+| rowspan="5" | {{incode|Placement}}を、以下のようなパラメターから生成します。
+* {{incode|base}}: ベース位置（{{incode|Vector}}）
+* {{incode|center}}: 中心位置（{{incode|Vector}}）
+* {{incode|rotation}}: {{incode|Rotation}}
+* {{incode|axis}}: Rotation（回転）軸（{{incode|Vector}}）
+* {{incode|angle}}: Rotation（回転）角（無次元数または{{incode|角度}}の単位付きの値）
+* {{incode|matrix}}: {{incode|Matrix}}
+
+例：
+* {{incode|placement(vector(2; 1; 3); rotation(vector(0; 0; 1); 45))}}
+* {{incode|create(<<placement>>; create(<<vector>>; 2; 1; 2); create(<<rotation>>; create(<<vector>>; 0; 1; 0); 45))}}
+|-
+| {{incode|placement(base; rotation; center)}}
+|-
+| {{incode|placement(base; axis; angle)}}
+|-
+| {{incode|placement(matrix)}}
+|-
+| {{incode|create(<<placement>>; ...)}}
+|}
+{{Top}}
+<span id="Vector_functions"></span>
+=== ベクトル関数 ===
+
+以下のベクトル関数{{Version|1.0}}を使えます。
+
+{| class="wikitable"
+! 関数・演算子
+! 説明
+|-
+| {{incode|v1 + v2}}
+| 2つのベクトルの加算。
+|-
+| {{incode|v1 - v2}}
+| 2つのベクトルの減産。
+|-
+| {{incode|v * s}}
+| ベクトルを{{incode|s}}倍一様に拡大縮小する。
+|-
+| {{incode|vangle(v1; v2)}}
+| 2つのベクトルの間の角度（度）。
+|-
+| {{incode|vcross(v1; v2)}}
+| 2つのベクトルの外積<math>v_1 \times v_2</math>。
+|-
+| {{incode|v1 * v2}}
+| rowspan="2" | 2つのベクトルの内積<math>v_1 \cdot v_2</math>。
+|-
+| {{incode|vdot(v1; v2)}}
+|-
+| {{incode|vlinedist(v1; v2; v3)}}
+| ベクトル{{incode|v1}}（で表される点）と、ベクトル{{incode|v2}}（で表される点）を通り方向がベクトル{{incode|v3}}である直線との距離を求める。
+|-
+| {{incode|vlinesegdist(v1; v2; v3)}}
+|ベクトル{{incode|v1}}（で表される点）と、ベクトル{{incode|v2}}（で表される点）とベクトル{{incode|v3}}（で表される点）を結んだ線分上の最も近い点との距離を求める。
+|-
+| {{incode|vlineproj(v1; v2; v3)}}
+| ベクトル{{incode|v1}}（で表される点）を、ベクトル{{incode|v2}}（で表される点）を通り向きがベクトル{{incode|v3}}である直線に投影する（訳注：直線上{{incode|v1}}に最も近い点を求める）。
+|-
+| {{incode|vnormalize(v)}}
+| ベクトルを単位ベクトル（長さ1のベクトル）に正規化する。
+|-
+| {{incode|vplanedist(v1)}}
+| ベクトル{{incode|v1}}（で表される点）と、ベクトル{{incode|v2}}で表される点を通り法線の方向がベクトル{{incode|v3}}である平面との距離を求める。
+|-
+| {{incode|vplaneproj(v1)}}
+| ベクトル{{incode|v1}}（で表される点）を、ベクトル{{incode|v2}}で表される点を通り法線の方向がベクトル{{incode|v3}}である平面に投影する（訳注：平面上{{incode|v1}}に最も近い点を求める）。
+|-
+| {{incode|vscale(v; sx; sy; sz)}}
+| rowspan="4" | x軸方向へ{{incode|sx}}倍、y軸方向へ{{incode|sy}}倍、z軸方向へ{{incode|sz}}倍拡大縮小する。
+|-
+| {{incode|vscalex(v; sx)}}
+|-
+| {{incode|vscaley(v; sy)}}
+|-
+| {{incode|vscalez(v; sz)}}
+|}
+{{Top}}
+<span id="Matrix_functions"></span>
+=== 行列関数 ===
+
+{{incode|Rotation}}と{{incode|Placement}}は{{incode|Matrix}}（行列）として表現できます。以下の関数は、すべて{{incode|Matrix}}、{{incode|Rotation}}、または{{incode|Placement}}を最初の引数に取ります。この最初の引数を、以下では{{incode|m}}と表しています。返されるオブジェクトの型は、最初の引数として渡されたオブジェクトの型と同じですが、例外として、{{incode|Rotation}}に対して{{incode|mtranslate}}を使用した場合は{{incode|Placement}}が返されます。
+
+{| class="wikitable"
+! 関数
+! 説明
+|-
+| {{incode|minvert(m)}}
+| [https://ja.wikipedia.org/wiki/%E6%AD%A3%E5%89%87%E8%A1%8C%E5%88%97 逆行列]を計算。
+|-
+| {{incode|mrotate(m; rotation)}}
+| rowspan="3" | 下記のいずれかで[https://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2 回転]
+* {{incode|Rotation}}
+* 軸（{{incode|Vector}}）と角度（{{incode|Angle}} 単位付きまたは無次元数）
+* 3つのオイラー角 {{incode|α}}、{{incode|β}}、{{incode|γ}}
+|-
+| {{incode|mrotate(m; axis; angle)}}
+|-
+| {{incode|mrotate(m; α; β; γ)}}
+|-
+| {{incode|mrotatex(m; angle)}}
+| x軸回りの[https://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2 回転]
+|-
+| {{incode|mrotatey(m; angle)}}
+| y軸回りの[https://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2 回転]
+|-
+| {{incode|mrotatez(m; angle)}}
+| z軸回りの[https://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2 回転]
+|-
+| {{incode|mtranslate(m; vector)}}
+| rowspan="2" | {{incode|vector}} ({{incode|Vector}}) またはX、Y、Z値に基づく[https://ja.wikipedia.org/wiki/%E5%B9%B3%E8%A1%8C%E7%A7%BB%E5%8B%95 平行移動]。{{incode|Rotation}}を平行移動すると、返り値は{{incode|Placement}}になる。
+|-
+| {{incode|mtranslate(m; x; y; z)}}
+|-
+| {{incode|mscale(m; vector)}}
+| rowspan="2" | {{incode|vector}} ({{incode|Vector}}) またはX、Y、Z値に基づく[https://en.wikipedia.org/wiki/Scaling_(geometry)#Matrix_representation 拡大縮小]
+|-
+| {{incode|mscale(m; x; y; z)}}
+|}
+{{Top}}
+<span id="Conditional_expressions"></span>
+== 条件式 ==
+
+条件式は{{incode|条件 ? 真の場合の結果 : 偽の場合の結果}}という形式です。条件部分も数式で定義します。{{incode|0}}は偽、0以外は真と解釈します。
+
+ブール型プロパティを条件の式に入れる場合、{{incode|VarSet.MyBool &#61;&#61; 1 ? 10 mm : 15 mm}}のように書く必要があることに注意してください。
+
+以下の[https://ja.wikipedia.org/wiki/%E9%96%A2%E4%BF%82%E6%BC%94%E7%AE%97%E5%AD%90#%E6%A8%99%E6%BA%96%E7%9A%84%E3%81%AA%E9%96%A2%E4%BF%82%E6%BC%94%E7%AE%97%E5%AD%90 関係演算子]が定義されています。
+{| class="wikitable"
+!style="width: 33%;"|演算子
+!style="width: 66%;"|説明
+|-
+| style="text-align:center;" | '''=='''
+| 等しい
+|-
+| style="text-align:center;" | '''!='''
+| 等しくない
+|-
+| style="text-align:center;" | '''>'''
+| 大きい 
+|-
+| style="text-align:center;" | '''<'''
+| 小さい
+|-
+| style="text-align:center;" | '''>='''
+| 以上
+|-
+| style="text-align:center;" | '''<='''
+| 以下
+|}
+{{Top}}
+<span id="Units"></span>
+== 単位 ==
+
+単位は数式中に直接書くことができます。数式パーザーは、直前の値に単位を与えます。例えば、{{incode|2mm}}や{{incode|2 mm}}は正しい数式ですが、{{incode|mm}}は単位の前に値がないので正しくありません。
+
+すべての値は単位を持っていなければいけません。したがって、一般的にはスプレッドシートに値を書くときは単位も指定すべきです。<br/>単位を指定しなくても動く場合もあります。例えば、スプレッドシートのセルB1に無次元数{{incode|1.5}}があったとして、押し出しの高さとしてそれを参照する場合です。この場合、押し出しの高さは単位{{incode|mm}}が事前に定義されているので、単位がない場合それが使われて動きます。しかし、例えば{{incode|Sketch1.Constraints.Width - Spreadsheet.B1}}を押し出しの高さに使うと失敗します。{{incode|Sketch1.Constraints.Width}}は単位を持っているのに対して{{incode|Spreadsheet.B1}}は無次元数だからです。
+
+単位のべき乗は直接入力できます。例えば、{{incode|mm^3}} はmm³、{{incode|m^3}}はm³として解釈されます。
+
+もし変数の名前が単位と同じ場合、誤って単位と解釈されないように、変数名を{{incode|<< >>}}で括る必要があります。たとえば、寸法を表す{{incode|Sketch.Constraints.A}}があった場合、電流のアンペア（A）に誤認されないよう、{{incode|Sketch.Constraints.<<A>>}}と書かなければなりません。
+
+数式パーザーは、以下を単位として認識します。
+
+<span id="Amount_of_substance"></span>
+=== 物質量 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| mmol
+| Milli[https://ja.wikipedia.org/wiki/%E3%83%A2%E3%83%AB ミリ・モル]
+|-
+| mol
+| [https://ja.wikipedia.org/wiki/%E3%83%A2%E3%83%AB モル]
+|}
+
+<span id="Angle"></span>
+=== 角度 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| °
+| [https://ja.wikipedia.org/wiki/%E5%BA%A6_(%E8%A7%92%E5%BA%A6) 度（°）] 単位degの別名
+|-
+| deg
+| [https://ja.wikipedia.org/wiki/%E5%BA%A6_(%E8%A7%92%E5%BA%A6) 度（°）] 単位°の別名
+|-
+| rad
+| [https://ja.wikipedia.org/wiki/%E3%83%A9%E3%82%B8%E3%82%A2%E3%83%B3 ラジアン]
+|-
+| gon
+| [https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%A9%E3%83%BC%E3%83%89_(%E5%8D%98%E4%BD%8D) グラジアン]
+|-
+| M
+| [https://en.wikipedia.org/wiki/Minute_and_second_of_arc 角度の分（1/60度）] 単位 ′ の別名
+|-
+| ′
+| [https://en.wikipedia.org/wiki/Minute_and_second_of_arc 角度の分（1/60度）] これはプライム記号（U+2032）で単位Mの別名。
+|-
+| S
+| [https://en.wikipedia.org/wiki/Minute_and_second_of_arc 角度の秒（1/3600度）] '''動作しない'''。単位 ″ の別名。
+|-
+| ″
+| [https://en.wikipedia.org/wiki/Minute_and_second_of_arc 角度の秒（1/3600度）] これはダブル・プライム記号（U+2033）で単位 Sの別名。
+|}
+
+<span id="Current"></span>
+=== 電流 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| mA
+| ミリ[https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%B3%E3%83%9A%E3%82%A2 アンペア]
+|-
+| A
+| [https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%B3%E3%83%9A%E3%82%A2 アンペア]
+|-
+| kA
+| キロ[https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%B3%E3%83%9A%E3%82%A2 アンペア]
+|-
+| MA
+| メガ[https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%B3%E3%83%9A%E3%82%A2 アンペア]
+|}
+
+<span id="Electric_capacitance"></span>
+=== 静電容量 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| pF
+| ピコ[https://ja.wikipedia.org/wiki/%E3%83%95%E3%82%A1%E3%83%A9%E3%83%89 ファラッド]
+|-
+| nF
+| ナノ[https://ja.wikipedia.org/wiki/%E3%83%95%E3%82%A1%E3%83%A9%E3%83%89 ファラッド]
+|-
+| uF
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%83%95%E3%82%A1%E3%83%A9%E3%83%89 ファラッド] 単位µFの別名
+|-
+| µF
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%83%95%E3%82%A1%E3%83%A9%E3%83%89 ファラッド] 単位uFの別名
+|-
+| mF
+| ミリ[https://ja.wikipedia.org/wiki/%E3%83%95%E3%82%A1%E3%83%A9%E3%83%89 ファラッド]
+|-
+| F
+| [https://ja.wikipedia.org/wiki/%E3%83%95%E3%82%A1%E3%83%A9%E3%83%89 ファラッド] 1 F = 1 s<sup>4</sup>·A<sup>2</sup>/m<sup>2</sup>/kg
+|}
+
+<span id="Electric_charge"></span>
+=== 電荷 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| C
+| [https://ja.wikipedia.org/wiki/%E3%82%AF%E3%83%BC%E3%83%AD%E3%83%B3 クーロン] 1 C = 1 A*s
+|}
+
+<span id="Electric_conductivity"></span>
+=== コンダクタンス ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| uS
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%BC%E3%83%A1%E3%83%B3%E3%82%B9 ジーメンス] 単位µSの別名
+|-
+| µS
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%BC%E3%83%A1%E3%83%B3%E3%82%B9 ジーメンス] 単位uSの別名
+|-
+| mS
+| ミリ[https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%BC%E3%83%A1%E3%83%B3%E3%82%B9 ジーメンス]
+|-
+| S
+| [https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%BC%E3%83%A1%E3%83%B3%E3%82%B9 ジーメンス] 1 S = 1 s<sup>3</sup>·A<sup>2</sup>/kg/m<sup>2</sup>
+|-
+| kS
+| キロ[https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%BC%E3%83%A1%E3%83%B3%E3%82%B9 ジーメンス]
+|-
+| MS
+| メガ[https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%BC%E3%83%A1%E3%83%B3%E3%82%B9 ジーメンス]
+|}
+
+<span id="Electric_inductance"></span>
+=== インダクタンス ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| nH
+| ナノ[https://ja.wikipedia.org/wiki/%E3%83%98%E3%83%B3%E3%83%AA%E3%83%BC_(%E5%8D%98%E4%BD%8D) ヘンリー]
+|-
+| uH
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%83%98%E3%83%B3%E3%83%AA%E3%83%BC_(%E5%8D%98%E4%BD%8D) ヘンリー] 単位µHの別名
+|-
+| µH
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%83%98%E3%83%B3%E3%83%AA%E3%83%BC_(%E5%8D%98%E4%BD%8D) ヘンリー] 単位uHの別名
+|-
+| mH
+| ミリ[https://ja.wikipedia.org/wiki/%E3%83%98%E3%83%B3%E3%83%AA%E3%83%BC_(%E5%8D%98%E4%BD%8D) ヘンリー]
+|-
+| H
+| [https://ja.wikipedia.org/wiki/%E3%83%98%E3%83%B3%E3%83%AA%E3%83%BC_(%E5%8D%98%E4%BD%8D) ヘンリー] 1 H = 1 kg·m<sup>2</sup>/s<sup>2</sup>/A<sup>2</sup>
+|}
+
+<span id="Electric_potential"></span>
+=== 電圧 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| mV
+| ミリ[https://ja.wikipedia.org/wiki/%E3%83%9C%E3%83%AB%E3%83%88_(%E5%8D%98%E4%BD%8D) ボルト]
+|-
+| V
+| [https://ja.wikipedia.org/wiki/%E3%83%9C%E3%83%AB%E3%83%88_(%E5%8D%98%E4%BD%8D) ボルト]
+|-
+| kV
+| キロ[https://ja.wikipedia.org/wiki/%E3%83%9C%E3%83%AB%E3%83%88_(%E5%8D%98%E4%BD%8D) ボルト]
+|}
+
+<span id="Electric_resistance"></span>
+=== 電気抵抗 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| Ohm
+| [https://ja.wikipedia.org/wiki/%E3%82%AA%E3%83%BC%E3%83%A0 オーム（Ω）] 1Ω = 1 kg·m<sup>2</sup>/s<sup>3</sup>/A<sup>2</sup>
+|-
+| kOhm
+| キロ[https://ja.wikipedia.org/wiki/%E3%82%AA%E3%83%BC%E3%83%A0 オーム（Ω）]
+|-
+| MOhm
+| メガ[https://ja.wikipedia.org/wiki/%E3%82%AA%E3%83%BC%E3%83%A0 オーム（Ω）]
+|}
+
+<span id="Energy/work"></span>
+=== エネルギー・仕事 ===
+
+{| class="wikitable float-right mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| mJ
+| ミリ[https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB ジュール（J）]
+|-
+| J
+| [https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB ジュール（J）]
+|-
+| kJ
+| キロ[https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB ジュール（J）]
+|-
+| eV
+| [https://ja.wikipedia.org/wiki/%E9%9B%BB%E5%AD%90%E3%83%9C%E3%83%AB%E3%83%88 電子ボルト（eV）] 1 eV = 1.602176634e-19 J
+|-
+| keV
+| キロ[https://ja.wikipedia.org/wiki/%E9%9B%BB%E5%AD%90%E3%83%9C%E3%83%AB%E3%83%88 電子ボルト（eV）]
+|-
+| MeV
+| メガ[https://ja.wikipedia.org/wiki/%E9%9B%BB%E5%AD%90%E3%83%9C%E3%83%AB%E3%83%88 電子ボルト（eV）]
+|-
+| kWh
+| [https://ja.wikipedia.org/wiki/%E3%82%AD%E3%83%AD%E3%83%AF%E3%83%83%E3%83%88%E6%99%82 キロワット時] 1 kWh = 3.6e6 J
+|-
+| Ws
+| [https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB ワット秒] 単位Jの別名
+|-
+| VAs
+| [https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB VA秒] 単位Jの別名
+|-
+| CV
+| [https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB クーロン・ボルト] 単位Jの別名
+|-
+| cal
+| [https://ja.wikipedia.org/wiki/%E3%82%AB%E3%83%AD%E3%83%AA%E3%83%BC カロリー（cal）] 1 cal = 4.184 J
+|-
+| kcal
+| キロ[https://ja.wikipedia.org/wiki/%E3%82%AB%E3%83%AD%E3%83%AA%E3%83%BC カロリー（cal）]
+|}
+
+<span id="Force"></span>
+=== 力 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| mN
+| ミリ[https://ja.wikipedia.org/wiki/%E3%83%8B%E3%83%A5%E3%83%BC%E3%83%88%E3%83%B3_(%E5%8D%98%E4%BD%8D) ニュートン（N）]
+|-
+| N
+| [https://ja.wikipedia.org/wiki/%E3%83%8B%E3%83%A5%E3%83%BC%E3%83%88%E3%83%B3_(%E5%8D%98%E4%BD%8D) ニュートン（N）]
+|-
+| kN
+| キロ[https://ja.wikipedia.org/wiki/%E3%83%8B%E3%83%A5%E3%83%BC%E3%83%88%E3%83%B3_(%E5%8D%98%E4%BD%8D) ニュートン（N）]
+|-
+| MN
+| メガ[https://ja.wikipedia.org/wiki/%E3%83%8B%E3%83%A5%E3%83%BC%E3%83%88%E3%83%B3_(%E5%8D%98%E4%BD%8D) ニュートン（N）]
+|-
+| lbf
+| [https://en.wikipedia.org/wiki/Pound_(force) Pound of force]
+|}
+
+<span id="Length"></span>
+=== 長さ ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| nm
+| ナノ（10<sup>-9</sup>）[https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%BC%E3%83%88%E3%83%AB メートル]
+|-
+| um
+| マイクロ（10<sup>-6</sup>）[https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%BC%E3%83%88%E3%83%AB メートル] 単位 µmの別名
+|-
+| µm
+| マイクロ（10<sup>-6</sup>）[https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%BC%E3%83%88%E3%83%AB メートル] 単位 um の別名
+|-
+| mm
+| ミリ（10<sup>-3</sup>）[https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%BC%E3%83%88%E3%83%AB メートル]
+|-
+| cm
+| センチ（10<sup>-2</sup>）[https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%BC%E3%83%88%E3%83%AB メートル]
+|-
+| dm
+| デシ（10<sup>-1</sup>）[https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%BC%E3%83%88%E3%83%AB メートル]
+|-
+| m
+| [https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%BC%E3%83%88%E3%83%AB メートル]
+|-
+| km
+| キロ（10<sup>3</sup>）[https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%BC%E3%83%88%E3%83%AB メートル][https://en.wikipedia.org/wiki/Metre meter]
+|-
+| mil
+| [https://en.wikipedia.org/wiki/Thousandth_of_an_inch 1/1000インチ] 単位 thou の別名
+|-
+| thou
+| [https://en.wikipedia.org/wiki/Thousandth_of_an_inch 1/1000インチ] 単位 mil の別名
+|-
+| in
+| [https://en.wikipedia.org/wiki/Inch インチ] 単位 " の別名
+|-
+| "
+| [https://en.wikipedia.org/wiki/Inch インチ] 単位 in の別名
+|-
+| ft
+| [https://en.wikipedia.org/wiki/Foot_(unit) フィート] 単位 ' の別名
+|-
+| '
+| [https://en.wikipedia.org/wiki/Foot_(unit) フィート] 単位 ft の別名
+|-
+| yd
+| [https://en.wikipedia.org/wiki/Yard ヤード]
+|-
+| mi
+| [https://en.wikipedia.org/wiki/Mile マイル]
+|}
+
+<span id="Luminous_intensity"></span>
+=== 光度 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| cd
+| [https://ja.wikipedia.org/wiki/%E3%82%AB%E3%83%B3%E3%83%87%E3%83%A9 カンデラ]
+|}
+
+<span id="Magnetic_flux"></span>
+=== 磁束 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| Wb
+| [https://ja.wikipedia.org/wiki/%E3%82%A6%E3%82%A7%E3%83%BC%E3%83%90 ウェーバー] 1 Wb = 1 kg*m<sup>2</sup>/s<sup>2</sup>/A
+|}
+
+<span id="Magnetic_flux_density"></span>
+=== 磁束密度 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| G
+| [https://ja.wikipedia.org/wiki/%E3%82%AC%E3%82%A6%E3%82%B9_(%E5%8D%98%E4%BD%8D) ガウス] 1 G = 10<sup>-4</sup> T
+|-
+| T
+| [https://ja.wikipedia.org/wiki/%E3%83%86%E3%82%B9%E3%83%A9_(%E5%8D%98%E4%BD%8D) テスラ] 1 T = 1 kg/s<sup>2</sup>/A
+|}
+
+<span id="Mass"></span>
+=== 質量 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| ug
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%A9%E3%83%A0 グラム] 単位µgの別名
+|-
+| µg
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%A9%E3%83%A0 グラム] 単位ugの別名
+|-
+| mg
+| ミリ[https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%A9%E3%83%A0 グラム]
+|-
+| g
+| [https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%A9%E3%83%A0 グラム]
+|-
+| kg
+| キロ（10<sup>3</sup>）[https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%A9%E3%83%A0 グラム]
+|-
+| t
+| [https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%B3 トン]
+|-
+| oz
+| [https://en.wikipedia.org/wiki/Ounce Ounce]
+|-
+| lb
+| [https://en.wikipedia.org/wiki/Pound_(mass) Pound]; alternative to the unit lbm
+|-
+| lbm
+| [https://en.wikipedia.org/wiki/Pound_(mass) Pound]; alternative to the unit lb
+|-
+| st
+| [https://en.wikipedia.org/wiki/Stone_(weight) Stone]
+|-
+| cwt
+| [https://en.wikipedia.org/wiki/Hundredweight Hundredweight]
+|}
+
+<span id="Power"></span>
+=== 仕事率 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| W
+| [https://ja.wikipedia.org/wiki/%E3%83%AF%E3%83%83%E3%83%88 ワット]
+|-
+| kW
+| キロ[https://ja.wikipedia.org/wiki/%E3%83%AF%E3%83%83%E3%83%88 ワット]
+|}
+
+<span id="Pressure"></span>
+=== 圧力 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| Pa
+| [https://ja.wikipedia.org/wiki/%E3%83%91%E3%82%B9%E3%82%AB%E3%83%AB_(%E5%8D%98%E4%BD%8D) パスカル]
+|-
+| kPa
+| キロ[https://ja.wikipedia.org/wiki/%E3%83%91%E3%82%B9%E3%82%AB%E3%83%AB_(%E5%8D%98%E4%BD%8D) パスカル]
+|-
+| MPa
+| メガ[https://ja.wikipedia.org/wiki/%E3%83%91%E3%82%B9%E3%82%AB%E3%83%AB_(%E5%8D%98%E4%BD%8D) パスカル]
+|-
+| GPa
+| ギガ[https://ja.wikipedia.org/wiki/%E3%83%91%E3%82%B9%E3%82%AB%E3%83%AB_(%E5%8D%98%E4%BD%8D) パスカル]
+|-
+| uTorr
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%AB トル]。単位µTorrの別名。
+|-
+| µTorr
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%AB トル]。単位uTorrの別名
+|-
+| mTorr
+| ミリ[https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%AB トル]
+|-
+| Torr
+| [https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%AB トル]。1 Torr = 101325/760 Pa
+|-
+| psi
+| [https://en.wikipedia.org/wiki/Pounds_per_square_inch Pound-force per square inch]; 1 psi = 6.895 kPa
+|-
+| ksi
+| Kilo[https://en.wikipedia.org/wiki/Pounds_per_square_inch pound-force per square inch]
+|}
+
+<span id="Temperature"></span>
+=== 温度 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| uK
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%82%B1%E3%83%AB%E3%83%93%E3%83%B3 ケルビン]。単位 µK の別名
+|-
+| µK
+| マイクロ[https://ja.wikipedia.org/wiki/%E3%82%B1%E3%83%AB%E3%83%93%E3%83%B3 ケルビン]。単位 uK の別名
+|-
+| mK
+| ミリ[https://ja.wikipedia.org/wiki/%E3%82%B1%E3%83%AB%E3%83%93%E3%83%B3 ケルビン]
+|-
+| K
+| [https://ja.wikipedia.org/wiki/%E3%82%B1%E3%83%AB%E3%83%93%E3%83%B3 ケルビン]
+|}
+
+<span id="Time"></span>
+=== 時間 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| s
+| [https://ja.wikipedia.org/wiki/%E7%A7%92 秒]
+|-
+| min
+| [https://ja.wikipedia.org/wiki/%E5%88%86 分]
+|-
+| h
+| [https://ja.wikipedia.org/wiki/%E6%99%82%E9%96%93_(%E5%8D%98%E4%BD%8D) 時]
+|-
+| Hz
+| [https://ja.wikipedia.org/wiki/%E3%83%98%E3%83%AB%E3%83%84 ヘルツ] s<sup>-1</sup>
+|-
+| kHz
+| キロ[https://ja.wikipedia.org/wiki/%E3%83%98%E3%83%AB%E3%83%84 ヘルツ]
+|-
+| MHz
+| メガ[https://ja.wikipedia.org/wiki/%E3%83%98%E3%83%AB%E3%83%84 ヘルツ]
+|-
+| GHz
+| ギガ[https://ja.wikipedia.org/wiki/%E3%83%98%E3%83%AB%E3%83%84 ヘルツ]
+|-
+| THz
+| テラ[https://ja.wikipedia.org/wiki/%E3%83%98%E3%83%AB%E3%83%84 ヘルツ]
+|}
+
+<span id="Volume"></span>
+=== 容積 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| ml
+| ミリ[https://ja.wikipedia.org/wiki/%E3%83%AA%E3%83%83%E3%83%88%E3%83%AB リットル]
+|-
+| l
+| [https://ja.wikipedia.org/wiki/%E3%83%AA%E3%83%83%E3%83%88%E3%83%AB リットル]
+|-
+| cft
+| Cubic[https://en.wikipedia.org/wiki/Foot_(unit) foot]
+|}
+
+<span id="Special_imperial_units"></span>
+=== その他のヤード・ポンド法の単位 ===
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 33%;"|単位
+!style="width: 66%;"|説明
+|-
+| mph
+| [https://en.wikipedia.org/wiki/Miles_per_hour マイル毎時]
+|-
+| sqft
+| [https://en.wikipedia.org/wiki/Square_foot 平方フィート]
+|}
+
+<span id="Unsupported_units"></span>
+=== サポート外の単位 ===
+
+以下は、よく使われるが現時点ではサポートされない単位です。代替も提示しています。
+
+{| class="wikitable mw-collapsible mw-collapsed"
+!style="width: 25%;"|単位
+!style="width: 50%;"|説明
+!style="width: 25%;"|代替
+|-
+| °C
+| [https://ja.wikipedia.org/wiki/%E3%82%BB%E3%83%AB%E3%82%B7%E3%82%A6%E3%82%B9%E5%BA%A6 セルシウス温度]
+| [°C] + 273.15 K
+|-
+| °F
+| [https://en.wikipedia.org/wiki/Fahrenheit Fahrenheit];
+| ([°F] + 459.67) × ​5/9
+|-
+| u
+| [https://ja.wikipedia.org/wiki/%E7%B5%B1%E4%B8%80%E5%8E%9F%E5%AD%90%E8%B3%AA%E9%87%8F%E5%8D%98%E4%BD%8D 統一原子質量単位]。単位Daの別名。
+| 1.66053906660e-27 kg
+|-
+| Da
+| [https://ja.wikipedia.org/wiki/%E7%B5%B1%E4%B8%80%E5%8E%9F%E5%AD%90%E8%B3%AA%E9%87%8F%E5%8D%98%E4%BD%8D ダルトン]。単位uの別名。
+| 1.66053906660e-27 kg
+|-
+| sr
+| [https://en.wikipedia.org/wiki/Steradian Steradian]
+| 直接的な代替はない
+|-
+| lm
+| [https://ja.wikipedia.org/wiki/%E3%83%AB%E3%83%BC%E3%83%A1%E3%83%B3 ルーメン]
+| 直接的な代替はない
+|-
+| lx
+| [https://ja.wikipedia.org/wiki/%E3%83%AB%E3%82%AF%E3%82%B9 ルクス]
+| 直接的な代替はない
+|-
+| px
+| [https://ja.wikipedia.org/wiki/%E3%83%94%E3%82%AF%E3%82%BB%E3%83%AB ピクセル]
+| 直接的な代替はないy
+|}
+{{Top}}
+<span id="Invalid_characters_and_names"></span>
+== 使えない文字や名前 ==
+
+数式は非常に強力である反面、いくつかの文字の使用に制約があります。これに対応するため、FreeCADではオブジェクトの名前よりもラベルを使用することを推奨しています。ラベルには、ほとんどすべての特殊文字を使えます。
+
+ラベルを使えない局面、例えばスケッチの拘束条件の名前などでは、使えない文字について注意する必要があります。
+
+<span id="Labels"></span>
+=== ラベル ===
+
+[[Object_name/ja#Label|ラベル]]では、使えない文字はないですが、いくつかの文字はエスケープする必要があります。
+{| class="wikitable"
+!style="width: 33%;"|文字
+!style="width: 66%;"|説明
+|-
+| {{incode|'}}, {{incode|\}}, {{incode|"}}
+| これらの文字の前には{{incode|\}}をつけてエスケープする必要があります。
+|}
+
+例えば、{{incode|Sketch\002}}というラベルを参照するには{{incode|<<Sketch\\002>>}}と表記する必要があります。
+
+<span id="Names"></span>
+=== 名前 ===
+
+寸法、スケッチといったオブジェクトの[[Object_name/ja#Name|名前]]に、以下の文字を含めると不正な名前になってしまう。
+
+{| class="wikitable"
+!style="width: 33%;"|文字 / 文字列
+!style="width: 66%;"|説明
+|-
+| '''+''', '''-''', '''*''', '''/''', '''^''', '''_''', '''<''', '''>''', '''(''', ''')''', '''{''', '''}''', '''[''', ''']''', '''.''', ''',''', '''='''
+| 演算子や数式の構成要素に使われる文字
+|-
+| '''A''', '''kA''', '''mA''', '''MA''', '''J''', '''K''', ''' ' ''', ''' ft ''', '''°''', その他
+| 単位に使われる文字列（詳細は[[#Units|単位]]を参照）
+|-
+| '''#''', '''!''', '''?''', '''§''', '''$''', '''%''', '''&''', ''':''', ''';''', '''\''', '''<nowiki>|</nowiki>''', '''~''', '''∆''', '''¿''', その他
+| 特別な操作や意味をもつ文字
+|-
+| '''pi''', '''e'''
+| 数学定数
+|-
+| '''´''', '''`''', ''' ' ''', '''"'''
+| アクセント文字
+|-
+| 空白
+| 空白は名前の終わりを意味しているため、名前の一部には含められません
+|}
+
+例えば次の名前は正しい名前である：{{incode|<<Sketch>>.Constraints.T2üßµ@}}。次の名前は不正な名前である： {{incode|<<Sketch>>.Constraints.test\result_2}} （\rは「復回」の意味にある）、{{incode|<<Sketch>>.Constraints.mol}}（molは単位である）。
+
+短い名前（特に1文字、2文字の名前）は不正な名前になりやすいので、長い名前をつけるなど、適切な命名規則を採用することを検討してください。
+
+<span id="Cell_aliases"></span>
+=== セルの別名 ===
+
+[[Spreadsheet_SetAlias#Usage|スプレッドシートのSetAlias]]を参照してください。
+{{Top}}
+<span id="Reference_to_CAD_data"></span>
+== CADデーターの参照 ==
+
+数式の中から、モデル自身のデーターを参照することができます。プロパティーを参照するには、{{incode|object_name.property}}または{{incode|<<object_label>>.property}}と記述してください。ラベルは{{incode|<<}}と{{incode|>>}}で括る必要があります。ラベルを使う場合、ラベルはユニーク（別のものに同じラベルを与えない）である必要があります。
+
+以下の例はすべてオブジェクトを名前で参照しています、常にラベルを使うことも可能です。
+
+もしプロパティーが複合フィールドの場合、個々のフィールドは{{incode|object_name.property.field}}で参照することができます。
+
+リストを参照するには、{{incode|object_name.list[list_index]}}としてください。スケッチの拘束条件を参照するには、{{incode|Sketch.Constraints[16]}}のようにしてください。同じスケッチ内であれば、名前を省略して{{incode|Constraints[16]}}で参照できます。インデックス（添字）は0から始まることに注意してください。したがって、Constraint17は{{incode|Constraints[16]}}で参照できます。
+
+オブジェクト自身を参照するには、{{incode|_self}}擬プロパティーを使って、{{incode|object_name._self}}のようにしてください。
+
+以下のテーブルに、いくつか例を示します。
+{| class="wikitable"
+ !CADデーター
+ !数式での参照
+ !結果
+ |-
+ |[[Part_Box|Part Box]]の長さ
+ |{{incode|Box.Length}}
+ |長さ（mm）
+ |-
+ |Boxの体積
+ |{{incode|Box.Shape.Volume}}
+ |mm&sup3;単位の体積（単位はなし）
+ |-
+ |Boxの形状タイプ
+ |{{incode|Box.Shape.ShapeType}}
+ |文字列「Solid」
+ |-
+ |Boxのラベル
+ |{{incode|Box.Label}}
+ |文字列「Label」
+ |-
+ |Boxの質量中心のx座標
+ |{{incode|Box.Shape.CenterOfMass.x}}
+ |mm単位のx座標（単位はなし）
+ |-
+ |Box位置のx座標
+ |{{incode|Box.Placement.Base.x}}
+ |x座標（mm）
+ |-
+ |Box位置の回転軸のx座標成分
+ |{{incode|Box.Placement.Rotation.Axis.x}}
+ |単位ベクトルのmm単位のx座標成分（単位なし）
+ |-
+ |Box位置の回転角
+ |{{incode|Box.Placement.Rotation.Angle}}
+ |回転角（deg）
+ |-
+ |Boxオブジェクト全体
+ |{{incode|Box._self}}
+ |<Part::PartFeature>型のオブジェクト
+ |-
+ |スケッチの拘束条件の値
+ |{{incode|Constraints.Width}}
+ |もし式がスケッチの中で使われた場合、同じスケッチの中の名前が{{incode|Width}}という拘束条件の値
+ |-
+ |スケッチの拘束条件の値
+ |{{incode|MySketch.Constraints.Width}}
+ |もし式がスケッチの外で使われた場合、{{incode|MySketch}}の中の名前が{{incode|Width}}という拘束条件の値
+ |-
+ |スプレッドシート別名の値
+ |{{incode|Spreadsheet.Depth}}
+ |{{incode|Spreadsheet}}という名前のスプレッドシートの{{incode|Depth}}という名前の別名の値
+ |-
+ |ローカルなプロパティーの値
+ |{{incode|Length}}
+ |ある（たとえば押し出し）オブジェクトの{{PropertyData|Length}}という名前のプロパティーの値。同じオブジェクトの別のプロパティー（例えば{{PropertyData|Length2}}）の数式から呼び出す場合。
+ |}
+
+<span id="Cyclic_dependencies"></span>
+=== 循環参照 ===
+
+FreeCAD は、依存関係をプロパティではなくオブジェクト間の関係に基づいてチェックします。したがって、あるオブジェクトにデータを提供し、その同じオブジェクトから結果を取得することはできないことを意味します。プロパティ自体に循環依存が存在しない場合でも、スプレッドシートから寸法を取得するオブジェクトを作成し、そのオブジェクトの体積を同じスプレッドシートに表示することはできません。この場合、モデルを制御するスプレッドシートと、結果を報告するスプレッドシートの2つを使用する必要があります。
+
+回避策として、[[Spreadsheet_Workbench#Cell_binding|セルバインディング]]を使用し、{{MenuCommand|バインディングの依存関係を非表示}}オプションを有効にすることで、2つ目のスプレッドシートのセル範囲を1つ目のスプレッドシートに（またはその逆に）表示することが可能です。
+
+循環依存関係を回避する別の方法として、個々の式で{{incode|href}}や{{incode|hiddenref}}関数を使用して参照を非表示にする方法があります。例えば、{{incode|href(Box.Length)}}のように記述します。
+
+なお、これらの回避策はいずれも慎重に使用する必要があります。報告されるプロパティが同じスプレッドシート内の寸法に基づいている場合、これらの方法は機能しないことに注意してください。
+{{Top}}
+<span id="Document-wide_global_variables"></span>
+== ドキュメント全体からアクセス可能なグローバル変数 ==
+
+現時点では、FreeCADにはグローバル変数はありません。変わりに、このような変数を[[Spreadsheet Workbench|スプレッドシート・ワークベンチ]]を使ったスプレッドシートのセルとして定義できます。そのセルに（セル上を右クリックして）別名を与えます。この別名は、おコアのオブジェクトのプロパティーと同じように、ドキュメント中のすべての数式から参照可能です。
+{{Top}}
+<span id="Cross-document_linking"></span>
+== ドキュメントをまたがった参照 ==
+
+あるドキュメント中のオブジェクトのプロパティーを、数式から別のドキュメント（".FCstd" file）中のオブジェクトのプロパティーを参照して定義するのは、（制約はあるが）可能である。例えば、あるファイル中のスプレッドシートのセルやPart直方体の{{PropertyData|Length}}、といったものを定義するために、別のファイル中のオブジェクトの位置のx座標の値やその他のプロパティーの値を数式から参照して使うことができます。
+
+ドキュメントは、ファイル名で参照できます。初めてセーブするときは、デフォルトの「Unnamed1」のようなものとは違う名前をファイル名として指定すると思います。マスタードキュメントの名前がセーブの時に変わってしまってリンクが破損するのを防ぐために、まず最初にマスターファイルを作成し、スプレッドシートを作成し、まずセーブするようにしてください。その後で、ファイルの中身やスプレッドシートを編集してもいいのですが、ファイル名は変えないようにしてください。
+
+一旦スプレッドシートを含むマスタードキュメントを作成し、名前をつけて保存すれば、それを参照するドキュメントは安全に作れます。例えば、マスタードキュメントの名前が{{incode|master}}で、その中のスプレッドシートが{{incode|modelConstants}}、セルの別名が{{incode|Length}}だったとします。この値は次のようにして参照できます。
+
+{{incode|master#modelConstants.Length}}
+
+それを参照するドキュメントから値を取得できるよう、マスタードキュメントを開いておく（ロードしておく）必要があることに注意してください。
+
+何かを修正したい時に、後でそれを参照するドキュメントを読み込むかどうかはあなた次第です（訳注：マスタードキュメントを変更するだけでは、それを参照する子ドキュメントが自動的に更新されることはありません）。
+{{Top}}
+<span id="Known_issues_/_remaining_tasks"></span>
+== 既知の問題・残課題 ==
+
+* 現在のFreeCADには、組み込みの数式マネージャーはありません。数式マネージャーとは、ドキュメント中のすべての数式をリストアップし、一元的に数式を作成、削除、検索等ができる機能です。これを行えるアドオンがあります：[https://github.com/gbroques/fcxref fcxref数式マネージャー]。
+* 数式に関するバグやチケットは[https://github.com/FreeCAD/FreeCAD/labels/Topic%3A%20Expressions GitHub]で参照できます。
+{{Top}}
+<span id="Scripting"></span>
+== スクリプトからの利用 ==
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.ActiveDocument
+box = doc.addObject("Part::Box", "Box")
+cyl = doc.addObject("Part::Cylinder", "Cylinder")
+cyl_name = cyl.Name
+
+box.setExpression("Height", f"{cyl_name}.Height / 2")
+box.setExpression("Length", f"{cyl_name}.Radius * 2")
+box.setExpression("Width", "Length")
+
+doc.recompute()
+
+# Expressions are stored in the ExpressionEngine property:
+for prop, exp in box.ExpressionEngine:
+    val = getattr(box, prop)
+    print(f"Property: '{prop}' -- Expression: '{exp}' -- Current value: {val}")
+}}
+{{Top}}
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Spreadsheet{{#translation:}}]]

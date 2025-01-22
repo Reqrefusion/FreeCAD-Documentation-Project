@@ -1,0 +1,380 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic=Modelowanie
+|Level=Początkujący
+|Author=Carlo Dormeletti ([[User:onekk|onekk]])<br>Ed Williams ([[User:edwilliams16|edwilliams16]])<br>Roy 043 ([[User:Roy_043|Roy 043]])
+|Time=1 godzina
+|FCVersion=0.19 lub nowszy
+|SeeAlso=[[Basic_Part_Design_Tutorial/pl|Poradnik: Podstawy dla środowiska pracy Projekt Części]]
+}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+''Poradnik ten to jest uaktualniona wersja poradnika [[Basic_Part_Design_Tutorial/pl|Podstawy dla środowiska pracy Projekt Części]]''.
+
+[[File:Pd_tut_final_solid.png]]
+
+Ten poradnik wprowadza użytkowników do środowiska pracy [[PartDesign_Workbench/pl|Projekt Części]]. W tym poradniku stworzymy model przestrzennej bryły części pokazanej na powyższym obrazku. W [[TechDraw_Workbench/pl|rysunku]] na końcu tego akapitu podane są wszystkie niezbędne wymiary do wykonania zadania.
+
+Rozpoczniemy od utworzenia podstawowego kształtu bryły ze szkicu bazowego, a następnie będziemy rozbudowywać ten kształt, dodając tzw. cechy. Cechy te będą dodawać materiał do bryły lub usuwać go z niej za pomocą dodatkowych szkiców i towarzyszących im operacji.
+
+Zastosujemy niektóre z technik opisanych w artykule [[Feature_editing/pl#Porady_dotycz.C4.85ce_tworzenia_stabilnych_modeli|Porady dotyczące tworzenia stabilnych modeli]]
+* Użyjemy '''szkicu głównego'''
+* '''Nazwane wiązania''' posłużą do przechowywania wymiarów, do których będzie można się odwołać w dalszej części budowy modelu.<br>Na przykład, aby zmienić szerokość modelu z 53 mm, jak na rysunku technicznym, na 55mm wystarczy zmodyfikować wartość '''Długość'''' odpowiedniego '''nazwanego wiązania''' w '''szkicu głównym''', a cały model odpowiednio się zmodyfikuje. Jest to projektowanie "parametryczne" w działaniu.
+* '''Geometrie zewnętrzne''' są potencjalnie objęte [[Topological_naming_problem/pl|Problemom nazewnictwa topologicznego]]. Będziemy ich używać tylko wtedy, gdy będzie to absolutnie konieczne i będziemy starali się odwoływać do najbardziej '''stabilnych''' dostępnych elementów. Odwoływanie się do krawędzi i wierzchołków szkiców jest zwykle bardziej stabilne niż odwoływanie się do krawędzi i wierzchołków wygenerowanej geometrii bryłowej.
+
+Ten poradnik nie będzie wykorzystywał wszystkich funkcji i narzędzi dostępnych w środowisku pracy Projekt Części, ale zapewni podstawy, na których użytkownicy mogą budować swoją wiedzę i umiejętności.
+
+Zapraszamy do sygnalizowania wszelkich błędów i problemów w tym wątku na forum: [https://forum.freecad.org/viewtopic.php?f=36&t=73235 Nowy poradnik środowiska Projekt Części dla FC 019 i 020].
+
+[[File:Tutorial_Drawing_Sheet.png|900px]]
+
+<span id="Preliminary_notes"></span>
+==Uwagi wstępne==
+
+* Ten poradnik zawiera szczegółowe instrukcje, gdy opisuje daną operację po raz pierwszy. Kolejne operacje będą miały bardziej zwięzły opis. W razie wątpliwości należy znaleźć operację, która zawiera bardziej szczegółowy opis. Na przykład podczas tworzenia szkicu po raz pierwszy proces wyboru płaszczyzny szkicu będzie szczegółowo wyjaśniony, dla kolejnych szkiców nie będzie.
+* Wszystkie wymienione narzędzia są dostępne z pasków narzędziowych oraz z menu.
+* Ten poradnik zakłada, że opcja {{CheckBox|TRUE|Wiązania automatyczne}} w oknie '''Edycja kontrolek''' Szkicownika jest zaznaczona. Dzięki temu niektóre wiązania zostaną zastosowane automatycznie. W przeciwnym razie trzeba będzie zastosować je samodzielnie.
+* Jeśli solver szkicownika wykryje zbędne wiązanie, zmieni kolor szkicu na pomarańczowy. Przed dodaniem kolejnych wiązań należy usunąć nadmiarowe wiązania. Nadmiarowe wiązania są widoczne w panelu zadań, kliknij niebieskie odniesienie i naciśnij {{KEY|Usuń}}.
+* Kolor wymieniony powyżej jest kolorem domyślnym, można go zmienić w preferencjach. To samo dotyczy innych kolorów wymienionych w tym poradniku.
+* Z narzędzia do rysowania Szkicownik wychodzimy naciskając klawisz {{KEY|Esc}} lub klikając prawym przyciskiem myszy pusty obszar okna [[3D_view/pl|widoku 3D]]. Kursor myszki zmieni swój wygląd na standardowy kursor ze strzałką. Jeśli naciśniesz {{KEY|Esc}} jeszcze raz, wyjdziesz z trybu edycji szkicu. Aby powrócić do edytora, kliknij zakładkę Model, a następnie kliknij dwukrotnie element Szkic w [[Tree_view/pl|Widoku drzewa]] lub kliknij go prawym przyciskiem myszki i wybierz '''Edycja szkicu''' z menu kontekstowego. Aby uniknąć opuszczania trybu edycji po zbyt częstym naciskaniu klawisza {{KEY|Esc}}, zmień preferencje '''Klawisz Esc umożliwia wyjście z trybu edycji szkicu''', zobacz stronę [[Sketcher_Preferences/pl#Og.C3.B3lne|Ustawienia szkicownika]].
+* Możliwe jest, że niektóre elementy w panelu zadań, na przykład przycisk {{Button|OK}}, nie są widoczne, jeśli panel nie jest wystarczająco szeroki. Możesz go poszerzyć, przeciągając jego prawy brzeg. Umieść kursor myszki nad krawędzią, gdy kursor zmieni wygląd na dwukierunkową strzałkę, przytrzymaj lewy przycisk myszki i przeciągnij.
+* Przycisk {{Button|&gt;&gt;}} na pasku narzędzi wskazuje, że pasek narzędzi jest skrócony. Możesz użyć wspomnianego przycisku, aby rozwinąć, lub przenieść pasek narzędzi w miejsce, gdzie jest więcej miejsca. Aby przesunąć pasek narzędziowy umieść kursor myszki nad uchwytem przed pierwszą ikoną na pasku narzędziowym, przytrzymaj lewy przycisk myszki i przeciągnij.
+* W trakcie cyklu rozwoju v0.21 wprowadzono nową ikonę dla narzędzia [[Sketcher_CreatePolyline/pl|Utwórz polilinię]]: [[File:Sketcher_CreatePolyline.svg|24px|link=Sketcher_CreatePolyline/pl]]. Stara ikona wygląda tak: [[File:Sketcher_CreatePolyline_rel_0.20.svg|24px|link=Sketcher_CreatePolyline/pl]]. W tym poradniku będziemy używać nowej ikony.
+* Zapoznaj się z informacjami na stronie [[Part_and_PartDesign/pl#Koncepcje_.C5.9Brodowiska_Projekt_Cz.C4.99.C5.9Bci|Koncepcje środowiska Projekt Części]], aby zapoznać się z pewnymi podstawami koncepcyjnymi.
+* Zapoznaj się z informacjami na stronie [[Sketcher_Workbench/pl|środowisko pracy Szkicownik]], aby uzyskać bardziej szczegółowe wyjaśnienie niektórych terminów używanych tutaj.
+
+<span id="Startup"></span>
+==Rozpoczynamy==
+
+Najpierw upewnij się, że właśnie jesteś w środowisku pracy [[File:Workbench_PartDesign.svg|24px|link=PartDesign_Workbench/pl]] [[PartDesign_Workbench/pl|Projekt Części]]. W razie potrzeby wybierz go z listy rozwijanej [[Std_Workbench/pl|Środowisk pracy]]. Po uruchomieniu go należy utworzyć nowy dokument, jeśli jeszcze tego nie zrobiłeś. Dobrym nawykiem jest częste zapisywanie swojej pracy, dlatego najpierw zapisz nowy dokument, nadając mu dowolną nazwę.
+
+Cała praca w ramach środowiska pracy Projekt Części zaczyna się od [[Glossary#Body|Zawartości]]. Kliknij [[File:PartDesign_Body.svg|24px|link=PartDesign_Body/pl]] [[PartDesign_Body/pl|Utwórz zawartość]], aby ją utworzyć i aktywować. Zauważ, że możliwe jest również pominięcie tego kroku: podczas tworzenia szkicu za pomocą narzędzia środowiska Projekt Części  [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch/pl]] [[PartDesign_NewSketch/pl|Utwórz szkic]], jeśli nie zostanie znaleziona żadna istniejąca zawartość, nowa zostanie automatycznie utworzona i aktywowana.
+
+<span id="Master_sketch"></span>
+==Szkic główny==
+
+Szkic główny zawiera prostokątny kształt podstawy modelu oraz dwa ''nazwane wiązania'', które dostarczą prawidłowe wymiary do innych części modelu: '''długość''', która będzie zawierać 53 mm ''(wynik dodania wymiaru 39 mm do dwóch boków 7 mm)'', oraz '''szerokość''', która będzie zawierać 26 mm. Aby móc wykorzystać symetrię modelu w dalszych krokach, górna krawędź prostokąta zostanie wyśrodkowana względem punktu odniesienie położenia za pomocą wiązania symetrycznego.
+
+'''<big>Sketch</big>'''
+
+[[File:Pd_start_00.png|thumb|300px|Fig: MS1]]
+[[File:Pd_tut_sketch_start.png|thumb|300px|Fig: MS2]]
+[[File:Pd_tut_sel_points_h.png|thumb|300px|Fig: MS3]] 
+[[File:Pd_tut_rect_h_dim_end.png|thumb|300px|Fig: MS4]]
+[[File:Pd_tut_rect04.png|thumb|300px|Fig: MS5]]
+[[File:Pd_tut_rect_v3.png|thumb|300px|Fig: MS6]]
+
+'''Krok A: Utwórz szkic'''
+
+# Kliknij [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch/pl]] [[PartDesign_NewSketch/pl|Utwórz szkic]]. Spowoduje to utworzenie szkicu w obrębie właśnie utworzonej bryły. Będzie on nosił nazwę '''Szkic'''.
+# Otworzy się panel zadań podobny do tego z '''Rys. MS1''', w którym należy wybrać, do której płaszczyzny zostanie dołączony szkic.
+## Wybierz '''XY_Plane''' z listy lub wybierz tę płaszczyznę w oknie [[3D_view/pl|widoku 3D]].
+## Kliknij {{Button|OK}}.
+# FreeCAD automatycznie przełączy się na środowisko pracy [[File:Workbench_Sketcher.svg|24px|link=Sketcher_Workbench/pl]] [[Sketcher_Workbench/pl|Szkicownik]]
+# Szkic jest otwierany w trybie edycji: zobaczysz coś w rodzaju '''Rys: MS2'''. Wskazane są osie X ''(linia czerwona)'' i Y ''(linia zielona)'' szkicu oraz jego punkt odniesienia położenia ''(czerwony punkt)''.
+
+'''Krok B: Dodaj geometrię'''
+
+# Kliknij [[File:Sketcher_CreateRectangle.svg|24px|link=Sketcher_CreateRectangle/pl]] [[Sketcher_CreateRectangle/pl|Utwórz prostokąt]].
+# Podczas gdy narzędzie jest aktywne kursor ma następujący wygląd:<br>[[File:Pd_tut_rec_cursor.png]]
+# Wybierz dwa punkty, aby utworzyć prostokąt z grubsza wyśrodkowany wokół '''osi Y''' podobnie jak na '''Rys: MS3'''. Uwaga:
+#* Nie umieszczaj punktów na osi, ponieważ Solver automatycznie zastosuje wiązania, które później stworzą problemy.
+#* Wymiary prostokąta są w tym momencie nieistotne. Zostaną one przypisane za pomocą więzów w późniejszym kroku.
+# Po zakończeniu naciśnij {{KEY|Esc}} lub kliknij prawym przyciskiem myszy, aby zakończyć pracę z narzędziem.
+
+'''Krok C: Przypisz wiązanie poziome'''
+
+# Wybierz linię zdefiniowaną przez '''P2''' i '''P3''' w '''Rys: MS3'''. Etykiety takie jak P1, P2 itd. nie będą się pojawiały w szkicach, zostały dodane do odniesienia na rysunkach w tym poradniku.
+# Kliknij [[File:Sketcher_ConstrainDistanceX.svg|24px|link=Sketcher_ConstrainDistanceX/pl]] [[Sketcher_ConstrainDistanceX/pl|Zwiąż odległość poziomą]]:
+## Pomiędzy punktami końcowymi wybranej linii pojawi się wymiar. Ten wymiar to aktualna wartość długości.
+## Dodatkowo pojawi się okno dialogowe:
+<br>[[File:Pd_tut_rect03.png]]
+## Przypisz '''Długość = 53 mm'''
+## Aby można było później odwołać się do tego wymiaru potrzebna jest jego nazwa. Możesz użyć dowolnej nazwy, musi być ona tylko unikalna w obrębie szkicu. Przypisz '''Nazwę = długość'''.
+## Kliknij {{Button|OK}}.
+# Wynik powinien być podobny do '''Rys. MS4'''
+
+'''Krok D: Przypisz wiązanie symetrii'''
+
+# Wybierz punkty '''P2''' i '''P3''' prostokąta.
+# Wybierz '''punkt odniesienia położenia''' szkicu. Uwaga: kolejność wyboru punktów jest ważna.
+# Kliknij [[File:Sketcher_ConstrainSymmetric.svg|24px|link=Sketcher_ConstrainSymmetric/pl]] [[Sketcher_ConstrainSymmetric/pl|Wiązanie symetrii]].
+# W końcu otrzymasz coś, co wygląda jak '''rysunek: MS5'''.
+
+'''Krok E: Przypisz wiązanie pionowe''
+
+: Przypisz pionowe wiązanie odległości, stosując tę samą procedurę, która została użyta dla poprzednio zastosowanego poziomego wiązania odległości:
+
+# Wybierz linię zdefiniowaną przez '''P3''' i '''P4''' w '''Rys: MS3'''.
+# Kliknij [[File:Sketcher_ConstrainDistanceY.svg|24px|link=Sketcher_ConstrainDistanceY/pl]] [[Sketcher_ConstrainDistanceY/pl|Zwiąż odległość pionową]]:
+## Przypisz '''Długość = 26 mm'''
+## Przypisz '''Nazwę = szerokość'''.
+## Kliknij {{Button|OK}}.
+# Wynik powinien odpowiadać '''rysunkowi: MS6'''.
+# Szkic jest teraz w pełni związany:
+#* Linie w szkicu są jasnozielone.
+#* W sekcji '''Komunikaty Solvera''' w panelu zadań wyświetlany jest komunikat '''W pełni związany'''.
+#* Jeśli wybierzesz dowolną linię lub wierzchołek szkicu i spróbujesz go przeciągnąć, pozostanie on nieruchomy.
+
+'''Krok F: Zamknij szkic'''
+
+: Kliknij {{Button|Zamknij}} u góry panelu [[Task_panel/pl|Zadań]], aby wyjść z trybu edycji szkicu.
+
+{{Clear}}
+
+<span id="Main_profile"></span>
+==Profil główny==
+
+Profil główny jest tworzony przez [[PartDesign_Pad/pl|wyciągnięcie]] nowego szkicu.
+
+'''<big>Sketch001</big>'''
+
+[[File:OffsetSketch001.png|thumb|240px|right|Fig. MP1]]
+[[File:Pd_tut_side_fc.png|thumb|240px|Fig: MP2]]
+
+'''Krok A: Utwórz szkic'''
+
+: Kliknij [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch/pl]] [[PartDesign_NewSketch/pl|Utwórz szkic]] i utwórz szkic dołączony do płaszcyzny '''YZ_Plane'''. FreeCAD przypisze nazwę '''Szkic001'''.
+
+'''Krok B: Dodaj geometrię'''
+
+# Kliknij [[File:Sketcher_CreatePolyline.svg|24px|link=Sketcher_CreatePolyline/pl]] [[Sketcher_CreatePolyline/pl|Utwórz polilinię]] i utwórz kształt jak na '''Rys: MP1'''.
+# Dla ostatniego punktu końcowego odcinka upewnij się, że wybierasz pierwszy punkt kształtu. Punkt zmieni kolor i zobaczysz symbol [[File:Sketcher_ConstrainCoincident.svg|24px|link=Sketcher_ConstrainCoincident/pl]] [[Sketcher_ConstrainCoincident/pl|wiązania zbieżności]] w pobliżu kursora. Wiązania zbieżności muszą być jawne. Nie wystarczy, że dwa punkty pokrywają się wizualnie.
+# Naciśnij klawisz {{KEY|Esc}} lub kliknij prawym przyciskiem myszy, aby opuścić narzędzie.
+
+'''Krok C: Przypisz wiązania'''
+
+# Trzy pionowe i poziome wiązania, które widzisz na obrazku, powinny zostać dodane automatycznie, o ile narysowałeś te linie w ten sposób. Jeśli tego nie zrobiłeś, musisz je dodać.
+# Wybierz punkt '''P2''' oraz oś '''Y''' szkicu i zastosuj [[File:Sketcher_ConstrainPointOnObject.svg|24px|link=Sketcher_ConstrainPointOnObject/pl]] [[Sketcher_ConstrainPointOnObject/pl|wiązanie punktu na obiekcie]]. Ponieważ szkic jest dołączony do YZ_Plane, oś Y szkicu nie pokrywa się z osią Y obiektu Zawartości.
+# Wybierz ''punkt odniesienia położenia'' i punkt ''P1'' i zastosuj [[File:Sketcher_ConstrainHorizontal.svg|24px|link=Sketcher_ConstrainHorizontal/pl]] [[Sketcher_ConstrainHorizontal/pl|wiązanie poziome]]. Możesz zapytać dlaczego nie [[File:Sketcher_ConstrainCoincident.svg|24px|link=Sketcher_ConstrainCoincident/pl]] [[Sketcher_ConstrainCoincident/pl|wiązanie zbieżności]]?. Więc spróbuj ''(i cofnij)''. Szkic zmieni kolor na pomarańczowy i pojawi się komunikat solvera '''Wiązania nadmiarowe'''. Ponieważ linia od P1 do P2 została już związana w pionie, jedynym pozostałym stopniem swobody jest współrzędna Y linii P1. Wiązanie zbieżności ustawia zarówno współrzędną X jak i Y na zero, ale współrzędna X jest już określona. Z kolei wiązanie poziome ustawia na zero tylko współrzędną Y, co jest wystarczające.
+# Wybierz linię zdefiniowaną przez punkty '''P2''' i '''P3''', zastosuj [[File:Sketcher_ConstrainDistanceX.svg|24px|link=Sketcher_ConstrainDistanceX/pl]] [[Sketcher_ConstrainDistanceX/pl|zwiąż odległość poziomą]], i przypisz jej '''Długość = 5 mm'''.
+# Wybierz linię zdefiniowaną przez punkty '''P1''' i '''P2''', zastosuj [[File:Sketcher_ConstrainDistanceY.svg|24px|link=Sketcher_ConstrainDistanceY/pl]] [[Sketcher_ConstrainDistanceY/pl|zwiąż odległość pionową]], i przypisz jej '''Długość = 26 mm'''.
+# Wybierz linię zdefiniowaną przez punkty '''P1''' i '''P4''' i zastosuj [[File:Sketcher_ConstrainDistanceX.svg|24px|link=Sketcher_ConstrainDistanceX/pl]] [[Sketcher_ConstrainDistanceX/pl|zwiąż odległość poziomą]]:
+## Dla tej wartości użyjesz ''wiązania z określeniem nazwy'' za pomocą [[Expressions/pl|wyrażeń]].
+Aby to zrobić, kliknij mały przycisk w polu tekstowym „Długość”: [[File:Bound-expression.svg|24px|link=Bound-expression/pl]].
+## Zostanie wyświetlone nowe okno dialogowe o nazwie „Edytor formuł” zawierające pole wprowadzania i etykietę „Wynik:”, podobne do poniższego obrazka:<br>[[File:Pd_tut_expressions.png]]<br>Kiedy zaczniesz pisać w polu wejściowym, zobaczysz kilka automatycznych uzupełnień.
+## Wybierz etykietę szkicu. W naszym przypadku potrzebujemy '''<code><<Sketch>>.</code>'''. Zwróć uwagę na kropkę po etykiecie.
+## Aby wybrać '''wiązanie z określeniem nazwy''' "szerokość", należy najpierw wpisać '''<code>Constraints.</code>''' z kropką.
+Tutaj działa automatyczne uzupełnianie.
+## Aby dodać "szerokość", automatyczne upełnianie nie jest jeszcze dostępne, więc wypełnij komórkę, aby przeczytać '''<code><<Sketch>>.Constraints.szerokość</code>'''. Jeśli wszystko poszło dobrze, czerwony komunikat o błędzie po '''Wynik:''' został zastąpiony poprawną wartością, jak na poniższym obrazku:<br>[[File:Pd_tut_expression_end.png]]
+## Kliknij {{Button|OK}}, aby zamknąć okno dialogowe '''Edytor formuł'''.
+## Kliknij {{Button|OK}}, aby zamknąć okno dialogowe '''Wstaw długość'''.
+# Powinieneś mieć w pełni związany szkic podobny do tego na '''Rys.: MP2'''.
+# Zwróć uwagę na różne kolory używane dla wiązań odległości przypisywanych za pomocą wyrażeń oraz te przypisywane z podaniem długości.
+
+'''Krok D: Zamknij szkic'''
+
+: Kliknij {{Button|Zamknij}} u góry panelu [[Task_panel/pl|Zadań]], aby wyjść z trybu edycji szkicu.
+
+'''<big>Wyciągnięcie</big>'''
+
+[[File:Pd_tut_pad1.png|thumb|240px|Fig: MP3]]
+
+# Upewnij się, że wybrano '''Sketch001'''.
+# Kliknij [[File:PartDesign_Pad.svg|24px|link=PartDesign_Pad/pl]] [[PartDesign_Pad/pl|Wyciągnij]]:
+## Otworzy się panel zadań '''Parametry wyciągnięcia'''.
+## Aby określić '''Typ''' wybierz {{ComboBox|Wymiar}}.
+## Dla okreśenia parametru '''Długość''' ponownie użyj wyrażenia, ale tym razem wpisz '''<code><<Sketch>>.Constraints.długość</code>'''. To powinno dać wynik 53 mm.
+## Zaznacz {{CheckBox|TRUE|Symetrcznie do płaszczyzny}}.
+## Kliknij {{Button|OK}}, aby zamknąć panel zadań.
+# Powinieneś teraz otrzymać bryłę jak pokazano na '''Rys: MP3'''.
+
+{{Clear}}
+
+<span id="Corner_cutouts"></span>
+==Wycięcia w narożnikach==
+
+W przypadku wycięć narożnych do modelu dodawane są dwa elementy. Do utworzenia pierwszego wycięcia użyto funkcji [[PartDesign_Pocket/pl|kieszeń]], opartej na innym szkicu, a następnie cecha ta jest modyfikowana [[PartDesign_Mirrored/pl|odbiciem lustrzanym]].
+
+'''<big>Sketch002</big>'''
+
+[[File:Pd_tut_sk2_start.png|thumb|300px|Fig: CC1]]
+[[File:Pd_tut_sk2_eg01.png|thumb|300px|Fig: CC2]]
+[[File:Pd_tut_sk2_end.png|thumb|300px|Fig: CC3]]
+
+'''Krok A: Ukryj bryłę'''
+
+: Ukryj właśnie utworzoną bryłę: Wybierz obiekt '''Pad''' i kliknij klawisz {{KEY|Spacja}}.
+
+'''Krok B: Utwórz szkic'''
+
+: Kliknij [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch/pl]] [[PartDesign_NewSketch/pl|Utwórz szkic]] i utwórz szkic dołączony do płaszcyzny '''XZ_Plane'''. Szkic będzie nosił nazwę '''Sketch002'''.
+
+'''Krok C: Dodaj geometrię'''
+
+# Wybierz [[File:Sketcher_CreateRectangle.svg|24px|link=Sketcher_CreateRectangle/pl]] [[Sketcher_CreateRectangle/pl|Utwórz prostokąt]], i narysuj prostokąt. Nie twórz go zbyt blisko osi, aby uniknąć wygenerowania automatycznych więzów, które utrudniałyby późniejsze przesunięcie go do właściwej pozycji.
+# Zakończ pracę z narzędziem.
+
+'''Krok D: Przypisanie więzów wymiarowych'''
+
+# Wybierz jedną z poziomych linii, zastosuj [[File:Sketcher_ConstrainDistanceX.svg|24px|link=Sketcher_ConstrainDistanceX/pl]] [[Sketcher_ConstrainDistanceX/pl|zwiąż odległość poziomą]], i przypisz wartość '''11 mm'''.
+# Wybierz jedną z pionowych linii, zastosuj [[File:Sketcher_ConstrainDistanceY.svg|24px|link=Sketcher_ConstrainDistanceY/pl]] [[Sketcher_ConstrainDistanceY/pl|zwiąż odległość pionową]], i przypisz wartość '''5 mm'''.
+# Powinieneś otrzymać rozwiązanie podobne jak na '''Rys: CC1'''.
+
+'''Krok E: Zamknij szkic'''
+
+: Kliknij {{Button|Zamknij}}. '''Sketch002''' na tym etapie nie jest w pełni związany.
+
+'''Krok F: Wyświetl poprzednie szkice'''
+
+: Aby skorzystać z narzędzia [[Sketcher_External/pl|geometria zewnętrzna]], szkice, do których elementów chcemy się odwołać, muszą być widoczne. Upewnij się, że '''Sketch''' i '''Sketch001''' są widoczne. Użyj klawisza {{KEY|Spacja}} do przełączania widoczności w razie potrzeby. Rozwiń węzeł ''Pad'' w [[Tree_view/pl|Widoku drzewa]], aby uzyskać dostęp do obiektu''Sketch001''.
+
+'''Krok G: Dodaj geometrię zewnętrzną i w pełni zwiąż szkic'''
+
+# Kliknij dwukrotnie '''Sketch002''', aby wejść w tryb edycji.
+# Obróć widok tak, aby wyraźnie widzieć punkty, jak pokazano na '''Rys: CC2'''. Ułatwi to kolejne kroki. Zauważ, że początkowe położenie prostokąta może być inne w Twoim szkicu. 
+# Kliknij narzędzie [[File:Sketcher_External.svg|24px|link=Sketcher_External/pl]] [[Sketcher_External/pl|Geometria zewnętrzna]].
+# Podczas gdy narzędzie jest aktywne kursor ma następujący wygląd:<br>[[File:Pd_tut_eg_cursor.png]]
+# Wybierz punkt '''P1''' w '''Rys: CC2'''. Wybrany punkt zostaje dodany do szkicu jako geometria zewnętrzna. Będzie on wyświetlany w sekcji '''Elementy''' w panelu zadań z fioletową ikoną X lub, {{Version/pl|0.21}}, ikoną fioletowej kropki.
+# Mając wciąż aktywne narzędzie wybierz punkt '''P2''' na '''Rys: CC2'''. Ta zewnętrzna geometria powinna również pojawić się w sekcji '''Elementy'''.
+# Zakończ pracę z narzędziem.
+# Wybierz punkt '''P1''' i punkt '''P3''' i zastosuj [[File:Sketcher_ConstrainVertical.svg|24px|link=Sketcher_ConstrainVertical/pl]] [[Sketcher_ConstrainVertical/pl|zwiąż odległość pionową]]. Prostokąt zostanie wyrównany do pozycji X punktu '''P1'''.
+# Wybierz punkt '''P2''' i punkt '''P3''' i zastosuj [[File:Sketcher_ConstrainHorizontal.svg|24px|link=Sketcher_ConstrainHorizontal/pl]] [[Sketcher_ConstrainHorizontal/pl|zwiąż odległość poziomą]]. Prostokąt zostanie wyrównany do pozycji Y '''P2'''. 
+# Twój szkic powinien być w pełni związany, tak jak na '''Rys. CC3'''.
+
+'''Krok H: Zamknij szkic'''
+
+: Kliknij {{Button|Zamknij}}.
+
+'''<big>Kieszeń</big>'''
+
+[[File:Pd_tut_pck01.png|thumb|300px|Fig: CC4]]
+[[File:Pd_tut_pck02-mir.png|thumb|300px|Fig: CC5]]
+
+Do stworzenia wycięcia użyjemy narzędzia [[File:PartDesign_Pocket.svg|24px|link=PartDesign_Pocket/pl]] [[PartDesign_Pocket/pl|Kieszeń]]. Narzędzie to jest przeciwieństwem narzędzia Wyciągnij. Podczas gdy narzędzie Wyciągnij dodaje materiał, narzędzie Kieszeń usuwa materiał.
+
+# Wybierz '''Sketch002'''.
+# Kliknij [[File:PartDesign_Pocket.svg|24px|link=PartDesign_Pocket/pl]] [[PartDesign_Pocket/pl|Kieszeń]]:
+## Otworzy się panel zadań '''Parametry kieszeni'''.
+## Wybierz '''Typ''' {{ComboBox|Przez wszystkie}}.
+## Zaznacz opcję {{CheckBox|TRUE|Zaznaczony}}
+## Kliknij {{Button|OK}}.
+# Powinieneś uzyskać efekt przypominający ten z '''Rys: CC4'''
+
+'''<big>Odbicie lustrzane</big>'''
+
+Zamiast tworzyć kolejny szkic i kieszeń, wykorzystujemy symetrię modelu względem płaszczyzny YZ i użyjemy narzędzia [[File:PartDesign_Mirrored.svg|24px|link=PartDesign_Mirrored/pl]] [[PartDesign_Mirrored/pl|odbicie lustrzane]] do stworzenia drugiego wycięcia.
+
+# Wybierz '''Kieszeń''' w [[Tree_view/pl|Widok drzewa]].
+# Kliknij narzędzie [[File:PartDesign_Mirrored.svg|24px|link=PartDesign_Mirrored/pl]] [[PartDesign_Mirrored/pl|odbicie lustrzane]]:
+## Otwiera się panel zadań '''Parametry odbicia lustrzanego'''. 
+## Z menu rozwijanego wybierz '''Płaszczyznę''' {{ComboBox|Pionowa oś szkicu}}. Płaszczyzna zostanie zdefiniowana przez tę oś ''(oś Y)'', a także przez oś Z szkicu. Zauważ, że wybranie '''Płaszczyzny bazowej YZ''' dałoby ten sam efekt.
+## Kliknij {{Button|OK}}.
+# Powinieneś mieć teraz część, która wygląda jak ta na '''Rys: CC5'''.
+
+{{Clear}}
+
+<span id="Sides"></span>
+==Boki==
+
+Boki tworzymy w podobny sposób, ale zamiast usuwać materiał będziemy dodawać materiał za pomocą funkcji [[PartDesign_Pad/pl|wyciągnij]].
+
+'''<big>Sketch003</big>'''
+
+[[File:Pd_tut_sk3_1.png|thumb|300px|Fig: SD1]]
+[[File:Pd_tut_pad001.png|thumb|300px|Fig: SD2]]
+[[File:Pd_tut_pad02-mir.png|thumb|300px|Fig: SD3]]
+
+# Upewnij się, że '''Szkic''' jest widoczny, a obiekt '''Mirrored''' jest ukryty.
+# Kliknij narzędzie [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch/pl]] [[PartDesign_NewSketch/pl|utwórz szkic]] i wygeneruj nowy szkic dołączony do płaszczyzny '''XY_Plane'''. Szkic będzie nosił nazwę '''Sketch003'''.
+# Kliknij [[File:Sketcher_CreateRectangle.svg|24px|link=Sketcher_CreateRectangle/pl]] [[Sketcher_CreateRectangle/pl|utwórz prostokąt]] i utwórz prostokąt podobny do mniejszego prostokąta na '''Rys: SD1'''. Ponieważ prostokąt jest przesunięty względem osi X, nie powinno to wywołać automatycznego [[File:Sketcher_ConstrainPointOnObject.svg|24px|link=Sketcher_ConstrainPointOnObject/pl]] [[Sketcher_ConstrainPointOnObject/pl|dowiązania punktu na obiekcie]].
+# Zamknij narzędzie.
+# Kliknij narzędzie [[File:Sketcher_External.svg|24px|link=Sketcher_External/pl]] [[Sketcher_External/pl|geometria zewnętrzna]].
+# Wybierz punkt '''P1''' jak pokazano na '''Rys: CC2''' z obiektu '''Szkic'''.
+# Zamknij narzędzie.
+# Zastosuj następujące wiązania:
+## Wybierz jedną z poziomych linii, zastosuj narzędzie [[File:Sketcher_ConstrainDistanceX.svg|24px|link=Sketcher_ConstrainDistanceX/pl]] [[Sketcher_ConstrainDistanceX/pl|zwiąż odległość poziomą]], i przypisz wartość '''7 mm'''.
+## Wybierz jedną z pionowych linii, zastosuj narzędzie [[File:Sketcher_ConstrainDistanceY.svg|24px|link=Sketcher_ConstrainDistanceY/pl]] [[Sketcher_ConstrainDistanceY/pl|zwiąż odległość pionową]] i przypisz to wyrażenie: '''<kod><<Szkic >>.Constraints.szerokosc</code>'''.
+## Wybierz punkt '''lewy górny''' utworzonego prostokąta ''(oznaczony '''TL''' na '''Rys.: SD1''')'' i nowo dodany '''punkt geometrii zewnętrznej''' i zastosuj narzędzie [[File:Sketcher_ConstrainCoincident.svg|24px|link=Sketcher_ConstrainCoincident/pl]] [[Sketcher_ConstrainCoincident/pl|wiązanie zbieżności]].
+# Szkic powinien być teraz w pełni związany.
+# Kliknij {{Button|Zamknij}}.
+
+'''<big>Pad001</big>'''
+
+# Wybierz '''Sketch003''''.
+# Kliknij [[File:PartDesign_Pad.svg|24px|link=PartDesign_Pad]] [[PartDesign_Pad|Pad]]:
+## Przypisz '''Typ = ''' {{ComboBox|Wymiar}}.
+## Przypisz '''Długość = 16.7 mm'''. 
+## Kliknij {{Button|OK}}.
+# Powinieneś uzyskać wynik jak pokazano na '''Rys: SD2'''.
+
+'''<big>Mirrored001</big>'''
+
+# Wybierz obiekt '''Pad001'''.
+# Kliknij narzędzie[[File:PartDesign_Mirrored.svg|24px|link=PartDesign_Mirrored/pl]] [[PartDesign_Mirrored/pl|odbicie lustrzane]]:
+## Upewnij się, że '''Płaszczyzna''' {{ComboBox|Pionowa oś szkicu}} jest zaznaczona.
+## Kliknij {{Button|OK}}.
+# Powinieneś teraz mieć część, która wygląda jak na '''Rys: SD3'''.
+
+'''<big>Uwaga</big>'''
+
+Nasze dwie operacje odbicia lustrzanego mają wspólną płaszczyznę symetrii, więc moglibyśmy nieco uprościć nasz model łącząc je. W tym celu:
+# Pomiń pierwszą operację '''odbicia lustrzanego'''.
+# Wybierz zarówno '''Pad001''' jak i '''Pocket''' w kroku 1 powyższej operacji '''Mirrored001'''.
+
+Podkreśla to ważną koncepcję, że odzwierciedlamy wybrane cechy ''(operacje, które wykonaliśmy na bryle, w wybranej kolejności)'', a nie samą bryłę.
+
+{{Clear}}
+
+<span id="Center_hole"></span>
+==Środkowy otwór==
+
+Teraz czas na najtrudniejszą część naszego modelowania, wyzwanie, które pojawia się, ponieważ niektóre wymiary otworu centralnego są zdefiniowane wzdłuż skośnej ściany. Jeśli użyjesz tej ściany, powstałej w wyniku wyciągnięcia obiektu '''Sketch001''', jako odniesienia dla następnego szkicu, narazisz się na [[Topological_naming_problem/pl|problem nazewnictwa topologicznego]]. Lepszym rozwiązaniem jest odwołanie się do samego obiektu '''Sketch001'''.
+
+'''<big>Sketch004</big>'''
+
+[[File:Pd_tut_cen01.png|thumb|240px|Fig: CH1]]
+[[File:Pd_tut_cen02.png|thumb|240px|Fig: CH2]]
+
+# Spraw, aby '''Sketch001''' był widoczny, a ukryj '''Sketch''' i '''Mirrored001'''.
+# Kliknij [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch/pl]] [[PartDesign_NewSketch/pl|utwórz szkic]] i utwórz nowy szkic dołączony do '''YZ_Plane'''. Szkic będzie nosił nazwę '''Sketch004'''.
+# Kliknij [[File:Sketcher_CreatePolyline.svg|24px|link=Sketcher_CreatePolyline/pl]] [[Sketcher_CreatePolyline/pl|utwórz polilinie]] i wyznacz polilinię taką, jaką wskazują punkty '''P1''', '''P2''', '''P3''' i '''P4''' na '''Rys: CH1'''.
+# Pamiętaj, aby zamknąć polilinię wybierając pierwszy punkt. Dzięki temu powstanie wymagane [[File:Sketcher_ConstrainCoincident.svg|24px|link=Sketcher_ConstrainCoincident/pl]] [[Sketcher_ConstrainCoincident/pl|wiązanie zbieżności]].
+# Zamknij narzędzie.
+# Sprawdź zastosowane wiązania:
+#* Usuń zbędne [[File:Sketcher_ConstrainVertical.svg|24px|link=Sketcher_ConstrainVertical/pl]] [[Sketcher_ConstrainVertical/pl|więzy pionowe]] zastosowane do linii zdefiniowanej przez '''P1''' i '''P2'''.
+#* Upewnij się, że [[File:Sketcher_ConstrainHorizontal.svg|24px|link=Sketcher_ConstrainHorizontal/pl]] [[Sketcher_ConstrainHorizontal/pl|więz poziomy]] został zastosowany do linii zdefiniowanych przez '''P1''' i '''P4''' oraz '''P2''' i '''P3'''.
+#* Upewnij się, że wiązanie [[File:Sketcher_ConstrainPointOnObject.svg|24px|link=Sketcher_ConstrainPointOnObject/pl]] [[Sketcher_ConstrainPointOnObject/pl|punktu na obiekcie]] zostało zastosowane do '''P1''' i '''osi Y''' oraz do '''P2''' i '''osi Y'''.
+# Kliknij narzędzie [[File:Sketcher_External.svg|24px|link=Sketcher_External/pl]] [[Sketcher_External/pl|geometria zewnętrzna]]
+# Wybierz linię zdefiniowaną przez '''EGP1''' i '''EGP2''' w '''Sketch001''', wskazaną przez fioletowy kolor na '''Rys: CH2'''.
+# Zamknij narzędzie.
+# Zastosuj wiązanie [[File:Sketcher_ConstrainPointOnObject.svg|24px|link=Sketcher_ConstrainPointOnObject/pl]] [[Sketcher_ConstrainPointOnObject/pl|punkt na obiekcie]] do '''P3''' i '''geometrii zewnętrznej''', a następnie powtórz tę operację dla '''P4'''. To sprawi, że linia zdefiniowana przez '''P3''' i '''P4''' będzie pokrywać się z linią zdefiniowaną przez '''EGP1''' i '''EGP2'''.
+# Wybierz linię '''P3''' do '''P4''', zastosuj [[File:Sketcher_ConstrainDistance.svg|24px|link=Sketcher_ConstrainDistance/pl]] [[Sketcher_ConstrainDistance/pl|wiązanie odległości]], i przypisz '''Długość = 17 mm'''
+# Wybierz punkty '''EGP2''' i '''P4''', zastosuj [[File:Sketcher_ConstrainDistance.svg|24px|link=Sketcher_ConstrainDistance/pl]] [[Sketcher_ConstrainDistance/pl|wiązanie odległości]], i przypisz '''Długość = 7 mm'''.
+# W ten sposób powstanie w pełni związany szkic, taki jak na '''Rys: CH2'''.
+# Kliknij {{Button|Close}}.
+# Ukryj '''Sketch001'''.
+
+'''<big>Pocket001</big>'''
+
+# Wybierz obiekt '''Sketch004'''.
+# Kliknij [[File:PartDesign_Pocket.svg|24px|link=PartDesign_Pocket/pl]] [[PartDesign_Pocket/pl|kieszeń]]:
+## Wybierz '''Typ''' {{ComboBox|Dwa wymiary}}.
+## Przypisz '''8,5 mm''' do '''długości''' i '''drugiej długości'''.
+## Kliknij {{Button|OK}}.
+# Wybierz nowo utworzony '''Pocket001'''.
+# W zakładce Dane [[Property_editor/pl|Edytora właściwości]] zmień wartość właściwości '''Ulepsz''' na {{True/pl}}. Edytor właściwości znajduje się w zakładce Model w [[Combo_view/pl|Widoku złożonego]].
+
+'''<big>Uwagi</big>'''
+
+# Dla '''Pocket001''' mogliśmy alternatywnie użyć opcji '''Typ''' {{ComboBox|Wymiar}}, zaznaczyć '''Symetrycznie do płaszczyzny''' i wpisać wartość '''17 mm''' dla '''Długości'''.
+# '''Udoskonal''' spróbuje usunąć szwy pozostawione przez poprzednie operacje. Zaleca się, aby dopracować tylko bryłę ostateczną, ponieważ niektóre operacje mogą się nie powieść, jeśli poprzednia cecha została dopracowana. Jednakże są też przypadki, w których funkcja ulepsz może sprawić, że operacja się powiedzie. Dlatego w razie problemów należy sprawdzić tę właściwość i przetestować. Niestety nie ma jeszcze ogólnej zasady, którą należałoby się kierować.
+
+{{Clear}}
+
+<span id="Result"></span>
+==Wynik==
+
+Model jest kompletny. Powinien wyglądać jak na poniższym obrazku.
+
+Na koniec wybieramy '''Szkic''' w [[Tree_view/pl|Widoku Drzewa]] i na zakładce Dane w [[Property_editor/pl|Edytorze właściwości]] szukamy '''Szkic → Wiązania'''. Rozwiń ten węzeł i zmień wiązania '''długość''' i '''szerokość'''. Model powinien ulec zmianie parametrycznej.
+
+[[File:Pd_tut_final_solid.png]]
+
+
+{{PartDesign Tools navi{{#translation:}}}}
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

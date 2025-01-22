@@ -1,0 +1,122 @@
+<languages/>
+
+{{Docnav
+|[[Arch_Panel/pl|Panel]]
+|[[Arch_Panel_Sheet/pl|Arkusz panelu]]
+|[[BIM_Workbench/pl|środowisko pracy BIM]]
+|IconL=Arch_Panel.svg
+|IconR=Arch_Panel_Sheet.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|POLECENIE TO JEST CZĘŚCIĄ ZINTEGROWANEGO środowiska pracy [[BIM_Workbench/pl|BIM]] w V1.0<br>
+Ta strona została zaktualizowana dla tej wersji.}}
+
+{{GuiCommand/pl
+|Name=Arch Panel Cut
+|Name/pl=BIM: Cięcie panelu
+|MenuLocation=Narzędzia → Narzędzia panelu → Cięcie panelu
+|Workbenches=[[BIM_Workbench/pl|BIM]]
+|Shortcut={{KEY|P}} {{KEY|C}}
+|Version=0.17
+|SeeAlso=[[Arch_Panel/pl|Panel]], [[Arch_Panel_Sheet/pl|Arkusz panelu]], [[Arch_Nest/pl|Zagnieżdżanie]]
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie '''Cięcie panelu''' tworzy w dokumencie 3D płaski widok 2D [[Arch_Panel/pl|panelu]], który może zostać włączony do [[Arch_Panel_Sheet/pl|arkusza]] lub bezpośrednio wyeksportowany do formatu [[Draft_DXF/pl|DXF]]. Obiekty Cięcia panelu są również obsługiwane przez środowisko pracy [[CAM_Workbench/pl|CAM]].
+
+[[Image:Arch Wikihouse 02.jpg|1024px]]
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wybierz jeden lub więcej obiektów [[Arch_Panel/pl|panelu]].
+# Z menu wybierz narzędzie {{MenuCommand|Narzędzia → Narzędzia panelu → [[Image:Arch Panel Cut.svg|16px]] '''Cięcie panelu'''}}.
+# Dostosuj żądane właściwości.
+
+<span id="Options"></span>
+==Opcje==
+
+* Jeśli panel nie jest płaski ''(na przykład pofałdowany)'', podcięcie nie pojawi się w panelu cięcia. Narzędzie to jest przydatne głównie w przypadku płaskich paneli
+* Cięcie panelu może wyświetlać znacznik. Znacznik ten może być niestandardową linią tekstu lub może automatycznie wyświetlać znacznik, etykietę lub opis powiązanego panelu.
+* Aby znacznik był przydatny w obróbce CNC, powinien być napisany przy użyciu czcionki typu stick, w której litery są prostymi poliliniami, łatwymi do odtworzenia przez maszynę. Po utworzeniu obiekt Cięcie panelu automatycznie użyje czcionki określonej w preferencjach: {{MenuCommand|Edycja → Preferencje ... → Rysunek Roboczy → Teksty i wymiary → Domyślny plik czcionki dla kształtu z tekstu}}.
+* Dwukrotne kliknięcie obiektu Cięcie panelu w widoku drzewa po jego utworzeniu umożliwia przejście do trybu edycji i zmodyfikowanie położenia znacznika.
+* W przypadku konieczności ułożenia różnych wycięć panelu razem, wycięcia panelu mogą wyświetlać margines, który jest przydatny, aby upewnić się, że między jednym wycięciem a drugim zawsze znajduje się określona przestrzeń.
+
+<span id="Properties"></span>
+==Właściwości==
+
+<span id="Data"></span>
+===Dane===
+
+* {{PropertyData|Źródło}}: Obiekt [[Arch_Panel/pl|panelu]] pokazywany przez to cięcie.
+* {{PropertyData|Tekst Tagu}}: Tekst do wyświetlenia. Może to być %tag%, %label% lub %description%, aby wyświetlić tag panelu lub etykietę.
+* {{PropertyData|Rozmiar Tagu}}: Rozmiar tekstu znacznika.
+* {{PropertyData|Pozycja Tagu}}: Pozycja tekstu znacznika. Zachowaj (0,0,0) dla automatycznej pozycji środkowej.
+* {{PropertyData|Obrót Tagu}}: Obrót tekstu znacznika.
+* {{PropertyData|Plik Czcionki}}: Czcionka tekstu znacznika.
+* {{PropertyData|Utwórz ścianę}}: Jeśli przyjmie wartość {{True/pl}}, panel jest obiektem ściana środowiska Część , w przeciwnym razie polilinią środowiska Część.
+
+<span id="View"></span>
+===Widok===
+
+* {{PropertyView|Margines}}: Margines, który może być wyświetlany poza kształtem wycięcia panelu.
+* {{PropertyView|Pokaż Margines}}: Włącza / wyłącza wyświetlanie marginesu.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[Arch_API/pl|API: Architektura]] i [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]].
+
+Narzędzie '''Cięcie panelu''' może być używane w [[Macros/pl|makrodefinicjach]] i z konsoli [[Python/pl|Python]] za pomocą następujących funkcji:
+{{Code|code=
+View = makePanelCut(panel, name="PanelView")}}
+
+* Tworzy obiekt {{Incode|View}} ''(rzut 2D)'' z istniejącego {{Incode|panel}}.
+
+Przykład:
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(500, 0, 0)
+p3 = FreeCAD.Vector(500, 50, 0)
+p4 = FreeCAD.Vector(550, 50, 0)
+p5 = FreeCAD.Vector(600, 0, 0)
+p6 = FreeCAD.Vector(1000, 0, 0)
+p7 = FreeCAD.Vector(1000, 400, 0)
+p8 = FreeCAD.Vector(600, 400, 0)
+p9 = FreeCAD.Vector(600, 350, 0)
+p10 = FreeCAD.Vector(550, 350, 0)
+p11 = FreeCAD.Vector(500, 400, 0)
+p12 = FreeCAD.Vector(0, 400, 0)
+
+Wire = Draft.makeWire([p1, p2, p3, p4, p5, p6,
+                       p7, p8, p8, p9, p10, p11, p12], closed=True)
+Panel = Arch.makePanel(Wire, thickness=36)
+FreeCAD.ActiveDocument.recompute()
+
+View = Arch.makePanelCut(Panel)
+View.ViewObject.LineWidth = 3
+FreeCAD.ActiveDocument.recompute()
+}}
+
+<span id="Tutorials"></span>
+==Poradniki==
+
+* [[Wikihouse_porting_tutorial/pl|Poradnik przenoszenia Wikihouse]]
+
+
+{{Docnav
+|[[Arch_Panel/pl|Panel]]
+|[[Arch_Panel_Sheet/pl|Arkusz panelu]]
+|[[BIM_Workbench/pl|środowisko pracy BIM]]
+|IconL=Arch_Panel.svg
+|IconR=Arch_Panel_Sheet.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

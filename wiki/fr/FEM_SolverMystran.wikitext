@@ -1,0 +1,169 @@
+<languages/>
+
+{{Docnav/fr
+|[[FEM_SolverElmer/fr|Solveur Elmer]]
+|[[FEM_SolverZ88/fr|Solveur Z88]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_SolverElmer.svg
+|IconR=FEM_SolverZ88.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommand/fr
+|Name=FEM SolverMystran
+|Name/fr=FEM Solveur Mystran
+|MenuLocation=Résolution → Solveur Mystran
+|Workbenches=[[FEM_Workbench/fr|FEM]]
+|Shortcut={{KEY|S}} {{KEY|M}}
+|Version=0.20
+|SeeAlso=[[FEM_tutorial/fr|FEM Tutoriel]]
+}}
+
+==Description==
+
+La commande [[FEM_SolverMystran/fr|Solveur Mystran]] permet d'utiliser le solveur [https://www.mystran.com MYSTRAN]. Il peut être utilisé pour :
+# Définir les paramètres d'analyse.
+# Sélectionner le répertoire de travail.
+# Exécuter le solveur MYSTRAN.
+
+==Installation==
+
+=== Windows ===
+
+Vous pouvez obtenir l'exécutable Mystran [https://github.com/MYSTRANsolver/MYSTRAN/releases ici]. Placez le dossier dans lequel vous avez placé {{FileName|mystran.exe}} (l'exécutable doit avoir ce nom exact, supprimez la partie restante du nom par défaut) dans la variable PATH de Windows ou placez simplement le fichier dans le dossier {{FileName|FreeCAD\bin}}. Si nécessaire, spécifiez-le sous {{MenuCommand|Préférences → FEM → Mystran}}.
+
+Le [[FEM_SolverMystran/fr|Solveur Mystran]] a également besoin de deux autres paquets :
+* [https://github.com/SteveDoyle2/pyNastran pyNastran] - pour écrire le fichier de cas.
+* [https://github.com/ceanwang/hfcMystran hfcMystran] - pour lire le fichier de résultats NEU de Mystran.
+
+pyNastran peut être installé via pip :
+# Ouvrez un terminal de commande dans votre dossier {{FileName|FreeCAD\bin}}. 
+# Entrez : {{Incode|python -m pip install pyNastran}}
+# Il sera installé dans le dossier {{FileName|FreeCAD\bin\lib\site-packages}}.
+
+hfcMystran peut être téléchargé depuis son site github sous forme de fichier zip (''Code → Download ZIP''). Décompressez-le et placez-le dans le dossier {{FileName|FreeCAD\Mod}}.
+
+=== Linux ===
+
+La procédure d'installation sous Linux est similaire mais il y a quelques différences. 
+
+Après avoir téléchargé l'exécutable Mystran, renommez-le comme expliqué ci-dessus, autorisez son exécution (''clic droit → Propriétés → Permissions → Autoriser l'exécution du fichier en tant que programme'') et placez-le dans le répertoire {{FileName|usr/bin}} de FreeCAD. 
+
+Pour installer pyNastran, entrez les commandes suivantes dans la [[Python_console/fr|console Python]] de FreeCAD :
+
+{{Code|code=
+import subprocess
+subprocess.run(['pip', 'install', 'pyNastran'])
+}}
+
+Enfin, téléchargez et décompressez hfcMystran et placez-le dans le répertoire {{FileName|usr/Mod}} de FreeCAD.
+
+<span id="Quick_test"></span>
+==Test rapide==
+
+Après l'installation, vous pouvez sélectionner {{MenuCommand|Utilitaires → Ouvrir des exemples de l'atelier FEM}} dans l'atelier FEM. Sous {{MenuCommand|Solveur → Mystran}}, vous pouvez trouver des exemples Mystran fonctionnels.
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Après la création d'un [[Image:FEM_Analysis.svg|16px|link=FEM_Analysis]] [[FEM_Analysis/fr|conteneur d'analyse]], utilisez l'une des alternatives suivantes :
+#* Sélectionnez {{MenuCommand|Résolution → [[Image:FEM_SolverMystran.svg|x16px]] Solveur Mystran}} du menu.
+#* Appuyez sur les touches de raccourci {{KEY|S}} puis {{KEY|M}}.
+# Double-cliquez sur l'objet [[Image:FEM_SolverMystran.svg|x16px]] SolverMystran.
+# Cliquez sur le bouton {{Button|Écrire}}.
+# Cliquez sur le bouton {{Button|Lancer}}.
+
+==Limitations==
+
+* Actuellement, seuls les déplacements sont disponibles sous forme de tracés de contour à partir des analyses effectuées avec ce solveur. Pour voir les contraintes, passez à l'atelier hfcMystran, ouvrez votre cas et son fichier F06. L'interface graphique pyNastran peut être utilisée pour tracer tous les résultats.
+* Seuls les types d'éléments suivants sont actuellement supportés : tétraèdres du premier et du second ordre, coques triangulaires et quadrilatérales du premier ordre et poutres du premier ordre. Si des éléments différents sont générés avec Gmsh, le solveur Mystran affichera une erreur.
+
+<span id="File_function"></span>
+==Fonction du fichier==
+
+Sous Mod\Fem\femsolver\mystran, il y a ces fichiers :
+
+{{Code|code=
+add_con_displacement.py
+add_con_fixed.py
+add_con_force.py
+add_femelement_geometry.py
+add_femelement_material.py
+add_mesh.py
+add_solver_control.py
+writer.py
+solver.py
+tasks.py
+}}
+
+Les fonctions de chaque fichier sont les suivantes :
+
+writer.py - Fichier de contrôle principal
+
+{{Code|code=
+model = BDF()
+model = add_solver_control.add_solver_control(pynasf, model, self)
+model = add_femelement_geometry.add_femelement_geometry(pynasf, model, self)
+model = add_mesh.add_mesh(pynasf, model, self)
+model = add_femelement_material.add_femelement_material(pynasf, model, self)
+model = add_con_fixed.add_con_fixed(pynasf, model, self)
+model = add_con_displacement.add_con_displacement(pynasf, model, self)
+model = add_con_force.add_con_force(pynasf, model, self)
+}}
+
+BDF() - Crée un fichier de cas vide.
+
+{{Code|code=
+$pyNastran: version=msc
+$pyNastran: punch=False
+$pyNastran: encoding=utf-8
+$pyNastran: nnodes=0
+$pyNastran: nelements=0
+ENDDATA
+}}
+
+add_solver_control.py - Ajout du DECK DE CONTRÔLE EXÉCUTIF et du DECK DE CONTRÔLE DE CASE.
+
+{{Code|code=
+$EXECUTIVE CONTROL DECK
+SOL 101
+CEND
+$CASE CONTROL DECK
+ECHO = NONE
+TITLE = pyNastran for generating solverinput for for Mystran
+SUBCASE 1
+    DISPLACEMENT(SORT1,REAL) = ALL
+    LOAD = 1
+    SPC = 1
+    SPCFORCES(SORT1,REAL) = ALL
+    STRESS(SORT1,REAL,VONMISES,BILIN) = ALL
+    SUBTITLE = Default
+BEGIN BULK
+$PARAMS
+PARAM       POST      -1
+}}
+
+add_femelement_geometry.py - Ajout de jeux de paramètres GRID
+
+add_mesh.py - Ajout de jeux de paramètres d'éléments
+
+add_femelement_material.py - Ajout du jeu de paramètres MAT1
+
+add_con_fixed.py - Ajout des jeux de paramètres SPCADD et SPC1
+
+add_con_displacement.py - Ajout des jeux de paramètres SPCADD et SPC1
+
+add_con_force.py - Ajout de jeux de paramètres FORCE
+
+
+{{Docnav/fr
+|[[FEM_SolverElmer/fr|Solveur Elmer]]
+|[[FEM_SolverZ88/fr|Solveur Z88]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_SolverElmer.svg
+|IconR=FEM_SolverZ88.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

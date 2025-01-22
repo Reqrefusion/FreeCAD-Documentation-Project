@@ -1,0 +1,127 @@
+<languages/>
+
+{{Docnav
+|[[Part_JoinConnect|JoinConnect]]
+|[[Part_JoinCutout|JoinCutout]]
+|[[Part_Workbench|Part]]
+|IconL=Part_JoinConnect.svg
+|IconR=Part_JoinCutout.svg
+|IconC=Workbench_Part.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand
+|Name=Part JoinEmbed
+|MenuLocation=Part → Join → Embed Object
+|Workbenches=[[Part_Workbench|Part]]
+|Version=0.16
+|SeeAlso=[[Part_JoinConnect|Part JoinConnect]], [[Part_JoinCutout|Part JoinCutout]], [[Part_Boolean|Part Boolean]], [[Part_Thickness|Part Thickness]]
+}}
+</div>
+
+<span id="Description"></span>
+==Descriere==
+
+<div class="mw-translate-fuzzy">
+Instrumentul de încorporare încorporează un obiect cu pereți (de exemplu, o țeavă) într-un alt obiect cu pereți.
+</div>
+
+[[image:JoinFeatures_Embed.png|600px]]
+
+<span id="Usage"></span>
+<div class="mw-translate-fuzzy">
+== Cum se folosește ==
+</div>
+
+<div class="mw-translate-fuzzy">
+# Select the base object first, then the object to be embedded. The order of selection is important. It is enough to select one sub-shape of each object (e.g., faces).
+# Invoke the Part JoinEmbed command.
+</div>
+
+==Properties==
+
+{{TitleProperty|Base}}
+
+<div class="mw-translate-fuzzy">
+==Properties==
+{{TitleProperty|Base}}
+* {{PropertyData|Base}}: Reference to base object (the one the other object is to be embedded into). The object should be a single solid.
+* {{PropertyData|Tool}}: Reference to tool object (the object to be embedded). The object can be a single solid, or a [[Part MakeCompound|valid compound]] of solids.
+* {{PropertyData|Mode}}: The mode of operation, equals 'Embed' (Changing that will transform the tool into another Part_JoinXXX). The value of 'bypass' can be used to temporarily disable the long computations (a compound of Base and Tool will be created, which is a fast operation).
+* {{PropertyData|Refine}}: Sets whether to apply [[Part RefineShape|Refine]] operation or not, to the final shape. The default value is determined by a 'Automatically refine shape after boolean operation' checkbox in PartDesign preferences. When Mode property is 'bypass', Refine is ignored (never applied).
+</div>
+
+==Example==
+
+<div class="mw-translate-fuzzy">
+==Example==
+# Create a pipe by applying [[Part_Thickness|thickness]] to a [[Part_Cylinder|cylinder]]:<br />[[Image:JoinFeatures_Example_step1.png|320px]]
+# Create another, smaller diameter pipe, and [[Placement|place]] it so that it pierces the wall of the first pipe:<br />[[image:JoinFeatures_Example_step2.png|320px]]
+# Select the first pipe, then the second pipe (order of selection is important), and click the 'Embed object' option from the Join tools dropdown toolbar button. <br />[[image:JoinFeatures_Example_step3_Embed.png|320px]]
+# Use some cross-section tool ([[Std_ToggleClipPlane|Clipping plane]], [[Arch_SectionPlane|Arch Section Plane]], [[Arch_CutPlane|Arch Cut Plane]]) to reveal internals. On the picture below, Arch Section Plane is used.<br />[[image:JoinFeatures_Example_step4_Embed.png|320px]]
+</div>
+
+==Algorithm==
+
+<div class="mw-translate-fuzzy">
+==Algorithm==
+The algorithms behind Join tools are quite simple, and understanding them is important to use the tools correctly.
+</div>
+
+<div class="mw-translate-fuzzy">
+1. Base object is [[Part Cut|boolean-cut]] with Tool object. The resulting shape is a set ([[Part MakeCompound|compound]]) of non-intersecting solids (typically, two).
+</div> 
+
+2. The resulting compound is filtered: only the largest solid is kept.
+
+<div class="mw-translate-fuzzy">
+3. That largest solid is [[Part Union|boolean-fused]] with Tool object.
+</div>
+
+4. If Refine property is true, the resulting shape is [[Part RefineShape|refined]].
+<br /><br />[[image:JoinFeatures-Algo-Embed.png|800px]]
+
+===Notes===
+
+<div class="mw-translate-fuzzy">
+===Notes===
+* If after step 1, the object remains in one piece, the result of Embed will be equivalent to [[Part Union|union]] of Base and Tool, but taking longer to compute.
+* Now, the tool will produce unexpected result, if a compound is supplied as Base. This may be changed in the future.
+* Because the largest piece is determined by comparing volumes of pieces, the tool can only work with solids. This may be changed in the future.
+</div>
+
+<span id="Scripting"></span>
+==Script==
+
+The Join tools can by used in [[macros]] and from the python console by using the following function:
+
+{{Code|code=JoinFeatures.makePartJoinFeature(name = 'Embed', mode = 'Embed')}}
+
+* Creates an empty Embed feature (or other Join feature, depending on mode passed). The properties Base and Tool must be assigned explicitly, afterwards.
+* Returns the newly created object.
+
+Exempluː
+
+{{code|code=
+import JoinFeatures
+j = JoinFeatures.makePartJoinFeature(name = 'Embed', mode = 'Embed' )
+j.Base = FreeCADGui.Selection.getSelection()[0]
+j.Tool = FreeCADGui.Selection.getSelection()[1]
+}}
+
+<div class="mw-translate-fuzzy">
+The tool itself is implemented in Python, see /Mod/Part/JoinFeatures.py under where FreeCAD is installed.
+</div>
+
+
+{{Docnav
+|[[Part_JoinConnect|JoinConnect]]
+|[[Part_JoinCutout|JoinCutout]]
+|[[Part_Workbench|Part]]
+|IconL=Part_JoinConnect.svg
+|IconR=Part_JoinCutout.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,101 @@
+<languages/>
+{{Docnav/de
+|[[TechDraw_PageDefault/de|DefaultPage]]
+|[[TechDraw_FillTemplateFields/de|VorlagenfelderAusfüllen]]
+|[[TechDraw_Workbench|TechDraw]]
+|IconL=TechDraw_PageDefault.svg
+|IconR=TechDraw_FillTemplateFields.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{GuiCommand/de
+|Name=TechDraw PageTemplate
+|Name/de=TechDraw Seitenvorlage
+|MenuLocation=TechDraw → Page → Neues Zeichnungsblatt aus einer Vorlage erstellen
+|Workbenches=[[TechDraw_Workbench/de|TechDraw]]
+|SeeAlso=[[TechDraw_PageDefault/de|TechDraw Standardseite]], [[TechDraw_Templates/de|TechDraw Vorlagen]]
+}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+Das Werkzeug '''TechDraw Seitenvorlage''' erstellt ein neues Page-Objekt (Zeichnungsblatt) unter Verwendung der in einem Dialogfeld ausgewählten Vorlagendatei.
+
+Das Startverzeichnis für das Dialogfeld kann in den  [[TechDraw_Preferences/de|TechDraw Einstellungen]] festgelegt werden.
+
+[[Image:A4_Landscape_ISO7200_Pep.svg|400px]]
+{{Caption|Eine der Vorlagen, die TechDraw mitgeliefert: A4_Landscape_ISO7200_Pep.svg}}
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Ein aktives Dokument muss vorhanden sein.
+# Es gibt mehrere Möglichkeiten, das Werkzeug aufzurufen:
+#* Die Schaltfläche {{Button|[[Image:TechDraw_PageTemplate.svg|16px]] [[TechDraw_PageTemplate/de|Neues Zeichnungsblatt aus einer Vorlage erstellen]]}} drücken.
+#* Den Menüeintrag {{MenuCommand|TechDraw → Page → [[Image:TechDraw_PageTemplate.svg|16px]] Neues Zeichnungsblatt aus einer Vorlage erstellen}} auswählen.
+
+<span id="Properties"></span>
+==Eigenschaften==
+
+Siehe [[TechDraw_PageDefault/de#Eigenschaften|TechDraw Standardseite]].
+
+<span id="Scripting"></span>
+==Skripten==
+
+Siehe auch: [https://freecad.github.io/SourceDoc/ Autogenerierte API-Dokumentation] und [[FreeCAD_Scripting_Basics/de|Grundlagen der Skripterstellung in FreeCAD]].
+
+Ein Zeichnungsblatt, das auf einer ausgewählten Vorlage basiert, kann mit [[Macros/de|Makros]] und von der [[Python/de|Python]]-Konsole aus mit den folgenden Funktionen erstellt werden:
+
+{{Code|code=
+import FreeCAD as App
+from PySide import QtGui
+
+doc = App.ActiveDocument
+default_dir = App.getResourceDir() + "Mod/TechDraw/Templates"
+param = App.ParamGet("User parameter:BaseApp/Preferences/Mod/TechDraw/Files")
+template_dir = param.GetString("TemplateDir", default_dir)
+
+template_file = QtGui.QFileDialog.getOpenFileName(QtGui.QApplication.activeWindow(),
+                                                  "Select a Template File", 
+                                                  template_dir,
+                                                  "Template (*.svg)")
+                                                  
+page = doc.addObject("TechDraw::DrawPage", "Page")
+template = doc.addObject("TechDraw::DrawSVGTemplate", "Template")
+template.Template = template_file[0]
+page.Template = template
+
+doc.recompute()
+}}
+
+<span id="Editable_text_fields"></span>
+=== Editierbare Textfelder ===
+
+{{Emphasis|Siehe auch:}} [[TechDraw_Templates/de|TechDraw Vorlagen]] für mehr Informationen zur Erstellung von Vorlagen.
+
+Sobald ein neues Blatt erstellt wurde, enthält sein Attribut {{incode|Template}} ein Wörterbuch (Dictionary-Objekt) {{incode|EditableTexts}} mit den Namen der editierbaren Felder (Keys) und ihren Textinhalten (Values). Dieses Wörterbuch kann in eine Variable kopiert, geändert und dann erneut dem Attribut {{incode|EditableTexts}} zugewiesen werden, um die Änderungen darzustellen.
+
+{{Code|code=
+page = FreeCAD.ActiveDocument.Page
+texts = page.Template.EditableTexts
+
+for key, value in texts.items():
+    print("{0} = {1}".format(key, value))
+
+texts["FC-Title"] = "The title of my page"
+page.Template.EditableTexts = texts
+}}
+
+
+{{Docnav/de
+|[[TechDraw_PageDefault/de|DefaultPage]]
+|[[TechDraw_FillTemplateFields/de|VorlagenfelderAusfüllen]]
+|[[TechDraw_Workbench|TechDraw]]
+|IconL=TechDraw_PageDefault.svg
+|IconR=TechDraw_FillTemplateFields.svg
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{TechDraw Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+{{clear}}

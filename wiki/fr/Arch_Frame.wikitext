@@ -1,0 +1,119 @@
+<languages/>
+
+{{Docnav/fr
+|[[Arch_Roof/fr|Toit]]
+|[[Arch_Fence/fr|Clôture]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_Roof.svg
+|IconR=Arch_Fence.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|Cette commande fait partie de l'ensemble intégré de l'[[BIM_Workbench/fr|atelier BIM]] avec la V1.0<br>
+Cette page a été mise à jour pour cette version.}}
+
+{{GuiCommand/fr
+|Name=Arch Frame
+|Name/fr=Arch Ossature
+|MenuLocation=3D/BIM → Ossature
+|Workbenches=[[BIM_Workbench/fr|BIM]]
+|Shortcut={{KEY|F}} {{KEY|R}}
+|SeeAlso=
+}}
+
+==Description==
+
+L'outil '''Arch Ossature''' sert à construire toutes sortes d'objets structurels basés sur un profil et un schéma d'agencement. Le profil est extrudé sur les bords du modèle, qui peut être n'importe quel objet 2D comme une [[Sketcher_Workbench/fr|esquisse]] ou un [[Draft_Workbench/fr|objet Draft]]. Il est particulièrement utile pour créer des rampes ou des murs. Les objets Ossature peuvent alors facilement être transformés en [[Arch_Wall/fr|murs]] ou en objets [[Arch_Structure/fr|structurels]].
+
+[[Image:Arch Frame example.jpg|640px]]
+{{Caption|Ici l'objet Frame (structure) est créé à partir d'un [[Draft_OrthoArray/fr|Draft Réseau orthogonal]] d'une [[Draft_Line/fr|Draft Ligne]] en utilisant un [[Draft_Circle/fr|Draft Cercle]] comme profil.}}
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Créez un schéma ou un objet modèle et un objet profil, par exemple avec l'[[Draft_Workbench/fr|atelier Draft]] ou l'[[Sketcher_Workbench/fr|atelier Sketcher]].
+# Sélectionnez en premier l'objet modèle, puis, maintenez la touche {{KEY|Ctrl}} enfoncée et sélectionnez l'objet profil.
+# Cliquez sur le bouton {{Button|[[Image:Arch Frame.svg|16px]] [[Arch_Frame/fr|Ossature]]}} ou appuyez sur {{KEY|F}} puis {{KEY|R}}.
+
+==Options==
+
+* Les ossatures partagent les propriétés et comportements  communs de tous les objets [[Arch_Component/fr|Arch Composants]]
+* L'objet ossature peut être placé à une certaine distance de l'objet modèle, en définissant sa propriété Offset 
+* Le profil sera copié à la base de chaque côté de l'objet modèle, puis extrudé sur lui. Vous pouvez contrôler la façon dont le profil est placé à la base de chaque arête avec les propriétés Align et Rotation.
+
+<span id="Properties"></span>
+==Propriétés==
+
+<span id="Data"></span>
+===Données===
+
+{{TitleProperty|Component}}
+
+* {{PropertyData|Base|Link}} : la forme qui sert de base à l'ossature.
+
+Pour les autres propriétés du groupe, voir [[Arch_Component/fr#Propriétés|Arch Composant]].
+
+{{TitleProperty|Frame}}
+
+* {{PropertyData|Align|Bool}} : spécifie si le profil doit être tourné pour que son axe normal soit aligné sur chaque arête.
+* {{PropertyData|Base Point|Integer}} : indice basé sur zéro indiquant le point de croisement de la trajectoire sur le profil :
+** {{Value|0}} : la '''Base''' du '''Placement''' du profil. Ce point est également utilisé en cas d'indice invalide.
+** {{Value|1}} : le milieu de la première arête du profil.
+** {{Value|2}} : l'extrémité de la première arête du profil.
+** {{Value|3}} : le milieu de la deuxième arête du profil.
+** {{Value|4}} : l'extrémité de la deuxième arête du profil.
+** ...
+** {{Value|n*2-1}} : le milieu de la nième arête du profil.
+** {{Value|n*2}} : l'extrémité de la nième arête du profil.
+* {{PropertyData|Edges|Enumeration}} : le type d'arêtes à prendre en compte. Les options sont les suivantes :
+** {{Value|All edges}}
+** {{Value|Vertical edges}}
+** {{Value|Horizontal edges}}
+** {{Value|Bottom horizontal edges}} : basé sur la coordonnée globale Z du centre de masse de l'arête.
+** {{Value|Top horizontal edges}} : idem.
+* {{PropertyData|Fuse|Bool}} : si true, les solides qui se chevauchent sont fusionnés.
+* {{PropertyData|Offset|VectorDistance}} : distance facultative entre l'objet de base et l'objet ossature.
+* {{PropertyData|Profile|Link}} : profil sur lequel l'ossature est basée.
+* {{PropertyData|Profile Placement|Placement}} : placement supplémentaire facultatif à ajouter au profil avant de l'extruder. Seule la '''Rotation''' du '''Placement''' est utilisée. Ignoré si {{PropertyData|Align}} est {{TRUE}}.
+* {{PropertyData|Rotation|Angle}} : rotation du profil autour de son axe d'extrusion.
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Voir aussi :}} [[Arch_API/fr|Arch API]] et [[FreeCAD_Scripting_Basics/fr|Débuter avec les scripts FreeCAD]].
+
+L'outil Frame peut être utilisé dans une [[Macros/fr|macro]] et dans la console [[Python/fr|Python]] en utilisant la fonction suivante :
+
+{{Code|code=
+Frame = makeFrame(baseobj, profile)
+}}
+
+* Crée un objet {{incode|Frame}} d'un {{incode|baseobj}} et {{incode|profile}} donnés.
+** {{incode|baseobj}} est n'importe quel objet contenant des filaires comme des [[Draft_Wire/fr|Draft Polylignes]] ou un [[Draft_OrthoArray/fr|Draft Réseau orthogonal]] et leur combinaison.
+** {{incode|profile}} est un objet 2D extrudable contenant des faces et des fils fermés.
+
+Exemple :
+
+{{Code|code=
+import Draft, Arch
+
+Line = Draft.makeLine(FreeCAD.Vector(0, 0, 0), FreeCAD.Vector(0, 0, 2000))
+baseobj = Draft.makeArray(Line, FreeCAD.Vector(1000, 0, 0), FreeCAD.Vector(0, 1, 0), 6, 1)
+
+profile = Draft.makeCircle(200)
+Frame = Arch.makeFrame(baseobj, profile)
+FreeCAD.ActiveDocument.recompute()
+}}
+
+
+{{Docnav/fr
+|[[Arch_Roof/fr|Toit]]
+|[[Arch_Fence/fr|Clôture]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=Arch_Roof.svg
+|IconR=Arch_Fence.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

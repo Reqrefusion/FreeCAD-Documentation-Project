@@ -1,0 +1,197 @@
+{{UnfinishedDocu{{#translation:}}}}
+<languages/>
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Myślę, że środowisko pracy [[Image:Workbench_Sketcher.svg|24px]] [[Sketcher_Workbench/pl|Szkicownik]] potrzebuje kilku przykładów, które nie są szczegółowymi poradnikami czy filmikami ...
+
+<span id="Film_hinge"></span>
+==Zawias zwijany==
+
+Zawias zwijany to niewielki kawałek zginanego tworzywa sztucznego, który łączy dwie strony przedmiotu formowanego wtryskowo, np. przepustu z pokrywą lub obu połówek obudowy wtyczki chroniącej przed kurzem.
+
+Ten przykład wykorzystuje pewien rodzaj szkicu głównego, na którym umieszcza się kilka zależnych od niego szkiców. Pokazuje również jak dołączyć i animować prosty zacisk wykonany na funkcjach środowiska pracy [[Image:Workbench_PartDesign.svg|16px]] [[PartDesign_Workbench/pl|Projekt Części]] oraz [[Image:Workbench_Sketcher.svg|16px]] [[Sketcher_Workbench/pl|Szkicownik]] z wiązaniami. Zastosowanie [[Image:Bound-expression.svg|16px]] [[Expressions/pl|wyrażeń]] w sposób opisany poniżej wymaga programu FreeCAD w wersji '''0.21''' lub nowszego.
+
+<span id="Basic_sketch"></span>
+===Podstawowy szkic===
+
+Zwykle obiekt jest modelowany w stanie zamkniętym. Później ruchoma część musi zostać odwrócona o 180°, aby uformować ją w stanie otwartym.
+<br>Zginany pasek jest reprezentowany przez okrągły łuk dla stanu zamkniętego i linię prostą dla stanu otwartego, oba mające ten sam punkt początkowy.
+<br>Punkt środkowy linii łączącej oba punkty końcowe wskazuje położenie osi odwracania, która jest normalna do płaszczyzny szkicu. ''(Jest umieszczony na początku szkicu, dzięki czemu globalna oś prostopadła do płaszczyzny szkicu może być użyta jako oś odwracania)''
+
+ <div class="mw-collapsible mw-collapsed">
+(Niektóre ukryte dodatkowe wyjaśnienia i opis przepływu pracy można rozwinąć tutaj --> 
+
+[[Image:Sketcher_ExampleHinge-01.gif|400px]]
+{{Caption|Szkic główny i animowany zawias zacisku widok końcowy. ''(kliknij na obrazek, jeśli animacja zatrzymała się po kilku powtórzeniach)''}}
+
+<div class="mw-collapsible-content toccolours">
+
+W przypadku półokręgu długość łuku to promień pomnożony przez Pi (''l = r * Pi''). Promień nazywany jest Promieniem Neutralnym, a linia nazywana jest Długością rozwiniętą. Wyrażenie dla DevelopedLength odnosi się do obu wartości: {{incode|.Constraints.NeutralRadius * pi}}
+: W tym samym szkicu wyrażenie zaczyna się od {{incode|.}}, po którym następuje ValueType.ValueName, aby odnieść się do innej wartości.
+
+</div> <!-- Koniec elementu zwijanego dla sekcji treści. Nie usuwaj! -->
+
+<span id="Intermediate_sketch"></span>
+===Szkic pośredni===
+
+Łuk tego zwijanego zawiasu ma stałą długość i zmienny promień. Jednym z danych wejściowych jest Promień Neutralny szkicu podstawowego. Aby mieć go pod ręką w tym szkicu, jest on połączony jako [[Image:Sketcher_External.svg|16px]] [[Sketcher_External/pl|geometria zewnętrzna]] posiadający wymiar referencyjny o nazwie Promień Odniesienia
+
+<div class="mw-collapsible-content toccolours">
+
+Segment kołowy geometrii konstrukcyjnej wyświetla zależność między łukiem a promieniem dla danego kąta.<br>
+'''InputLength = ReferenceRadius * Pi''' <br>
+oraz<br>
+'''ArcLength = DynamicRadius * Pi * ArcAngle / 180°''' <br>
+przy stałej długości daje:<br>
+'''ReferenceRadius * Pi = DynamicRadius * Pi * ArcAngle / 180°''' <br>
+Natomiast po wyeliminowaniu Pi otrzymujemy:<br>
+'''ReferenceRadius = DynamicRadius * ArcAngle / 180°''' lub '''DynamicRadius = ReferenceRadius * 180° / ArcAngle'''
+: Wyrażenie [[Image:Bound-expression.svg|16px]] [[Expressions|expression]] dla wartości DynamicRadius: {{incode|.Constraints.ReferenceRadius * 180 ° / .Constraints.ArcAngle}}
+
+Zawias zwijany jest zwykle symetryczny, więc inny łuk o tym samym punkcie środkowym o nazwie HalfArc jest używany do wyjścia i reprezentuje jedną połowę łuku zawiasu.
+: [[Image:Bound-expression.svg|16px]] [[Expressions/pl|Wyrażenie]] dla wartości HalfArc: {{incode|.Constraints.ArcAngle / 2}}.
+
+</div> <!-- Koniec elementu zwijanego dla sekcji treści. Nie usuwaj! -->
+
+[[Image:Sketcher_ExampleHinge-02.png|400px]]
+{{Caption|Szkic pośredni pokazujący Promień Dynamiczny łuku zawiasu 4 ''(mm)'' przy danym kącie 45° ''(i półłuku dla wyjścia)''}}
+
+<span id="Film_hinge_sketch"></span>
+===Szkic zawiasu zwijanego===
+
+Szkic ten definiuje grubość i przylegającą geometrię zawiasu zwijanego. W związku z tym ładujemy połowę łuku szkicu pośredniego jako geometrię zewnętrzną, aby użyć jej jako podstawy dla części zwijanej ''(w tym przypadku ułamek 180°)''.
+
+Ten zawias zwijany ma za zadanie utrzymywać połączone części stykające się ze sobą po zamknięciu. Można to osiągnąć, obliczając okrągły łuk o wymaganej długości, a następnie tworząc pasek o stałej grubości i na koniec nakładając zaokrąglenia w miejscu, w którym pasek styka się z połówkami obiektu. Ostatni krok w pewien sposób skraca pętlę, ale w prawdziwym świecie nie jest to problemem, ponieważ łuk nigdy nie będzie okrągły, więc zaokrąglenia mają wpływ na krzywiznę łuku, ale nie na jego funkcjonalność.
+
+[[Image:Sketcher_ExampleHinge-03.png|400px]]
+{{Caption|Szkic zawiasu przedstawiający zarys zawiasu na podstawie geometrii zewnętrznej z półłuku szkicu pośredniego}}
+
+
+[[Image:Sketcher_ExampleHinge-04.png|300px]] 
+[[Image:Sketcher_ExampleHinge-05.png|300px]]
+{{Caption|Po lewej: [[Image:PartDesign_Pad.svg|16px]] [[PartDesign_Pad/pl|Wyciągnięty]] półzawias z widocznym szkicem. Po prawej: półzawias z dodatkiem [[Image:PartDesign_Fillet.svg|16px]] [[PartDesign_Fillet/pl|zaokrąglenia]]}}
+
+
+[[Image:Sketcher_ExampleHinge-06.png|300px]] [[Image:Button_right.svg|16px|link=]] 
+[[Image:Sketcher_ExampleHinge-07.png|300px]]
+{{Caption|Półzawias z wybraną płaszczyzną lustrzaną →  zawias zwijany [[Image:PartDesign_Mirrored.svg|16px]] [[PartDesign_Mirrored/pl|w odbiciu lustrzanym]]}}
+
+
+Wskazówka: Narzędzie [[Image:Part_Mirror.svg|16px]] [[Part_Mirror/pl|odbicie lustrzane]] akceptuje tylko trzy podstawowe płaszczyzny, więc nie może zostać użyte w takim przypadku.
+: ''(Z perspektywy czasu mądrą decyzją było rozpoczęcie tego przykładu od połączenia środowisk Projekt Części i Szkicownik)''.
+
+
+Wreszcie dwa parametry definiują rozmiar zawiasu zwijanego:
+* Promień Neutralny szkicu podstawowego,
+* wartość grubości szkicu zawiasu.
+
+<span id="Bending_the_film_hinge"></span>
+===Gięcie zawiasu zwijanego===
+
+Kąt zgięcia jest kontrolowany przez wiązanie Arc Angle szkicu pośredniego i może być zmieniany w jego edytorze właściwości.<br>Jesteśmy jednak dobrymi projektantami i prawidłowo nazwaliśmy nasze wiązania i wymiary szkiców, więc możemy zająć się kontrolowaniem kąta za pomocą środowiska Pyton.
+<br>Kilka podstawowych linii kodu do osadzenia w kontekście GUI może wyglądać następująco:
+
+{{Code|code=
+doc=App.ActiveDocument
+sketch=doc.getObjectsByLabel('IntermediateSketch')[0]
+ ...
+sketch.getDatum('ArcAngle')
+ ...
+sketch.setDatum('ArcAngle',App.Units.Quantity('50.000000 deg'))
+doc.recompute(None,True,True)
+}}  
+
+<div class="mw-collapsible-content toccolours">
+
+Krótkie wyjaśnienie:
+* {{Incode|doc {{=}} App.ActiveDocument}}: Aby zaadresować aktywny dokument przez alias o nazwie '''doc'''
+*{{Incode|sketch {{=}} doc.getObjectsByLabel('IntermediateSketch')[0]}}: Aby zaadresować odpowiedni szkic przez alias '''sketch'''.
+*: Metoda '''getObjectsByLabel()'''' zwraca listę obiektów i musimy dodać indeks {{value|0}}, aby wybrać pierwszy obiekt z listy. (Nie spodziewamy się żadnego innego obiektu o tej samej etykiecie, więc nie musimy dbać o inne pozycje na liście).
+* {{Incode|sketch.getDatum('ArcAngle')}}: Zwraca bieżącą wartość wiązania wymiarowego '''ArcAngle''' (do widoku raportu).
+* {{Incode|sketch.setDatum('ArcAngle', App.Units.Quantity('50.0 deg'))}}: Ustawia wartość '''ArcAngle''' na {{value|50°}}. 
+* {{Incode|doc.recompute(None,True,True)}}: Aktualizuje cały dokument, aby pokazać również zmiany zależnej geometrii.
+
+</div> <!-- End of collapsible element for content section. Do not remove! -->
+
+<span id="Connecting_geometry"></span>
+===Geometria łącząca===
+
+Dwie połówki zacisku czekają na przymocowanie do zawiasu, jedna po stronie statycznej, druga po stronie ruchomej.
+
+[[Image:Sketcher_ExampleHinge-08.png|300px]]
+{{Caption|Dwie połówki prostego zacisku}}
+
+<div class="mw-collapsible-content toccolours">
+
+Strona statyczna jest łatwa: 
+# Aktywuj zawartość i dostosuj właściwości pozycji i orientacji w edytorze właściwości, aż będzie pasował do zawiasu zwijanego.
+# Aktywuj zawartość zawiasu.
+# Wybierz [[Image:PartDesign_Boolean.svg|16px]] [[PartDesign_Boolean/pl|Operacje logiczne]] narzędzie z ''(domyślną)'' opcją Scalenie.
+# W oknie dialogowym naciśnij przycisk {{Button|Dodaj zawartość}}
+# wybierz '''ciało''' statycznej połowy klipu.
+# Naciśnij OK, aby zakończyć i zamknąć okno dialogowe.
+
+</div> <!-- Koniec elementu zwijanego dla sekcji treści. Nie usuwaj! -->
+
+[[Image:Sketcher_ExampleHinge-09.png|300px]] [[Image:Button_right.svg|16px|link=]] 
+[[Image:Sketcher_ExampleHinge-10.png|300px]]
+{{Caption|Zawias zwijany i statyczna połówka w pozycji modelowania → zawias zwijany z przeniesioną i [[Image:PartDesign_Boolean.svg|16px]] [[PartDesign_Boolean/pl|scaloną]] statyczną połówką}}
+
+<div class="mw-collapsible-content toccolours">
+
+Ale ruchoma strona jest inna: powiązana połowa geometrii zacisku musi przesunąć się do właściwej pozycji, zanim rozpocznie się (ponowne) obliczanie operacji Scalenia.
+
+W tym momencie brakuje mi funkcji "Umocowanie z odsunięciem", takiej jak w środowisku Złożenie 3, aby dołączyć geometrię zacisku do jednej z ruchomych ścian. Ale po odrobinie eksperymentów i poprawek znalazłem rozwiązanie:
+
+* [[Image:Std_Part.svg|16px]] [[Std_Part/pl|Część]] i [[Image:PartDesign_Body.svg|16px]] [[PartDesign_Body/pl|Zawartość]] środowiska Projekt Części nie są obsługiwane przez [[Image:Part_EditAttachment.svg|16px]]. [[Part_EditAttachment/pl#Ograniczenia|Dołączenie]]. 
+Chociaż możliwe jest użycie dołączenia do ich wyrównania, dołączenie nie będzie połączone parametrycznie.
+* Dołączenie może być zastosowany do elementu środowiska Projekt Części. Ten element i elementy od niego zależne zostaną przesunięte zgodnie z geometrią bazową. Ale!
+** Niezależne elementy środowiska Projekt Części nie będą się przesuwać, co spowoduje zmianę wynikowego kształtu i jego złamanie.
+** Zaleca się zachowanie niezależności elementów, aby uniknąć wpływu [[Topological_naming_problem/pl|problemu nazewnictwa topologicznego]].
+* [[File:PartDesign_Clone.svg|16px]] [[PartDesign_Clone/pl|Klon]] tworzy bryłę z pojedynczą cechą, która może być użyta z dołączeniem.
+
+
+Mając to na uwadze, przepływ pracy może wyglądać następująco:
+
+# Wybierz Zawartość ruchomej połowy.
+# Użyj polecenia [[File:PartDesign_Clone.svg|16px]] [[PartDesign_Clone/pl|Utwórz klon]].
+# W nowej bryle wybierz obiekt Klon w widoku Drzewa.
+# Użyj polecenia [[Image:Part_EditAttachment.svg|16px]] [[Part_EditAttachment/pl|Dołączenie]], aby dodać właściwości dołączenia do obiektu Clon.
+# Otworzy się okno dialogowe Dołączenie.
+#* Wybierz wierzchołek dla punktu odniesienia położenia.
+#* Wybierz krawędź dla pierwszego kierunku.
+#* Wybierz krawędź dla drugiego kierunku.
+#* Sprawdź tryby dołączenia, aby znaleźć najlepiej pasujący.
+#* Zmieniaj wartości obrotu i współrzędnych, aż geometria ponownie znajdzie się w pozycji modelowania.
+# Naciśnij OK, aby zamknąć okno dialogowe.
+# Przy wciąż aktywnej Zawartości zawiasu wybierz narzędzie [[Image:PartDesign_Boolean.svg|16px]] [[PartDesign_Boolean/pl|Operacja logiczna]].
+# W oknie dialogowym naciśnij przycisk {{Button|Dodaj zawartość}}.
+# wybierz Zawartość ruchomej połówki.
+# Naciśnij przycisk OK, aby zakończyć i zamknąć okno dialogowe.
+
+</div> <!-- Koniec elementu zwijanego dla sekcji treści. Nie usuwaj! -->
+</div> <!-- Koniec elementu zwijanego dla ... sekcji. Nie usuwaj! -->
+
+[[Image:Sketcher_ExampleHinge-14.png|300px]]
+{{Caption|Ruchoma połowa będzie [[Image:Part_EditAttachment.svg|16px]]. [[Part_EditAttachment/pl|dołączona]] do rogu ruchomej strony zawiasu ''(tryb mapowania OXZ: wierzchołek, krawędź, krawędź)''.}}
+
+Z perspektywy czasu rozsądniej byłoby dostarczyć geometrię mocowania wraz ze Szkicem pośrednim, aby uniknąć kolejnego źródła [[Topological_naming_problem/pl|problemu nazewnictwa topologicznego]].
+
+[[Image:Sketcher_ExampleHinge-11.png|300px]] [[Image:Button_right.svg|16px|link=]] 
+[[Image:Sketcher_ExampleHinge-12.png|300px]]
+{{Caption|Dotychczasowy zacisk i ruchoma połowa w pozycji modelowania → gotowy zacisk z [[Image:Part_EditAttachment.svg|16px]] [[Part_EditAttachment/pl|dołączeniem]] i [[Image:PartDesign_Boolean.svg|16px]] [[PartDesign_Boolean/pl|scaleniem]] ruchomej połówki}}
+
+Rezultatem powinien być pojedynczy klip, który można zamykać i otwierać, zmieniając kąt łuku zawiasu zwijanego. Dozwolone kąty: od 0,1° do 180°, sekcja zwijana nie może być prosta, a więcej niż zamknięta nie ma sensu. ''(Przy 180° obiekt może zostać stopiony w obszarach stycznych lub nakładających się, ale niewielka dodatkowa przerwa może pomóc, jeśli jest to nie do zaakceptowania.)''
+
+[[Image:Sketcher_ExampleHinge-13.png|200px]] [[Image:Button_right.svg|16px|link=]] 
+[[Image:Sketcher_ExampleHinge-15.png|200px]] [[Image:Button_right.svg|16px|link=]] 
+[[Image:Sketcher_ExampleHinge-16.png|200px]]
+{{Caption|Zacisk prawie zamknięty → Zacisk w połowie zamknięty → Zacisk w stanie uformowanym}}
+
+{{PartDesign Tools navi{{#translation:}}}}
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

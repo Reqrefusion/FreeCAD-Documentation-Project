@@ -1,0 +1,128 @@
+<languages/>
+
+{{Docnav
+|[[Reinforcement_LShapeRebar|LShapeRebar]]
+|[[Reinforcement_BentShapeRebar|BentShapeRebar]]
+|[[Reinforcement_Workbench|Reinforcement]]
+|IconL=Reinforcement_LShapeRebar.svg
+|IconR=Reinforcement_BentShapeRebar.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+{{GuiCommand
+|Name=Reinforcement StirrupRebar
+|MenuLocation=3D/BIM → Reinforcement tools → Stirrup
+|Workbenches=[[Reinforcement_Workbench|Reinforcement]], [[BIM_Workbench|BIM]]
+|Version=0.17
+|SeeAlso=
+}}
+
+==Description==
+
+The [[Reinforcement_StirrupRebar|Reinforcement StirrupRebar]] tool allows the user to create a set of stirrup reinforcing bars inside an [[Arch_Structure|Arch Structure]] object.
+
+This tool is part of the [[Reinforcement_Workbench|Reinforcement Workbench]], an [[External_workbenches|external workbench]] that can be installed with the [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr|Addon Manager]].
+
+[[Image:Arch_Rebar_Stirrup_example.png|400px]]
+{{Caption|One set of stirrup reinforcement bars inside an [[Arch Structure|Arch Structure]] object}}
+
+==Usage==
+
+# Select any face of a previously created {{Button|[[Image:Arch_Structure.svg|16px]] [[Arch Structure|Arch Structure]]}} object.
+# Then select {{Button|[[Image:Reinforcement_StirrupRebar.svg|16px]] [[Reinforcement_StirrupRebar|Stirrup]]}} from the rebar tools.
+# A [[Task_panel|task panel]] will pop-out on the left side of the screen as shown below.
+# Select the desired orientation.
+# Populate the inputs like 'Left Cover', 'Right Cover', 'Top Cover', 'Bottom Cover', 'Front Cover', 'Bent Angle', 'Bent Factor', 'Rounding' and 'Diameter' of the rebar.
+# Select the mode of distribution either 'Amount' or 'Spacing'.
+#* If 'Spacing' is selected, a user can also opt for [[Reinforcement_Custom_Spacing|custom spacing]].
+# {{Button|Pick Selected Face}} is used to verify or change the face for rebar distribution.
+# Click {{Button|OK}} or {{Button|Apply}} to generate the rebars.
+# Click {{Button|Cancel}} to exit the task panel.
+
+[[Image:StirrupDialog.png|250px]]
+{{Caption|Task panel for the tool}}
+
+==Properties== 
+
+* {{PropertyData|Front Cover}}: The distance between rebar and selected face.
+* {{PropertyData|Right Cover}}: The distance between the right end of the rebar to right face of the structure.
+* {{PropertyData|Left Cover}}: The distance between the left end of the rebar to the left face of the structure.
+* {{PropertyData|Bottom Cover}}: The distance between rebar from the bottom face of the structure.
+* {{PropertyData|Top Cover}}: The distance between rebar from the top face of the structure.
+* {{PropertyData|Bent Angle}}: Bent angle defines the angle at the ends of a stirrup.
+* {{PropertyData|Bent Factor}}: Bent Factor defines length of stirrup end.
+* {{PropertyData|Amount}}: The amount of rebars.
+* {{PropertyData|Spacing}}: The distance between the axes of each bar.
+
+==Scripting==
+
+{{Emphasis|See also:}} [[Arch API|Arch API]], [[Reinforcement API|Reinforcement API]] and [[FreeCAD Scripting Basics|FreeCAD Scripting Basics]].
+
+The Reinforcement StirrupRebar tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following function:
+{{Code|code=
+Rebar = makeStirrup(l_cover, r_cover, t_cover, b_cover, f_cover,
+                    bentAngle, bentFactor, diameter, rounding, amount_spacing_check, amount_spacing_value,
+                    structure=None, facename=None)
+}}
+
+* Creates a {{incode|Rebar}} object from the given {{incode|structure}}, which is an [[Arch Structure|Arch Structure]], and {{incode|facename}}, which is a face of that structure.
+** If no {{incode|structure}} nor {{incode|facename}} are given, it will take the user selected face as input.
+* {{incode|l_cover}}, {{incode|r_cover}}, {{incode|t_cover}}, {{incode|b_cover}}, and {{incode|f_cover}} are inner offset distances for the rebar elements with respect to the faces of the structure. They are respectively the left, right, top, bottom, and front offsets.
+* {{incode|diameter}} is the diameter of the reinforcement bars inside the structure.
+* {{incode|rounding}} is the parameter that determines the bending radius of the reinforcement bars as they make a loop.
+* {{incode|bentLength}} and {{incode|bentAngle}} define the length and angle of the tip of the reinforcement loop.
+* {{incode|amount_spacing_check}} if it is {{incode|True}} it will create as many reinforcement loops as given by {{incode|amount_spacing_value}}; if it is {{incode|False}} it will create reinforcement loops separated by the numerical value of {{incode|amount_spacing_value}}.
+* {{incode|amount_spacing_value}} specifies the number of reinforcement loops, or the value of the separation between them, depending on {{incode|amount_spacing_check}}.
+
+=== Example ===
+
+{{Code|code=
+import Draft, Arch, Stirrup
+
+# It doesn't work if the structure is not based on a face
+# Structure = Arch.makeStructure(length=1000, width=400, height=400)
+
+Rect = Draft.makeRectangle(400, 400)
+Structure = Arch.makeStructure(Rect, height=1600)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = Stirrup.makeStirrup(20, 20, 20, 20, 20,
+                            115, 4, 8, 2, True, 10, Structure, "Face6")
+}}
+
+=== Edition of the rebar ===
+
+You can change the properties of the rebar with the following function:
+
+{{Code|code=
+editStirrup(Rebar, l_cover, r_cover, t_cover, b_cover, f_cover,
+            bentAngle, bentFactor, diameter, rounding, amount_spacing_check, amount_spacing_value,
+            structure=None, facename=None)
+}}
+
+* {{incode|Rebar}} is a previously created {{incode|StirrupRebar}} object.
+* The other parameters are the same as required by the {{incode|makeStirrup()}} function.
+* {{incode|structure}} and {{incode|facename}} may be omitted so that the rebar stays in the original structure.
+
+{{Code|code=
+import Stirrup
+
+Stirrup.editStirrup(Rebar, 20, 20, 20, 20, 50,
+                    100, 4, 14, 8, True, 8)
+}}
+
+
+{{Docnav
+|[[Reinforcement_LShapeRebar|LShapeRebar]]
+|[[Reinforcement_BentShapeRebar|BentShapeRebar]]
+|[[Reinforcement_Workbench|Reinforcement]]
+|IconL=Reinforcement_LShapeRebar.svg
+|IconR=Reinforcement_BentShapeRebar.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

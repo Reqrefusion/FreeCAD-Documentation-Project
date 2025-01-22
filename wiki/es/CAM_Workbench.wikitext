@@ -1,0 +1,420 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/es
+|[[PartDesign_Workbench/es|PartDesign Ambiente de trabajo]]
+|[[Points_Workbench/es|Puntos Ambiente de trabajo]]
+|IconL=Workbench_PartDesign.svg
+|IconR=Workbench_Points.svg
+}}
+</div>
+
+[[Image:Workbench_Part.svg|thumb|128px|El icono del Ambiente de trabajo Trayectoria]]
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Introducción==
+
+<div class="mw-translate-fuzzy">
+El [[Image:Workbench_CAM.svg|24px]] [[CAM_Workbench/es|Ambiente de trabajo Trayectoria]] es usado para producir instrucciones maquina para [https://en.wikipedia.org/wiki/CNC_router maquinas CNC] a partir de un modelo 3D FreeCAD. Estos producen objetos 3D reales en maquinas CNC tales como fresadoras, tornos, cortadoras laser, o similares.Tipicamente, estas instruciones son dialeto de tipo [https://es.wikipedia.org/wiki/G-code código G].
+</div>
+
+[[Image:pathwb.png|600px]]
+
+<div class="mw-translate-fuzzy">
+El flujo de trabajo del ambiente de trabajo Trayectoria crea estas instrucciones maquina como sigue:
+* Un modelo 3D es la base del objeto, tipicamente creado utilizando uno o más de los bancos de trabajo [[PartDesign_Workbench/es|Diseño de parte]], [[Part_Workbench/es|Parte]] o [[Draft_Workbench/es|Boceto]].
+*Un [[CAM_Job/es|Objeto trabajo]] es creado en el banco de trabajo Trayectoria. Este contiene toda la información necesaria para generar el código G para procesarlo el trabajo sobre una maquina CNC:Eso es material stock, la maquina de mecanizado tiene un cierto [[CAM_ToolBitLibraryOpen|Conjunto de herramientas]] y estos siguen cierto comandos de control de velocidad y movimientos (Usualmente codigo G).
+*Herramientas son seleccionadas como son requeridas por las operaciones de trabajo.
+*Trayectorias de mecanizado son creadas utilizando por ejemplo, operaciones [[CAM_Profile|Contorno]] and [[CAM_Pocket_3D|Vaciado]]. Esos Objectos trayectoria utilizan una dialecto de código G el cual es independiente de la maquina CNC.
+* Exporte el trabajo con un código G, que coincida con su máquina.
+Este paso se denomina ''postprocesamiento''; hay diferentes postprocesadores disponibles.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== General concepts ==
+</div>
+
+<div class="mw-translate-fuzzy">
+==Conceptos generales==
+El ambiente de trabajo Trayectoria genera el codigo G definiendo las trayectorias requeridas para mecanizar el proyecto representado por el modelo 3D al mecanizado objetivo dentro del [[CAM_scripting#The_FreeCAD_Internal_GCode_Format/es|el dialeto del código G de las operaciones de ruta de FreeCAD]], el cual luego es traducida al apropiado dialeto para el controlador CNC seleccionando el pos procesador apropiado.
+El código G generado de directivas y operaciones contenidas en el objecto trabajo. El flujo de trabajo lista estos en el orden que seran ejecutados. La lista esta poblada por operaciones agregar trayectorias, enmascarado de trayectorias, comandos parciales de trayectorias y modificacion de trayectorias del menu de trayectoria o botones GUI.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The G-code is generated from directives and Operations contained in a CAM Job. The Job Workflow lists these in the order they will be executed. The list is populated by adding CAM Operations, Path Dressups, Supplemental Commands, and Path Modifications from the CAM Menu, or GUI buttons.
+</div>
+
+<div class="mw-translate-fuzzy">
+El banco de trabajo Trayectoria provee un administrador de herramientas (Biblioteca, Tabla de herramientas), inspector de código G y herramientas de simulación. Conectan el pos procesador y permiten importar y exportar plantillas de trabajos.
+</div>
+
+<div class="mw-translate-fuzzy">
+Path Workbench tiene dependencias externas que incluyen:
+# Las unidades del modelo 3D de FreeCAD se definen en la {{MenuCommand|Editar → Preferencia → General → Configuración de unidades de la pestaña Unidades}}. La configuración del postprocesador define las unidades finales de código G.
+# La ruta del archivo de macros, y las tolerancias geométricas, se definen en la pestaña {{MenuCommand|Editar → Preferencias → Ruta → Preferencias de trabajo}} ficha.
+# Los colores se definen en la pestaña {{MenuCommand|Editar → Preferencias → Ruta → Colores de ruta}} ficha.
+# Los parámetros de etiqueta de retención se definen en la pestaña {{MenuCommand|Editar → Preferencias → Ruta → Adelantos}} ficha.
+# Que la calidad del modelo 3D base soporte los requisitos del ambiente de trabajo Trayectoria, pasa a comprobar la geometría.
+</div>
+
+<span id="Limitations"></span>
+==Limitaciones==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Some current limitations of which you should be aware are:
+* Most of the CAM Tools are not true 3D tools but only 2.5D capable. This means that they take a fixed 2D shape and can cut it down to a given depth. However, there are two tools which produce true 3D paths: {{KEY|[[Image:CAM_3DPocket.svg|24px]] [[CAM_Pocket_3D|3D Pocket]]}} and {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}} (which is still an [[CAM_experimental|experimental feature]] as of November 2020).
+* Most of CAM workbench is designed for a simple, standard 3-axis (xyz) CNC mill/router, but lathe tools are under development in 0.19_pre.
+* Most operations in CAM workbench will return paths based on a standard endmill tool/bit only, regardless of the tool/bit type assigned in a given tool controller with the exception of the {{KEY|[[Image:CAM_Engrave.svg|24px]] [[CAM_Engrave|Engrave]]}} and {{KEY|[[Image:CAM_Surface.svg|24px]] [[CAM_Surface|3D Surface]]}} operations.
+* The operations within the CAM workbench are not aware of clamping mechanisms in use to secure the model to your machine. Consequently, please review and simulate the paths you generate prior to sending the code to your machine. If necessary, model your clamping mechanisms in FreeCAD in order to better inspect the paths generated. Look for possible collisions with clamps or other obstacles along the paths.
+</div>
+
+<span id="Units"></span>
+== Unidades ==
+
+<div class="mw-translate-fuzzy">
+El manejo de unidades en Path puede ser confuso. Hay varios puntos para entender:
+# Las unidades base de FreeCAD para longitud y tiempo son 'mm' y 's' respectivamente. La velocidad es así 'mm / s'. Esto es lo que FreeCAD almacena internamente independientemente de cualquier otra cosa
+# El esquema de unidad predeterminado usa las unidades predeterminadas. Si está utilizando el esquema predeterminado e ingresa una velocidad de avance sin una cadena de unidades, se ingresará como 'mm / s'
+# La mayoría de las máquinas CNC esperan una velocidad de avance en forma de 'mm / min' o 'in / min'. La mayoría de los procesadores posteriores convertirán automáticamente la unidad cuando generen gcode.
+</div>
+
+<div class="mw-translate-fuzzy">
+Schemas:
+# El cambio de esquema en las preferencias cambia la cadena de unidad predeterminada para los campos de entrada. Si usted es un usuario de Path y prefiere diseñar en métricas, es muy recomendable que use el esquema "Metric Small Parts & CNC". Si diseñas en unidades de EE. UU., Ya sea el decimal imperial o el Building US funcionarán
+# Cambiar el esquema de su unidad preferida no tendrá ningún efecto en la salida, pero ayudará a evitar errores de entrada
+</div>
+
+<div class="mw-translate-fuzzy">
+Salida:
+# La generación de la unidad correcta en la salida es responsabilidad del postprocesador y solo se realiza en ese momento.
+# La unidad de salida de la máquina no está relacionada con el esquema de la unidad seleccionada
+# Los postprocesadores producen salida métrica (G21), salida Imperial (G20) o son configurables.
+# Post-procesadores configurables por defecto a la métrica (G21)
+# Si desea que su post-procesador configurable emita gcode imperial (G20), establezca el argumento correcto en la confluencia de salida de su trabajo (es decir, --inches for linuxcnc). Esto puede almacenarse en una plantilla de trabajo y establecerse como su plantilla predeterminada para que sea automática para todos los trabajos futuros.
+</div>
+
+<div class="mw-translate-fuzzy">
+Inspección de Path:
+# Si usa la herramienta Path Inspect para ver el gcode, lo verá en 'mm / s' porque no está siendo procesado
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Heights and depths ==
+</div>
+
+<div class="mw-translate-fuzzy">
+==Comandos de Trayectoria==
+Muchos de los comandos tienen varias alturas y profundidades:
+[[Image:Path-DepthsAndHeights.gif|center|500px]]
+{{Caption|Referencia visual para las propiedades de profundidad (ajustes)}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[Image:Path-DepthsAndHeights.gif|500px]]
+{{Caption|Visual reference for Depth properties (settings)}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Commands ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Some commands are experimental and not available by default. To enable them see [[CAM_experimental|CAM experimental]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Project Commands ===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Job.svg|32px]] [[CAM_Job/es|Trabajo]]:  Crea un nuevo trabajo CNC.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_PostProcess.svg|32px]] [[CAM_Post/es|Post Process]]: Exporta un proyecto a código G.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Sanity.svg|32px]] [[CAM_Sanity/es|Errores de trayectoria]]: Revisa el trabajo seleccionado por valores faltantes.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_ExportTemplate.svg|32px]] [[CAM_ExportTemplate/es|Exportar plantilla]]: Exporta el actual trabajo como plantilla.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Tool Commands ===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Inspect.svg|32px]] [[CAM_Inspect/es|Inspector de código G]]: Muestra el código G para revisión.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Simulator.svg|32px]] [[CAM_Simulator/es|Simulador]]: Muestra la operación de mecanizado como si estuviera hecha sobre la maquina.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_SimulatorGL.svg|32px]] [[CAM_SimulatorGL|CAM SimulatorGL]]: Enables the new, improved CAM simulator. {{Version|1.0}}
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_SelectLoop.svg|32px]] [[CAM_SelectLoop/es|Completar ciclo]]: Completa un ciclo a partir de dos esquinas seleccionadas
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_OpActiveToggle.svg|32px]] [[CAM_OpActiveToggle|Toggle the Active State of the Operation]]: Activates or de-activates a path operation.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_ToolBitLibraryOpen.svg|32px]] [[CAM_ToolBitLibraryOpen|ToolBit Library editor]]: Opens an editor to manage ToolBit libraries.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_ToolBitDock.svg|32px]] [[CAM_ToolBitDock|ToolBit Dock]]: Toggles the ToolBit Dock.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Basic Operations ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Profile.svg|32px]] [[CAM_Profile|Profile]]: Creates a profile operation of the entire model, or from one or more selected faces or edges.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Pocket.svg|32px]] [[CAM_Pocket_Shape/es|Vaciado]]: Crea una operación de vaciado a partir de uno o mas hueco(s) seleccionados.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Drilling.svg|32px]] [[CAM_Drilling/es|Perforado]]: Ejecuta un ciclo de perforado.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Face.svg|32px]] [[CAM_MillFace/es|Mecanizado de cara]]: Crea una trayectoria superficial.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Helix.svg|32px]] [[CAM_Helix/es|Helix]]: Crea una trayectoria helicoidal.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Adaptive.svg|32px]] [[CAM_Adaptive|Adaptive]]: Creates an adaptive clearing and profiling operation.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Slot.svg|32px]] [[CAM_Slot|Slot]]: Creates a slotting operation from selected features or custom points. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Engrave.svg|32px]] [[CAM_Engrave/es|Grabado]]: Crea una trayectoria de grabado.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Deburr.svg|32px]] [[CAM_Deburr|Deburr]]: Creates a deburr path.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Vcarve.svg|32px]] [[CAM_Vcarve/es|TallarV]]: Crea una trayectoria para una cavidad 3D
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== 3D Operations ===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_3DPocket.svg|32px]] [[CAM_Pocket_3D/es|Vaciado 3D]]: Crea una trayectoria para un vaciado 3D.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_3DSurface.svg|32px]] [[CAM_Surface/es|Superficie 3D]]: Crea una trayectoria para una superficie 3D
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Waterline.svg|32px]] [[CAM_Waterline|Waterline]]: Creates a waterline path for a 3D surface. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<span id="Path_Dressup"></span>
+<div class="mw-translate-fuzzy">
+===Enmascarado Trajectoria===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupAxisMap.svg|32px]] [[CAM_DressupAxisMap|Axis Map]]: Remaps one axis to another.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupPathBoundary.svg|32px]] [[CAM_DressupPathBoundary|Boundary]]: Adds a boundary dressup modification to a selected path.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Dressup.svg|32px]] [[CAM_DressupDogbone/es|Enmascarado hueso de perro]]: Agrega una modificación de enmascarado hueso de perro a la trayectoria seleccionada.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupDragKnife.svg|32px]] [[CAM_DressupDragKnife/es|Enmascarado Arrastre de cuchilla]]: Agrega una modificación de enmascarado arrastre de cuchilla a la trayectoria seleccionada.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupLeadInOut.svg|32px]] [[CAM_DressupLeadInOut/es|Lead In Dressup]]: Agrega un punto de entrada y / o salida a una ruta seleccionada
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupRampEntry.svg|32px]] [[CAM_DressupRampEntry/es|Enmascarado entrada en rampa]]: Agrega una modificación de enmascarado entrada en rampa a la trayectoria seleccionada.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupTag.svg|32px]] [[CAM_DressupTag/es|Tag Dressup]]: Agrega una modificación de tarjeta de espera a una ruta seleccionada
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_DressupZCorrect.svg|32px]] [[CAM_DressupZCorrect|Z Depth Correction]]: Corrects the Z depth using Probe Map.
+</div>
+
+<span id="Supplemental_Commands"></span>
+<div class="mw-translate-fuzzy">
+===Comandos parciales===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Fixture.svg|32px]] [[CAM_Fixture/es|Fixtura]]: Cambia la posición de la fixtura.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Comment.svg|32px]] [[CAM_Comment/es|Comentar]]: Inserta un comentario en el código G de una trayectoria
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Stop.svg|32px]] [[CAM_Stop/es|Detener]]: Inserta un paro total de la maquina.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Custom.svg|32px]] [[CAM_Custom/es|Personalizar]]: Inserta código G personalizado.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_Probe.svg|32px]] [[CAM_Probe|Probe]]: Creates a Probing Grid from a job stock.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Shape.svg|32px]] [[CAM_Shape/es|Código G de un forma]]: Crea un objecto trayectoria a partir de un objecto parte seleccionado.
+</div>
+
+<span id="Path_Modification"></span>
+<div class="mw-translate-fuzzy">
+===Modificación de trayectoria===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Copy.svg|32px]] [[CAM_Copy/es|Copiar]]: Crea una copia parametrica de un objecto trayectoria seleccionado
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Array.svg|32px]] [[CAM_Array/es|Arreglo]]: Crea un arreglo duplicando una trayectoria seleccionada
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_SimpleCopy.svg|32px]] [[CAM_SimpleCopy/es|Copia simple]]: Crea una copia no paramétrica de un objecto trayectoria seleccionado.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Specialty Operations ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Image:CAM_ThreadMilling.svg|32px]] [[CAM_ThreadMilling|Thread Milling]]: Creates a CAM Thread Milling operation from features of a base object. [[CAM_experimental|{{Emphasis|Experimental}}]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Miscellaneous ===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Area.svg|32px]] [[CAM_Area/es|Área característica]]: Crea un área característica a partir de los objetos seleccionados.
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Area_Workplane.svg|32px]] [[CAM_Area_Workplane/es|Plano de trabajo de área característica]]: Crea un plano de trabajo de área característica.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== ToolBit architecture ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Manage tools, bits, and the Tool Library. Based on the ToolBit architecture.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[CAM_Tools|CAM Tools]]
+* [[CAM_ToolShape|CAM ToolShape]]
+* [[CAM_ToolBit|CAM ToolBit]]
+* [[CAM_ToolBit_Library|CAM ToolBit Library]]
+* [[CAM_ToolController|CAM ToolController]]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Other ==
+</div>
+
+<div class="mw-translate-fuzzy">
+El ambiente de trabajo comparte muchos conceptos con otros paquetes de programas CAM pero tienen sus propias peculiaridades. Si algo va mal, este es un buen lugar para empezar.
+</div>
+
+<span id="Preferences"></span>
+<div class="mw-translate-fuzzy">
+===Preferencias===
+</div>
+
+<div class="mw-translate-fuzzy">
+* [[Image:Std_DlgPreferences.svg|32px]] [[CAM_Preferences/es|Preferencias...]]: Preferencias desechables en herramientas de ruta.
+</div>
+
+<span id="Scripting"></span>
+== Archivos de guión ==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+See [[CAM_scripting|CAM scripting]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Tutorials ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[CAM_Walkthrough_for_the_Impatient|CAM Walkthrough for the Impatient]]: a quick tutorial to get familiar with CAM.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Videos ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [https://www.youtube.com/playlist?list=PLEuOia-QxyFKgzAeTyH62GKqWKVURiWJL FreeCAD Path: Custom paths with Python - Part 1 - 5]: A playlist with a series of 5 videos in English by sliptonic. This series shows how to work with the [[CAM_Workbench|CAM Workbench]]. 
+* [https://www.youtube.com/playlist?list=PLUrr_kHPp4vhGdLlj6IemtF-OPUlRvSTC  FreeCAD CAM Path Workbench]: A playlist with a series of 7 videos in English by CAD CAM Lessons.
+* [https://www.youtube.com/playlist?list=PLUrr_kHPp4vh2n6DcIlegK4dEKIFjmISJ FreeCAD CAM CNC]: A playlist with a series of 8 videos in English by CAD CAM Lessons.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Roadmap ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[CAM_Development_Roadmap|CAM Development Roadmap]]: Read this if you are a developer and want to contribute to CAM.
+</div>
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/es
+|[[PartDesign_Workbench/es|PartDesign Ambiente de trabajo]]
+|[[Points_Workbench/es|Puntos Ambiente de trabajo]]
+|IconL=Workbench_PartDesign.svg
+|IconR=Workbench_Points.svg
+}}
+</div>
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Workbenches{{#translation:}}]]

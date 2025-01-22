@@ -1,0 +1,130 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Arch_Panel/ru|Паенль]]
+|[[Arch_Panel_Sheet/ru|Панельный лист]]
+|[[Arch_Workbench/ru|Архитектурный верстак "Arch"]]
+|IconL=Arch_Panel.svg
+|IconR=Arch_Panel_Sheet.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/ru
+|Name/ru=Панельный контур
+|Name=Arch_Panel_Cut
+|MenuLocation=Arch → Инструменты панелирования → Панельный контур
+|Workbenches=[[Arch_Workbench/ru|Arch]], [[Path_Workbench/ru|Path]]
+|Shortcut={{KEY|P}} {{KEY|C}}
+|Version=0.17
+|SeeAlso=[[Arch_Panel/ru|Паенль]], [[Arch_Panel_Sheet/ru|Панельный лист]], [[Arch_Nest/ru|Компоновка]]
+}}
+</div>
+
+<span id="Description"></span>
+==Описание==
+
+<div class="mw-translate-fuzzy">
+Данный инструмент создает плоский контур [[Arch_Panel/ru|Панели]] в 3D виде документа, который в дальнейшем, можно добавить в [[Arch_Panel_Sheet/ru|панельный лист]] или напрямую экспортировать в формат [[Draft_DXF/ru|DXF]]. Объекты созданные с помощью инструмента "Контур панели" также поддерживаются в [[Path_Workbench/ru|верстаке Path]].
+</div>
+
+[[Image:Arch Wikihouse 02.jpg|1024px]]
+
+<span id="Usage"></span>
+==Применение==
+
+# Select one or more [[Arch_Panel|Arch Panel]] objects.
+# Select the {{MenuCommand|Utils → Panel tools → [[Image:Arch_Panel_Cut.svg|16px]] Panel Cut}} option from the menu.
+# Adjust the desired properties.
+
+<span id="Options"></span>
+==Опции==
+
+* Если панель не плоская (например, рифленая), рельеф не будет отображаться при вырезе панели. Этот инструмент применим в основном для плоских панелей.
+* На вырезе панели может отображаться тег (метка). Этот тег может быть настраиваемой строкой текста или может автоматически отображать тег, метку или описание, с которыми связана его панель.
+* Чтобы быть полезным при обработке с ЧПУ, метка должна быть написана шрифтом, где буквы представляют собой простые ломаные линии, по которым машина может легко следовать. При создании объекта вырезания панели автоматически будет использоваться шрифт, указанный в меню Правка → Настройки → Черновик → Тексты и размеры → Default ShapeString font file
+* Двойной щелчок по вырезанной панели в древовидном представлении после ее создания позволяет перейти в режим редактирования и изменить положение тега.
+* Когда вам нужно расположить разные вырезы панелей вместе, Вырезы панелей могут отображать поля, что полезно для обеспечения того, чтобы между вырезом и другим всегда присутствовал определенный зазор.
+
+<span id="Properties"></span>
+==Свойства==
+
+<span id="Data"></span>
+=== Данные ===
+
+* {{PropertyData|Source}}: Объект [[Arch_Panel/ru|Панель]] отображаемый в этом вырезе.
+* {{PropertyData|Tag Text}}: Текст для отображения. Может быть %tag%, %label% или %description% для отображения тега или метки панели.
+* {{PropertyData|Tag Size}}: Размер текста у тега.
+* {{PropertyData|Tag Position}}: Положение тега. Укажите (0,0,0) для автоматического положения по центру
+* {{PropertyData|Tag Rotation}}: Угол поворота тега.
+* {{PropertyData|Font File}}: Шрифт текста тега.
+* {{PropertyData|Make Face}}: Если значение равно True, то панель является гранью детали, в противоположном случае является контуром сформированным из граней детали.
+
+<span id="View"></span>
+=== Вид ===
+
+* {{PropertyView|Margin}}: Поле отступа, которое может отображаться за пределами контура панели.
+* {{PropertyView|Show Margin}}: Включает/выключает отображение полей.
+
+<span id="Scripting"></span>
+==Программирование==
+
+{{Emphasis|См. так же:}} [[Arch_API/ru|Arch API]] и [[FreeCAD_Scripting_Basics/ru|Основы составления скриптов в FreeCAD]].
+
+The Panel Cut tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following function:
+{{Code|code=
+View = makePanelCut(panel, name="PanelView")}}
+
+* Creates a {{incode|View}} object (2D projection) from the existing {{incode|panel}}.
+
+Пример:
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(500, 0, 0)
+p3 = FreeCAD.Vector(500, 50, 0)
+p4 = FreeCAD.Vector(550, 50, 0)
+p5 = FreeCAD.Vector(600, 0, 0)
+p6 = FreeCAD.Vector(1000, 0, 0)
+p7 = FreeCAD.Vector(1000, 400, 0)
+p8 = FreeCAD.Vector(600, 400, 0)
+p9 = FreeCAD.Vector(600, 350, 0)
+p10 = FreeCAD.Vector(550, 350, 0)
+p11 = FreeCAD.Vector(500, 400, 0)
+p12 = FreeCAD.Vector(0, 400, 0)
+
+Wire = Draft.makeWire([p1, p2, p3, p4, p5, p6,
+                       p7, p8, p8, p9, p10, p11, p12], closed=True)
+Panel = Arch.makePanel(Wire, thickness=36)
+FreeCAD.ActiveDocument.recompute()
+
+View = Arch.makePanelCut(Panel)
+View.ViewObject.LineWidth = 3
+FreeCAD.ActiveDocument.recompute()
+}}
+
+<span id="Tutorials"></span>
+== Материалы для самостоятельного изучения ==
+
+* [[Wikihouse_porting_tutorial/ru|Руководство по портированию файлов проекта Wikihouse в FreeCAD]]
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Arch_Panel/ru|Паенль]]
+|[[Arch_Panel_Sheet/ru|Панельный лист]]
+|[[Arch_Workbench/ru|Архитектурный верстак "Arch"]]
+|IconL=Arch_Panel.svg
+|IconR=Arch_Panel_Sheet.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

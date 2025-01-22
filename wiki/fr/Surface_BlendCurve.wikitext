@@ -1,0 +1,111 @@
+<languages/>
+
+{{Docnav/fr
+|[[Surface_CurveOnMesh/fr|Courbe sur maillage]]
+|
+|[[Surface_Workbench/fr|Atelier Surface]]
+|IconL=Surface_CurveOnMesh.svg
+|IconR=
+|IconC=Workbench_Surface.svg
+}}
+
+{{GuiCommand/fr
+|Name=Surface BlendCurve
+|Name/fr=Surface Fusion de courbes
+|MenuLocation=Surface → Fusionner des courbes
+|Workbenches=[[Surface_Workbench/fr|Surface]]
+|Version=0.21
+}}
+
+==Description==
+
+{{Button|[[File:Surface_BlendCurve.svg|16px]] [[Surface_BlendCurve/fr|Surface Fusion de courbes]]}} crée une courbe de Bézier entre deux arêtes, avec la continuité souhaitée.
+
+La géométrie de base peut appartenir à des courbes créées avec l'[[Draft_Workbench/fr|atelier Draft]] ou l'[[Sketcher_Workbench/fr|atelier Sketcher]], mais aussi à des objets solides tels que ceux créés avec l'[[Part_Workbench/fr|atelier Part]].
+
+[[File:Surface_BlendCurve_G3_example.png|400px]]
+[[File:Surface_BlendCurve_Comb.png|400px]]
+{{Caption|Surface Fusion de courbes reliant 2 arêtes avec une continuité G3. Les polygones orange représentent les points de contrôle. Le peigne de courbure (de l'[[Curves_Workbench/fr|extension Curves]]) est lisse aux points de contact.}}
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Sélectionnez deux arêtes dans la [[3D_view/fr|vue 3D]].
+# Il y a plusieurs façons de lancer la commande :
+#* Appuyez sur le bouton {{Button|[[Image:Surface_BlendCurve.svg|16px]] [[Surface_BlendCurve/fr|Fusionner des courbes]]}}.
+#* Sélectionnez l'option {{MenuCommand|Surface → [[Image:Surface_BlendCurve.svg|16px]] Fusionner des courbes}} du menu.
+# Ajustez la forme de la courbe dans les propriétés Data de l'objet.
+
+<span id="Properties"></span>
+==Propriétés==
+
+[[Surface_BlendCurve/fr|Surface Fusion de courbes]] (classe {{incode|Surface::Filling}}) est dérivée de la classe de base [[Part_Feature/fr|Part Feature]] (classe {{incode|Part::Feature}} via la sous-classe {{incode|Part::Spline}}), elle partage donc toutes les propriétés de cette dernière.
+
+Outre les propriétés décrites dans [[Part Feature/fr|Part Feature]], Surface Fusion de courbes a les propriétés suivantes dans l'[[property_editor/fr|éditeur de propriétés]].
+
+<span id="Data"></span>
+===Données===
+
+{{TitleProperty|Blend Curve}}
+
+* {{PropertyData|Start Edge|LinkSub}} : premier bord d'entrée.
+* {{PropertyData|Start Continuity|Integer}} : valeur de continuité géométrique
+* {{PropertyData|Start Parameter|Float}} : paramètre normalisé le long de l'arête, de {{Value|0.0}} (début de l'arête) à {{Value|1.0}} (fin de l'arête).
+* {{PropertyData|Start Size|Float}} : taille de la tangente.
+* {{PropertyData|End Edge|LinkSub}} : deuxième arête d'entrée.
+* {{PropertyData|End Continuity|Integer}} : valeur de continuité géométrique
+* {{PropertyData|End Parameter|Float}} : paramètre normalisé le long de l'arête, de {{Value|0.0}} (début de l'arête) à {{Value|1.0}} (fin de l'arête).
+* {{PropertyData|End Size|Float}} : taille de la tangente.
+
+<span id="View"></span>
+=== Vue ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyView|Control Points|Bool}} : par défaut {{FALSE}}. Mis à {{TRUE}}, elle affichera une superposition avec les points de contrôle de la surface.
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Voir aussi :}} [[FreeCAD_Scripting_Basics/fr|FreeCAD Script de base]].
+
+L'outil Fusion de courbes peut être utilisé dans les [[Macros/fr|macros]] et à partir de la console [[Python/fr|Python]] en ajoutant l'objet {{incode|Surface::FeatureBlendCurve}}.
+* Les arêtes à utiliser pour définir la courbe doivent être assignées en tant que [[FeaturePython_Custom_Properties/fr#App::PropertyLinkSub|LinkSub]] aux propriétés {{incode|StartEdge}} et {{incode|EndEdge}} de l'objet.
+* Tous les objets dotés d'arêtes doivent être calculés avant de pouvoir être utilisés comme entrée pour les propriétés de l'objet Fusion de courbes.
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+points1 = [App.Vector(-20, -20, 0), App.Vector(-20, -8, 0), App.Vector(-17, 7, 0), App.Vector(-18, 25, 0)]
+obj1 = Draft.make_bspline(points1)
+
+points2 = [App.Vector(60, 26, 0), App.Vector(37, 4, 0), App.Vector(33, -20, 0)]
+obj2 = Draft.make_bspline(points2)
+
+doc.recompute()
+
+bcurve = doc.addObject("Surface::FeatureBlendCurve","BlendCurve")
+bcurve.StartEdge = (obj1, 'Edge1')
+bcurve.EndEdge = (obj2, 'Edge1')
+bcurve.EndParameter = 1.00
+bcurve.StartSize = -5.00
+bcurve.EndSize = -5.00
+
+doc.recompute()
+}}
+
+
+{{Docnav/fr
+|[[Surface_CurveOnMesh/fr|Courbe sur maillage]]
+|
+|[[Surface_Workbench/fr|Atelier Surface]]
+|IconL=Surface_CurveOnMesh.svg
+|IconR=
+|IconC=Workbench_Surface.svg
+}}
+
+{{Surface Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,345 @@
+<languages/>
+
+{{TutorialInfo/sv
+|Topic= Robot Workbench
+|Level= Intermediate
+|Time= Unknown
+|Author=
+|FCVersion=
+|Files=
+}}
+
+==Overview==
+
+<div class="mw-translate-fuzzy">
+Denna artikel handlar om hur man hämtar in en standard 6-Axlig industrirobot till FreeCAD för simulering
+</div>
+
+Beskrivningen följer [http://en.wikipedia.org/wiki/Denavit-Hartenberg_Parameters Denavit-Hartenberg Parameter] systemet, som även beskrivs i John J. Craigs bok "Introduction to Robotics".
+
+<span id="Example_Kuka"></span>
+== Exempel Kuka ==
+
+{| class="wikitable" style="color:green; background-color:#ffffcc;" cellpadding="5" cellspacing="0" border="1"
+|+ '''Kuka KR-16'''
+
+|-               
+| [[Image:KukaKR16.jpg]]
+ || [[Image:KukaParts.jpg]]
+ || [[Image:KukaAxisPosition.jpg]]
+|}
+
+<span id="Kinematic"></span>
+=== Kinematik ===
+
+{| class="wikitable" style="color:green; background-color:#ffffcc;" cellpadding="5" cellspacing="0" border="1"
+|+ '''3D applikationer'''
+|-
+! Segment
+! Parameter
+! Beskrivning
+|-               
+| [[Image:KukaBase.jpg]]
+ || 
+ || Basens konfiguration  
+|-               
+| [[Image:KukaSegment1.jpg]]
+ || 
+<math>\theta_{1} = q_{1}</math> 
+
+<math>d_{1} = 675 mm </math> 
+
+<math>a_{1} = 260 mm </math> 
+
+<math>\alpha_{1} = -90</math>° 
+
+ || Segment 1
+|-               
+| [[Image:KukaSegment2.jpg]]
+ || 
+
+<math>\theta_{2} = q_{2} - 90</math>° 
+
+<math>d_{2} = 0 mm </math> 
+
+<math>a_{2} = 680 mm </math> 
+
+<math>\alpha_{2} = 0</math>° 
+
+ || Segment 2
+|-               
+| [[Image:KukaSegment3.jpg]]
+ || 
+
+<math>\theta_{3} = q_{3} </math> 
+
+<math>d_{3} = 0 mm </math> 
+
+<math>a_{3} = 0 mm </math> 
+
+<math>\alpha_{3} = 90</math>° 
+
+ || Segment 3
+|-               
+| [[Image:KukaSegment4.jpg]]
+ || 
+
+<math>\theta_{4} = q_{4} </math> 
+
+<math>d_{4} = -670 mm </math> 
+
+<math>a_{4} = 0 mm </math> 
+
+<math>\alpha_{4} = -90</math>° 
+
+ || Segment 4
+|-               
+| [[Image:KukaSegment5.jpg]]
+ || 
+
+<math>\theta_{5} = q_{5} </math> 
+
+<math>d_{5} = 0 mm </math> 
+
+<math>a_{5} = 0 mm </math> 
+
+<math>\alpha_{5} = 90</math>° 
+
+ || Segment 5
+|-               
+| [[Image:KukaSegment6.jpg]]
+ || 
+
+<math>\theta_{6} = q_{6} </math> 
+
+<math>d_{6} = 0 mm </math> 
+
+<math>a_{6} = -158 mm </math> 
+
+<math>\alpha_{6} = 180</math>° 
+
+ || Segment 6
+|}
+
+Detta leder till följande tabell:
+
+{| class="wikitable" style="color:green; background-color:#ffffcc;" cellpadding="5" cellspacing="0" border="1"
+|+ <div class="mw-translate-fuzzy">
+'''Kinematik tabell'''
+</div>
+|-
+! <math>i</math> !! <math>\theta</math> !! <math>d</math> !! <math>a</math> !! <math>\alpha</math> 
+|-               
+| 1  || q1       || 675 mm  ||   260 mm || -90° 
+|-               
+| 2  || q2 - 90° || 0 mm    ||   680 mm || 0° 
+|-               
+| 3  || q3       || 0 mm    ||     0 mm || 90° 
+|-               
+| 4  || q4       || -670 mm ||     0 mm || -90° 
+|-               
+| 5  || q5       || 0 mm    ||     0 mm || 90° 
+|-               
+| 6  || q6       || -158 mm ||     0 mm || 180° 
+|}
+
+Eftersom Kuka robotarna inte har alla axlar i 0 i den ritade  L-Positionen, så behöver vi ändra 
+axel 2 & 3 med 90°.
+
+
+{| class="wikitable" style="color:green; background-color:#ffffcc;" cellpadding="5" cellspacing="0" border="1"
+|+ <div class="mw-translate-fuzzy">
+'''Kinematik tabell'''
+</div>
+|-
+! <math>i</math> !! <math>\theta</math> !! <math>d</math> !! <math>a</math> !! <math>\alpha</math> 
+|-               
+| 1  || q1       || 675 mm  ||   260 mm || -90° 
+|-               
+| 2  || q2       || 0 mm    ||   680 mm || 0° 
+|-               
+| 3  || q3 - 90° || 0 mm    ||     0 mm || 90° 
+|-               
+| 4  || q4       || -670 mm ||     0 mm || -90° 
+|-               
+| 5  || q5       || 0 mm    ||     0 mm || 90° 
+|-               
+| 6  || q6       || -158 mm ||     0 mm || 180° 
+|}
+
+I databladet så hittar vi ytterligare information om axlarna:
+
+[[Image:KukaAxisData.jpg]]
+
+Vilket leder till den kompletta tabellen:
+{| class="wikitable" style="color:green; background-color:#ffffcc;" cellpadding="5" cellspacing="0" border="1"
+|+ <div class="mw-translate-fuzzy">
+'''Kinematik tabell'''
+</div>
+|-
+! <math>i</math> !! <math>\theta</math> !! <math>d</math> !! <math>a</math> !! <math>\alpha</math> !! <math>\theta_{min}</math> !! <math>\theta_{max}</math> !! Axis Speed 
+|-               
+| 1  || 0       || 675   ||   260  || -90  || -185 || 185 || 156 
+|-               
+| 2  || 0       || 0     ||   680  || 0    || -155 || 35  || 156
+|-               
+| 3  || - 90    || 0     ||     0  || 90   || -130 || 154 || 156
+|-               
+| 4  || 0       || -670  ||     0  || -90  || -350 || 350 || 330
+|-               
+| 5  || 0       || 0     ||     0  || 90   || -130 || 130 || 330
+|-               
+| 6  || 0       || -158  ||     0  || 180  || -350 || 350 || 615
+|}
+
+<span id="Visual_representation"></span>
+=== Visuell representation ===
+
+FreeCAD kan generera en grov bild ur kinematiktabellen. Men om du vill komma närmare
+verkligheten så kan du använda en VRML fil med robotens utseende för simuleringen.
+T.ex. [http://kuka.com Kuka] handhar VRML filer för sina modeller. 
+VRML filen laddas under skapandet av den specifika roboten 
+i FreeCAD. För att FreeCAD ska kunna röra axlarna så måste vi redigera  
+VRML filen och sätta in speciella omvandlingsnoder som FreeCAD kan hitta 
+och manipulera.
+
+Detta visas återigen med exemplet Kuka KR 16.
+med start från rad 1:
+
+ #VRML V2.0 utf8
+ #
+ # This VRML97 file was exported using eM-Workplace
+ # (c) Tecnomatix Technologies GmbH & Co. KG
+ #     Heisenberg-Bogen 1
+ #     D-85609 Aschheim-Dornach
+ #     GERMANY
+ #
+ #Background
+ #{
+ #   skyColor   [0.752941 0.752941 0.752941]
+ #}
+ Transform
+ {
+    #rotation 1 0 0 -1.5707963
+    #scale .001 .001 .001
+    children
+    [
+            DEF AOBJ_0001_000_TRAFO Transform
+            {
+               children
+               [
+ ...
+Du ser att denna fil är exporterad med en robotsimuleringsmjukvara som kallas för Tecnomatix. Ta bort denna notis och skriv in en URL var du fick denna fil ifrån, därför att Tecnomatix har ingen upphovsrätt på filinnehållet. Det är endast en omvandlare! Först av allt så tar vi bort '''Background''' noden. Ta sedan bort  '''rotation''' och '''scale''' noden för att få modellen i mm och uppåtpekande Z.
+
+Aldeles vid slutet:
+   ] }
+   ] }
+   ] }
+   ]
+ }
+ #ROUTE SENS_04_OBJ.rotation_changed TO AXIS_04_OBJ.rotation
+ #ROUTE SENS_27_OBJ.rotation_changed TO AXIS_27_OBJ.rotation
+ #ROUTE SENS_32_OBJ.rotation_changed TO AXIS_32_OBJ.rotation
+ #ROUTE SENS_44_OBJ.rotation_changed TO AXIS_44_OBJ.rotation
+ #ROUTE SENS_46_OBJ.rotation_changed TO AXIS_46_OBJ.rotation
+ #ROUTE SENS_49_OBJ.rotation_changed TO AXIS_49_OBJ.rotation
+ #DEF AnySIMTimer TimeSensor
+ #{
+ #   cycleInterval 1.000000
+ #   loop          TRUE
+ #}
+
+Kommentera bort '''TimeSensor''' och de 6 rutterna. Dessa 6 rader ger dig ett tips på var robotens axlar är någonstans! 
+Sök först efter "AXIS_04_OBJ" som tar dig till den platsen:
+ ...
+     Transform { rotation 1 0 0 1.570796 children [
+         DEF SENS_04_OBJ-0001 CylinderSensor
+         {
+            diskAngle 1.570796
+            minAngle  -3.228859
+            maxAngle  3.228859
+            offset    0.000000
+         }
+       DEF FREECAD_AXIS1 Transform { rotation 0 1 0 0 children [
+       DEF AXIS_04_OBJ-0001 Transform
+      {
+         children
+         [
+         Transform { rotation 1 0 0 -1.570796 children [
+            DEF AOBJ_0001_003_TRAFO Transform
+            {
+               rotation 1.000000 0.000000 0.000000 3.141593
+               translation -600.000000 500.000000 300.000000
+               children
+               [
+ ...
+Du måste precis innan definitionen av denna nod sätta in raden '''"DEF FREECAD_AXIS1 Transform { rotation 0 1 0 0 children ["'''  vilket är FreeCADs ankare för att förflytta axeln.
+
+Gör nu detsamma för  '''FREECAD_AXIS2''','''FREECAD_AXIS3''','''FREECAD_AXIS4''','''FREECAD_AXIS5''' och '''FREECAD_AXIS6'''.
+Glöm inte de stängande parenteserna vid slutet av filen, och du är färdig!
+
+Du kan ladda VRML:en genom att exemplifiera roboten:
+ App.activeDocument().addObject("Robot::RobotObject","Robot")
+ App.activeDocument().Robot.RobotVrmlFile = "C:/_Projekte/FreeCAD0.9_build/mod/Robot/Lib/Kuka/kr16.wrl"
+vilket ska ge dig detta resultat:
+[[Image:KukaKR16FreeCAD.jpg]]
+
+=== KR 210 ===
+
+[http://free-cad.svn.sourceforge.net/viewvc/free-cad/trunk/src/Mod/Robot/Lib/Kuka/kr_210_2.pdf Data sheet]
+
+{| class="wikitable" style="color:green; background-color:#ffffcc;" cellpadding="5" cellspacing="0" border="1"
+|+ <div class="mw-translate-fuzzy">
+'''Kinematik tabell'''
+</div>
+|-
+! <math>i</math> !! <math>\theta</math> !! <math>d</math> !! <math>a</math> !! <math>\alpha</math> !! <math>\theta_{min}</math> !! <math>\theta_{max}</math> !! Axis Speed 
+|-               
+| 1  || 0       || 750   ||   350  || -90  || -185 || 185 || 156 
+|-               
+| 2  || 0       || 0     ||   1250 || 0    || -155 || 35  || 156
+|-               
+| 3  || - 90    || 0     ||     0  || 90   || -130 || 154 || 156
+|-               
+| 4  || 0       || -1100 ||     0  || -90  || -350 || 350 || 330
+|-               
+| 5  || 0       || 0     ||     0  || 90   || -130 || 130 || 330
+|-               
+| 6  || 0       || -230  ||     0  || 180  || -350 || 350 || 615
+|}
+
+
+=== KR 500 ===
+
+[http://free-cad.svn.sourceforge.net/viewvc/free-cad/trunk/src/Mod/Robot/Lib/Kuka/kr_500_2.pdf Data sheet]
+
+{| class="wikitable" style="color:green; background-color:#ffffcc;" cellpadding="5" cellspacing="0" border="1"
+|+ <div class="mw-translate-fuzzy">
+'''Kinematik tabell'''
+</div>
+|-
+! <math>i</math> !! <math>\theta</math> !! <math>d</math> !! <math>a</math> !! <math>\alpha</math> !! <math>\theta_{min}</math> !! <math>\theta_{max}</math> !! Axis Speed 
+|-               
+| 1  || 0       || 1045  ||   500  || -90  || -185 || 185 || 156 
+|-               
+| 2  || 0       || 0     ||   1300 || 0    || -155 || 35  || 156
+|-               
+| 3  || - 90    || 0     ||     0  || 90   || -130 || 154 || 156
+|-               
+| 4  || 0       || -1025 ||     0  || -90  || -350 || 350 || 330
+|-               
+| 5  || 0       || 0     ||     0  || 90   || -130 || 130 || 330
+|-               
+| 6  || 0       || -250  ||     0  || 180  || -350 || 350 || 615
+|}
+
+=== Links ===
+
+* [https://link.springer.com/referenceworkentry/10.1007%2F978-3-540-30301-5_2 Springer Handbook of Robotics, section Kinematics, p 9-33].
+* [https://www.youtube.com/watch?v=qZB3_gKBwf8 Denavit-Hartenberg Parameter 3D Video Tutorial] Denavit-Hartenberg Parameter 3D Video Tutorial for a KUKA industry robot on YouTube (german).
+* [https://www.youtube.com/watch?v=rA9tm0gTln8 Denavit-Hartenberg Reference Frame Layout] Denavit-Hartenberg Reference Frame Layout on YouTube.
+* [http://www.roboanalyzer.com/ RoboAnalyzer] RoboAnalyzer is a 3D model based software that can be used to teach and learn the Robotics concepts.
+
+
+{{Robot_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

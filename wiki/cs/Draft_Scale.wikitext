@@ -1,0 +1,128 @@
+<languages/>
+
+{{Docnav
+|[[Draft_Rotate|Rotate]]
+|[[Draft_Mirror|Mirror]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_Rotate.svg
+|IconR=Draft_Mirror.svg
+|IconC=Workbench_Draft.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/cs|Name=Draft Scale|Name/cs=Kreslení Roztáhnout|Workbenches=[[Draft_Workbench/cs|Kreslení]], [[Arch_Workbench/cs|Architektura]]|MenuLocation=Kreslení → Roztáhnout|Shortcut=S C|SeeAlso=[[Draft Clone/cs|Kreslení Klon]]}}
+</div>
+
+<span id="Description"></span>
+==Popis==
+
+<div class="mw-translate-fuzzy">
+Tento nástroj roztáhne rozměry objektů vzhledem k základnímu bodu. Není-li vybrán žádný objekt, budete vyzváni k jeho výběru. Nástroj také může být využit k zrcadlení objektů.
+</div>
+
+The command can be used on 2D objects created with the [[Draft_Workbench|Draft Workbench]] or [[Sketcher_Workbench|Sketcher Workbench]], but also on many 3D objects such as those created with the [[Part_Workbench|Part Workbench]], [[PartDesign_Workbench|PartDesign Workbench]] or [[BIM_Workbench|BIM Workbench]].
+
+[[Image:Draft_Scale_example.png|400px]]
+{{Caption|Scaling an object around a base point}}
+
+<span id="Usage"></span>
+==Použití==
+
+See also: [[Draft_Snap|Draft Snap]] and [[Draft_Constrain|Draft Constrain]].
+
+<div class="mw-translate-fuzzy">
+# Vyberte objekt, který chcete roztáhnout
+# Stiskněte tlačítko {{KEY|[[Image:Draft Scale.png|16px]] [[Draft Scale/cs|Kreslení Roztáhnout]]}} nebo klávesy {{KEY|S}} potom {{KEY|C}}
+# Klikněte na první bod ve 3D pohledu nebo zadejte souřadnice
+# Klikněte na druhý bod ve 3D pohledu nebo zadejte souřadnice
+</div>
+
+<span id="Options"></span>
+==Volby==
+
+===First task panel===
+
+The single character keyboard shortcuts available in the task panel can be changed. See [[Draft_Preferences|Draft Preferences]]. The shortcuts mentioned here are the default shortcuts.
+
+* To manually enter the coordinates for the base point enter the X, Y and Z component, and press {{KEY|Enter}} after each. Or you can press the {{Button|[[Image:Draft_AddPoint.svg|16px]] Enter point}} button when you have the desired values. It is advisable to move the pointer out of the [[3D_view|3D view]] before entering coordinates.
+* Press {{KEY|G}} or click the {{MenuCommand|Global}} checkbox to toggle global mode. If global mode is on, coordinates are relative to the global coordinate system, else they are relative to the [[Draft_SelectPlane|working plane]] coordinate system.
+* Press {{KEY|S}} to switch [[Draft_Snap|Draft snapping]] on or off.
+* Press the {{Button|Close}} button to abort the command.
+
+===Second task panel===
+
+<div class="mw-translate-fuzzy">
+* Chcete-li zadat souřadnice ručně jednoduše zadejte číslo a potom stiskněte {{KEY|ENTER}} mezi každou z komponent X, Y a Z.
+* Komponenty x, y and z druhého bodu definují faktor roztažení. Například, (1,1,1) neudělá nic, (2,2,2) roztáhne objekt 2x ve všech směrech, (-1,1,1) zrcadlí objekt ve směru x.
+* Stisknutí klávesy {{KEY|ALT}} nebo {{KEY|C}} nebo kliknutí na tlačítko {{KEY|'''Kopie'''}} vytvoří kopii objektu místo jeho roztažení. Podržíte-li stisknutou klávesu {{KEY|ALT}} po kliknutí na druhý bod, budete moci umístit několik kopií, až dokud neuvolníte klávesu {{KEY|ALT}}.
+* Stisknutím klávesy {{KEY|CTRL}} během kreslení vynutíte [[Draft_Snap/cs|přichycení]] vašeho bodu k nejbližšímu uchopovacímu místu nezávisle na vzálenosti od něho.
+* Stisknutí klávesy {{KEY|SHIFT}} uzamkne společně hodnoty x a y, takže tvar není deformován.
+* Stisknutím tlačítka {{KEY|ESC}} nebo {{KEY|'''Zrušit'''}} zrušíte právě probíhající příkaz.
+* Výsledný objekt je [[Draft Clone/cs|klon]], což umožňuje měnit hodnotu roztažení po tom co byl objekt vytvořen.
+* Zrcadlení objektů je založeno na otočení znaménka v jednom ze směrů. Například, (-1,1,1) zrcadlí vodorovně (podle osy X) a (1,-1,1) svisle (podle osy Y).
+</div>
+
+==Notes==
+
+* The command can also scale [[Image_CreateImagePlane|Image Planes]], but not in clone mode.
+
+==Preferences==
+
+See also: [[Preferences_Editor|Preferences Editor]] and [[Draft_Preferences|Draft Preferences]].
+
+* To reselect the base objects after copying objects: {{MenuCommand|Edit → Preferences... → Draft → General → Select base objects after copying}}.
+
+==Scripting==
+
+<div class="mw-translate-fuzzy">
+==Skriptování==
+</div>
+
+<div class="mw-translate-fuzzy">
+Nástroj Roztáhnout může být využit v [[macros/cs|makrech]] a z konzoly Pythonu použitím následující funkce:
+</div>
+
+{{Code|code=
+scaled_list = scale(objectslist, scale=Vector(1,1,1), center=Vector(0,0,0), copy=False)
+}}
+
+<div class="mw-translate-fuzzy">
+* Roztáhne objekty obsažené v objects (může to být objekt nebo seznam objektů) podle zadaného faktoru roztažení definovaného vektorem (ve směrech X, Y a Z) kolem zadaného středu.
+* Je-li legacy True, je použit (zastaralý) mód direct, jinak je provedena parametrická kopie. 
+* Je-li copy True, aktuální objekty se nepohnou, ale místo toho jsou vytvořeny nové kopie. 
+* Jsou vráceny objekty (nebo jejich kopie).
+</div>
+
+Příklad:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+pts = [App.Vector(0, 0, 0), App.Vector(500, 500, 0), App.Vector(600, 0, 0)]
+wire1 = Draft.make_wire(pts, closed=True)
+doc.recompute()
+
+scale1 = App.Vector(2.3, 0.75, 0)
+wire2 = Draft.scale(wire1, scale1, copy=True)
+doc.recompute()
+
+scale2 = App.Vector(-2, -1.5, 0)
+wires = Draft.scale([wire1, wire2], scale2, copy=True)
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Draft_Rotate|Rotate]]
+|[[Draft_Mirror|Mirror]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_Rotate.svg
+|IconR=Draft_Mirror.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,112 @@
+<languages/>
+
+{{Docnav/pl
+|[[Surface_CurveOnMesh/pl|Krzywa na siatce]]
+|
+|[[Surface_Workbench/pl|Powierzchnia 3D]]
+|IconL=Surface_CurveOnMesh.svg
+|IconR=
+|IconC=Workbench_Surface.svg
+}}
+
+{{GuiCommand/pl
+|Name=Surface BlendCurve
+|Name/pl=Powierzchnia 3D: Krzywa łącząca
+|MenuLocation=Powierzchnia → Krzywa łącząca
+|Workbenches=[[Surface_Workbench/pl|Powierzchnia 3D]]
+|Version=0.21
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie '''Krzywa łącząca''' tworzy krzywą Bezier'a między dwiema krawędziami, z zachowaniem pożądanej ciągłości.
+
+Geometria bazowa może należeć do krzywych utworzonych za pomocą środowiska [[Draft_Workbench/pl|Rysunek Roboczy]] lub [[Sketcher_Workbench/pl|Szkicownik]], ale może również należeć do obiektów bryłowych, takich jak te utworzone za pomocą środowiska [[Part_Workbench/pl|Część]].
+
+[[File:Surface_BlendCurve_G3_example.png|400px]]
+[[File:Surface_BlendCurve_Comb.png|400px]]
+{{Caption|Krzywa łączenia powierzchni łącząca dwie krawędzie z ciągłością G3. Pomarańczowy wielokąt reprezentuje punkty kontrolne. Grzebień krzywizny (z zewnętrznego środowiska pracy [[Curves_Workbench/pl|Krzywe]]) jest gładki w punktach styku.}}
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wybierz dwie krawędzie w oknie [[3D_view/pl|widoku 3D]].
+# Polecenie można wywołać na kilka sposobów:
+#* Naciśnij przycisk {{Button|[[Image:Surface_BlendCurve.svg|16px]] '''Krzywa łącząca'''}}.
+#* Wybierz z menu opcję {{MenuCommand|Surface → [[Image:Surface_BlendCurve.svg|16px]] Krzywa łącząca}}.
+# Dostosuj kształt krzywej we właściwościach obiektu '''Dane'''.
+
+<span id="Properties"></span>
+==Właściwości==
+
+Krzywa łącząca jest pochodną podstawowej klasy [[Part_Feature/pl|Część: Cecha]] ''({{incode|Part::Feature}}, poprzez klasę podrzędną {{incode|Part::Spline}})'', dlatego też dzieli z nią wszystkie jej właściwości.
+
+Oprócz właściwości opisanych na stronie [[Part_Feature/pl|Część: Cecha]], krzywa mieszania powierzchni ma następujące właściwości w [[Property_editor/pl|edytorze właściwości]].
+
+<span id="Data"></span>
+===Dane===
+
+{{TitleProperty|Krzywa łącząca}}
+
+* {{PropertyData|Start Edge|LinkSub}}: Pierwsza krawędź wejściowa.
+* {{PropertyData|Start Continuity|Integer}}: Geometryczna wartość ciągłości
+* {{PropertyData|Start Parameter|Float}}: Znormalizowany parametr wzdłuż krawędzi; od {{Value|0.0}} (początek krawędzi) do {{Value|1.0}} ''(koniec krawędzi)''.
+* {{PropertyData|Start Size|Float}}: Rozmiar stycznej.
+* {{PropertyData|End Edge|LinkSub}}: Druga krawędź wejściowa.
+* {{PropertyData|End Continuity|Integer}}: Geometryczna wartość ciągłości
+* {{PropertyData|End Parameter|Float}}: Znormalizowany parametr wzdłuż krawędzi; od {{Value|0.0}} (początek krawędzi) do {{Value|1.0}} ''''(koniec krawędzi).
+* {{PropertyData|End Size|Float}}: Rozmiar stycznej.
+
+<span id="View"></span>
+===Widok===
+
+{{TitleProperty|Baza}}
+
+* {{PropertyView|Control Points|Bool}}: wartość domyślna to {{FALSE/pl}}, Jeśli ustawiono {{TRUE/pl}}, wyświetlona zostanie nakładka z punktami kontrolnymi krzywej.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[FreeCAD_Scripting_Basics/pl|FreeCAD podstawy tworzenia skryptów]].
+
+Narzędzie Blend Curve może być używane w [[Macros/pl|makrodefinicjach]] i z konsoli [[Python/pl|Python]] poprzez dodanie obiektu {{incode|Surface::FeatureBlendCurve}}.
+* Krawędzie, które mają być użyte do zdefiniowania krzywej, muszą być przypisane jako [[FeaturePython_Custom_Properties/pl#App::PropertyLinkSub|Struktura danych LinkSub]] do właściwości {{incode|StartEdge}} i {{incode|EndEdge}} obiektu.
+* Wszystkie obiekty z krawędziami muszą zostać obliczone, zanim będą mogły zostać użyte jako dane wejściowe dla właściwości obiektu Blend Curve.
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+points1 = [App.Vector(-20, -20, 0), App.Vector(-20, -8, 0), App.Vector(-17, 7, 0), App.Vector(-18, 25, 0)]
+obj1 = Draft.make_bspline(points1)
+
+points2 = [App.Vector(60, 26, 0), App.Vector(37, 4, 0), App.Vector(33, -20, 0)]
+obj2 = Draft.make_bspline(points2)
+
+doc.recompute()
+
+bcurve = doc.addObject("Surface::FeatureBlendCurve","BlendCurve")
+bcurve.StartEdge = (obj1, 'Edge1')
+bcurve.EndEdge = (obj2, 'Edge1')
+bcurve.EndParameter = 1.00
+bcurve.StartSize = -5.00
+bcurve.EndSize = -5.00
+
+doc.recompute()
+}}
+
+
+{{Docnav/pl
+|[[Surface_CurveOnMesh/pl|Krzywa na siatce]]
+|
+|[[Surface_Workbench/pl|Powierzchnia 3D]]
+|IconL=Surface_CurveOnMesh.svg
+|IconR=
+|IconC=Workbench_Surface.svg
+}}
+
+{{Surface Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

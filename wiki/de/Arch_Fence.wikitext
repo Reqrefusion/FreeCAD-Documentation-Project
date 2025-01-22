@@ -1,0 +1,124 @@
+<languages/>
+
+{{Docnav/de
+|[[Arch_Frame/de|Rahmen]]
+|[[Arch_Truss/de|Fachwerkträger]]
+|[[BIM_Workbench/de|BIM]]
+|IconL=Arch_Frame.svg
+|IconR=Arch_Truss.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|DIESER BEFEHL IST BESTANDTEIL DES INTEGRIERTEN ARBEITSBEREICHS [[BIM_Workbench/de|BIM]] IN V1.0<br>
+Diese Seite wurde für diese Version aktualisiert.}}
+
+{{GuiCommand/de
+|Name=Arch Fence
+|Name/de=Arch Zaun
+|MenuLocation=3D/BIM → Zaun
+|Workbenches=[[BIM_Workbench/de|BIM]]
+|Version=0.19
+}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+Der [[Arch_Fence/de|Arch Zaun]] ist ein Objekt, das einen Zaun aufbaut durch die Wiederholung eines einzelnen Zaunpfostens und eines Zaunabschnitts entlang eines gegebenen Pfades.
+
+[[Image:Arch Fence description example.png|600px]]
+
+<span id="Usage"></span>
+==Anwendung==
+
+<span id="Creating_from_scratch"></span>
+===Erzeugung von Grundauf===
+
+# Einen Arbeitsbereich nach Wahl verwenden, um einen einzelnen Zaunpfosten und einen einzelnen Zaunabschnitt zu erstellen.
+# Den Pfad, dem der Zaun folgen soll, mit Hilfe des Arbeitsbereichs [[Sketcher_Workbench/de|Sketcher]] oder [[Draft_Workbench/de|Draft]].
+# Zum Arbeitsbereich [[BIM_Workbench/de|BIM]] zurück wechseln.
+# Den Zaunabschnitt, den Pfosten und den Pfad in genau dieser Reihenfolge auswählen.
+# Die Schaltfläche {{Button|[[Image:Arch_Fence.svg|16px]] [[Arch_Fence/de|Zaun]]}} drücken.
+
+<span id="Options"></span>
+==Optionen==
+
+Vorerst geht das Werkzeug von folgenden Voraussetzungen aus:
+# Der Pfad wird auf der XY-Ebene gezeichnet
+# Zaunabschnitt und Pfosten sind am Ursprung so modelliert, dass sie in der Vorderansicht aufrecht stehen
+
+<span id="Properties"></span>
+==Eigenschaften==
+
+<span id="Data"></span>
+=== Daten ===
+
+* {{PropertyData/de|Path}}: Der Pfad, dem der Zaun folgen soll.
+* {{PropertyData/de|Post}}: Ein einzelner Zaunpfosten, der wiederholt werden soll.
+* {{PropertyData/de|Section}}: Ein einzelner Zaunabschnitt, der wiederholt werden soll.
+* {{PropertyData/de|Number Of Posts}}: Die Gesamtanzahl der Pfosten, die für den Aufbau des Zauns verwendet werden. Diese wird automatisch berechnet.
+* {{PropertyData/de|Number Of Sections}}: Die Gesamtanzahl der Zaunabschnitte, die zum Aufbau des Zauns verwendet werden.  Diese wird automatisch berechnet.
+
+<span id="View"></span>
+===Ansicht===
+
+* {{PropertyView/de|Use Original Colors}}: Wenn auf {{TRUE}} gesetzt, verwendet der Zaun die Farben des originalen Zaunabschnitts und des originalen Pfostens. Andernfalls wird die Formfarbe (ShapeColor) des Zauns verwendet, um den Zaun einzufärben.
+
+<span id="Notes"></span>
+==Hinweise==
+
+* Arch Zaun wurde mit FC v0.19 durch den Anwender furti eingeführt.
+* [https://forum.freecadweb.org/viewtopic.php?t=36149 Forumsbeitrag] der die Funktionalität von Arch Zaun diskutiert.
+
+<span id="Scripting"></span>
+==Skripten==
+
+Das Werkzeug Zaun kann in [[Macros/de|Makros]] und von der [[Python/de|Python]]-Konsole aus durch Verwendung der folgenden Funktion verwendet werden:
+
+{{Code|code=
+Fence = buildFence(section, post, path)
+}}
+
+Beispiel:
+
+{{Code|code=
+import FreeCAD
+import Part
+import Arch
+
+parts = []
+
+parts.append(Part.makeBox(2000, 50, 30, FreeCAD.Vector(0, 0, 1000 - 30)))
+parts.append(Part.makeBox(2000, 50, 30))
+parts.append(Part.makeBox(20, 20, 1000 - 60, FreeCAD.Vector(0, 15, 30)))
+parts.append(Part.makeBox(20, 20, 1000 - 60, FreeCAD.Vector(1980, 15, 30)))
+
+for i in range(8):
+    parts.append(Part.makeBox(20, 20, 1000 - 60, FreeCAD.Vector((2000 / 9 * (i + 1)) - 10, 15, 30)))
+
+Part.show(Part.makeCompound(parts), "Fence_section")
+fence_section = FreeCAD.ActiveDocument.Fence_section
+
+sketch = FreeCAD.ActiveDocument.addObject("Sketcher::SketchObject", "Path")
+sketch.Placement = FreeCAD.Placement(FreeCAD.Vector(0, 0, 0), FreeCAD.Rotation(0, 0, 0, 1))
+sketch.addGeometry(Part.LineSegment(FreeCAD.Vector(0, 0, 0), FreeCAD.Vector(20000, 0, 0)), False)
+sketch.addGeometry(Part.LineSegment(FreeCAD.Vector(20000, 0, 0), FreeCAD.Vector(20000, 20000, 0)), False)
+
+post = Part.makeBox(100, 100, 1000, FreeCAD.Vector(0, 0, 0))
+Part.show(post, "Post")
+post = FreeCAD.ActiveDocument.Post
+
+Fence = Arch.buildFence(fence_section, post, sketch)
+}}
+
+
+{{Docnav/de
+|[[Arch_Frame/de|Rahmen]]
+|[[Arch_Truss/de|Fachwerkträger]]
+|[[BIM_Workbench/de|BIM]]
+|IconL=Arch_Frame.svg
+|IconR=Arch_Truss.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

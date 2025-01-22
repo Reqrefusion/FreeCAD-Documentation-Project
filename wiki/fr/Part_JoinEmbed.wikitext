@@ -1,0 +1,107 @@
+<languages/>
+
+{{Docnav/fr
+|[[Part_JoinConnect/fr|Connecter]]
+|[[Part_JoinCutout/fr|Découper]]
+|[[Part_Workbench/fr|Atelier Part]]
+|IconL=Part_JoinConnect.svg
+|IconR=Part_JoinCutout.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{GuiCommand/fr
+|Name=Part JoinEmbed
+|Name/fr=Part Intégrer
+|MenuLocation=Part → Joindre → Intégrer un objet
+|Workbenches=[[Part_Workbench/fr|Part]]
+|Version=0.16
+|SeeAlso=[[Part_JoinConnect/fr|Part Connecter]], [[Part_JoinCutout/fr|Part Découper]], [[Part_Boolean/fr|Part Opération booléenne]], [[Part_Thickness/fr|Part Évider]]
+}}
+
+==Description==
+
+L'outil [[Image:Part_JoinEmbed.svg|24px]] '''Part Intégrer''' incorpore un objet à paroi (un tuyau, par exemple) dans un autre objet à paroi.
+
+[[image:JoinFeatures_Embed.png|600px]]
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Sélectionnez d'abord l'objet de base, puis l'objet à intégrer. L'ordre de sélection est important. Il suffit de sélectionner une sous forme de chaque objet (par exemple les faces).
+# Il y a plusieurs façons de lancer l'outil :
+#* Appuyez sur le bouton {{Button|[[Image:Part_JoinEmbed.svg|16px]] [[Part_JoinEmbed/fr|Intégrer un objet]]}}.
+#* Sélectionnez l'option {{MenuCommand|Part → Joindre → [[Image:Part_JoinEmbed.svg|16px]] Intégrer un objet}} du menu.
+# Un objet Part JoinFeature est créé, avec un mode défini sur "Embed". Les objets originaux sont cachés et le résultat de la découpe est affiché dans la [[3D_view/fr|vue 3D]].
+
+<span id="Properties"></span>
+==Propriétés==
+
+{{TitleProperty|Base}}
+
+*{{PropertyData|Base}} : référence à l'objet de base (celui dans lequel l'autre objet doit être incorporé). L'objet doit être un seul solide.
+*{{PropertyData|Tool}} : référence à l'objet Insert (l'objet à intégrer). L'objet peut être un solide unique ou un [[Part_Compound/fr|composé valide]] de solides.
+*{{PropertyData|Mode}} : le mode  opératoire équivalent à "Intégrer" (modifier cela transformera l'outil en un autre Part_JoinXXX). La valeur "bypass" peut être utilisée pour désactiver temporairement les calculs longs (un composé de Base et Tool sera créé, ce qui est une opération rapide).
+*{{PropertyData|Refine}} : [[Part_RefineShape/fr|affiner]] ou non la forme finale. La valeur par défaut est déterminée par une case à cocher "Affiner automatiquement la forme après l'opération booléenne" dans les préférences de PartDesign. Lorsque la propriété Mode est réglée sur "bypass", Affiner est ignoré (jamais appliqué).
+
+<span id="Example"></span>
+==Exemple==
+
+# Créez un tuyau en appliquant un [[Part_Thickness/fr|évidement]] à un [[Part_Cylinder/fr|cylindre]] :<br/>[[Image:JoinFeatures_Example_step1.png|320px]]
+# Créez un autre tuyau de plus petit diamètre et placez-le de manière à ce qu'il perce la paroi du premier tuyau :<br/>[[image:JoinFeatures_Example_step2.png|320px]]
+# Sélectionnez le premier tuyau, puis le second (l'ordre de sélection est important), puis cliquez sur l'option "Intégrer l'objet" dans le bouton de la barre d'outils déroulante Outils de jointure.<br/>[[image:JoinFeatures_Example_step3_Embed.png|320px]]
+# Utilisez un outil de coupe ([[Std_ToggleClipPlane/fr|Std Couper selon des plans]], [[Arch_SectionPlane/fr|Arch Plan de coupe]], [[Arch_CutPlane/fr|Arch Couper selon un plan]]) pour afficher les éléments internes. Sur la photo ci-dessous, le plan de coupe Arch est utilisé.<br/>[[image:JoinFeatures_Example_step4_Embed.png|320px]]
+
+<span id="Algorithm"></span>
+==Algorithme==
+
+Les algorithmes derrière les outils Joindre sont assez simples et leur compréhension est importante pour utiliser les outils correctement.
+
+1. L'objet de base est [[Part Cut/fr|soustraction booléenne]] avec l'objet Insert. La forme résultante est un ensemble ([[Part_Compound/fr|composé]]) de solides non sécants (généralement deux). 
+
+2. Le composé résultant est filtré : seul le plus grand solide est conservé.
+
+3. Le plus grand solide est une [[Part_Fuse/fr|Union]] avec l'objet Tool.
+
+4. Si la propriété Refine est vraie, la forme résultante est [[Part_RefineShape/fr|affinée]].
+<br /> <br />[[image: JoinFeatures-Algo-Embed.png|800px]]
+
+<span id="Notes"></span>
+===Remarques===
+
+* Si après l’étape 1, l’objet reste en un seul morceau, le résultat de l’intégration sera équivalent à une [[Part_Fuse/fr|Part union]] de Base et de Tool, mais dont le calcul prendra plus de temps.
+* Actuellement, l'outil produira un résultat inattendu si un composé est fourni comme Base. Cela pourra être changé dans le futur.
+* Étant donné que la plus grande pièce est déterminée en comparant les volumes des pièces, l'outil ne peut fonctionner qu'avec des solides. Cela pourra être changé dans le futur.
+
+<span id="Scripting"></span>
+==Script==
+
+L'outil Joindre peut être utilisé dans des [[macros/fr|macros]] à partir de la console Python en utilisant la fonction suivante :
+
+{{Code|code=JoinFeatures.makePartJoinFeature(name = 'Embed', mode = 'Embed')}}
+
+* Crée une fonction Intégration vide (ou une autre fonction de jointure, selon le mode transmis). Les propriétés Base et Insert doivent être affectées explicitement, après.
+* Renvoie l'objet nouvellement créé.
+
+Exemple :
+
+{{code|code=
+import JoinFeatures
+j = JoinFeatures.makePartJoinFeature(name = 'Embed', mode = 'Embed' )
+j.Base = FreeCADGui.Selection.getSelection()[0]
+j.Tool = FreeCADGui.Selection.getSelection()[1]
+}}
+
+L'outil lui-même est implémenté en Python, voir {{FileName|/Mod/Part/JoinFeatures.py}} ([https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/Part/JoinFeatures.py Github link]) là où FreeCAD est installé.
+
+
+{{Docnav/fr
+|[[Part_JoinConnect/fr|Connecter]]
+|[[Part_JoinCutout/fr|Découper]]
+|[[Part_Workbench/fr|Atelier Part]]
+|IconL=Part_JoinConnect.svg
+|IconR=Part_JoinCutout.svg
+|IconC=Workbench_Part.svg
+}}
+
+{{Part Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

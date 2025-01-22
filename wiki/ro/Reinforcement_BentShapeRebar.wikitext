@@ -1,0 +1,141 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{GuiCommandAddon|Name=Arch Rebar BentShape|Workbenches=[[Arch_Workbench/ro|Arch]]|Addon=Reinforcement|MenuLocation=Arch → Rebar tools|Shortcut=None|SeeAlso=[[Arch_Rebar_Stirrup|Stirrup]]}}
+</div>
+
+{{GuiCommand
+|Name=Reinforcement BentShapeRebar
+|MenuLocation=3D/BIM → Reinforcement tools → Bent-Shape Rebar
+|Workbenches=[[Reinforcement_Workbench|Reinforcement]], [[BIM_Workbench|BIM]]
+|Version=0.17
+|SeeAlso=
+}}
+
+<span id="Description"></span>
+==Descriere==
+
+<div class="mw-translate-fuzzy">
+Instrumentul {{KEY|[[Image:Arch_Rebar_BentShape.png|16px]] Bent Shape Rebar}} permite utilizatorului să creeze o formă de armătură bent shape reinforcing bar în elementul de structură.
+</div>
+
+This tool is part of the [[Reinforcement_Workbench|Reinforcement Workbench]], an [[External_workbenches|external workbench]] that can be installed with the [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr|Addon Manager]].
+
+[[Image:Arch_Rebar_BentShape_example.png|400px]]
+<div class="mw-translate-fuzzy">
+[[Image:BentShapeRebar.png|800px]]
+</div>
+
+<span id="Usage"></span>
+== Cum se folosește ==
+
+<div class="mw-translate-fuzzy">
+# Creați un elemente de  [[Arch Structure|structure]] 
+# Selectați orice fațetă a structurii
+# Apoi selectați  {{KEY|[[Image:Arch_Rebar_BentShape.png|16px]] Bent Shape Rebar}} dintre instrumentele dedicate rebar tools
+# Un panou de activități contextual va apărea în partea stângă a ecranului, după cum se arată mai jos [[Image: BentShapeDialog.png | 250px]]
+# Selectați orientarea dorită
+# Definiți datele inițiale ca și capacul frontal, capacul din stânga, capacul din dreapta, capacul inferior, capacul superior, lungimea ancorei, unghiul îndoit, rotunjirea și diametrul barei
+# Selectați modul de distribuire fie cantitate, fie spațiere
+# Dacă spațiul este selectat, un utilizator poate de asemenea să opteze pentru [[Custom_Spacing | spacing custom]]
+# Selectați fațete utilizată petnru a verifica sau schimba faștea pentru distrubuția armăturii/ rebar distribution
+# Click pe {{KEY|OK}} sau pe {{KEY|Apply}} pentru a genera armăturile
+# Click pe {{KEY|Cancel}} pentru a ieși din task panel
+</div>
+
+[[Image:BentShapeDialog.png|250px]]
+{{Caption|Task panel for the tool}}
+
+<span id="Properties"></span>
+==Proprietăți== 
+
+* {{PropertyData|Orientation}}: Acesta decide orientarea armăturii (de ex. jos, sus, drepta și stânga).
+* {{PropertyData|Front Cover}}: Distanța dintre armături și fațetele selectate.
+* {{PropertyData|Right Cover}}: Distanța între capătul dintre capătul dreapta al armăturii și fațeta dreapta a structurii.
+* {{PropertyData|Left Cover}}: Distanța dintre capătul din stânga al armăturii și fațeta stângă a structurii
+* {{PropertyData|Bottom Cover}}: Distanța dintre armătură și fațeta de jos a structurii.
+* {{PropertyData|Top Cover}}: Distanța dintre armătură și fața superioară a structurii.
+* {{PropertyData|Anchor Length}}: Aceasta este lungimea brațelor armăturii îndoite/bent shape rebar.
+* {{PropertyData|Bent Angle}}: Stabilește unghiul de îndoire a bent shape rebar.
+* {{PropertyData|Amount}}: Cantitatea de armătură.
+* {{PropertyData|Spacing}}: Distanța între acele fiecărei bare.
+
+<span id="Scripting"></span>
+<div class="mw-translate-fuzzy">
+== Scrip-Programare ==
+</div>
+
+{{Emphasis|See also:}} [[Arch API|Arch API]], [[Reinforcement API|Reinforcement API]] and [[FreeCAD Scripting Basics|FreeCAD Scripting Basics]].
+
+<div class="mw-translate-fuzzy">
+Instrumentul  {{KEY|[[Image:Arch_Rebar_BentShape.png|16px]] Bent Shape Rebar}} poate fi utilizat în [[macros]] și de la consola Python console utilizând următorele funcții:
+</div>
+{{Code|code=
+Rebar = makeBentShapeRebar(f_cover, b_cover, l_cover, r_cover,
+                           diameter, t_cover, bentLength, bentAngle, rounding, amount_spacing_check, amount_spacing_value, orientation="Bottom",
+                           structure=None, facename=None)
+}}
+
+<div class="mw-translate-fuzzy">
+* Bent Shape Rebar are patru orientări diferite:
+** Bottom
+** Top
+** Left
+** Right
+* Adaugă un obiect Bent Shape reinforcing bar la obeictul structural selectat .
+* Dacă nu este dată nici o structură și nici o Facename, ea va avea ca intrare fațeta selectată de utilizator.
+* Aici argumentul CoverAlong este de tip tuplă.
+* Returnează noul obiect Rebar.
+</div>
+
+=== Example ===
+
+{{Code|code=
+import FreeCAD, Arch, BentShapeRebar
+
+Structure = Arch.makeStructure(length=1000, width=1000, height=100)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = BentShapeRebar.makeBentShapeRebar(50, 20, 20, 20,
+                                          8, 40, 100, 135, 2, True, 4, "Bottom", Structure, "Face4")
+Rebar.ViewObject.ShapeColor = (0.9, 0.0, 0.0)
+
+Rebar2 = BentShapeRebar.makeBentShapeRebar(50, 40, 20, 20,
+                                           8, 20, 100, 135, 2, True, 4, "Bottom", Structure, "Face6")
+Rebar2.ViewObject.ShapeColor = (0.0, 0.0, 0.9) 
+}}
+
+=== Edition of the rebar ===
+
+You can change the properties of the rebar with the following function:
+
+{{Code|code=
+editBentShapeRebar(Rebar, f_cover, b_cover, l_cover, r_cover,
+                   diameter, t_cover, bentLength, bentAngle, rounding, amount_spacing_check, amount_spacing_value, orientation,
+                   structure=None, facename=None)
+}}
+
+* {{incode|Rebar}} is a previously created {{incode|BentShapeRebar}} object.
+* The other parameters are the same as required by the {{incode|makeBentShapeRebar()}} function.
+* {{incode|structure}} and {{incode|facename}} may be omitted so that the rebar stays in the original structure.
+
+{{Code|code=
+import BentShapeRebar
+
+BentShapeRebar.editBentShapeRebar(Rebar, 50, 20, 20, 20,
+                                  12, 20, 100, 155, 2, True, 6, "Top")
+
+BentShapeRebar.editBentShapeRebar(Rebar2, 50, 35, 20, 20,
+                                  12, 35, 100, 155, 2, True, 6, "Top")
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{docnav|[[Arch_Rebar_LShape|LShape Rebar]]|[[Arch_Rebar_Stirrup|Stirrup Rebar]]|[[Arch_Workbench/es|Arch]]|IconL=Arch_Rebar_LShape.svg |IconC=Workbench_Arch.svg |IconR=Arch_Rebar_Stirrup.svg}}
+</div>
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

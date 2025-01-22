@@ -1,0 +1,127 @@
+<languages/>
+{{UnfinishedDocu{{#translation:}}}}
+
+{{Docnav
+|[[CAM_SetupSheet|SetupSheet]]
+|[[CAM_fourth_axis|Fourth axis]]
+|[[CAM_Workbench|CAM]]
+|IconL=
+|IconR=
+|IconC=Workbench_CAM.svg
+}}
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Введение==
+
+<div class="mw-translate-fuzzy">
+FreeCAD использует внутреннее представление для сгенерированных трасс инструментов, называемых G-кодами. Они могут описывать такие вещи как: скорость и глубина резания, остановка мотора и так далее... Но важнее всего описываемое ими движение. Эти движения обычно просты: это могут быть прямые линии или дуги. Более сложные кривые вроде B-сплайнов апроксимируются [[Image:Workbench_Path.svg|24px]] [[Path Workbench/ru|верстаком Path]] FreeCADа.
+</div>
+
+<span id="What_the_postprocessor_can_do_for_you"></span>
+==Что для вас может сделать постпроцессор==
+
+Many mills use G-codes as well to control the milling process. They may look almost like the internal codes, but there may be some differences:
+* the machine can have a special startup sequence
+* it can have a special stop sequence
+* arcs can be defined with a relative or an absolute center
+* it may require line numbers in a certain format
+* it can used so called canned cycles for predefined subprocesses such as drilling
+* you might prefer your G-code output in either metric or imperial units.
+* it might be useful to perform a set of moves prior to calling for a tool change to make the action easier for the operator
+* you might wish to include comments for readability or suppress them to keep the program small
+* you might wish to include a custom header to identify or document the program for future reference.
+* ...
+
+Furthermore there are other languages to control a mill, such as HPGL, DXF, or others.
+
+The postprocessor is a program which translates the internal codes into a complete file, that can be uploaded to your machine.
+
+==Preparation for writing your own postprocessor==
+
+You may start with a very simple model showing how your machine reads straight lines and arcs. Prepare it with any program suitable for your machine.
+
+A file for such paths starting at (0,0,0) and going towards Y would be helpful. Make sure it is the tool itself moving along this path, i.e. no tool radius compensation must be applied.
+
+[[File:Path_PostProcessorSketch.png]]
+
+The path in FreeCAD would look like this. Please note the small blue arrow, it indicates the starting direction. For a very first go you may provide only one level in the XY-plane.
+
+[[File:Path PostProcessorModel.png]]
+
+You can then have a look at the file and compare it to the output of existing postprocessors such as {{FileName|linux_cnc_post.py}} or {{FileName|grbl_post.py}} and try yourself to adapt them or you upload your to the [https://forum.freecadweb.org/viewforum.php?f=15 Path/CAM forum] to get some help.
+
+==Naming convention==
+
+The postprocessor can be placed in your FreeCAD macro directory. For a prefix {{FileName|<filename>}} the postprocessor should get the name {{FileName|<filename>_post.py}}. Please note that the postfix and extension, {{FileName|_post.py}}, have to be lower case.
+
+The new name should be reflected at the head of the parser arguments list in the {{FileName|<filename>_post.py}} file, e.g.:
+
+{{Code|lang=text|code=
+parser = argparse.ArgumentParser(prog="grbl", add_help=False)
+}}
+
+If you are testing, place it in your macro directory. If it functions well, please consider providing it for others to benefit (post it to the FreeCAD Path/CAM forum) so that it can be included in the FreeCAD distribution going forward.
+
+==Other existing postprocessors==
+
+For comparison you may look at the postprocessors which come with your FreeCAD installation. They are located under the directory <path_to_your_FreeCAD_distro>/Mod/CAM/Path/Post/scripts. Widely used are the [http://linuxcnc.org/ linuxcnc] and the [https://github.com/grbl/grbl grbl] postprocessors. Studying their code can give helpful insights.
+
+==Programming your own postprocessor==
+
+This post discusses some internals from the linuxcnc postprocessors. The same strucure is used in other postprocessors as well.
+
+Looking at linux_cnc_post.py, you'll see the export function (as of 0.19.20514 it's at line 156)
+
+{{Code|code=
+def export(objectslist, filename, argstring):
+    # pylint: disable=global-statement
+    ...
+    gcode = ""
+    ...
+    ...
+}}
+
+it collects step by step in the variable "gcode" the processed G-codes and handles the overall exporting of post-processable objects (operations, tools, jobs ,etc).
+Export handles the high level stuff like comments and coolant but any objects that have multiple CAM commands (tool changes and operations) it delegates to the parse function (as of 0.19.20514 it's at line 288).
+
+{{Code|code=
+def parse(pathobj):
+    ...
+    out = ""
+    lastcommand = None
+    ...
+    ...
+}}
+
+Similarly to the "export" function collects parse the G-codes in the variable "out". In the variable "command" the commands as seen in the CAM workbench's "inspect G-code" function are stored and can be investigated for further processing.
+
+{{Code|code=
+        for c in pathobj.Path.Commands:
+
+            command = c.Name
+}}
+
+It recognizes the different G, M, F, S, and other G-codes. By remembering the last command in the variable "lastcommand" it can suppress subsequent repetitions of modal commands.
+
+Both parse and export are just formatting strings and concatenating them together into what will be the final output.
+
+You'll see that both functions also call the "linenumber()" function. If the user wants line numbers, the linenumber function returns the string to stick in to the appropriate spot, otherwise it returns an empty string so nothing is added.
+
+==Related==
+
+* [[Image:CAM_Post.svg|24px]] [[CAM_Post|CAM PostProcess]]
+
+
+{{Docnav
+|[[CAM_SetupSheet|SetupSheet]]
+|[[CAM_fourth_axis|Fourth axis]]
+|[[CAM_Workbench|CAM]]
+|IconL=
+|IconR=
+|IconC=Workbench_CAM.svg
+}}
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

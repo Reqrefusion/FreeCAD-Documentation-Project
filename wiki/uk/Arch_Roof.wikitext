@@ -1,0 +1,137 @@
+<languages/>
+
+{{Docnav
+|[[Arch_Stairs|Stairs]]
+|[[Arch_Frame|Frame]]
+|[[BIM_Workbench|BIM]]
+|IconL=Arch_Stairs.svg 
+|IconR=Arch_Frame.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/uk|Name=Arch Roof|Name/uk=Arch Roof|Workbenches=[[Arch_Workbench/uk|Arch]]|MenuLocation=Arch → Roof|Shortcut=R F}}
+</div>
+
+==Description==
+
+The '''Arch Roof''' tool allows for the creation of a sloped roof from a selected wire. The created roof object is parametric, keeping its relationship with the base object. The principle is that each edge is seen allotting a profile of roof (slope, width, overhang, thickness).
+
+'''Note:''' This tool is still in development, and might fail with very complex shapes. 
+
+[[Image:RoofExample.png|600px]]
+{{Caption|View from above a building model showing the roof with certain transparency}}
+
+==Usage (wire base)==
+
+# Create a closed wire with following the counter-clockwise direction and select it.
+#:[[Image:CounterclockwiseWire.png|600px]]
+# Press the {{Button|[[Image:Arch_Roof.svg|16px]] [[Arch_Roof|Roof]]}} button, or press {{KEY|R}} then {{KEY|F}} keys
+# The default roof object could have a strange shape, it's because the tool is missing some necessary information.
+# After creating the default roof, double click on the object in the [[Tree_view|tree view]] to access and edit all the properties. Angle must be between 0 and 90.
+#:[[File:RoofTable.png]]
+# Each line corresponds to a roof pane. So you can set the properties you want for each roof pane.
+# To help you, you can set {{incode|Angle}} or {{incode|Run}} to {{incode|0}} and define a {{incode|Relative Id}}, this makes an automatic calculation to find the data relative to the {{incode|Relative Id}}.
+# It works like this:
+## If {{incode|Angle &#61; 0}} and {{incode|Run &#61; 0}} then profile is identical to the relative profile.
+## If {{incode|Angle &#61; 0}} then {{incode|Angle}} is calculated so that the height is the same one as the relative profile.
+## If {{incode|Run &#61; 0}} then {{incode|Run}} is calculated so that the height is the same one as the relative profile.
+# Finally, set an Angle to 90° to make a gable.
+#:[[Image:RoofProfil.png|600px]]
+# {{Emphasis|Note}}: for better comprehension, please see this [https://www.youtube.com/watch?v=4Urwru71dVk youtube clip].
+
+==Usage (solid base)==
+
+If your roof has a complex shape (e.g. contains pitched windows or other non-standard features) you can create a custom solid object using various other FreeCAD workbenches ([[Part_Workbench|Part]], [[Sketcher_Workbench|Sketcher]] etc.). And then use this solid as the {{PropertyData|Base}} object of your roof:
+
+# Select the solid base object.
+# Press the {{Button|[[Image:Arch_Roof.svg|16px]] [[Arch Roof|Arch Roof]]}} button, or press {{KEY|R}} then {{KEY|F}} keys.
+
+==Subtracting a roof==
+
+Roofs have an automatically generated subtraction volume ({{Version|1.0}} for roofs with a solid base). When a roof is [[Arch_Remove|removed]] from the walls of a building, both the roof itself as well as everything above it is subtracted from the walls.
+
+{{Version|1.0}}: It is possible to override the automatic subtraction volume by setting the {{PropertyData|Subvolume}} property of the roof to a custom solid object.
+
+[[File:Arch_Roof_Subtract_Default.png|x150px]] [[File:Arch_Roof_Subtract_Subvolume.png|x150px]] [[File:Arch_Roof_Subvolume_Example.png|x150px]]
+{{Caption|Solid-based roof before (1st image) and after (2nd image) [[Arch_Remove|removing]] it from walls.<br>
+The 3rd image shows the generated subtraction volume.}}
+
+==Options==
+
+* Roofs share the common properties and behaviors of all [[Arch_Component|Arch Components]].
+
+==Properties==
+
+===Data===
+
+{{TitleProperty|Roof}}
+
+* {{PropertyData|Angles|FloatList}}: The list of angles of the roof segments.
+* {{PropertyData|Border Length|Length}}: The total length of the borders of the roof.
+* {{PropertyData|Face|Integer}}: The face number of the base object used to build the roof (not used).
+* {{PropertyData|Flip|Bool}}: Specifies if the direction of the roof should be flipped.
+* {{PropertyData|Heights|FloatList}}: The list of calculated heights of the roof segments.
+* {{PropertyData|Id Rel|IntegerList}}: The list of IDs of the relative profiles of the roof segments.
+* {{PropertyData|Overhang|FloatList}}: The list of overhangs of the roof segments.
+* {{PropertyData|Ridge Length|Length}}: The total length of the ridges and hips of the roof.
+* {{PropertyData|Runs|FloatList}}: The list of horizontal length projections of the roof segments.
+* {{PropertyData|Subvolume|Link}}: The volume to subtract. If specified it is used instead of the auto-generated subvolume. {{Version|1.0}}
+* {{PropertyData|Thickness|FloatList}}: The list of thicknesses of the roof segments.
+
+==Scripting==
+
+{{Emphasis|See also:}} [[Arch API|Arch API]] and [[FreeCAD Scripting Basics|FreeCAD Scripting Basics]].
+
+The Roof tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following function:
+
+{{Code|code=
+Roof = makeRoof(baseobj=None, facenr=0, angles=[45.,], run=[], idrel=[0,], thickness=[50.,], overhang=[100.,], name="Roof")
+}}
+
+* Creates a {{incode|Roof}} object from the given {{incode|baseobj}}, which can be a closed wire or a solid object.
+** If {{incode|baseobj}} is a wire, you can provide lists for {{incode|angles}}, {{incode|run}}, {{incode|idrel}}, {{incode|thickness}}, and {{incode|overhang}}, for each edge in the wire to define the shape of the roof.
+** The lists are automatically completed to match the number of edges in the wire.
+
+Example:
+
+{{Code|code=
+import FreeCAD as App
+import Arch, Draft
+
+doc = App.newDocument()
+
+rect = Draft.makeRectangle(3000, 4000)
+doc.recompute()
+
+roof = Arch.makeRoof(rect, angles=[30.,])
+
+p1 = App.Vector(0, 0, 0)
+p2 = App.Vector(1000, 1000, 0)
+p3 = App.Vector(0, 2000, 0)
+
+wire = Draft.make_wire([p1, p2, p3], closed=True)
+doc.recompute()
+
+roof1 = Arch.makeRoof(wire)
+
+doc.recompute()
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{docnav
+|[[Arch_Grid|Grid]]
+|[[Arch_Space|Space]]
+|[[Arch_Workbench/ro|Arch]]
+|IconL=Arch_Grid.svg 
+|IconC=Workbench_Arch.svg 
+|IconR=Arch_Space.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

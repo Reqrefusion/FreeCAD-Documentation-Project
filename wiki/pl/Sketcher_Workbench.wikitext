@@ -1,0 +1,523 @@
+<languages/>
+
+{{Docnav/pl
+|[[Robot_Workbench/pl|Środowisko pracy Robot]]
+|[[Spreadsheet_Workbench/pl|Środowisko pracy Arkusz kalkulacyjny]]
+|IconL=Workbench_Robot.svg
+|IconR=Workbench_Spreadsheet.svg
+}}
+
+[[Image:Workbench_Sketcher.svg|thumb|128px|Ikonka FreeCAD dla Środowiska pracy Szkicownik
+]]
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+==Wprowadzenie==
+
+Dzięki środowisku pracy [[Image:Workbench_Sketcher.svg|24px]] '''Szkicownik''' można tworzyć szkice 2D przeznaczone do wykorzystania w innych środowiskach pracy. Szkice 2D są punktem wyjścia dla wielu modeli CAD. Zazwyczaj definiują one kształt i ścieżkę dla operacji tworzenia kształtów 3D. Ostateczny kształt modelu może zależeć od kilku szkiców.
+
+Wraz z operacjami logicznymi zdefiniowanymi w środowisku pracy [[Image:Workbench_Part.svg|16px]] [[Part_Workbench/pl|Część]], środowisko pracy Szkicownik, lub w skrócie "Szkicownik", stanowi podstawę [[Constructive_solid_geometry/pl|konstrukcyjnej geometrii brył]] ''(CSG)'' metody budowania brył. Wraz z operacjami środowiska pracy [[Image:Workbench_PartDesign.svg|16px]] [[PartDesign_Workbench/pl|Projekt Części]], stanowi również podstawę [[Feature_editing/pl|edycji cech]] metodologii tworzenia brył. Jednak wiele innych środowisk pracy również korzysta ze szkiców.
+
+Środowisko pracy Szkicownik posiada '''[[Sketcher_Workbench/pl#Wiązania|wiązania]]''', dzięki czemu kształty 2D mogą podążać za precyzyjnymi definicjami geometrycznymi pod względem długości, kątów i relacji ''(poziomość, pionowość, prostopadłość itp.)''.
+Narzędzie do tworzenia wiązań oblicza wymagany zakres geometrii 2D i umożliwia przeprowadzenie interaktywnej eksploracji stopni swobody szkicu.
+
+Szkicownik nie jest przeznaczony do tworzenia planów 2D. Po użyciu szkiców do wygenerowania bryły są one automatycznie ukrywane, a wiązania są widoczne tylko w trybie edycji szkicu. Jeśli potrzebujesz tworzyć tylko widoki 2D do druku i nie chcesz tworzyć modeli 3D, wypróbuj środowisko pracy [[Draft_Workbench/pl|Rysunek Roboczy]].
+
+[[File:FC_ConstrainedSketch.png|450px]]
+{{Caption|W pełni związany szkic.}}
+
+<span id="Constraints"></span>
+==Wiązania==
+
+Zamiast wymiarów, wiązania są stosowane w celu ograniczenia stopnia swobody obiektu. Na przykład, linia bez wiązań ma 4 [[#Degrees_Of_Freedom/pl|stopnie swobody]] ''(w skrócie "DoF")'': można ją przesuwać w poziomie lub w pionie, można ją rozciągać i obracać.
+
+Wykorzystanie wiązania poziomego lub pionowego, lub wiązania kąta ''(względem innej linii lub jednej z osi)'', ograniczy jej zdolność do obracania pozostawiając ją z 3 stopniami swobody. Zablokowanie jednego z punktów w relacji do układu współrzędnych usunie kolejne dwa stopnie. W końcu zastosowanie wiązania wymiaru usunie ostatni stopień swobody. Linia jest w wtedy uznawana za '''w pełni ograniczoną więzami'''.
+
+Obiekty mogą być ze sobą związane. Dwie linie mogą być połączone przez jeden z ich punktów za pomocą wiązania punktu zbieżnego. Można ustawić kąt między nimi lub określić ich prostopadłość. Linia może być styczna do łuku lub okręgu itd. Złożony szkic z wieloma obiektami może mieć wiele różnych rozwiązań, a uczynienie go '''w pełni związanym''' może oznaczać, że tylko jedno z tych możliwych rozwiązań zostało osiągnięte na podstawie zastosowanych wiązań.
+
+Są dwa typy wiązań: geometryczne i wymiarowe. Są one opisane dokładnej w poniższej sekcji [[#Narzędzia|Narzędzia]].
+
+<span id="Edit_constraints"></span>
+===Edycja wiązań===
+
+Gdy utworzone jest [[Sketcher_ToggleDrivingConstraint/pl|wiązanie konstrukcyjne]] i gdy wybrana jest opcja {{MenuCommand|Spytaj o wartość po stworzeniu wiązania wymiaru}} w [[Sketcher_Preferences/pl#Wyświetlanie|preferencjach]] ''(domyślnie)'', otworzy się okno dialogowe do edycji jej wartości.
+
+[[Image:Sketcher_Edit_Constraint.png|Sketcher_Edit_Constraint.png]]
+
+Można wprowadzić wartość liczbową lub [[Expressions/pl|wyrażenie]], a także można nazwać wiązanie, aby ułatwić jego użycie w innych wyrażeniach. Można również zaznaczyć pole wyboru {{MenuCommand|Odniesienie}}, aby przełączyć wiązanie w [[Sketcher_ToggleDrivingConstraint/pl|tryb odniesienia]].
+
+Aby edytować wartość istniejącego wiązania wymiarowego, wykonaj jedną z poniższych czynności:
+* Kliknij dwukrotnie wartość wiązania w [[3D_view/pl|Widoku 3D]].
+* Kliknij dwukrotnie wiązanie w [[Sketcher_Dialog/pl|oknie dialogowym szkicownika]].
+* Kliknij prawym przyciskiem myszy wiązanie w oknie dialogowym szkicownika i wybierz opcję {{MenuCommand|Zmień wartość}} z menu kontekstowego.
+
+<span id="Reposition_constraints"></span>
+===Zmiana położenia wiązań===
+
+Ograniczenia wymiarowe można zmieniać w widoku 3D poprzez przeciąganie. Przytrzymaj lewy przycisk myszy nad wartością ograniczenia i przesuń kursor myszki. Symbole ograniczeń geometrycznych są pozycjonowane automatycznie i nie można ich przesuwać.
+
+<span id="Profile_sketches"></span>
+==Szkice profilowe==
+
+Aby utworzyć szkic, który może być użyty jako profil do generowania brył, należy przestrzegać pewnych zasad:
+* Szkic musi zawierać tylko zamknięte kontury. Odstępy między punktami końcowymi, nawet najmniejsze, są niedozwolone.
+* Kontury mogą być zagnieżdżane, aby tworzyć puste przestrzenie, ale nie powinny przecinać się ani przecinać innych konturów.
+* Kontury nie mogą współdzielić krawędzi z innymi konturami. Należy unikać zduplikowanych krawędzi.
+* Połączenia T, czyli więcej niż dwie krawędzie dzielące wspólny punkt lub punkt dotykający krawędzi, są niedozwolone.
+
+Reguły te nie mają zastosowania do geometrii konstrukcyjnej ''(domyślny kolor niebieski)'', która nie jest wyświetlana poza trybem edycji lub jeśli szkic jest używany do innego celu. W zależności od środowiska pracy i narzędzia, które będzie używać szkicu profilu, mogą obowiązywać dodatkowe restrykcje.
+
+<span id="Drawing_aids"></span>
+==Pomoce kreślarskie==
+
+Środowisko pracy Szkicownik ma kilka pomocy rysunkowych i innych funkcji, które mogą pomóc podczas tworzenia geometrii i stosowania wiązań.
+
+<span id="Continue_modes"></span>
+===Tryby kontynuacji===
+
+W [[Sketcher_Preferences/pl#Wyświetlanie|konfiguracji]] istnieją dwa tryby kontynuacji: '''Tworzenie geometrii "Tryb kontynuacji"''' i '''Tworzenie wiązań "Tryb kontynuacji"'''. Jeśli są one zaznaczone ''(domyślnie)'', powiązane narzędzia uruchomią się ponownie po zakończeniu. Aby wyjść z narzędzia ciągłego, należy nacisnąć {{KEY|Esc}} lub prawy przycisk myszy. Czynność tę należy powtórzyć, jeśli narzędzie geometrii ciągłej zostało już wprowadzone. Narzędzie ciągłe można również zamknąć, uruchamiając inne narzędzie do tworzenia geometrii lub wiązań. Należy pamiętać, że naciśnięcie {{KEY|Esc}}, gdy żadne narzędzie nie jest aktywne, spowoduje wyjście z trybu edycji szkicu. Odznacz opcję '''Klawisz Esc umożliwia wyjście z trybu edycji szkicu''' w [[Sketcher_Preferences/pl#Ogólne|konfiguracji]], jeśli często nieumyślnie naciskasz {{KEY|Esc}} zbyt wiele razy.
+
+<span id="Auto_constraints"></span>
+===Wiązania automatyczne===
+
+W szkicach z zaznaczoną opcją '''Automatyczne wiązania''' ''(domyślnie)'' kilka wiązań jest nakładanych automatycznie. Ikona proponowanego wiązania automatycznego jest wyświetlana obok kursora, gdy jest on prawidłowo umieszczony. Kliknięcie lewym przyciskiem myszy spowoduje zastosowanie tego wiązania. Jest to ustawienie dla każdego szkicu, które można zmienić w [[Sketcher_Dialog/pl#Wiązania|oknie dialogowym]] lub zmieniając [[Property_editor/pl|właściwość]] szkicu {{PropertyView|Wiązania automatyczne}}.
+
+Następujące wiązania są stosowane automatycznie:
+* [[Sketcher_ConstrainCoincident/pl|wiązanie zbieżności]],
+* [[Sketcher_ConstrainPointOnObject/pl|punkt na obiekcie]],
+* [[Sketcher_ConstrainHorizontal/pl|poziomo]],
+* [[Sketcher_ConstrainVertical/pl|pionowo]],
+* [[Sketcher_ConstrainTangent/pl|stycznie]],
+* {{Version/pl|0.22}}: [[Sketcher_ConstrainSymmetric/pl|wiązanie symetrii]] ''(punkt środkowy linii)''.
+
+<span id="Snapping"></span>
+===Przyciąganie===
+
+{{Version/pl|0.21}}
+
+Możliwe jest [[Sketcher_Snap/pl|przyciągnięcie]] do linii siatki i przecięć siatki, do krawędzi geometrii i punktów środkowych linii i łuków oraz do pewnych kątów. Należy pamiętać, że przyciąganie samo w sobie nie tworzy wiązań. Na przykład, tylko jeśli włączono [[#Wiązania_automatyczne|wiązania automatyczne]], przyciąganie do krawędzi utworzy wiązanie [[Sketcher_ConstrainPointOnObject/pl|punkt na obiekcie]]. Ale samo wybranie punktu na krawędzi dałoby ten sam rezultat.
+
+<span id="On-View-Parameters"></span>
+===Parametry wyświetlane na ekranie===
+
+{{Version/pl|1.0}}
+
+W zależności od wybranej opcji w [[Sketcher_Preferences/pl#Ogólne|ustawieniach]] można włączyć tylko wymiarowe parametry widoku lub zarówno wymiarowe, jak i pozycyjne parametry widoku. Parametry pozycyjne umożliwiają wprowadzenie dokładnych współrzędnych, na przykład środka okręgu lub punktu początkowego linii. Parametry wymiarowe umożliwiają wprowadzenie dokładnych wymiarów, na przykład promienia okręgu lub długości i kąta linii. Parametry w widoku nie są dostępne dla wszystkich narzędzi.
+
+[[Image:Sketcher_On_view_parameters_positional.png]]
+{{Caption|Określanie punktu środkowego okręgu z włączonymi parametrami pozycji.}}
+
+[[Image:Sketcher_On_view_parameters_dimensional.png]]
+{{Caption|Wyznaczanie promienia okręgu z włączonymi parametrami wymiarowymi.}}
+
+Jeśli wartości zostaną wprowadzone i potwierdzone przez naciśnięcie {{KEY|Enter}} lub {{KEY|Tab}}, powiązane wiązania zostaną dodane automatycznie. Jeśli jednocześnie wyświetlane są dwa parametry, na przykład współrzędne X i Y punktu, możliwe jest wprowadzenie jednej wartości i wybranie punktu w celu zdefiniowania drugiej. W zależności od obiektu mogą być wymagane dodatkowe wiązania, aby w pełni go ograniczyć. Wiązania wynikające z parametrów w widoku mają pierwszeństwo przed tymi, które mogą wynikać z [[Sketcher_Dialog/pl#Wiązania|wiązań automatycznych]].
+
+[[Image:Sketcher_ArcExample3.png|300px]]
+{{Caption|Łuk utworzony przez wprowadzenie wszystkich parametrów w widoku z automatycznie utworzonymi wiązaniami.}}
+
+<span id="Coordinate_display"></span>
+===Wyświetlanie współrzędnych===
+
+Jeśli opcja '''Pokaż współrzędne obok kursora myszki podczas edycji''' [[Sketcher_Preferences/pl#Wyświetlanie|preferencji]] jest zaznaczona ''(domyślnie)'', parametry bieżącego narzędzia geometrii ''(współrzędne, promień lub długość i kąt)'' są wyświetlane obok kursora. Ta opcja jest wyłączona, gdy wyświetlane są parametry w widoku.
+
+<span id="Selection_methods"></span>
+==Metody zaznaczenia==
+
+Gdy szkic znajduje się w trybie edycji, można użyć następujących metod wyboru:
+
+<span id="3D_view_element_selection"></span>
+===Wybór elementu w widoku 3D===
+
+Podobnie jak w innych obszarach FreeCAD, element można wybrać w oknie [[3D_view/pl|widoku 3D]] za pomocą jednego kliknięcia lewym przyciskiem myszy. Nie ma jednak potrzeby przytrzymywania klawisza {{KEY|Ctrl}} podczas wybierania wielu elementów. Przytrzymanie tego klawisza jest jednak możliwe i ma tę zaletę, że można błędnie kliknąć bez utraty zaznaczenia. W ten sposób można zaznaczać krawędzie, punkty i wiązania.
+
+<span id="3D_view_box_selection"></span>
+===Zaznaczanie obszarem w widoku 3D===
+
+Zaznaczenie ramką w widoku 3D działa bez użycia narzędzia [[Std_BoxSelection/pl|Zaznacz obszar]] lub [[Std_BoxElementSelection/pl|Wybór elementów ramką zaznaczenia]]:
+# Upewnij się, że żadne narzędzie nie jest aktywne.
+# Wykonaj jedną z następujących czynności:
+#* Kliknij w pustym obszarze i przeciągnij prostokąt od lewej do prawej, aby zaznaczyć elementy leżące całkowicie wewnątrz prostokąta.
+#* Kliknij w pustym obszarze i przeciągnij prostokąt od prawej do lewej, aby zaznaczyć również elementy, które dotykają lub przecinają prostokąt.
+
+Można zaznaczać krawędzie i punkty w ramkach, ale nie można zaznaczać wiązań.
+
+<span id="3D_view_connected_geometry_selection"></span>
+===Zaznaczanie połączonej geometrii w widoku 3D===
+
+{{Version/pl|1.0}}
+
+Dwukrotne kliknięcie krawędzi w widoku 3D spowoduje zaznaczenie wszystkich krawędzi bezpośrednio i pośrednio połączonych z tą krawędzią poprzez punkty końcowe. Nie ma potrzeby, aby krawędzie były połączone [[Sketcher_ConstrainCoincident/pl|więzem zbieżności]], punkty końcowe muszą mieć tylko te same współrzędne.
+
+<span id="Sketcher_Dialog_selection"></span>
+===Zaznaczanie w oknie dialogowym szkicownika===
+
+Krawędzie i punkty można również wybierać z sekcji Elementy [[Sketcher_Dialog/pl|okna dialogowego]], a wiązania z sekcji Wiązania tego okna dialogowego.
+
+<span id="Copy,_cut_and_paste"></span>
+==Kopiowanie, wycinanie i wklejanie==
+
+{{Version/pl|1.0}}
+
+Standardowe skróty klawiaturowe  {{KEY|Ctrl}} + {{KEY|C}}, wycinania, {{KEY|Ctrl}} + {{KEY|X}}, {{KEY|Ctrl}} + {{KEY|V}} mogą być używane do kopiowania, wycinania i wklejania wybranej geometrii Szkicownika wraz z powiązanymi ograniczeniami. Narzędzia te są również dostępne w menu {{MenuCommand|Szkic → Narzędzia szkicownika}}. Można ich używać w ramach tego samego szkicu, ale także między różnymi szkicami lub oddzielnymi instancjami FreeCAD. Ponieważ dane są kopiowane do schowka w postaci kodu Python, mogą być również wykorzystywane w inny sposób ''(np. udostępniane na forum)''.
+
+<span id="Tools"></span>
+==Przybory==
+
+Narzędzia środowiska pracy szkicownika znajdują się w menu Szkic i/lub na kilku paskach narzędziowych. {{Version/pl|0.21}}: Prawie wszystkie paski narzędzi szkicownika są wyświetlane tylko wtedy, gdy szkic jest w trybie edycji. Jedynym wyjątkiem jest pasek narzędzi [[#Pasek_narzędzi_szkicownika|szkicownika]], który jest wyświetlany tylko wtedy, gdy żaden szkic nie jest w trybie edycji.
+
+Niektóre narzędzia są również dostępne z menu kontekstowego [[3D_view/pl|Widoku 3D]], gdy szkic jest w trybie edycji, lub z menu kontekstowego [[Sketcher_Dialog/pl|okna dialogowego szkicownika]].
+
+{{Version/pl|0.21}}: Jeśli szkic jest w trybie edycji, pasek narzędzi '''Konstrukcja''' jest ukryty, ponieważ żadne z jego narzędzi nie może być wtedy użyte. 
+
+<span id="General"></span>
+===Informacje ogólne===
+
+<span id="Sketcher_toolbar"></span>
+====Pasek narzędzi szkicownika====
+
+* [[Image:Sketcher_NewSketch.svg|32px]] [[Sketcher_NewSketch/pl|Utwórz szkic]]: Tworzy nowy szkic i otwiera [[Sketcher_Dialog/pl|okno dialogowe szkicownika]], aby go edytować.
+
+* [[Image:Sketcher_EditSketch.svg|32px]] [[Sketcher_EditSketch/pl|Edycja szkicu]]: Edytuj wybrany szkic. Otwiera [[Sketcher_Dialog/pl|Okna dialogowego Szkicownika]] do edycji istniejącego szkicu.
+
+* [[Image:Sketcher_MapSketch.svg|32px]] [[Sketcher_MapSketch/pl|Mapuj szkic na płaszczyznę]]: Dołącza szkic do wybranej geometrii.
+
+* [[File:Sketcher_ReorientSketch.svg|32px]] [[Sketcher_ReorientSketch/pl|Zmień orientacje szkicu]]: Umieszcza szkic na jednej z głównych płaszczyzn z opcjonalnym przesunięciem. Może być również używane do odłączania szkicu.
+
+* [[File:Sketcher_ValidateSketch.svg|32px]] [[Sketcher_ValidateSketch/pl|Sprawdź poprawność szkicu]]: Potrafi analizować i naprawiać szkic, którego nie można już edytować lub który zawiera nieprawidłowe wiązania, a także dodawać brakujące wiązania zbieżne.
+
+* [[Image:Sketcher_MergeSketch.svg|32px]] [[Sketcher_MergeSketches|Połącz szkice]]: Łączy ze sobą dwa lub więcej szkiców.
+
+* [[Image:Sketcher_MirrorSketch.svg|32px]] [[Sketcher_MirrorSketch|Odbicie lustrzane]]: Odbicie szkicu w poprzek ich osi X, osi Y, lub punktu początku układu współrzędnych.
+
+<span id="Sketcher_Edit_Mode_toolbar"></span>
+====Pasek narzędzi trybu edycji szkicownika====
+
+* [[Image:Sketcher_LeaveSketch.svg|32px]] [[Sketcher_LeaveSketch/pl|Opuść szkic]]: Kończy tryb edycji szkicu i zamyka [[Sketcher_Dialog/pl|okno dialogowe]] Szkicownka.
+
+* [[Image:Sketcher_ViewSketch.svg|32px]] [[Sketcher_ViewSketch/pl|Widok szkicu]]: Wyrównuje [[3D_view/pl|widok 3D]] ze szkicem.
+
+* [[Image:Sketcher_ViewSection.svg|32px]] [[Sketcher_ViewSection/pl|Zobacz przekrój]]: Uaktywnia tymczasową płaszczyznę przekroju, która ukrywa wszelkie obiekty i części obiektów znajdujące się przed płaszczyzną szkicu.
+
+<span id="Sketcher_edit_tools_toolbar"></span>
+====Pasek narzędzi edycji szkicownika====
+
+* [[Image:Sketcher_Grid.svg|32px]] [[Sketcher_Grid/pl|Przełącz widoczność siatki]]: Włącza lub wyłącza siatkę w aktualnie edytowanym szkicu. Ustawienia można zmienić w powiązanym menu. {{Version/pl|0.21}}
+
+* [[Image:Sketcher_Snap.svg|32px]] [[Sketcher_Snap/pl|Przełącz przyciąganie]]: Włącza lub wyłącza przyciąganie we wszystkich szkicach. Ustawienia można zmienić w powiązanym menu. {{Version/pl|0.21}}
+
+* [[Image:Sketcher_RenderingOrder.svg|32px]] [[Sketcher_RenderingOrder/pl|Konfiguruj kolejność renderowania]]: Kolejność renderowania wszystkich szkiców można zmienić w powiązanym menu. {{Version/pl|0.21}}.
+
+<span id="Other"></span>
+====Pozostałe====
+
+* [[File:Sketcher_StopOperation.svg|32px]] [[Sketcher_StopOperation/pl|Przerwij operację]]: Zatrzymuje aktualnie uruchomione narzędzie do tworzenia geometrii lub wiązań.
+
+<span id="Sketcher_geometries"></span>
+===Geometria w szkicowniku===
+
+Poniżej znajdują się narzędzia do tworzenia obiektów.
+
+* [[Image:Sketcher_CreatePoint.svg|32px]] [[Sketcher_CreatePoint/pl|Utwórz punkt na szkicu]]: Twotrzy punkt.
+
+* [[Image:Sketcher_CreatePolyline.svg|32px]] [[Sketcher_CreatePolyline/pl|Utwórz polilinię]]: Tworzy serię segmentów linii i łuków połączonych punktami końcowymi. Narzędzie ma kilka trybów.
+
+* [[Image:Sketcher_CreateLine.svg|32px]] [[Sketcher_CreateLine/pl|Utwórz linię na szkicu]]: Tworzy linię. {{Version/pl|1.0}}: Narzędzie ma trzy tryby.
+
+* <span id="Sketcher_CompCreateArc">[[Image:Sketcher_CreateArc.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Utwórz łuk:</span><!--Do not edit span id: the Sketcher_CompCreateArc pages redirect here-->
+
+:* [[Image:Sketcher_CreateArc.svg|32px]] [[Sketcher_CreateArc/pl|Utwórz łuk przez środek]]: Tworzy łuk na podstawie jego środka i punktów końcowych. {{Version/pl|1.0}}: Lub przez punkty końcowe i punkt wzdłuż łuku. 
+
+:* [[Image:Sketcher_Create3PointArc.svg|32px]] [[Sketcher_Create3PointArc|Utwórz łuk przez trzy punkty na obwodzie]]: Tworzy łuk na podstawie jego punktów końcowych i punktu wzdłuż łuku. {{Version|1.0}}: Jest to to samo narzędzie co [[Sketcher_CreateArc/pl|Utwórz łuk przez środek]], ale z innym trybem początkowym.
+
+:* [[Image:Sketcher_CreateArcOfEllipse.svg|32px]] [[Sketcher_CreateArcOfEllipse/pl|Utwórz łuk na podstawie elipsy]]: Tworzy łuk elipsy według punktu środkowego, głównego promienia, punktu początkowego i końcowego.
+
+:*[[Image:Sketcher_CreateArcOfHyperbola.svg|32px]] [[Sketcher_CreateArcOfHyperbola/pl|Utwórz łuk na podstawie hiperboli]]: Twotzy łuk hiperboli.
+
+:*[[Image:Sketcher_CreateArcOfParabola.svg|32px]] [[Sketcher_CreateArcOfParabola/pl|Utwórz łuk na podstawie paraboli]]: Twotzy łuk paraboli.
+
+* <span id="Sketcher_CompCreateConic">[[Image:Sketcher_CreateCircle.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Tworzy okrąg / elipsę:</span><!--Do not edit span id: the Sketcher_CompCreateConic pages redirect here-->
+
+:* [[Image:Sketcher_CreateCircle.svg|32px]] [[Sketcher_CreateCircle/pl|Utwórz okrąg przez środek]]: Tworzy okrąg przez jego środek i punkt wzdłuż okręgu. {{Version/pl|1.0}}: Lub przez trzy punkty wzdłuż okręgu.
+
+:* [[Image:Sketcher_Create3PointCircle.svg|32px]] [[Sketcher_Create3PointCircle|Utwórz okrąg przez trzy punkty]]: Tworzy okrąg przez trzy punkty wzdłuż okręgu. {{Version|1.0}}: Jest to to samo narzędzie co [[Sketcher_CreateCircle/pl|Utwórz okrąg przez środek]], ale z innym trybem początkowym.
+
+:* [[Image:Sketcher_CreateEllipseByCenter.svg|32px]] [[Sketcher_CreateEllipseByCenter/pl|Utwórz elipsę przez środek]]: Tworzy elipsę według jej środka, punktu końcowego jednej z jej osi i punktu wzdłuż elipsy. {{Version/pl|1.0}}: Lub przez oba punkty końcowe jednej z jej osi i punkt wzdłuż elipsy.
+
+:* [[Image:Sketcher_CreateEllipseBy3Points.svg|32px]] [[Sketcher_CreateEllipseBy3Points/pl|Utwórz elipsę przez trzy punkty]]: Tworzy elipsę przez punkty końcowe jednej z jej osi i punkt wzdłuż elipsy. {{Version/pl|1.0}}: Jest to to samo narzędzie co [[Sketcher_CreateEllipseByCenter/pl|Utwórz elipsę przez środek]], ale z innym trybem początkowym.
+
+* <span id="Sketcher_CompCreateRectangles">[[Image:Sketcher_CreateRectangle.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Utwórz prostokąt:</span><!--Do not edit span id: the Sketcher_CompCreateRectangles pages redirect here-->
+
+:* [[Image:Sketcher_CreateRectangle.svg|32px]] [[Sketcher_CreateRectangle/pl|Utwórz prostokąt]]: Tworzy prostokąt. {{Version/pl|1.0}}: Narzędzie ma cztery tryby. Zaokrąglone rogi i tworzenie kopii z przesunięciem są funkcjami opcjonalnymi.
+
+:* [[Image:Sketcher_CreateRectangle_Center.svg|32px]] [[Sketcher_CreateRectangle_Center/pl|Prostokąt wyśrodkowany]]: Tworzy wyśrodkowany prostokąt. {{Version/pl|1.0}}: Jest to to samo narzędzie co [[Sketcher_CreateRectangle/pl|Utwórz prostokąt]], ale z innym trybem początkowym.
+
+:* [[Image:Sketcher_CreateOblong.svg|32px]] [[Sketcher_CreateOblong/pl|Prostokąt zaokrąglony]]: Tworzy zaokrąglony prostokąt. Analogicznie.
+
+* <span id="Sketcher_CompCreateRegularPolygon">[[Image:Sketcher_CreateHexagon.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Utwórz wielokąt foremny:</span><!--Do not edit span id: the Sketcher_CompCreateRegularPolygon pages redirect here-->
+
+:* [[Image:Sketcher_CreateTriangle.svg|32px]] [[Sketcher_CreateTriangle/pl|Trójkąt]]: tworzy trójkąt równoboczny. {{Version/pl|1.0}}: Jest to to samo narzędzie co [[Sketcher_CreateRegularPolygon/pl|Utwórz wielokąt foremny]], ale z liczbą boków ustawioną na określoną wartość.
+
+:* [[Image:Sketcher_CreateSquare.svg|32px]] [[Sketcher_CreateSquare/pl|Kwadrat]]: Tworzy kwadrat. Analogicznie.
+
+:* [[Image:Sketcher_CreatePentagon.svg|32px]] [[Sketcher_CreatePentagon/pl|Pięciokąt]]: Tworzy pięciokąt foremny. Analogicznie.
+
+:* [[Image:Sketcher_CreateHexagon.svg|32px]] [[Sketcher_CreateHexagon/pl|Sześciokąt]]: Tworzy sześciokąt foremny. Analogicznie.
+
+:* [[Image:Sketcher_CreateHeptagon.svg|32px]] [[Sketcher_CreateHeptagon/pl|Siedmiokąt]]: Tworzy siedmiokąt foremny. Analogicznie.
+
+:* [[Image:Sketcher_CreateOctagon.svg|32px]] [[Sketcher_CreateOctagon|Ośmiokąt]]: Tworzy ośmiokąt foremny. Analogicznie.
+
+:* [[Image:Sketcher_CreateRegularPolygon.svg|32px]] [[Sketcher_CreateRegularPolygon/pl|Wielokąt foremny]]: Tworzy wielokąt foremny. Można określić liczbę boków.
+
+* <span id="Sketcher_CompSlot">[[Image:Sketcher_CreateSlot.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Utwórz owal:</span><!--Do not edit span id: the Sketcher_CompSlot pages redirect here-->
+
+:* [[Image:Sketcher_CreateSlot.svg|32px]] [[Sketcher_CreateSlot/pl|Utwórz szczelinę]]: Rysuje owal.
+
+* [[Image:Sketcher_CreateArcSlot.svg|32px]] [[Sketcher_CreateArcSlot/pl|Utwórz szczelinę łukową]]: Rysuje owal na łuku. {{Version/pl|1.0}}
+
+* <span id="Sketcher_CompCreateBSpline">[[Image:Sketcher_CreateBSpline.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Tworzy krzywą złozoną:</span><!--Do not edit span id: the Sketcher_CompCreateBSpline pages redirect here-->
+
+:* [[File:Sketcher_CreateBSpline.svg|32px]] [[Sketcher_CreateBSpline/pl|Krzywa złożona przez punkty kontrolne]]: Tworzy krzywą złożoną za pomocą punktów kontrolnych. {{Version/pl|1.0}}: Lub za pomocą węzłów.
+
+:* [[File:Sketcher_CreatePeriodicBSpline.svg|32px]] [[Sketcher_CreatePeriodicBSpline/pl|Okresowa krzywa złożona przez punkty kontrolne]]: Tworzy okresową ''(zamkniętą)'' krzywą złożoną za pomocą punktów kontrolnych. {{Version/pl|1.0}}: To jest to samo narzędzie co [[Sketcher_CreateBSpline/pl|Krzywa złożona przez punkty kontrolne]], ale z innym trybem początkowym.
+
+:* [[File:Sketcher_CreateBSplineByInterpolation.svg|32px]] [[Sketcher_CreateBSplineByInterpolation/pl|Krzywa złozona przez węzły]]: Tworzy krzywą złożoną przez węzły.
+
+:* [[File:Sketcher_CreatePeriodicBSplineByInterpolation.svg|32px]] [[Sketcher_CreatePeriodicBSplineByInterpolation/pl|Okresowa krzywa złożona przez węzły]]: Tworzy okresową krzywą złożoną przez węzły.
+
+* [[File:Sketcher_ToggleConstruction.svg|32px]] [[Sketcher_ToggleConstruction/pl|Przełącz tryb konstrukcji]]: Przełącza narzędzia do tworzenia geometrii do / z trybu konstrukcyjnego lub przełącza wybraną geometrię do / z geometrii konstrukcyjnej.
+
+<span id="Sketcher_constraints"></span>
+===Wiązania w szkicowniku===
+
+Są to narzędzia do tworzenia [[#Wiązania|wiązań]]. 
+Niektóre z nich wymagają użycia [[Sketcher_helper_constraint/pl|wiązań pomocniczych]].
+
+* <span id="Sketcher_CompDimensionTools">[[Image:Sketcher_Dimension.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Wiązanie wymiaru:</span><!--Do not edit span id: the Sketcher_CompDimensionTools pages redirect here-->
+
+:* [[File:Sketcher_Dimension.svg|32px]] [[Sketcher_Dimension/pl|Wiązanie odległości]]: Jest kontekstowym narzędziem wiązań w środowisku pracy Szkicownika. Na podstawie bieżącego wyboru oferuje odpowiednie wiązania wymiarowe, ale także wiązania geometryczne. {{Version/pl|1.0}}
+
+:* [[File:Sketcher_ConstrainDistanceX.svg|32px]] [[Sketcher_ConstrainDistanceX/pl|Zwiąż odległość poziomą]]: Określa odległość poziomą między dwoma punktami lub punktami końcowymi linii. Jeśli wstępnie wybrano pojedynczy punkt, odległość jest określana względem początku szkicu.
+
+:* [[File:Sketcher_ConstrainDistanceY.svg|32px]] [[Sketcher_ConstrainDistanceY/pl|Zwiąż odległość pionową]]: Określa odległość pionową między dwoma punktami lub punktami końcowymi linii. Jeśli wstępnie wybrano pojedynczy punkt, odległość jest określana względem początku szkicu.
+
+:* [[File:Sketcher_ConstrainDistance.svg|32px]] [[Sketcher_ConstrainDistance/pl|Wiązanie odległości]]: Określa długość prostej, odległość między dwoma punktami, odległość prostopadłą między punktem a prostą, lub {{Version|0.21}}, odległość między krawędziami dwóch okręgów lub łuków, lub między krawędzią okręgu lub łuku a prostą lub {{Version/pl|1.0}}, odległość między krawędziami dwóch łuków.
+
+:* <span id="Sketcher_CompConstrainRadDia">[[File:Sketcher_ConstrainRadiam.svg|32px]] [[Sketcher_ConstrainRadiam/pl|Zwiąż automatycznie promień / średnicę]]: Określa promień łuków i okręgów z wagą krzywej złożonej oraz średnicę okręgów. {{Version/pl|0.20}}.</span><!--Do not edit span id: the Sketcher_CompConstrainRadDia pages redirect here-->
+
+:* [[File:Sketcher_ConstrainRadius.svg|32px]] [[Sketcher_ConstrainRadius/pl|Wiązanie promienia]]: Określa promień okręgów i łuków oraz okręgów z wagą krzywej złożonej.
+
+:* [[File:Sketcher_ConstrainDiameter.svg|32px]] [[Sketcher_ConstrainDiameter/pl|Wiązanie średnicy]]: Określa średnicę okręgów i łuków.
+
+:* [[File:Sketcher_ConstrainAngle.svg|32px]] [[Sketcher_ConstrainAngle/pl|Wiązanie kąta]]: Określa kąt między dwiema krawędziami, kąt linii z poziomą osią szkicu lub kąt apertury łuku kołowego.
+
+:* [[File:Sketcher_ConstrainLock.svg|32px]] [[Sketcher_ConstrainLock/pl|Wiązanie blokady odległości]]: Stosuje więzy [[Sketcher_ConstrainDistanceX/pl|Zwiąż odległość poziomą]] i [[Sketcher_ConstrainDistanceY/pl|Zwiąż odległość pionową]] do punktów. Jeśli wybrany jest pojedynczy punkt, wiązania odnoszą się do początku szkicu. Jeśli wybrano dwa lub więcej punktów, wiązania odnoszą się do ostatnio wybranego punktu.
+
+* [[File:Sketcher_ConstrainCoincidentUnified.svg|32px]] [[Sketcher_ConstrainCoincidentUnified/pl|Wiązanie zbieżności punktów (ujednolicone)]]: Tworzy wiązanie zbieżności między punktami, ustala punkty na krawędziach lub osiach lub tworzy wiązanie koncentryczności. Łączy w sobie narzędzia wiązań [[Sketcher_ConstrainCoincident/pl|zbieżności]] i [[Sketcher_ConstrainPointOnObject/pl|punkt na obiekcie]].  {{Version/pl|1.0}}
+
+* [[File:Sketcher_ConstrainCoincident.svg|32px]] [[Sketcher_ConstrainCoincident/pl|Wiązanie zbieżności]]: Tworzy wiązanie zbieżne między punktami lub wiązanie współosiowe.
+
+* [[File:Sketcher_ConstrainPointOnObject.svg|32px]] [[Sketcher_ConstrainPointOnObject/pl|Zwiąż punkt na obiekcie]]: Mocuje punkty na krawędziach lub osiach.
+
+* <span id="Sketcher_CompHorVer">[[Image:Sketcher_ConstrainHorVer.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Wiązanie poziomo / pionowo:</span><!--Do not edit span id: the Sketcher_CompHorVer pages redirect here-->
+
+:* [[File:Sketcher_ConstrainHorVer.svg|32px]] [[Sketcher_ConstrainHorVer/pl|Wiązanie poziomo / pionowo]]: Wiąże linie lub pary punktów, aby były poziome lub pionowe, w zależności od tego, co jest najbliższe bieżącemu wyrównaniu. Łączy narzędzia [[Sketcher_ConstrainHorizontal/pl|poziomo]] i [[Sketcher_ConstrainVertical/pl|pionowo]]. {{Version/pl|1.0}}
+
+:* [[File:Sketcher_ConstrainHorizontal.svg|32px]] [[Sketcher_ConstrainHorizontal/pl|Wiązanie poziome]]: Ustawia linie lub pary punktów jako poziome.
+
+:* [[File:Sketcher_ConstrainVertical.svg|32px]] [[Sketcher_ConstrainVertical/pl|Wiązanie pionowe]]: Ogranicza linie lub pary punktów do pionu.
+
+* [[File:Sketcher_ConstrainParallel.svg|32px]] [[Sketcher_ConstrainParallel/pl|Wiązanie równoległości]]: Wymusza, aby linie były równoległe.
+
+* [[File:Sketcher_ConstrainPerpendicular.svg|32px]] [[Sketcher_ConstrainPerpendicular/pl|Wiązanie prostopadłości]]: Wymusza, aby dwie linie były prostopadłe, dwie krawędzie lub krawędź i oś były prostopadłe na ich przecięciu. Wiązanie może również łączyć dwie krawędzie, wymuszając ich prostopadłość w miejscu połączenia.
+
+* [[File:Sketcher_ConstrainTangent.svg|32px]] [[Sketcher_ConstrainTangent/pl|Wiązanie styczności]]: Wymusza, aby dwie krawędzie lub krawędź i oś były styczne. Wiązanie może również łączyć dwie krawędzie, wymuszając ich styczność w miejscu połączenia. Jeśli wybrane zostaną dwie linie, staną się one współliniowe.
+
+* [[File:Sketcher_ConstrainEqual.svg|32px]] [[Sketcher_ConstrainEqual/pl|Wiązanie równości]]: Narzuca, aby krawędzie  ''(linie)'' lub krzywizny miały jednakową długość ''(krawędzie z wyjątkiem krzywych złożonych)''.
+
+* [[File:Sketcher_ConstrainSymmetric.svg|32px]] [[Sketcher_ConstrainSymmetric/pl|Wiązanie symetrii]]: Wymusza symetrię dwóch punktów wokół prostej, osi lub wokół trzeciego punktu.
+
+* [[Image:Sketcher_ConstrainBlock.svg|32px]] [[Sketcher_ConstrainBlock/pl|Wiązanie zablokowania]]: Blokuje krawędzie w miejscu za pomocą pojedynczego wiązania. Jest przeznaczony głównie dla krzywych złożonych.
+
+* [[File:Sketcher_ConstrainSnellsLaw.svg|32px]] [[Sketcher_ConstrainSnellsLaw/pl|Wiązanie refrakcji] (prawo Snell'a)]: Wiąże dwie linie zgodnie z prawem załamania światła, aby symulować światło przechodzące przez interfejs.
+
+* <span id="Sketcher_CompToggleConstraints">[[Image:Sketcher_ToggleDrivingConstraint.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Przełącz wiązania:</span><!--Do not edit span id: the Sketcher_CompToggleConstraints pages redirect here-->
+
+* [[File:Sketcher_ToggleDrivingConstraint.svg|32px]] [[Sketcher_ToggleDrivingConstraint/pl|Przełącz kontrolę wiązania]]: Przełącza narzędzia do tworzenia wiązań wymiarowych między trybem konstrukcyjnym a trybem informacyjnym lub przełącza wybrane wiązania wymiarowe między tymi trybami.
+
+* [[File:Sketcher_ToggleActiveConstraint.svg|32px]] [[Sketcher_ToggleActiveConstraint|Aktywuj / dezaktywuj wiązanie]]: Włącza lub dezaktywuje istniejące wiązania.
+
+<span id="Sketcher_tools"></span>
+===Narzędzia szkicownika===
+
+* <span id="Sketcher_CompCreateFillets">[[Image:Sketcher_CreateFillet.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Tworzy zaokrąglenie / sfazowanie:</span><!--Do not edit span id: the Sketcher_CompCreateFillets pages redirect here-->
+
+* [[Image:Sketcher_CreateFillet.svg|32px]] [[Sketcher_CreateFillet/pl|Utwórz zaokrąglenie]]: Tworzy zaokrąglenie między dwiema krawędziami, które nie są równoległe. {{Version/pl|1.0}} Narzędzie może również tworzyć fazki.
+
+:* [[Image:Sketcher_CreateChamfer.svg|32px]] [[Sketcher_CreateChamfer/pl|Utwórz sfazowanie]]: Tworzy fazę między dwiema nierównoległymi krawędziami. Jest to to samo narzędzie co [[Sketcher_CreateFillet/pl|Zaokrąglenie]], ale z innym trybem początkowym. {{Version/pl|1.0}}
+
+* <span id="Sketcher_CompCurveEdition">[[Image:Sketcher_Trimming.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Edytuj krawędź:</span><!--Do not edit span id: the Sketcher_CompCurveEdition pages redirect here-->
+
+:* [[Image:Sketcher_Trimming.svg|32px]] [[Sketcher_Trimming/pl|Przytnij krawędź]]: Przycina krawędź na najbliższych przecięciach z innymi krawędziami.
+
+:* [[Image:Sketcher_Split.svg|32px]] [[Sketcher_Split/pl|Podziel]]: Dzieli krawędź na dwie części z zachowaniem większości więzów.
+
+:* [[File:Sketcher_Extend.svg|32px]] [[Sketcher_Extend|Rozszerz krawędź ...]]: Wydłuża lub skraca linię lub łuk do dowolnego miejsca lub do docelowej krawędzi lub punktu.
+
+* [[Image:Sketcher_External.svg|32px]] [[Sketcher_External/pl|Geometria zewnętrzna]]: Rzutuje krawędzie i / lub wierzchołki należące do obiektów spoza szkicu na płaszczyznę szkicu. {{VersionMinus/pl|1.0}}
+
+* <span id="Sketcher_CompExternal">[[Image:Sketcher_Projection.svg|32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Geometria zewnętrzna:</span><!--Do not edit span id: the Sketcher_CompExternal pages redirect here-->
+
+:* [[Image:Sketcher_Projection.svg|32px]] [[Sketcher_Projection/pl|Utwórz geometrię zewnętrzną rzutowania]]: Tworzy krawędzie rzutowania geometrii zewnętrznej. {{Version/pl|1.1}}
+
+:* [[Image:Sketcher_Intersection.svg|32px]] [[Sketcher_Intersection|Utwórz geometrię zewnętrzną przecięcia]]: Tworzy krawędzie przecięcia geometrii zewnętrznej z płaszczyzną szkicu. {{Version/pl|1.1}}
+
+* [[File:Sketcher_CarbonCopy.svg|32px]] [[Sketcher_CarbonCopy/pl|Kalka techniczna]]: Kopiuje całą geometrię i wiązania z innego szkicu do aktywnego szkicu.
+
+* [[File:Sketcher_SelectOrigin.svg|32px]] [[Sketcher_SelectOrigin/pl|Wybierz odniesienie położenia]]: Wybiera punkt początkowy szkicu.
+
+* [[File:Sketcher_SelectHorizontalAxis.svg|32px]] [[Sketcher_SelectHorizontalAxis/pl|Wybierz oś poziomą]]: Zaznacza poziomą oś szkicu.
+
+* [[File:Sketcher_SelectVerticalAxis.svg|32px]] [[Sketcher_SelectVerticalAxis/pl|Wybierz oś pionową]]: Wybór osi pionowej szkicu.
+
+* [[File:Sketcher_Translate.svg|32px]] [[Sketcher_Translate/pl|Przekształcanie w szyku]]: Przekształca lub opcjonalnie kopiuje wybrane geometrie. {{Version/pl|1.0}}
+
+* [[File:Sketcher_Rotate.svg|32px]] [[Sketcher_Rotate/pl|Przemieszczenie biegunowe]]: Obraca lub opcjonalnie tworzy obrócone kopie wybranych elementów.  {{Version/pl|1.0}}
+
+* [[File:Sketcher_Scale.svg|32px]] [[Sketcher_Scale/pl|Przekształcenie skali]]: Skaluje lub opcjonalnie tworzy skalowane kopie wybranych elementów. {{Version/pl|1.0}}
+
+* [[File:Sketcher_Offset.svg|32px]] [[Sketcher_Offset/pl|Geometria odsunięcia]]: Tworzy równoodległe krawędzie wokół wybranych krawędzi. {{Version/pl|1.0}}
+
+* [[File:Sketcher_Symmetry.svg|32px]] [[Sketcher_Symmetry/pl|Tworzy symetryczna geometrię ...]]: Tworzy kopię wybranego elementu szkicu, symetrycznie względem wybranej linii.
+
+* [[File:Sketcher_RemoveAxesAlignment.svg|32px]] [[Sketcher_RemoveAxesAlignment/pl|Usuń wyrównanie osi]]: Usuwa wyrównanie osi wybranych krawędzi, zastępując wiązania [[Sketcher_ConstrainHorizontal/pl|Poziomo]] i [[Sketcher_ConstrainVertical/pl|Pionowo]] wiązaniami [[Sketcher_ConstrainParallel/pl|Równolegle]] i [[Sketcher_ConstrainPerpendicular/pl|Prostopadle]].
+
+* [[File:Sketcher_DeleteAllGeometry.svg|32px]] [[Sketcher_DeleteAllGeometry/pl|Usuń wszystkie geometrie]]: Usuwa całą geometrię i wszystkie wiązania ze szkicu.
+
+* [[File:Sketcher_DeleteAllConstraints.svg|32px]] [[Sketcher_DeleteAllConstraints/pl|Usuń wszystkie wiązania]]: Usuwa wszystkie wiązania ze szkicu.
+
+* <span id="Sketcher_CopyClipboard">[[File:Edit-copy.svg|32px]] Kopiowanie w Szkicowniku: Zobacz akapit [[#Kopiowanie,_wycinanie_i_wklejanie|Kopiuj, wycinaj i wklejaj]].</span><!--Nie edytuj identyfikatora span: strony Sketcher_CopyClipboard przekierowują tutaj.-->
+
+* <span id="Sketcher_Cut">[[File:Edit-cut.svg|32px]] Wycinanie w Szkicowniku: Zobacz akapit [[#Kopiowanie,_wycinanie_i_wklejanie|Kopiuj, wycinaj i wklejaj]].</span><!--Nie edytuj identyfikatora span: strony Sketcher_CopyClipboard przekierowują tutaj.-->
+
+* <span id="Sketcher_Paste">[[File:Edit-paste.svg|32px]] Wklej w Szkicowniku: Zobacz [[#Kopiowanie,_wycinanie_i_wklejanie|Kopiuj, wytnij i wklej]].</span><!--Do not edit span id: the Sketcher_Paste pages redirect here-->
+
+<span id="Sketcher_B-spline_tools"></span>
+===Narzędzia szkicownika dla krzywych złożonych===
+
+* [[File:Sketcher_BSplineConvertToNURBS.svg|32px]] [[Sketcher_BSplineConvertToNURBS/pl|Konwertuj geometrie na krzywą złożoną]] Konwertuje krawędzie na krzywą złożoną.
+
+* [[File:Sketcher_BSplineIncreaseDegree.svg|32px]] [[Sketcher_BSplineIncreaseDegree/pl|Zwiększ stopień krzywej złożonej]] Zwiększa stopień ''(kolejność)'' krzywej złożonej.
+
+* [[File:Sketcher_BSplineDecreaseDegree.svg|32px]] [[Sketcher_BSplineDecreaseDegree/pl|Zmniejsz stopień krzywej złożonej]] Zmniejsza stopień ''(krotność)'' krzywej złożonej.
+
+* [[File:Sketcher_BSplineIncreaseKnotMultiplicity.svg|32px]] [[Sketcher_BSplineIncreaseKnotMultiplicity/pl|Zwiększyć liczebność węzłów]] Zwiększa krotność węzła krzywej złożonej.
+
+* [[File:Sketcher_BSplineDecreaseKnotMultiplicity.svg|32px]] [[Sketcher_BSplineDecreaseKnotMultiplicity/pl|Zmniejsz liczbę węzłów]] Zmniejsza krotność węzła krzywej złożonej.
+
+* [[File:Sketcher_BSplineInsertKnot.svg|32px]] [[Sketcher_BSplineInsertKnot/pl|Wstaw węzeł]] Wstawia węzeł do krzywej złożonej lub zwiększa krotność istniejącego węzła.
+
+* [[File:Sketcher_JoinCurves.svg|32px]] [[Sketcher_JoinCurves/pl|Połącz krzywe]] Tworzy krzywą złożoną poprzez połączenie dwóch istniejących krzywych złożonych lub innych krawędzi.  {{Version/pl|0.21}}
+
+<span id="Sketcher_visual"></span>
+===Widok szkicu===
+
+* [[File:Sketcher_SelectElementsWithDoFs.svg|32px]] [[Sketcher_SelectElementsWithDoFs/pl|Wybierz nie związane stopnie swobody]]: Zaznacza w szkicu nie w pełni związane elementy.
+
+* [[File:Sketcher_SelectConstraints.svg|32px]] [[Sketcher_SelectConstraints/pl|Wybierz powiązane wiązania]]: Wybiera wiązania powiązane z elementami szkicu.
+
+* [[File:Sketcher_SelectElementsAssociatedWithConstraints.svg|32px]] [[Sketcher_SelectElementsAssociatedWithConstraints/pl|Zaznacz powiązaną geometrię]]: Wybiera elementy szkicu powiązane z wiązaniami.
+
+* [[File:Sketcher_SelectRedundantConstraints.svg|32px]] [[Sketcher_SelectRedundantConstraints/pl|Wybierz zbędne wiązania]]: Wybiera zbędne wiązania w szkicu.
+
+* [[File:Sketcher_SelectConflictingConstraints.svg|32px]] [[Sketcher_SelectConflictingConstraints/pl|Wybierz wiązania konfliktowe]]: Wybiera kolidujące ze sobą wiązania szkicu.
+
+* [[File:Sketcher_ArcOverlay.svg|32px]] [[Sketcher_ArcOverlay/pl|Pokaż / ukryj okrąg pomocniczy dla łuków]]: Pokazuje lub ukrywa okrągłe elementy pomocnicze ''(wirtualne okręgi)'' dla łuków we wszystkich szkicach. {{Version/pl|0.22}}
+
+* <span id="Sketcher_CompBSplineShowHideGeometryInformation">[[Image:Sketcher_BSplinePolygon.svg|x32px]][[Image:Toolbar_flyout_arrow_blue_background.svg|x32px]] Pokaż / ukryj warstwę informacyjną krzywej złożonej:</span><!--Do not edit span id: the Sketcher_CompBSplineShowHideGeometryInformation pages redirect here-->
+
+:* [[File:Sketcher_BSplineDegree.svg|32px]] [[Sketcher_BSplineDegree/pl|Pokaż / ukryj stopnie krzywej złożonej]] Pokazuje lub ukrywa wyświetlanie stopnia krzywej złożonej we wszystkich szkicach.
+
+:* [[File:Sketcher_BSplinePolygon.svg|32px]] [[Sketcher_BSplinePolygon/pl|Pokaż / ukryj ramkę kontrolną krzywej złożonej]] Pokazuje lub ukrywa wyświetlanie wielokąta kontrolnego krzywej złożonej we wszystkich szkicach.
+
+:* [[File:Sketcher_BSplineComb.svg|32px]] [[Sketcher_BSplineComb/pl|Pokaż / ukryj grzebień krzywizny krzywej złożonej]] Pokazuje lub ukrywa wyświetlanie grzebienia krzywizny krzywej złożonej we wszystkich szkicach.
+
+:* [[File:Sketcher_BSplineKnotMultiplicity.svg|32px]] [[Sketcher_BSplineKnotMultiplicity/pl|Zwiększ / zmniejsz wielokrotność węzłów krzywej złożonej]] Pokazuje lub ukrywa wyświetlanie krotności węzła krzywej złożonej we wszystkich szkicach.
+
+:* [[File:Sketcher_BSplinePoleWeight.svg|32px]] [[Sketcher_BSplinePoleWeight/pl|Wyświetl / ukryj wagę punktu kontrolnego krzywej złożonej]] Pokazuje lub ukrywa wyświetlanie wag punktów kontrolnych krzywej złożonej we wszystkich szkicach.
+
+* [[File:Sketcher_RestoreInternalAlignmentGeometry.svg|32px]] [[Sketcher_RestoreInternalAlignmentGeometry/pl|Pokaż / ukryj geometrię wewnętrzną]]: Usuwa wewnętrzną geometrię elementów lub odtwarza brakującą geometrię wewnętrzną.
+
+* [[File:Sketcher_SwitchVirtualSpace.svg|32px]] [[Sketcher_SwitchVirtualSpace/pl|Przełącz przestrzeń wirtualną]]: Umożliwia ukrycie wszystkich wiązań szkicu i ponowne ich wyeksponowanie lub przełącza widoczną przestrzeń wirtualną.
+
+<span id="Obsolete_tools"></span>
+===Narzędzia przestarzałe===
+
+* [[File:Sketcher_Clone.svg|32px]] [[Sketcher_Clone/pl|Tworzy proste kopie elementu ...]]: Klonuje wybrany element w szkicowniku. Nie dostępne dla {{VersionPlus/pl|1.0}}.
+
+* [[File:Sketcher_CloseShape.svg|32px]] [[Sketcher_CloseShape/pl|Zamknij kształt]]: Tworzy zamknięty kształt, stosując wiązania zgodności względem punktów końcowych.
+To narzędzie jest przestarzałe, nie będzie dostępne od ({{VersionPlus/pl|0.21}})
+
+:* [[File:Sketcher_CreatePointFillet.svg|32px]] [[Sketcher_CreatePointFillet/pl|Utwórz zaokrąglenie z zachowaniem wiązań]]: Tworzy zaokrąglenie między dwiema nierównoległymi liniami, zachowując ich punkt narożny. Niedostępne w {{VersionPlus/pl|1.0}}
+
+* [[File:Sketcher_ConnectLines.svg|32px]] [[Sketcher_ConnectLines/pl|Połącz krawędzie]]: Połącz elementy szkicu poprzez zastosowanie zbieżnych ograniczeń do punktów końcowych.
+To narzędzie jest przestarzałe, nie będzie dostępne od ({{VersionPlus/pl|0.21}})
+
+* [[File:Sketcher_Copy.svg|32px]] [[Sketcher_Copy/pl|Kopia]]: Kopiuje element szkicu. Nie dostępne dla {{VersionPlus/pl|1.0}}.
+
+* [[File:Sketcher_Move.svg|32px]] [[Sketcher_Move|Przesuń]]: Przesuwa wybraną geometrię, biorąc za punkt odniesienia ostatni wybrany punkt. Nie dostępne dla {{VersionPlus/pl|1.0}}.
+
+* [[File:Sketcher_RectangularArray.svg|32px]] [[Sketcher_RectangularArray/pl|Szyk prostokątny]]: Tworzy tablicę wybranych elementów szkicownika. Nie dostępne dla {{VersionPlus/pl|1.0}}
+
+<span id="Preferences"></span>
+==Ustawienia==
+
+* [[Image:Workbench_Sketcher.svg|32px]] [[Sketcher_Preferences|Ustawienia]]: Konfiguracja Środowiska pracy Szkicownik.
+
+<span id="Best_practices"></span>
+==Dobre praktyki==
+
+Każdy użytkownik CAD z biegiem czasu rozwija swój własny sposób pracy, ale istnieją pewne przydatne ogólne zasady, którymi należy się kierować.
+
+* Seria prostych szkiców jest łatwiejsza do wykonania niż jeden złożony szkic. Na przykład, pierwszy szkic może być utworzony dla podstawowej cechy 3D ''(wyciągnięcie, albo wyciągniecie przez obrót)'', podczas gdy drugi może zawierać otwory lub wycięcia ''(kieszenie)''. Niektóre szczegóły mogą zostać pominięte, które zostaną zrealizowane później jako cechy 3D. Możesz wybrać unikanie zaokrągleń w szkicu, jeśli jest ich zbyt wiele, i dodać je jako cechy 3D.
+* Zawsze twórz profil zamknięty, inaczej Twój szkic nie stworzy bryły, ale raczej zestaw otwartych ścian. Jeśli nie chcesz, aby niektóre obiekty zostały włączone do bryły, przekształć je w elementy konstrukcyjne za pomocą narzędzia '''Tryb konstrukcji'''.
+* Użyj funkcji automatycznych wiązań, aby ograniczyć liczbę wiązań, które musisz dodać ręcznie.
+* Z reguły najpierw należy zastosować ograniczenia geometryczne, potem ograniczenia wymiarowe, a następnie zablokować szkic jako ostatni. Ale pamiętaj: reguły są tworzone po to, aby je łamać. Jeśli masz problemy z manipulowaniem szkicem, przydatne może być związanie najpierw kilku obiektów przed ukończeniem profilu.
+* Jeśli to możliwe, wyśrodkuj szkic do punktu początkowego ''(0,0)'' z wiązaniem blokady. Jeśli Twój szkic nie jest symetryczny, zlokalizuj jeden z jego punktów w punkcie początkowym lub wybierz ładne okrągłe liczby dla odległości blokady.
+* Jeśli masz możliwość wyboru między wiązaniem długości a wiązaniem poziomym lub pionowym, preferowane są te ostatnie. Ograniczenia odległości poziomej i pionowej są mniej obciążające obliczeniowo.
+* Ogólnie rzecz biorąc, najlepsze ograniczenia, których należy użyć, to: <br />Wiązania poziome i pionowe; Wiązania poziome i pionowe długości, styczność punkt-punkt. <br />Jeśli to możliwe, należy ograniczyć użycie następujących wiązań: <br />ogólne wiązanie długości, styczność krawędzi do krawędzi, ustalenie punktu do związania linii, wiązanie symetrii.
+* Jeśli masz wątpliwości co do poprawności szkicu po jego ukończeniu ''(elementy zmieniają kolor na zielony)'', zamknij okno dialogowe Szkicownika, i użyj narzędzia [[File:Sketcher_ValidateSketch.svg|24px]]. [[Sketcher_ValidateSketch/pl|sprawdź poprawność szkicu]].
+
+<span id="Tutorials"></span>
+==Poradniki==
+
+* [https://forum.freecadweb.org/viewtopic.php?f=36&t=30104 Poradnik dla szkicownika] według chrisb. Jest to ponad 80-cio stronicowy dokument PDF, który służy za szczegółową instrukcję obsługi szkicownika. Wyjaśniono w nim podstawy użytkowania środowiska pracy Szkicownik i omówiono wiele szczegółów dotyczących tworzenia kształtów geometrycznych i każdego z ograniczeń.
+* [[Basic_Sketcher_Tutorial/pl|Podstawy Środowiska pracy Szkicownik]] dla początkujących.
+* [[Sketcher_Micro_Tutorial_-_Constraint_Practices/pl|Szkicownik Mikro poradnik - Praktyki dotyczące wiązań]]
+* [[Sketcher_requirement_for_a_sketch/pl|Szkicownik: wymagania wobec szkicu]] Minimalne wymagania dotyczące szkicu i kompletne określenie szkicu.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Strona [[Sketcher_scripting|skrypty szkicownika]] zawiera przykłady tworzenia wiązań przez skrypty środowiska Python.
+
+<span id="Examples"></span>
+==Przykłady==
+
+Aby uzyskać kilka pomysłów na to, co można osiągnąć za pomocą narzędzi środowiska Szkicownik, zajrzyj do: [[Sketcher_Examples/pl|przykładów]].
+
+[[Image:Sketcher_ExampleHinge-01.gif|80px|link=]]
+[[Image:Sketcher ExampleHinge-15.png|90px|link=]]
+
+
+{{Docnav/pl
+|[[Robot_Workbench/pl|Środowisko pracy Robot]]
+|[[Spreadsheet_Workbench/pl|Środowisko pracy Arkusz kalkulacyjny]]
+|IconL=Workbench_Robot.svg
+|IconR=Workbench_Spreadsheet.svg
+}}
+
+{{Sketcher_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+[[Category:Workbenches{{#translation:}}]]

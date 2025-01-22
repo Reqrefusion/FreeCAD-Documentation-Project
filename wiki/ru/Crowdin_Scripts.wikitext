@@ -1,0 +1,94 @@
+<languages/>
+{{TOCright}}
+== Управление переводами для FreeCAD ==
+
+FreeCAD uses a 3rd party translation service called [https://crowdin.com/project/freecad Crowdin] to manage translations. 
+
+There are 3 scripts in <code>FreeCAD/src/Tools</code> that are used to manage translation files:
+# <code>updatets.py</code> [https://github.com/FreeCAD/FreeCAD/blob/master/src/Tools/updatets.py (github source)]
+# <code>updatecrowdin.py</code> [https://github.com/FreeCAD/FreeCAD/blob/master/src/Tools/updatecrowdin.py (github source)]
+# <code>updatefromcrowdin.py</code> [https://github.com/FreeCAD/FreeCAD/blob/master/src/Tools/updatefromcrowdin.py (github source)]
+
+=== Примечания ===
+
+* These scripts are run from the root of the <code>FreeCAD/</code> directory. 
+* In order for these scripts to work one needs to have the valid FreeCAD Crowdin API key placed in their <code>~/.crowdin-freecad</code> file. (For security reasons, only available to people with admin rights on the crowdin FreeCAD project)
+* Currently these tools are Python2 compatible.
+ 
+=== updatets.py ===
+
+The <code>updatets.py</code> script will create the .ts files in your local <code>FreeCAD/</code> directory. It generates .ts files (Qt Translation Source File). 
+
+It is invoked with:
+<code>python2 updatets.py</code>
+
+=== updatecrowdin.py ===
+
+The <code>updatecrowdin.py</code> script pushes changes to Crowdin (3rd party translation crowdsource translation service) from your local <code>FreeCAD/</code> directory. The script currently supports 4 arguments:
+
+* <code>updatecrowdin.py status</code> prints a status of the translations
+* <code>updatecrowdin.py update</code> updates crowdin the current version of .ts files found in the source code
+* <code>updatecrowdin.py build</code> builds a new downloadable package on crowdin with all translated strings
+* <code>updatecrowdin.py download</code> downloads the latest build
+
+=== updatefromcrowdin.py ===
+
+The <code>updatefromcrowdin.py</code> script pulls changes from crowdin to your local <code>FreeCAD/</code> directory.
+
+== To send latest strings to crowdin ==
+
+* Only tested on linux
+* You need a .credentials file in your /home/YourUser directory. That file is a simple text file containing only one line, which is the API key that you get on https://crowdin.com/project/freecad/settings#api (only for admins)
+* Make sure your repository is clean (git pull, git stash if needed)
+* cd /path/to/freecad-source-code/src/Tools
+* python updatets.py (will fill all the .ts files found in the source with the lastest strings)
+* python updatecrowdin.py update (will send the ts files to crowdin. Crowdin will only update strings that are new)
+* cd ../.. (go back to the source code root folder)
+* git checkout . (undo all the changes to the .ts files, no reason to commit them right now as they are still untranslated)
+
+== To merge latest translations from crowdin ==
+
+* Only tested on linux
+* You need a .credentials file in your /home/YourUser directory. That file is a simple text file containing only one line, which is the API key that you get on https://crowdin.com/project/freecad/settings#api (only for admins)
+* Make sure your repository is clean (git pull, git stash if needed)
+* cd /path/to/freecad-source-code/src/Tools
+* python updatecrowdin.py build (will create a zip on crowdin side with all the files, can take a while.. This step can also be done on the crowdin website)
+* python updatecrowdin.py download (will download a freecad.zip file in this directory)
+* mv freecad.zip ~ move the zip file to your home dir, to avoid accidentally committing it later)
+* (optional) edit updatefromcrowdin.py script and check that the default_languages contain all the ones you want (basically all that are at more than 50%)
+* python updatefromcrowdin.py -z /home/YourUser/freecad.zip
+* cd ../.. (go back to the source code root folder)
+* if something went wrong  or you are unsure, clean everything with git checkout .
+* if everything looks ok (git status), commit with git add . && git commit
+* Create a PR on FreeCAD
+
+== To generate a translation file from the website ==
+
+* Clone the homepage repository
+* cd /path/to/FreeCAD-homepage
+* xgettext --from-code=UTF-8 -o lang/homepage.pot *.php
+* Update the "homepage.po" on crowdin website manually, using the lang/homepage.pot file
+
+== To update the translations of the website ==
+
+* Get the freecad.zip file either by downloading it from the crowdin website or following instructions above (python updatecrowdin.py download)
+* cd /path/to/FreeCAD-homepage
+* Make sure your repository is clean (git pull, git stash if needed)
+* python updatefromcrowdin.py -z /path/to/freecad.zip
+* if something went wrong  or you are unsure, clean everything with git checkout .
+* if everything looks ok (git status), commit with git add . && git commit
+* Create a PR on FreeCAD-Homepage
+* After the PR is merged, one of the admins will ftp push to the webhost
+
+== Сопутствующая информация ==
+
+* [[Localisation]]
+* [[Crowdin Administration]]
+* [[Release process]]
+
+
+{{Userdocnavi{{#translation:}}}}
+
+[[Category:Developer Documentation{{#translation:}}]]
+
+[[Category:Administration{{#translation:}}]]

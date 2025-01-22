@@ -1,0 +1,146 @@
+<languages/>
+
+{{Docnav
+|[[Draft_Arc_3Points|Arc 3Points]]
+|[[Draft_Ellipse|Ellipse]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_Arc_3Points.svg
+|IconR=Draft_Ellipse.svg
+|IconC=Workbench_Draft.svg
+}}
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/sv|Name=Draft Circle|Name/sv=Draft Circle|Workbenches=[[Draft_Workbench/sv|Draft]], [[Arch_Workbench/sv|Arch]]|MenuLocation=Draft -> Circle|Shortcut=C I|SeeAlso=[[Draft Arc/sv|Draft Arc]]}}
+</div>
+
+==Description== 
+
+<div class="mw-translate-fuzzy">
+====Beskrivning====
+
+Detta verktyg ritar en cirkel genom att fråga efter två punkter, Centrum och radie, genom att välja tangenter, eller någon kombination av dessa.
+</div>
+
+A Draft Circle can be turned into an arc by setting its {{PropertyData|First Angle}} and {{PropertyData|Last Angle}} properties to different values.
+
+[[Image:Draft_Circle_example.jpg|400px]]
+<div class="mw-translate-fuzzy">
+[[Image:Draft_Circle_example.jpg|400px]]
+</div>
+
+==Usage== 
+
+See also: [[Draft_Tray|Draft Tray]], [[Draft_Snap|Draft Snap]] and [[Draft_Constrain|Draft Constrain]].
+
+# There are several ways to invoke the command:
+#* Press the {{Button|[[Image:Draft_Circle.svg|16px]] [[Draft_Circle|Circle]]}} button.
+#* [[Draft_Workbench|Draft]]: Select the {{MenuCommand|Drafting → [[Image:Draft_Circle.svg|16px]] Circle}} option from the menu.
+#* [[BIM_Workbench|BIM]]: Select the {{MenuCommand|2D Drafting → [[Image:Draft_Circle.svg|16px]] Circle}} option from the menu.
+#* Use the keyboard shortcut: {{KEY|C}} then {{KEY|I}}.
+# The {{MenuCommand|Circle}} task panel opens. See [[#Options|Options]] for more information.
+# Pick the first point, the center of the circle, in the [[3D_view|3D view]], or type coordinates and press the {{Button|[[Image:Draft_AddPoint.svg|16px]] Enter point}} button.
+# Pick the second point in the [[3D_view|3D view]], or enter a {{MenuCommand|Radius}}.
+
+==Options==
+
+The single character keyboard shortcuts available in the task panel can be changed. See [[Draft_Preferences|Draft Preferences]]. The shortcuts mentioned here are the default shortcuts (for version 1.0).
+
+<div class="mw-translate-fuzzy">
+====Bruk====
+
+* Det primära bruket av cirkelverktyget är att markera två punkter, centrumet och en punkt på omkretsen, vilket definierar radien.
+* Om man trycker ned {{KEY|ALT}}, så kan du välja en  tangent istället för att markera en punkt. Du kan därför konstruera flera cirkeltyper genom att välja en, två eller tre tangenter.
+* Välj en punkt i ett tomt område i 3d vyn, eller på ett existerande objekt.
+* Nedtryckning av {{KEY|CTRL}} kommer att [[Draft_Snap/sv|snäppa]] din punkt till tillgängliga snäpp-punkter.
+* Nedtryckning av {{KEY|SKIFT}} [[Draft_Constrain/sv|begränsar]] din nya punkt i relation till föregående punkt.
+* Skriv in siffror för att manuellt mata in en koordinat.
+* Om du trycker på {{KEY|ESC}} så avbryts funktionen.
+</div>
+
+==Notes==
+
+* A Draft Circle can be edited with the [[Draft_Edit|Draft Edit]] command.
+
+==Preferences==
+
+See also: [[Preferences_Editor|Preferences Editor]] and [[Draft_Preferences|Draft Preferences]].
+
+* If the {{MenuCommand|Edit → Preferences... → Draft → General → Create Part primitives if possible}} option is checked, the command will create a [[Part_Circle|Part Circle]] instead of a Draft Circle.
+
+==Properties==
+
+See also: [[Property_editor|Property editor]].
+
+A Draft Circle object is derived from a [[Part_Part2DObject|Part Part2DObject]] and inherits all its properties. It also has the following additional properties:
+
+===Data===
+
+{{TitleProperty|Draft}}
+
+* {{PropertyData|Area|Area}}: (read-only) specifies the area of the face of the circle. The value will be {{value|0.0}} if {{PropertyData|Make Face}} if {{FALSE}} or the face cannot be created.
+* {{PropertyData|First Angle|Angle}}: specifies the start angle of the circle, normally {{value|0&#176;}}.
+* {{PropertyData|Last Angle|Angle}}: specifies the end angle of the circle, normally {{value|0&#176;}}.
+* {{PropertyData|Make Face|Bool}}: specifies if the circle makes a face or not. If it is {{TRUE}} a face is created, otherwise only the perimeter is considered part of the object. This property only works if the {{PropertyData|First Angle}} and {{PropertyData|Last Angle}} have the same value. Note that {{value|0&#176;}} and {{value|360&#176;}} are not considered the same.
+* {{PropertyData|Radius|Length}}: specifies the radius of the circle.
+
+===View===
+
+{{TitleProperty|Draft}}
+
+* {{PropertyView|Pattern|Enumeration}}: specifies the [[Draft_Pattern|Draft Pattern]] with which to fill the face of the circle. This property only works if {{PropertyData|Make Face}} is {{TRUE}} and if {{PropertyView|Display Mode}} is {{value|Flat Lines}}.
+* {{PropertyView|Pattern Size|Float}}: specifies the size of the [[Draft_Pattern|Draft Pattern]].
+
+==Scripting==
+
+<div class="mw-translate-fuzzy">
+====Skriptning====
+
+Den skapade cirkeln är ett [[Part Workbench/sv|Del]] föremå som innehåller en kant med endast ett hörn.
+</div>
+
+To create a Draft Circle use the {{incode|make_circle}} method ({{Version|0.19}}) of the Draft module. This method replaces the deprecated {{incode|makeCircle}} method.
+
+{{Code|code=
+circle = make_circle(radius, placement=None, face=None, startangle=None, endangle=None, support=None)
+circle = make_circle(Part.Edge, placement=None, face=None, startangle=None, endangle=None, support=None)
+}}
+
+* Creates a {{incode|circle}} object with given {{incode|radius}} in millimeters.
+** {{incode|radius}} can also be a {{incode|Part.Edge}}, whose {{incode|Curve}} attribute must be a {{incode|Part.Circle}}.
+* If {{incode|placement}} is {{incode|None}} the circle is created at the origin.
+* If {{incode|face}} is {{incode|True}}, the circle will make a face, that is, it will appear filled.
+* If {{incode|startangle}} and {{incode|endangle}} are given in degrees, and have different values, they are used and the object appears as a [[Draft Arc|Draft Arc]].
+
+Example:
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+circle1 = Draft.make_circle(200)
+
+zaxis = App.Vector(0, 0, 1)
+p2 = App.Vector(1000, 1000, 0)
+place2 = App.Placement(p2, App.Rotation(zaxis, 0))
+circle2 = Draft.make_circle(500, placement=place2)
+
+p3 = App.Vector(-1000, -1000, 0)
+place3 = App.Placement(p3, App.Rotation(zaxis, 0))
+circle3 = Draft.make_circle(750, placement=place3)
+
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Draft_Arc_3Points|Arc 3Points]]
+|[[Draft_Ellipse|Ellipse]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_Arc_3Points.svg
+|IconR=Draft_Ellipse.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

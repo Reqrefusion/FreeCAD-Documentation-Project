@@ -1,0 +1,135 @@
+<languages/>
+
+{{Docnav/de
+|[[Draft_Point/de|Punkt]]
+|[[Draft_ShapeString/de|Textform]]
+|[[Draft_Workbench/de|Draft]]
+|IconL=Draft_ShapeString.svg 
+|IconC=Workbench_Draft.svg
+|IconR=Draft_BezCurve.svg 
+}}
+
+{{GuiCommand/de
+|Name=Draft Facebinder
+|Name/de=Draft Flächenbinder
+|MenuLocation=Zeichnen → Flächenverbinder<br>3D/BIM → Generische 3D-Werkzeuge → Flächenverbinder
+|Workbenches=[[Draft_Workbench/de|Draft]], [[BIM_Workbench/de|BIM]]
+|Shortcut=Draft: {{KEY|F}} {{KEY|F}}
+|Version=0.14
+}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+Der Befehl [[Image:Draft_Facebinder.svg|24px]] '''Draft Flächenbinder''' erstellt ein Oberflächenobjekt aus ausgewählten Flächen. Ein Draft-Flächenbinder ist parametrisch, er wird aktualisiert, wenn seine Quellobjekte geändert werden.
+
+Er kann verwendet werden, um eine Extrusion aus einer Sammlung von Flächen aus anderen Objekten zu erstellen. Diese Extrusion kann zum Beispiel einen Wandabschluss in der architektonischen Gestaltung
+verkörpern.
+
+[[Image:Draft_facebinder_example.jpg|400px]]
+{{Caption|Flächenbinder erstellt aus den Wandflächen}}
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Eine oder mehrere Flächen auswählen.
+# Es gibt mehrere Möglichkeiten, den Befehl aufzurufen:
+#* Die Schaltfläche {{Button|[[Image:Draft_Facebinder.svg|16px]] [[Draft_Facebinder/de|Flächenverbinder]]}} drücken.
+#* [[Draft_Workbench/de|Draft]]: Den Menüeintrag {{MenuCommand|Zeichnen → [[Image:Draft_Facebinder.svg|16px]] Flächenverbinder}} auswählen.
+#* [[BIM_Workbench/de|BIM]]: Den Menüeintrag {{MenuCommand|3D/BIM → Generische 3D-Werkzeuge → [[Image:Draft_Facebinder.svg|16px]] Flächenverbinder}} auswählen.
+#* Draft: Das Tastaturkürzel {{KEY|F}} dann {{KEY|F}}.
+
+<span id="Properties"></span>
+== Eigenschaften ==
+
+Siehe auch: [[Property_editor/de|Eigenschafteneditor]].
+
+Ein Draft-Flächenbinder (Facebinder-Objekt) wird von einem [[Part_Feature/de|Part-Formelement]] abgeleitet und erbt alle seine Eigenschaften. Außerdem hat er die folgenden zusätzlichen Eigenschaften:
+
+<span id="Data"></span>
+===Daten===
+
+{{TitleProperty|Draft}}
+
+* {{PropertyData/de|Area|Area}}: (nur-lesen) Gibt den gesamten Bereich der verbundenen Flächen des Flächenbinders an.
+* {{PropertyData/de|Extrusion|Distance}}: Gibt die Extrusionsdicke des Flächenbinders an.
+* {{PropertyData/de|Faces|LinkSubList}}: Gibt die verbundenen Flächen des Flächenbinders an.
+* {{PropertyData/de|Offset|Distance}}: Gibt eine Abstandsentfernung an, die vor der Extrusion zwischen den ursprünglichen Flächen und dem Flächenbinder bestehen soll.
+* {{PropertyData/de|Remove Splitter|Bool}}: Gibt an, ob Trennlinien ("splitter lines" ?) entfernt werden sollen, die auf gleicher Ebene liegende Flächen vom Flächenbinder trennen oder nicht.
+* {{PropertyData/de|Sew|Bool}}: Gibt an, ob ein topolischer Nähvorgang am Flächenbinder durchgeführt werden soll oder nicht.
+
+<span id="View"></span>
+===Ansicht===
+
+{{TitleProperty|Draft}}
+
+* {{PropertyView/de|Muster}}: legt das [[Draft Pattern/de|Draft-Muster]] fest, mit dem die Flächen des Formbinders ausgefüllt werden sollen. Diese Eigenschaft funktioniert nur, wenn die {{PropertyView/de|Display Mode}} auf "Flat Lines" gesetzt ist.
+* {{PropertyView/de|Muster Grösse}}: legt die Größe des [[Draft_Pattern/de|Draft-Musters]] fest.
+
+<span id="Scripting"></span>
+==Skripten==
+
+Siehe auch: [https://freecad.github.io/SourceDoc/ Autogenerierte API-Dokumentation] und [[FreeCAD_Scripting_Basics/de|Grundlagen der Skripterstellung in FreeCAD]].
+
+Um einen Draft-Flächenbinder zu erstellen, wird die Methode {{incode|make_facebinder}} ({{Version/de|0.19}}) des Draft-Moduls verwendet. Diese Methode ersetzt die veraltete Methode {{incode|makeFacebinder}}.
+
+{{Code|code=
+facebinder = make_facebinder(selectionset)
+}}
+
+* Erstellt ein {{incode|facebinder}}-Objekt aus dem angegebenen {{incode|selectionset}}, das eine Liste von {{incode|SelectionObject}}s ist, wie sie von {{incode|FreeCADGui.Selection.getSelectionEx()}} zurückgegeben wird. Es werden nur ausgewählte Flächen berücksichtigt.
+** {{incode|selectionset}} kann auch ein {{incode|PropertyLinkSubList}} sein.
+ 
+Eine {{incode|PropertyLinkSubList}} ist eine Liste von Tupeln; jedes Tupel enthält als erstes Element ein {{incode|object}}, und als zweites Element eine Liste (oder Tupel) von Zeichenketten; diese Zeichenketten zeigen die Namen der Unterelemente (Flächen) dieses Objekts an.
+
+{{Code|code=
+PropertyLinkSubList = [tuple1, tuple2, tuple3, ...]
+PropertyLinkSubList = [(object1, list1), (object2, list2), (object3, list3), ...]
+PropertyLinkSubList = [(object1, ['Face1', 'Face4', 'Face6']), ...]
+PropertyLinkSubList = [(object1, ('Face1', 'Face4', 'Face6')), ...]
+}}
+
+Die Dicke des Flächenbinders kann durch Überschreiben des Attributs {{incode|Extrusion}} hinzugefügt werden; der Wert wird in Millimetern eingegeben.
+
+Die Positionierung des Flächenverbinders kann durch Überschreiben des Attributs {{incode|Placement}} oder durch individuelles Überschreiben der Attribute {{incode|Placement.Base}} und {{incode|Placement.Rotation}} geändert werden.
+
+Beispiel:
+
+{{Code|code=
+import FreeCAD as App
+import FreeCADGui as Gui
+import Draft
+
+doc = App.newDocument()
+
+# Insert a solid box
+box = doc.addObject("Part::Box", "Box")
+box.Length = 2300
+box.Width = 800
+box.Height = 1000
+
+# selection = Gui.Selection.getSelectionEx()
+selection = [(box, ("Face1", "Face6"))]
+facebinder = Draft.make_facebinder(selection)
+facebinder.Extrusion = 50
+
+doc.recompute()
+
+facebinder.Placement.Base = App.Vector(1000, -1000, 100)
+facebinder.ViewObject.ShapeColor = (0.99, 0.99, 0.4)
+
+doc.recompute()
+}}
+
+
+{{Docnav/de
+|[[Draft_Point/de|Punkt]]
+|[[Draft_ShapeString/de|Textform]]
+|[[Draft_Workbench/de|Draft]]
+|IconL=Draft_ShapeString.svg 
+|IconC=Workbench_Draft.svg
+|IconR=Draft_BezCurve.svg 
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

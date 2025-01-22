@@ -1,0 +1,175 @@
+<languages/>
+
+{{Docnav/fr
+|[[BIM_Project/fr|Projet]]
+|[[Arch_Building/fr|Bâtiment]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=BIM_Project.svg
+|IconR=Arch_Building.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|Cette commande fait partie de l'ensemble intégré de l'[[BIM_Workbench/fr|atelier BIM]] avec la V1.0<br>
+Cette page a été mise à jour pour cette version.}}
+
+{{GuiCommand/fr
+|Name=Arch Site
+|Name/fr=Arch Site
+|MenuLocation=3D/BIM → Site
+|Workbenches=[[BIM_Workbench/fr|BIM]]
+|Shortcut={{KEY|S}} {{KEY|I}}
+|SeeAlso=
+}}
+
+==Description==
+
+'''Arch Site''' est un objet spécial qui combine les propriétés d'un objet groupe FreeCAD standard et des objets Arch. Il est particulièrement adapté pour représenter un site entier ou un terrain. Dans un travail architectural fait d'IFC, il est surtout utilisé pour organiser votre modèle qui contient des objets de [[Arch_Building/fr|bâtiments]]. Arch Site est également utilisé pour gérer et afficher un terrain physique et peut calculer le volume de terre a ajouter ou a supprimer.
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Vous pouvez sélectionner un ou plusieurs objets pour les inclure dans votre nouveau site.
+# Pressez le bouton {{Button|[[Image:Arch_Site.svg|16px]] [[Arch_Site/fr|Site]]}} ou pressez les touches {{KEY|S}} puis {{KEY|I}}.
+
+==Options==
+
+* Après la création d'un site, vous pouvez ajouter des objets par glisser-déposer dans la [[Tree_view/fr|vue en arborescence]] ou en utilisant le bouton {{Button|[[Image:Arch Add.svg|16px]] [[Arch_Add/fr|Arch Ajouter]]}}. Cela ne détermine que les objets qui font partie du site donné et n'a aucun effet sur le terrain.
+* Vous pouvez supprimer les objets d'un site par un glisser-déposer hors du site de la [[Tree_view/fr|vue en arborescence]] ou en utilisant le bouton {{Button|[[Image:Arch Remove.svg|16px]] [[Arch_Remove/fr|Arch Supprimer]]}}.
+* Vous pouvez ajouter un objet terrain en modifiant la propriété {{PropertyData|Terrain}} du site. Le terrain peut être une coque ouverte ou ({{Version/fr|0.21}}) un solide.
+* Vous pouvez ajouter des volumes à ajouter ou à soustraire du terrain de base en double-cliquant sur le site et en ajoutant des objets à ses groupes Additions ou Soustractions. Les objets doivent être des solides.
+* La propriété {{PropertyData|Extrusion Vector}} peut être utilisée pour résoudre certains problèmes qui peuvent apparaître lorsque le terrain est une coque ouverte et qu'il y a des additions et/ou des soustractions. Afin d'effectuer ces additions/soustractions, la coque ouverte est extrudée en un solide, qui est ensuite assemblé/soustrait de manière appropriée. Selon la topologie du terrain, cette extrusion peut échouer avec le vecteur d'extrusion par défaut. Vous pouvez alors remédier au problème en modifiant cette valeur. Cette propriété est ignorée si le terrain est un solide.
+
+<span id="Properties"></span>
+==Propriétés==
+
+<span id="Data"></span>
+=== Données ===
+
+* {{PropertyData|Terrain}} : terrain de base du site
+* {{PropertyData|Address}} : adresse du site (rue numéro)
+* {{PropertyData|Postal Code}} : code postal
+* {{PropertyData|City}} : ville du site
+* {{PropertyData|Country}} : pays du site
+* {{PropertyData|Latitude}} : latitude du site
+* {{PropertyData|Longitude}} : longitude du site
+* {{PropertyData|Url}} : adresse URL du site sur une carte web
+* {{PropertyData|Projected Area}} : surface de projection de l’objet dans le plan XY
+* {{PropertyData|Perimeter}} : longueur du périmètre du terrain
+* {{PropertyData|Addition Volume}} : volume de terre a ajouter dans le terrain
+* {{PropertyData|Subtraction Volume}} : volume de terre a soustraire du terrain
+* {{PropertyData|Extrusion Vector}} : vecteur d'extrusion a utiliser pour une opéraion booléenne
+* {{PropertyData|Remove Splitter}} : efface les séparations de la forme résultante
+* {{PropertyData|Declination}} : angle entre le nord vrai et le nord dans ce document, c’est-à-dire l’axe des Y. Cela signifie que par défaut (déclinaison de 0 degré) le Nord pointe vers l’axe Y et est vers l’est dans l'Axe X; l'angle est incrémenté dans les sens contraire des aiguilles d'une montre. Cette propriété était connue auparavant comme une {{PropertyData|North Deviation}}.
+* {{PropertyData|EPW File}} : permet de joindre à ce site un fichier EPW provenant du [https://www.ladybug.tools/epwmap/ site web de données EPW de Ladybug]. Ceci est nécessaire pour afficher les diagrammes de la rose des vents.
+
+<span id="View"></span>
+=== Vue ===
+
+* {{PropertyView|Solar Diagram}} : affiche ou cache le diagramme du soleil
+* {{PropertyView|Solar Diagram Color}} : couleur du diagramme du soleil
+* {{PropertyView|Solar Diagram Position}} : position du diagramme du soleil
+* {{PropertyView|Solar Diagram Scale}} : échelle du diagramme du soleil
+* {{PropertyView|Wind Rose}} : affiche ou masque le diagramme de la rose des vents (nécessite que la propriété de données '''EPW File''' soit remplie et que le module Python de Ladybug soit installé (voir ci-dessous)
+
+<span id="Typical_workflow"></span>
+== Flux de travail typique ==
+
+Commencez par créer un objet qui représente votre terrain. Par exemple, il est facile d'importer des données de maillage, qui peuvent être transformées en une Part Forme à partir du menu {{MenuCommand|Part → Créer une forme à partir d'un maillage}}. Créez ensuite un objet Site et définissez sa propriété {{PropertyData|Terrain}} sur la pièce que nous venons de créer :
+
+[[Image:Arch site example 01.jpg]]
+
+Créez les volumes (les volumes doivent être des solides) qui représentent les surfaces à travailler. Double cliquez sur l'objet Site dans la vue 3D, et ajoutez ou soustrayez ces volumes du groupe. Cliquez sur OK.
+
+[[Image:Arch site example 02.jpg]]
+
+La géométrie du site est alors calculée, les surfaces les périmètres et volumes sont automatiquement recalculés.
+
+[[Image:Arch site example 03.jpg]]
+
+<span id="Solar_and_wind_diagrams"></span>
+== Diagrammes solaires et éoliens ==
+
+Si [https://www.ladybug.tools/ladybug.html Ladybug] est installé, [[Arch_Site/fr|Arch Site]] peut afficher un diagramme solaire et/ou une rose des vents. Pour cela, les propriétés {{PropertyData|Longitude}}, {{PropertyData|Latitude}} et {{PropertyData|NorthDeviation}} doivent être correctement définies et {{PropertyView/fr|SolarDiagram}} ou {{PropertyView/fr|Wind Rose}} activée {{TRUE}}.
+
+'''Remarque''' : si vous n'avez pas Ladybug, [http://pysolar.org/ pysolar] est toujours pris en charge pour générer des diagrammes solaires mais pas les roses des vents. Pysolar 0.7 ou supérieur est requis. Cependant, Ladybug est un outil beaucoup plus puissant qui sera probablement plus utilisé dans l'avenir. Nous vous recommandons donc de l'utiliser au lieu de pysolar. Ladybug peut être installé simplement via [https://github.com/ladybug-tools/ladybug pip].
+
+[[Image:Freecad-solar-diagram.jpg]]
+
+<span id="Scripting"></span>
+==Script==
+
+{{Emphasis|Voir aussi :}} [[Arch_API/fr|Arch API]] et [[FreeCAD_Scripting_Basics/fr|Débuter avec les scripts FreeCAD]].
+
+L'outil Site est utilisable dans une [[Macros/fr|macro]] et dans la console [[Python/fr|Python]] en utilisant la fonction suivante :
+
+{{Code|code=
+Site = makeSite(objectslist=None, baseobj=None, name="Site")
+}}
+
+* Crée un objet {{incode|Site}} à partir de {{incode|objectlist}} qui est une liste d'objets ou {{incode|baseobj}} qui est un {{incode|Shape}} ou {{incode|Terrain}}.
+
+Exemple :
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 0, 0)
+baseline = Draft.makeLine(p1, p2)
+Wall = Arch.makeWall(baseline, length=None, width=150, height=2000)
+FreeCAD.ActiveDocument.recompute()
+
+Building = Arch.makeBuilding([Wall])
+Site = Arch.makeSite([Building])
+
+FreeCAD.ActiveDocument.recompute()
+FreeCAD.Gui.ActiveDocument.ActiveView.viewIsometric()
+}}
+
+<span id="Solar_diagram"></span>
+=== Diagramme solaire ===
+
+Tant que le module {{incode|pysolar}} est présent, un diagramme solaire peut être ajouté au site. Définissez les angles de longitude, de latitude et de déclinaison selon les besoins, ainsi qu'une échelle adéquate pour la taille de votre modèle.
+
+Veuillez noter que Pysolar 0.7 ou supérieur est requis et que cette version ne fonctionne qu'avec Python 3.
+
+{{Code|code=
+Site.Longitude = -46.38
+Site.Latitude = -23.33
+Site.Declination = 30
+#Site.Compass = True
+
+Site.ViewObject.SolarDiagram = True
+Site.ViewObject.SolarDiagramScale = 10000
+FreeCAD.ActiveDocument.recompute()
+}}
+
+<span id="Solar_diagram_independent_of_Site"></span>
+=== Diagramme solaire indépendant du site ===
+
+Un diagramme solaire peut être créé avec la fonction suivante, indépendamment de tout site.
+{{Code|code=
+Node = makeSolarDiagram(longitude, latitude, scale=1, complete=False)
+}}
+
+* Crée un diagramme solaire en tant que nœud Pivy en utilisant {{incode|longitude}} et {{incode|latitude}} avec {{incode|scale}} facultatif.
+* Si {{incode|complete}} est mis à {{incode|True}}, les 12 mois sont montrés ce qui affiche l'[https://fr.wikipedia.org/wiki/Analemme Analemme].
+
+{{Code|code=
+import FreeCADGui, Arch
+
+Node = Arch.makeSolarDiagram(-46.38, -23.33, scale=10000, complete=True)
+FreeCAD.Gui.ActiveDocument.ActiveView.getSceneGraph().addChild(Node)
+}}
+
+
+{{Docnav/fr
+|[[BIM_Project/fr|Projet]]
+|[[Arch_Building/fr|Bâtiment]]
+|[[BIM_Workbench/fr|Atelier BIM]]
+|IconL=BIM_Project.svg
+|IconR=Arch_Building.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

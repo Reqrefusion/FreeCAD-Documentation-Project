@@ -1,0 +1,154 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Arch_Rebar_Stirrup/ru|Кольцевая арматура]]
+|[[Arch_Rebar_Helical/ru|Спиральная арматура]]
+|[[Arch_Workbench/ru|Архитектурный верстак "Arch"]]
+|IconL=Arch_Rebar_Stirrup.svg
+|IconR=Arch_Rebar_Helical.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+<div class="mw-translate-fuzzy">
+{{GuiCommand/ru
+|Name/ru=Изогнутая арматура
+|Name=Arch_Rebar_BentShape
+|MenuLocation=Arch → Rebar tools → Bent-Shape Rebar<br>3D/BIM → Reinforcement tools → Bent-Shape Rebar
+|Workbenches=[[Arch_Workbench/ru|Arch]], [[BIM_Workbench/ru|BIM]]
+|Version=0.17
+|SeeAlso=[[Reinforcement_Workbench/ru|Reinforcement]], [[Arch_Rebar/ru|Арматура по эскизу]], [[Arch_Rebar_Stirrup/ru|Кольцевая арматура]]
+}}
+</div>
+
+<span id="Description"></span>
+==Описание==
+
+<div class="mw-translate-fuzzy">
+Инструмент {{KEY | [[Image: Arch_Rebar_BentShape.png | 16px]] Bent Shape Rebar}} позволяет пользователю создавать в структурном элементе арматурный стержень с изогнутой формой.
+</div>
+
+This tool is part of the [[Reinforcement_Workbench|Reinforcement Workbench]], an [[External_workbenches|external workbench]] that can be installed with the [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr|Addon Manager]].
+
+[[Image:Arch_Rebar_BentShape_example.png|400px]]
+<div class="mw-translate-fuzzy">
+[[Image:BentShapeRebar.png|800px]]
+</div>
+
+<span id="Usage"></span>
+==Применение==
+
+# Select any face of a previously created {{Button|[[Image:Arch_Structure.svg|16px]] [[Arch Structure|Arch Structure]]}} object.
+# Then select {{Button|[[Image:Reinforcement_BentShapeRebar.svg|16px]] [[Reinforcement_BentShapeRebar|Bent-Shape Rebar]]}} from the rebar tools.
+# A [[Task_panel|task panel]] will pop-out on the left side of the screen as shown below.
+# Select the desired orientation.
+# Populate the inputs like 'Left Cover', 'Right Cover', 'Top Cover', 'Bottom Cover', 'Front Cover', 'Bent Angle', 'Bent Factor', 'Rounding' and 'Diameter' of the rebar.
+# Select the mode of distribution either 'Amount' or 'Spacing'.
+#* If 'Spacing' is selected, a user can also opt for [[Reinforcement_Custom_Spacing|custom spacing]].
+# {{Button|Pick Selected Face}} is used to verify or change the face for rebar distribution.
+# Click {{Button|OK}} or {{Button|Apply}} to generate the rebars.
+# Click {{Button|Cancel}} to exit the task panel.
+
+[[Image:BentShapeDialog.png|250px]]
+{{Caption|Task panel for the tool}}
+
+<span id="Properties"></span>
+==Свойства== 
+
+* {{PropertyData|Orientation}}: It decides the orientation of the rebar (like a bottom, top, right and left).
+* {{PropertyData|Front Cover}}: The distance between rebar and selected face.
+* {{PropertyData|Left Cover}}: The distance between the left end of the rebar to the left face of the structure.
+* {{PropertyData|Right Cover}}: The distance between the right end of the rebar to right face of the structure.
+* {{PropertyData|Bottom Cover}}: The distance between rebar from the bottom face of the structure.
+* {{PropertyData|Top Cover}}: The distance between rebar from the top face of the structure.
+* {{PropertyData|Anchor Length}}: It is the arm's length of bent shape rebar.
+* {{PropertyData|Bent Angle}}: It decides angle in bent shape rebar.
+* {{PropertyData|Amount}}: The amount of rebars.
+* {{PropertyData|Spacing}}: The distance between the axes of each bar.
+
+<span id="Scripting"></span>
+<div class="mw-translate-fuzzy">
+== Скриптование ==
+</div>
+
+{{Emphasis|See also:}} [[Arch API|Arch API]], [[Reinforcement API|Reinforcement API]] and [[FreeCAD Scripting Basics|FreeCAD Scripting Basics]].
+
+<div class="mw-translate-fuzzy">
+Инструмент {{KEY|[[Image:Arch_Rebar_BentShape.png|16px]] Bent Shape Rebar}} можно использовать в [[macros]] и на консоли python с помощью следующей функции:
+</div>
+{{Code|code=
+Rebar = makeBentShapeRebar(f_cover, b_cover, l_cover, r_cover,
+                           diameter, t_cover, bentLength, bentAngle, rounding, amount_spacing_check, amount_spacing_value, orientation="Bottom",
+                           structure=None, facename=None)
+}}
+
+* Creates a {{incode|Rebar}} object from the given {{incode|structure}}, which is an [[Arch Structure|Arch Structure]], and {{incode|facename}}, which is a face of that structure.
+** If no {{incode|structure}} nor {{incode|facename}} are given, it will take the user selected face as input.
+* {{incode|f_cover}}, {{incode|b_cover}}, {{incode|l_cover}}, {{incode|r_cover}}, and {{incode|t_cover}} are inner offset distances for the rebar elements with respect to the faces of the structure. They are respectively the front, bottom, left, right, and top offsets.
+* {{incode|diameter}} is the diameter of the reinforcement bars inside the structure.
+* {{incode|rounding}} is the parameter that determines the bending radius of the center reinforcement bars.
+* {{incode|bentLength}} and {{incode|bentAngle}} define the length of the tip of the reinforcement bars, and the bending angle from the center bars.
+* {{incode|amount_spacing_check}} if it is {{incode|True}} it will create as many reinforcement bars as given by {{incode|amount_spacing_value}}; if it is {{incode|False}} it will create reinforcement bars separated by the numerical value of {{incode|amount_spacing_value}}.
+* {{incode|amount_spacing_value}} specifies the number of reinforcement bars, or the value of the separation between them, depending on {{incode|amount_spacing_check}}.
+* {{incode|orientation}} specifies the orientation of the rebar; it can be {{incode|"Bottom"}}, {{incode|"Top"}}, {{incode|"Left"}}, or {{incode|"Right"}}.
+
+<span id="Example"></span>
+=== Пример ===
+
+{{Code|code=
+import FreeCAD, Arch, BentShapeRebar
+
+Structure = Arch.makeStructure(length=1000, width=1000, height=100)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = BentShapeRebar.makeBentShapeRebar(50, 20, 20, 20,
+                                          8, 40, 100, 135, 2, True, 4, "Bottom", Structure, "Face4")
+Rebar.ViewObject.ShapeColor = (0.9, 0.0, 0.0)
+
+Rebar2 = BentShapeRebar.makeBentShapeRebar(50, 40, 20, 20,
+                                           8, 20, 100, 135, 2, True, 4, "Bottom", Structure, "Face6")
+Rebar2.ViewObject.ShapeColor = (0.0, 0.0, 0.9) 
+}}
+
+=== Edition of the rebar ===
+
+You can change the properties of the rebar with the following function:
+
+{{Code|code=
+editBentShapeRebar(Rebar, f_cover, b_cover, l_cover, r_cover,
+                   diameter, t_cover, bentLength, bentAngle, rounding, amount_spacing_check, amount_spacing_value, orientation,
+                   structure=None, facename=None)
+}}
+
+* {{incode|Rebar}} is a previously created {{incode|BentShapeRebar}} object.
+* The other parameters are the same as required by the {{incode|makeBentShapeRebar()}} function.
+* {{incode|structure}} and {{incode|facename}} may be omitted so that the rebar stays in the original structure.
+
+{{Code|code=
+import BentShapeRebar
+
+BentShapeRebar.editBentShapeRebar(Rebar, 50, 20, 20, 20,
+                                  12, 20, 100, 155, 2, True, 6, "Top")
+
+BentShapeRebar.editBentShapeRebar(Rebar2, 50, 35, 20, 20,
+                                  12, 35, 100, 155, 2, True, 6, "Top")
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav/ru
+|[[Arch_Rebar_Stirrup/ru|Кольцевая арматура]]
+|[[Arch_Rebar_Helical/ru|Спиральная арматура]]
+|[[Arch_Workbench/ru|Архитектурный верстак "Arch"]]
+|IconL=Arch_Rebar_Stirrup.svg
+|IconR=Arch_Rebar_Helical.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

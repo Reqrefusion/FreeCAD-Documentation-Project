@@ -1,0 +1,198 @@
+<languages/>
+
+{{VeryImportantMessage|Jest to nieukończona funkcja eksperymentalna. [[CAM_experimental/pl|Włącz funkcje eksperymentalne]]}}
+
+{{Docnav/pl
+|[[CAM_Adaptive/pl|Algorytm adaptacyjny]]
+|[[CAM_Engrave/pl|Grawer]]
+|[[CAM_Workbench/pl|środowisko pracy CAM]]
+|IconL=CAM_Adaptive.svg
+|IconR=CAM_Engrave.svg
+|IconC=Workbench_CAM.svg
+}}
+
+{{GuiCommand/pl
+|Name=CAM Slot
+|Name/pl=CAM: Rowek
+|MenuLocation=CAM → Rowek
+|Workbenches=[[CAM_Workbench/pl|CAM]]
+|Version=0.19
+}}
+
+<span id="Description"></span>
+==Opis== 
+
+Narzędzie [[Image:CAM_Slot.svg|24px]] [[CAM_Slot/pl|Rowek]] tworzy prostą operację rowkowania korzystając z różnych metod wejściowych.
+
+Wejścia obejmują:
+* wskazanie jednej lub więcej ścian lub krawędzi.
+* wskazanie dwóch wierzchołków.
+* wprowadzenie dwóch niestandardowych punktów.
+
+Obiekt CAM Slot jest dodawany jako część [[Image:CAM_Job.svg|24px]] [[CAM_Job/pl|Zadania CAM]].
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wybierz geometrię odniesienia na modelu:
+#* jedną lub więcej powierzchni lub krawędzi.
+#* dwa wierzchołki.
+#* ''' ''nic'' ''' aby użyć dwóch niestandardowych punktów wprowadzonych w Widoku właściwości zakładki Dane: Custom Point1 i Custom Point2.
+# Wywołaj polecenie Rowek na jeden z kilku sposobów:
+#* Naciskając przycisk {{KEY|[[Image:CAM_Slot.svg|24px]] [[CAM_Slot/pl|Rowek]]}} na pasku narzędzi.
+<!--#* Używając skrótu klawiszowego {{KEY|P}} a następnie {{KEY|O}}.-->
+#* Używając opcji {{KEY| CAM}} →  {{KEY|[[Image:CAM_Slot.svg|24px]] [[CAM_Slot/pl|Rowek]]}} z górnego menu.
+# Dostosuj żądane właściwości. Opisy dostępnych właściwości znajdują się poniżej.
+
+<span id="Usage_Notes"></span>
+====Uwagi dotyczące użycia====
+
+* Wszystkie rowki:
+** Zarówno początek, jak i koniec ścieżki rowka mogą być wydłużane lub skracane. Użyj właściwości `Extend Path Start` i `Extend Path End`.
+** Użyj właściwości `Layer Mode`, aby wyciąć rowek w trybie `Single-pass` na ostateczną głębokość lub w trybie `Multi-pass` z użyciem dostępnej właściwości `Step Down`.
+** Przełącz właściwość `Reverse Direction`, aby odwrócić kierunek ścieżki cięcia.
+
+* Rowki liniowe:
+** Obecnie brak możliwości przesunięcia rowków liniowych bocznie (równolegle do ścieżki ruchu). '' '''Przykład:''' '' Jeśli średnica narzędzia jest mniejsza niż szerokość obszaru rowka, który chcesz wyczyścić. Obecne działanie tej operacji polega na stworzeniu zestawu ścieżek w płaszczyźnie wzdłuż osi wyznaczonego rowka, co skutkuje niepełnym usunięciem objętości rowka. Niektórzy użytkownicy chcieliby, aby operacja tworzyła wiele ścieżek przesuniętych bocznie, aby oczyścić cały obszar rowka; obecnie nie jest to bezpośrednio możliwe, ale można to osiągnąć, używając "Custom Points", patrz "Frezowanie pionowych ścian" poniżej. Alternatywnie, użyj operacji Pocket do takiego czyszczenia.
+** Utwórz niestandardowy rowek liniowy, używając właściwości `Custom Point1` i `Custom Point2` bez wyboru geometrii. '' '''Przykład:''' '' Zainicjuj operację Rowek w GUI i kliknij `OK`, aby zapisać. Teraz zlokalizuj i edytuj właściwości `Custom Point1` i `Custom Point2` w zakładce Dane nowo utworzonej operacji Rowek. Ponownie przelicz operację, aby zaktualizować ścieżkę.
+
+* Frezowanie pionowych ścian:
+** Większość narzędzi CAM nie jest w stanie stworzyć ścieżki na pojedynczej pionowej płaszczyźnie, ponieważ rzutowanie na płaszczyznę poziomą ma zerową powierzchnię (wewnętrzne ograniczenie). Operacja Rowek umożliwia to, wybierając "Punkty niestandardowe", które definiują linię równoległą do pionowej płaszczyzny oraz odpowiednie parametry głębokości. 
+
+* Rowki łukowe/cylindryczne:
+** Tworzenie rowków łukowych/cylindrycznych:
+**# Należy wybrać jeden dolny łuk rowka. Spowoduje to utworzenie ścieżki bezpośrednio na krawędzi wybranego łuku.
+**# Następnie trzeba edytować właściwość `Extend Radius` w zakładce Dane operacji. Używając edytora wyrażeń, ustaw ją na wartość `OpToolDiameter / 2.0` lub jej wersję ujemną `OpToolDiameter / -2.0`, w zależności od tego, czy wybrano łuk wewnętrzny czy zewnętrzny rowka.
+**# Przelicz ponownie operację.
+**# Pamiętaj, że jeśli średnica narzędzia nie jest równa szerokości rowka, ścieżka '''''nie'''' będzie znajdować się w prawidłowej lokalizacji. W takim przypadku dostosuj wartość we właściwości `Extend Radius`, o której mowa powyżej.
+** Obecnie użytkownicy nie mogą tworzyć niestandardowej ścieżki łukowej/cylindrycznej. Należy dodać trzecią właściwość `Custom Center` oraz dodatkowe modyfikacje w kodzie źródłowym.
+
+<span id="Properties"></span>
+==Właściwości==
+
+''' ''Uwaga'' ''': Nie wszystkie z tych właściwości są dostępne w edytorze okna zadań. Niektóre są dostępne tylko na karcie Dane w panelu Widok właściwości dla tej operacji.
+
+{{TitleProperty|Podstawa}}
+
+Uwaga: Zaleca się, aby nie edytować właściwości Umiejscowienie operacji ścieżki. W razie potrzeby należy raczej przesunąć lub obrócić model zadania CAM.
+
+* {{PropertyData|Placement}}: Ogólne umiejscowienie [pozycja i rotacja] obiektu względem początku (lub początku kontenera obiektów nadrzędnych)
+** {{PropertyData|Angle}}: Kąt w stopniach zastosowany do rotacji obiektu wokół wartości właściwości Axis
+** {{PropertyData|Axis}}: Oś (jedna lub więcej), wokół której należy obrócić obiekt, ustawiona w podwłaściwościach: X, Y, Z
+*** {{PropertyData|X}}: Wartość osi X
+*** {{PropertyData|Y}}: Wartość osi Y
+*** {{PropertyData|Z}}: Wartość osi Z
+** {{PropertyData|Position}}: Pozycja obiektu, ustawiona w podwłaściwościach: X, Y, Z - względem początku (lub początku kontenera obiektów nadrzędnych)
+*** {{PropertyData|X}}: Wartość odległości osi X
+*** {{PropertyData|Y}}: Wartość odległości osi Y
+*** {{PropertyData|Z}}: Wartość odległości osi Z
+* {{PropertyData|Label}}: Nazwa obiektu nadana przez użytkownika (UTF-8)
+
+{{TitleProperty|Głębokość}}
+
+* {{PropertyData|Clearance Height}}: Wysokość potrzebna do usunięcia zacisków i przeszkód
+* {{PropertyData|Final Depth}}: Końcowa głębokość narzędzia - najniższa wartość w osi Z
+* {{PropertyData|Finish Depth}}: Maksymalna ilość materiału usuniętego podczas ostatniego przejścia. Wysokość (grubość) ostatniego poziomu cięcia - ''ustawiana dla lepszego wykończenia''.
+* {{PropertyData|Safe Height}}: Wysokość, powyżej której dozwolone są ruchy szybkie. (Bezpieczna wysokość szybkiego ruchu między lokalizacjami)
+* {{PropertyData|Start Depth}}: Początkowa głębokość narzędzia - ''pierwsza głębokość cięcia w osi Z''
+* {{PropertyData|Step Down}}: Przyrostowa głębokość cięcia narzędzia podczas operacji
+
+[[File:Path-DepthsAndHeights.gif|300px]]
+{{Caption|Wizualne odniesienie do właściwości ''(ustawień)'' głębokości}}
+
+{{TitleProperty|Ścieżka}}
+
+* {{PropertyData|Active}}: Ustaw na False, aby zapobiec generowaniu kodu
+* {{PropertyData|Base}}: Geometria podstawowa dla tej operacji
+* {{PropertyData|Comment}}: Opcjonalny komentarz do tej operacji
+* {{PropertyData|Coolant Mode}}: Tryb chłodzenia dla tej operacji
+* {{PropertyData|Cycle Time}}: Szacowany czas cyklu dla tej operacji
+* {{PropertyData|Tool Controller}}: Definiuje kontroler narzędzia używany w operacji
+* {{PropertyData|User Label}}: Etykieta przypisana przez użytkownika
+
+{{TitleProperty|Rowek}}
+
+* {{PropertyData|Custom Point1}}: Wprowadź niestandardowy punkt startowy dla ścieżki rowka.
+* {{PropertyData|Custom Point2}}: Wprowadź niestandardowy punkt końcowy dla ścieżki rowka.
+* {{PropertyData|Cut Pattern}}: Ustaw wzór geometryczny czyszczenia do użycia w operacji.
+* {{PropertyData|Extend Path End}}: Dodatnia wartość wydłuża koniec ścieżki, ujemna skraca.
+* {{PropertyData|Extend Path Start}}: Dodatnia wartość wydłuża początek ścieżki, ujemna skraca.
+* {{PropertyData|Extend Radius}}: Dla łuków/kręgów, przesuwanie promienia dla ścieżki.
+* {{PropertyData|Layer Mode}}: Wykonaj operację w jednym przejściu na głębokości lub w wielu przejściach do końcowej głębokości.
+* {{PropertyData|Path Orientation}}: Wybierz orientację ścieżki względem wybranych cech.
+* {{PropertyData|Reference1}}: Wybierz punkt do użycia na pierwszej wybranej cechy.
+* {{PropertyData|Reference2}}: Wybierz punkt do użycia na drugiej wybranej cechy.
+* {{PropertyData|Reverse Direction}}: Włącz, aby odwrócić kierunek cięcia ścieżki rowka.
+
+{{TitleProperty|Punkt początkowy}}
+
+* {{PropertyData|Start Point}}: Niestandardowy punkt początkowy ścieżki tej operacji.
+** {{PropertyData|X}}: Wartość odległości w osi X
+** {{PropertyData|Y}}: Wartość odległości w osi Y
+** {{PropertyData|Z}}: Wartość odległości w osi Z
+* {{PropertyData|Use Start Point}}: Ustaw na True, jeśli ręcznie określasz punkt początkowy. Ustaw punkt początkowy w polu danych właściwości Start Point.
+
+<span id="Tasks_Window_Editor_Layout"></span>
+==Układ edytora w oknie zadań==
+
+''Opisy ustawień znajdują się na powyższej liście właściwości''.
+
+Ta sekcja jest po prostu mapą układu ustawień w edytorze okien dla operacji.
+
+<span id="Base_Geometry"></span>
+===Geometria podstawowa===
+
+* '''Dodaj''': Dodaje wybrane elementy, które powinny być bazą dla ścieżek.
+* '''Usuń''': Usuwa wybrane elementy z listy Geometria podstawowa.
+* '''Wyczyść''': Czyści wszystkie elementy na liście Geometria podstawowa.
+
+<span id="Depths"></span>
+===Głębokości===
+
+* {{PropertyData|Start Depth}}
+* {{PropertyData|Final Depth}}
+* {{PropertyData|Step Down}}
+
+<span id="Heights"></span>
+===Wysokości===
+
+* {{PropertyData|Safe Height}}
+* {{PropertyData|Clearance Height}}
+
+<span id="Operation"></span>
+===Operacja===
+
+* {{PropertyData|Tool Controller}}: Narzędzie i jego ustawienia używane w tej operacji.
+* {{PropertyData|Coolant Mode}}: Tryb chłodzenia dla tej operacji.
+* {{PropertyData|Start Reference **}}: Wybierz punkt do użycia na pierwszym wybranym elemencie.
+* {{PropertyData|End Reference **}}: Wybierz punkt do użycia na drugim wybranym elemencie.
+* {{PropertyData|Extend Path End}}: Dodatnia wartość wydłuża koniec ścieżki, ujemna skraca.
+* {{PropertyData|Extend Path Start}}: Dodatnia wartość wydłuża początek ścieżki, ujemna skraca.
+* {{PropertyData|Layer Mode}}: Zakończ operację w jednym przejściu na głębokości lub w wielu przejściach do ostatecznej głębokości.
+* {{PropertyData|Path Orientation **}}: Wybierz orientację ścieżki względem wybranych cech.
+* {{PropertyData|Reverse Direction}}: Włącz, aby odwrócić kierunek cięcia ścieżki rowka.
+'''<nowiki>**</nowiki>''' Widoczność zmienia się w zależności od wybranej geometrii podstawowej.
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+{{Emphasis|Zobacz również:}} [[FreeCAD_Scripting_Basics/pl|FreeCAD podstawy tworzenia skryptów]].
+
+Przykład:
+
+{{Code|code=
+#Place code example here.
+}}
+
+
+{{Docnav/pl
+|[[CAM_Adaptive/pl|Algorytm adaptacyjny]]
+|[[CAM_Engrave/pl|Grawer]]
+|[[CAM_Workbench/pl|środowisko pracy CAM]]
+|IconL=CAM_Adaptive.svg
+|IconR=CAM_Engrave.svg
+|IconC=Workbench_CAM.svg
+}}
+
+{{CAM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,131 @@
+<languages/>
+
+{{Docnav/fr
+|[[FEM_SolverCalculixCxxtools/fr|Solveur Calculix standard]]
+|[[FEM_SolverMystran/fr|Solveur Mystran]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_SolverCalculixCxxtools.svg
+|IconR=FEM_SolverMystran.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{GuiCommand/fr
+|Name=FEM SolverElmer
+|Name/fr=FEM Solveur Elmer
+|MenuLocation=Résolution → Solveur Elmer
+|Workbenches=[[FEM_Workbench/fr|FEM]]
+|Shortcut={{KEY|S}} {{KEY|E}}
+|SeeAlso=[[FEM_SolverElmer_SolverSettings/fr|FEM Paramètres du solveur Elmer]], [[FEM_SolverCalculixCxxtools/fr|FEM Solveur CalculiX standard]], [[FEM_SolverZ88|FEM Solveur Z88]], [[FEM_tutorial/fr|FEM Tutoriel]]
+}}
+
+==Description==
+
+[https://www.elmerfem.org Elmer] est un logiciel de simulation multiphysique open source principalement développé par le CSC - IT Center for Science (CSC). Le développement d'Elmer a commencé en 1995 en collaboration avec des universités finlandaises, des instituts de recherche et l'industrie. Après sa publication open source en 2005, l'utilisation et le développement d'Elmer sont devenus internationaux.
+
+Elmer comprend des modèles physiques de dynamique des fluides, de mécanique des structures, d'électromagnétisme, de transfert de chaleur et d'acoustique, par exemple. Ceux-ci sont décrits par des équations différentielles partielles qu'[https://www.csc.fi/web/elmer Elmer] résout par la méthode des éléments finis (FEM).
+
+La création de l'objet SolverElmer dans le conteneur Analysis de FreeCAD donne accès aux équations Elmer pour une analyse simple ou multiphysique.
+
+Dans la mesure où FreeCAD dispose déjà d'une intégration poussée de [[Image:FEM_SolverCalculiX.svg|24px|link=FEM_SolverCalculixCxxtools/fr]] [[FEM_SolverCalculixCxxtools/fr|Calculix]] et [[Image:FEM_SolverZ88.svg|24px|link=FEM_SolverZ88/fr]] [[FEM_SolverZ88/fr|Z88]] comme solveurs pour l'analyse mécanique et thermomécanique, Elmer sera privilégié pour la dynamique des fluides numérique (CFD), la chaleur, l'électrostatique et l'électrodynamique. Il peut également être utilisé pour l'analyse par éléments finis mécanique à travers l'équation d'élasticité ou toute combinaison des équations susmentionnées. Cette combinaison fait d'Elmer le choix privilégié pour les analyses multi-physiques.
+
+==Installation==
+
+Elmer nécessite que deux composants soient interfacés avec FreeCAD :
+* ElmerGrid est l'interface gérant les maillages
+* ElmerSolver gère le calcul.
+Il existe des programmes autonomes pour ces deux applications mais leur installation et leur utilisation dépassent le cadre de l'intégration de FreeCAD.
+
+# Téléchargez et installez la version la mieux adaptée à votre système d'exploitation ([https://www.nic.funet.fi/pub/sci/physics/elmer/bin/windows/ Windows] ou [https://www.nic.funet.fi/pub/sci/physics/elmer/bin/linux/Readme1st.txt Linux]). Il est recommandé d'installer la version {{incode|mpi}} pour bénéficier d'un support multi-cœur du CPU. ({{Version/fr|0.21}}).
+# Dans FreeCAD, allez dans {{MenuCommand|Edition → Préférences → FEM → Elmer}}.
+# Dans les [[FEM_Preferences/fr#Elmer|préférences de FEM]], définissez le chemin d'accès correct pour {{incode|ElmerGrid}} et {{incode|ElmerSolver}}, ou {{VersionPlus/fr|0.21}} : définissez le chemin d'accès pour {{incode|ElmerSolver_mpi}} au lieu de {{incode|ElmerSolver}} pour qu'Elmer utilise tous les cœurs de processeur disponibles.
+#: [[Image:Preferences-ElmerPath.png|Onglet Elmer dans les préférences de FEM]]
+#: {{Caption|Menu de dialogue des préférences Elmer montrant les champs pour localiser les binaires Elmer importants sur le système d'exploitation Windows}}.
+
+Vous êtes prêt à utiliser Elmer dans FreeCAD.
+
+{{VersionMinus/fr|0.19}} : Maintenant démarrez FreeCAD et changez le schéma d'unités en ''MKS'' dans les [[Preferences_Editor/fr#Unit.C3.A9s|préférences]]. Voir [[#Remarques|Remarques]].
+
+<span id="Usage"></span>
+==Utilisation==
+
+# Basculez vers l'[[Image:Workbench_FEM.svg|24px]] [[FEM_Workbench/fr|atelier FEM]]
+# Créez un [[FEM_Analysis/fr|conteneur d'analyse]] en appuyant sur l'icône [[Image:FEM_Analysis.svg|22px]].
+# Créez un solveur FEM pour Elmer, en appuyant sur l'icône [[Image:FEM_SolverElmer.svg|22px]].
+#* Remarque : une analyse réussie nécessite au moins un modèle (2D ou 3D), un matériau ([[FEM_MaterialFluid/fr|FEM Fluide]] ou [[FEM_MaterialSolid/fr|FEM Solide]]), un [[FEM_MeshGmshFromShape/fr|maillage Gmsh]], des équations et des conditions aux limites
+#: [[Image:Elmer typical file tree.png]]
+#: {{Caption|Exemple de [[Tree_view/fr|vue en arborescence]] une fois qu'un solveur pour Elmer est activé}}
+# Modifiez les paramètres du solveur dans l'onglet {{Button|Data}} de l'[[Property_editor/fr|éditeur de propriétés]] de l'objet SolverElmer dans le modèle [[Tree_view/fr|vue en arborescence]]
+# Double-cliquez sur l'objet {{KEY|[[Image:FEM_SolverElmer.svg|22px]] SolverElmer}} pour préparer une analyse
+#: [[Image:ElmerSolver TaskPanel.png|300px]]
+#: {{Caption|Menu de dialogue pour exécuter une analyse Elmer}}
+# Sélectionnez le chemin vers lequel l'analyse écrira en cliquant sur {{Button|...}}
+# Cliquez sur {{Button|Ecrire}} pour écrire les fichiers de cas dans le répertoire sélectionné précédemment
+# Cliquez sur {{Button|Lancer}} pour démarrer l'analyse
+
+<span id="Equations"></span>
+===Équations===
+
+* Pour effectuer l'analyse d'un comportement physique particulier, une équation doit être utilisée (écoulement, chaleur, électrostatique...).
+* Disambiguation : le terme ''Équation'' est utilisé dans FreeCAD pour décrire les différents mécanismes physiques, le terme ''Solveur'' est utilisé dans tous les documents Elmer. Ainsi, lorsqu'on utilise dans FreeCAD l'"Équation d'écoulement", en réalité Elmer utilise le "Solveur d'écoulement" pour trouver une solution à l'équation de Navier-Stokes.
+* Une ou plusieurs équations peuvent être utilisées en même temps avec Elmer en ajoutant simplement l'objet équation sous l'objet SolverElmer, réalisant ainsi des analyses multi-physiques :
+
+# Cliquez sur l'objet {{KEY|[[Image:FEM_SolverElmer.svg|22px]] SolverElmer}} dans le modèle de la [[Tree_view/fr|vue en arborescence]]
+# Sélectionnez une ou plusieurs des équations disponibles :
+#* [[Image:FEM_EquationDeformation.svg|32px]] [[FEM_EquationDeformation/fr|Équation de déformation]]
+#* [[Image:FEM_EquationElasticity.svg|32px]] [[FEM_EquationElasticity/fr|Équation d'élasticité]]
+#* [[Image:FEM_EquationElectricforce.svg|32px]] [[FEM_EquationElectricforce/fr|Équation force électrique]]
+#* [[Image:FEM_EquationElectrostatic.svg|32px]] [[FEM_EquationElectrostatic/fr|Équation électrostatique]]
+#* [[Image:FEM_EquationFlow.svg|32px]] [[FEM_EquationFlow/fr|Équation d'écoulement]]
+#* [[Image:FEM_EquationFlux.svg|32px]] [[FEM_EquationFlux/fr|Équation de flux]]
+#* [[Image:FEM_EquationHeat.svg|32px]] [[FEM_EquationHeat/fr|Équation de chaleur]]
+#* [[Image:FEM_EquationMagnetodynamic.svg|32px]] [[FEM_EquationMagnetodynamic/fr|Équation magnétodynamique]]
+#* [[Image:FEM_EquationMagnetodynamic2D.svg|32px]] [[FEM_EquationMagnetodynamic2D/fr|Équation magnétodynamique 2D]]
+
+<span id="Solver_Settings"></span>
+===Paramètres du solveur===
+
+* En fonction des équations utilisées, vous devez modifier les paramètres par défaut du solveur. Ils sont expliqués à la page [[FEM_SolverElmer_SolverSettings/fr|Paramètres du solveur d'Elmer]].
+* Le solveur effectue par défaut une simulation en régime permanent. Pour effectuer une simulation transitoire (comment le modèle se comporte au cours du le temps), voir la section ''Pas de temps (analyses transitoires)'' dans les [[FEM_SolverElmer_SolverSettings/fr#Pas_de_temps_(analyses_transitoires)|paramètres du solveur Elmer]].
+
+<span id="Visualization"></span>
+===Visualisation===
+
+Les résultats du solveur Elmer sont affichés dans des objets [[FEM_PostPipelineFromResult/fr|pipeline de résultats]]. (Les [[FEM_ResultShow/fr|objets résultats]] ne sont pas possibles).
+
+{{Version/fr|0.21}} :
+
+Pour les analyses transitoires, vous obtenez un pipeline de résultats pour chaque pas de temps. Pour les éditer tous en même temps, sélectionnez-les dans la [[Tree_view/fr|vue en arborescence]] et définissez les paramètres dans l'[[Property_editor/fr|éditeur de propriétés]].
+Pour réaliser des animations de la progression temporelle, la meilleure méthode consiste actuellement à :
+* Cacher la vue du premier résultat.
+* Sélectionner un objet de votre choix dans la vue en arborescence, mais pas un objet de pipeline.
+* Passer la souris sur les pipelines.
+
+Le résultat est une animation comme celle-ci :
+
+[[Image:ElmerSolver_TransientAnalysis.gif]]
+
+<span id="Notes"></span>
+==Remarques==
+
+* '''Important''' : afin d'obtenir des résultats raisonnables et de pouvoir échanger les fichiers d'entrée Elmer (nommés ''case.sif'') avec d'autres utilisateurs, toutes les valeurs dans les fichiers d'entrée doivent être en unités SI. Dans la version 0.19 de FreeCAD et les versions antérieures, ce n'est le cas que si vous utilisez le schéma d'unités MKS dans les [[Preferences_Editor/fr#Unit.C3.A9s|préférences]].
+* Les paramètres du solveur et des équations sont définis indépendamment via l'onglet {{KEY|Data}} de l'[[Property_editor/fr|éditeur de propriétés]] de leurs objets respectifs dans la [[Tree_view/fr|vue en arborescence]].
+* Chaque équation aura une priorité. Par exemple, si vous essayez de voir l'effet d'un flux convectif d'air chaud, l'équation pour le débit doit être résolue avec une priorité plus élevée que la chaleur, sinon le solveur résoudra d'abord la chaleur par conduction puis le débit.
+* Cas 2D vs 3D : Elmer peut être utilisé pour résoudre des cas 2D et 3D. Cependant, lors de la définition d'un cas 2D, les faces doivent être mappées dans le plan XY de FreeCAD, sinon le solveur essaiera de calculer un cas 3D sur une face, et les vecteurs normaux seront sous-définis. De plus amples informations peuvent être trouvées dans les forums FreeCAD : https://forum.freecadweb.org/viewtopic.php?f=18&t=48175.
+
+<span id="Documentation"></span>
+== Documentation ==
+
+Le lien suivant donne accès à la [https://www.nic.funet.fi/pub/sci/physics/elmer/doc/ documentation complète pour Elmer]. Cela inclut les manuels ainsi que les tutoriels. Notez que la documentation et les fichiers ajoutés avec "gui" concernent généralement l'utilisation de l'interface graphique Elmer et non l'implémentation FreeCAD d'Elmer.
+
+
+{{Docnav/fr
+|[[FEM_SolverCalculixCxxtools/fr|Solveur Calculix standard]]
+|[[FEM_SolverMystran/fr|Solveur Mystran]]
+|[[FEM_Workbench/fr|Atelier FEM]]
+|IconL=FEM_SolverCalculixCxxtools.svg
+|IconR=FEM_SolverMystran.svg
+|IconC=Workbench_FEM.svg
+}}
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

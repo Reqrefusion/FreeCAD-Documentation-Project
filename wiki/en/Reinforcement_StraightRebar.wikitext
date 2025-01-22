@@ -1,0 +1,185 @@
+<languages/>
+
+{{Docnav
+|[[Arch_Rebar|Rebar]]
+|[[Reinforcement_UShapeRebar|UShapeRebar]]
+|[[Reinforcement_Workbench|Reinforcement]]
+|IconL=Arch_Rebar.svg
+|IconR=Reinforcement_UShapeRebar.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+{{GuiCommand
+|Name=Reinforcement StraightRebar
+|MenuLocation=3D/BIM → Reinforcement tools → Straight Rebar
+|Workbenches=[[Reinforcement_Workbench|Reinforcement]], [[BIM_Workbench|BIM]]
+|Version=0.17
+|SeeAlso=
+}}
+
+==Description==
+
+The [[Reinforcement_StraightRebar|Reinforcement StraightRebar]] tool allows the user to create a set of straight reinforcing bars inside an [[Arch_Structure|Arch Structure]] object.
+
+This tool is part of the [[Reinforcement_Workbench|Reinforcement Workbench]], an [[External_workbenches|external workbench]] that can be installed with the [[Image:Std_AddonMgr.svg|24px]] [[Std_AddonMgr|Addon Manager]].
+
+[[Image:Arch_Rebar_Straight_example.png|400px]]
+{{Caption|Two sets of straight reinforcement bars inside an [[Arch_Structure|Arch Structure]]}}
+
+==Usage==
+
+# Select any face of a previously created {{Button|[[Image:Arch_Structure.svg|16px]] [[Arch_Structure|Arch Structure]]}} object.
+# Then select  {{Button|[[Image:Reinforcement_StraightRebar.svg|16px]] [[Reinforcement_StraightRebar|Straight Rebar]]}} from the rebar tools.
+# A [[Task_panel|task panel]] will pop-out on the left side of the screen as shown below.
+# Select the desired orientation.
+# Give the inputs like 'Front cover', 'Right side cover', 'Left side cover', 'Bottom cover' and 'Diameter' of the rebar.
+# Select the mode of distribution either 'Amount' or 'Spacing'.
+# If spacing is selected, a user can also opt for [[Reinforcement_Custom_Spacing|custom spacing]].
+# {{Button|Pick Selected Face}} is used to verify or change the face for rebar distribution.
+# Click {{Button|OK}} or {{Button|Apply}} to generate the rebars.
+# Click {{Button|Cancel}} to exit the task panel.
+
+[[Image:StraightRebarDialog.png|250px]]
+{{Caption|Task panel for the tool}}
+
+==Properties==
+
+* {{PropertyData|Orientation}}: It decides the orientation of the rebar (like a bottom, top, right and left).
+* {{PropertyData|Front Cover}}: The distance between rebar and selected face.
+* {{PropertyData|Right Cover}}: The distance between the right end of the rebar to right face of the structure.
+* {{PropertyData|Left Cover}}: The distance between the left end of the rebar to the left face of the structure.
+* {{PropertyData|Cover along}}: These property facilities the user to specify either top or bottom cover.
+* {{PropertyData|Bottom Cover}}: The distance between rebar from the bottom face of the structure.
+* {{PropertyData|Top Cover}}: The distance between rebar from the top face of the structure.
+* {{PropertyData|Amount}}: The amount of rebars.
+* {{PropertyData|Spacing}}: The distance between the axes of each bar.
+
+==Scripting==
+
+{{Emphasis|See also:}} [[Arch_API|Arch API]], [[Reinforcement_API|Reinforcement API]] and [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+The Reinforcement StraightRebar tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following function:
+
+{{Code|code=
+Rebar = makeStraightRebar(f_cover, coverAlong, rt_cover, lb_cover,
+                          diameter, amount_spacing_check, amount_spacing_value, orientation="Horizontal",
+                          structure=None, facename=None)
+}}
+
+* Creates a {{incode|Rebar}} object from the given {{incode|structure}}, which is an [[Arch Structure]], and {{incode|facename}}, which is a face of that structure.
+** If no {{incode|structure}} nor {{incode|facename}} are given, it will take the user selected face as input.
+* {{incode|f_cover}}, {{incode|coverAlong}}, {{incode|rt_cover}}, and {{incode|lb_cover}} are inner offset distances for the rebar elements with respect to the faces of the structure.
+** {{incode|f_cover}} is the frontal cover offset.
+** {{incode|coverAlong}} is a tuple {{incode|(position, value)}} that defines the offset value in one position (top, bottom, left, right) depending on the {{incode|orientation}}.
+** {{incode|rt_cover}} is either the right or the top cover offset, depending on the value of {{incode|coverAlong}} and {{incode|orientation}}.
+** {{incode|lb_cover}} is either the left or the bottom cover offset, depending on the value of {{incode|coverAlong}} and {{incode|orientation}}.
+* {{incode|diameter}} is the diameter of the reinforcement bars inside the structure.
+* {{incode|amount_spacing_check}} if it is {{incode|True}} it will create as many reinforcement bars as given by {{incode|amount_spacing_value}}; if it is {{incode|False}} it will create reinforcement bars separated by the numerical value of {{incode|amount_spacing_value}}.
+* {{incode|amount_spacing_value}} specifies the number of reinforcement bars, or the value of the separation between them, depending on {{incode|amount_spacing_check}}.
+* {{incode|orientation}} specifies the orientation of the rebar; it can be {{incode|"Horizontal"}} or {{incode|"Vertical"}}.
+
+Depending on the orientation of the rebar, the function can be called in two general ways by setting {{incode|coverAlong}} appropriately.
+
+=== The rebar is horizontal ===
+
+{{Code|code=
+Rebar = makeStraightRebar(f_cover, ("Top Side", value), right_cover, left_cover, ...)
+Rebar = makeStraightRebar(f_cover, ("Bottom Side", value), right_cover, left_cover, ...)
+}}
+
+* {{incode|coverAlong}} is a tuple with either a {{incode|"Top Side"}} or a {{incode|"Bottom Side"}} offset {{incode|value}}.
+* In this case {{incode|rt_cover}} refers to the {{incode|right_cover}} offset, and {{incode|lb_cover}} refers to the {{incode|left_cover}} offset.
+
+=== The rebar is vertical ===
+
+{{Code|code=
+Rebar = makeStraightRebar(f_cover, ("Left Side", value), top_cover, bottom_cover, ...)
+Rebar = makeStraightRebar(f_cover, ("Right Side", value), top_cover, bottom_cover, ...)
+}}
+
+* {{incode|coverAlong}} is a tuple with either a {{incode|"Left Side"}} or a {{incode|"Right Side"}} offset {{incode|value}}.
+* In this case {{incode|rt_cover}} refers to the {{incode|top_cover}} offset, and {{incode|lb_cover}} refers to the {{incode|bottom_cover}} offset.
+
+=== Example horizontal ===
+
+{{Code|code=
+import Arch, Draft, StraightRebar
+
+Structure = Arch.makeStructure(length=1000, width=1000, height=400)
+Structure.ViewObject.Transparency = 80
+FreeCAD.ActiveDocument.recompute()
+
+Rebar = StraightRebar.makeStraightRebar(50, ("Bottom Side", 20), 100, 100,
+                                        12, True, 5, "Horizontal", Structure, "Face4")
+Rebar.ViewObject.ShapeColor = (0.9, 0.0, 0.0)
+
+Rebar2 = StraightRebar.makeStraightRebar(50, ("Bottom Side", 50), 100, 100,
+                                         12, True, 5, "Horizontal", Structure, "Face6")
+Rebar2.ViewObject.ShapeColor = (0.0, 0.0, 0.9)
+}}
+
+===Example vertical ===
+
+{{Code|code=
+import Arch, Draft, StraightRebar
+
+Structure2 = Arch.makeStructure(length=1000, width=1000, height=400)
+Structure2.ViewObject.Transparency = 80
+Draft.move(Structure2, FreeCAD.Vector(1500, 0, 0))
+FreeCAD.ActiveDocument.recompute()
+
+Rebar3 = StraightRebar.makeStraightRebar(50, ("Left Side", 20), 100, 100,
+                                         12, True, 5, "Vertical", Structure2, "Face4")
+Rebar3.ViewObject.ShapeColor = (0.9, 0.5, 0.0)
+
+Rebar4 = StraightRebar.makeStraightRebar(50, ("Left Side", 50), 100, 100,
+                                         12, True, 5, "Vertical", Structure2, "Face6")
+Rebar4.ViewObject.ShapeColor = (0.0, 0.5, 0.5)
+}}
+
+=== Edition of rebar ===
+
+You can change the properties of the rebar with the following function:
+
+{{Code|code=
+editStraightRebar(Rebar, f_cover, coverAlong, rt_cover, lb_cover,
+                  diameter, amount_spacing_check, amount_spacing_value, orientation,
+                  structure=None, facename=None)
+}}
+
+* {{incode|Rebar}} is a previously created {{incode|StraightRebar}} object.
+* The other parameters are the same as required by the {{incode|makeStraightRebar()}} function.
+* {{incode|structure}} and {{incode|facename}} may be omitted so that the rebar stays in the original structure.
+
+Example:
+
+{{Code|code=
+import StraightRebar
+
+StraightRebar.editStraightRebar(Rebar, 50, ("Top Side", 20), 100, 100,
+                                24, True, 7, "Horizontal")
+
+StraightRebar.editStraightRebar(Rebar2, 50, ("Top Side", 50), 100, 100,
+                                24, True, 7, "Horizontal")
+
+StraightRebar.editStraightRebar(Rebar3, 50, ("Right Side", 20), 100, 100,
+                                24, True, 7, "Vertical")
+
+StraightRebar.editStraightRebar(Rebar4, 50, ("Right Side", 50), 100, 100,
+                                24, True, 7, "Vertical")
+}}
+
+
+{{Docnav
+|[[Arch_Rebar|Rebar]]
+|[[Reinforcement_UShapeRebar|UShapeRebar]]
+|[[Reinforcement_Workbench|Reinforcement]]
+|IconL=Arch_Rebar.svg
+|IconR=Reinforcement_UShapeRebar.svg
+|IconC=Reinforcement_Workbench.svg
+}}
+
+[[Category:External_Command_Reference{{#translation:}}]]
+[[Category:Reinforcement{{#translation:}}]]
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

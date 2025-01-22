@@ -1,0 +1,83 @@
+<languages/>
+{{Macro/de
+|Name=Solid Sweep
+|Translate=Solid Sweep
+|Icon=Macro_Solid_Sweep.png
+|Description=Erzeugt einen Körper, indem ein Profil von einer Flugbahn gefegt wird.
+|Author=Normandc
+|Version=1.0
+|Date=2011-12-03
+|FCVersion=All
+|Download=[https://www.freecadweb.org/wiki/images/6/6d/Macro_Solid_Sweep.png ToolBar Icon]
+}}
+
+==Beschreibung==
+Dieses Makro erstellt einen Körper, indem ein 2D-Profil entlang einer zuvor in der 3D-Ansicht ausgewählten Trajektorie gefegt wird. Die 2D-Elemente können mit den normalen Werkzeugen in FreeCADs GUI erstellt werden.
+
+Mělo by být poznamenáno, že výsledná pevná látka nebude '''parametrická'''. Pokud se rozhodnete změnit profil nebo trajektorii, budete muset znovu spustit makro.
+
+[[File:Solid_sweep.png‎|500px|Einige Beispiele für das Fegen mit dem gleichen länglichen Abschnitt und drei Arten von Flugbahnen.]]
+
+== Anwendung ==
+# Zwei 2D-Elemente der weiter unten gelisteten Arten erstellen, eins für den Querschnitt und eins für die Verschiebekurve.
+# Dafür wird entweder in der [[Tree view/de|Baumansicht]] oder in der [[3D view/de|3D-Ansicht]] ausgewählt ('''Die Reihenfolge ist wichtig!'''):
+## Die Verschiebekurve (Pfad)
+## Dann das Profil (Querschnitt)
+# Den [[Macros/de|Makro-Manager]] öffnen.
+# Das Makro '''Solid Sweep''' auswählen.
+# {{Button|Ausführen}} anklicken.
+'''Ergebnis:''' Ein '''Sweep'''-Objekt wird im Projektbaum erstellt.
+
+==Unterstützte 2D-Elemente==
+* Leitungen
+* [[Image: Sketcher_NewSketch.svg|24px]] [[Sketcher Workbench/de|Sketches]]
+* [[Image: Draft_BSpline.svg|24px]] [[Draft BSpline/de|Entwurf BSpline]]
+* 2D Grundelemente aus dem ''Part → [[Image:Part_Primitives.svg|24px]] [[Part_Primitives/de|Create Primitives]] ...'' menu (circle, helix)
+
+==Tipps==
+* Der Abschnitt muss ein geschlossenes Profil sein, oder das Ergebnis ist nicht solide.
+* Der Abschnitt muss nicht auf der Flugbahn liegen, es ist jedoch vorzuziehen, dass er normal (senkrecht) zur Flugbahn ist.
+* Die Flugbahn kann entweder ein offenes oder ein geschlossenes Profil sein (Kreis-, Linien- und Bogensegmente), aber alle Elemente müssen tangential sein, da sonst die Form unerwartet ist. Beispielsweise erzeugt eine Flugbahn mit geraden Ecken wie ein Rechteck keinen Volumenkörper.
+* Wenn der Volumenkörper verdreht wird, bearbeiten Sie das Makro, um den Wert '' isFrenet '' in 0 (Null) zu ändern, und versuchen Sie es erneut.
+* Wenn Sie die Variable '' makeSolid '' im Makro auf 0 (Null) setzen, werden mehrere Flächen mit offenen Enden erzeugt.
+
+<span id="Script"></span>
+==Skript==
+
+ToolBar Icon [[Image:Macro_Solid_Sweep.png]]
+
+'''Macro_Solid_Sweep.FCMacro'''
+
+{{MacroCode|code=
+import Part, FreeCAD, math, PartGui, FreeCADGui
+from FreeCAD import Base
+
+# get the selected objects, with first selection for the trajectory and second for the section
+s = FreeCADGui.Selection.getSelection()
+try:
+     shape1=s[0].Shape
+     shape2=s[1].Shape
+except:
+     print "Wrong selection"
+
+traj = Part.Wire([shape1])
+section = Part.Wire([shape2])
+
+# create Part objec in the current document
+myObject=App.ActiveDocument.addObject("Part::Feature","Sweep")
+
+# variable makeSolid = 1 to create solid, 0 to create surfaces
+makeSolid = True #1
+isFrenet = True #1
+
+# create a 3D shape and assigh it to the current document
+Sweep = Part.Wire(traj).makePipeShell([section],makeSolid,isFrenet)
+myObject.Shape = Sweep
+
+}}
+
+
+==Credits==
+Vielen Dank an [[User: Wmayer|Wmayer]] für seine Hilfe beim Schreiben dieses Skripts.
+
+Zwei Anwendungsbeispiele finden Sie in [http://forum.freecadweb.org/viewtopic.php?f=8&t=1222&start=50#p11120 this forum topic], zusammen mit Download-Links zu den FCStd-Dateien. Bei Verwendung einer Helix als Flugbahn kann ein fester Durchlauf zum Erstellen eines Schraubengewindes verwendet werden.

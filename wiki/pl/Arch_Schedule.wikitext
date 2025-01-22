@@ -1,0 +1,116 @@
+<languages/>
+
+{{Docnav/pl
+|[[BIM_Material/pl|Materiały]]
+|[[BIM_Preflight/pl|Kontrola wstępna]]
+|[[BIM_Workbench/pl|środowisko pracy BIM]]
+|IconL=BIM_Material.svg
+|IconR=BIM_Preflight.png
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|POLECENIE TO JEST CZĘŚCIĄ ZINTEGROWANEGO środowiska pracy [[BIM_Workbench/pl|BIM]] w V1.0<br>
+Ta strona została zaktualizowana dla tej wersji.}}
+
+{{GuiCommand/pl
+|Name=Arch Schedule
+|Name/pl=Architektura: Obmiar
+|MenuLocation=Zarządzanie → Obmiar
+|Workbenches=[[BIM_Workbench/pl|BIM]]
+|SeeAlso=
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Narzędzie '''Obmiar''' umożliwia tworzenie i automatyczne wypełnianie [[Spreadsheet_Workbench/pl|arkusza kalkulacyjnego]] zawartością zebraną z modelu.
+
+Aby uzyskać bardziej ogólne rozwiązanie, zapoznaj się z środowiskiem pracy [https://github.com/furti/FreeCAD-Reporting/tree/master Reporting Workbench] na liście [[External_workbenches/pl|zewnętrznych środowisk pracy]]. To środowisko pracy używa składni SQL do wyodrębniania informacji z dokumentu.
+
+<span id="Usage"></span>
+==Użycie==
+
+# Otwórz lub utwórz dokument FreeCAD zawierający kilka obiektów.
+# Naciśnij przycisk {{Button|[[Image:Arch_Schedule.svg|16px]] '''Obmiar'''}}.
+# Dostosuj żądane opcje. Włącz opcję {{MenuCommand|Skojarz arkusz}} jeśli chcesz aby Obmiar generował [[Spreadsheet_Workbench/pl|arkusz]] programu FreeCAD. Lub, alternatywnie, kliknij prawym przyciskiem myszy na obmiarze w [[Tree_view/pl|widoku drzewa]] po utworzeniu i wybierz opcję {{MenuCommand|Dołącz arkusz}} z menu kontekstowego.
+# Naciśnij przycisk {{Button|OK}}.
+
+<span id="Workflow"></span>
+==Przepływ pracy==
+
+Najpierw musisz mieć model. Na przykład tutaj jest dokument z kilkoma obiektami Architektury, ale inne obiekty są również obsługiwane.
+
+[[Image:Arch_schedule_example01.jpg]]
+
+Po wciśnięciu przycisku {{Button|[[Image:Arch_Schedule.svg|16px]] '''Obmiar'''}} pojawi się następujący panel zadań:
+
+[[Image:ArchSchedule.png]]
+
+Teraz możesz wypełnić obmiar wiersz po wierszu. Każdy wiersz jest "zapytaniem" i wygeneruje jeden wiersz w arkuszu kalkulacyjnym. Naciśnij przycisk {{Button|[[Image:List-add.svg|16px]] Dodaj wiersz}}, aby dodać nowy wiersz i kliknij dwukrotnie każdą komórkę z tego wiersza, aby wypełnić wartości. Przycisk {{Button|[[Image:List-remove.svg|16px]] Usuń wiersz}} usunie wiersz zawierający aktualnie zaznaczoną komórkę, a {{Button|[[Image:Delete.svg|16px]] Wyczyść}} usunie wszystkie wiersze. Możliwe wartości do wpisania w kolumnach to:
+
+* '''Opis''': Opis dla tego zapytania. Kolumna Opis będzie pierwszą kolumną wynikowego arkusza kalkulacyjnego. Opis jest obowiązkowy do wykonania zapytania. Jeśli komórka opisu pozostanie pusta, cały wiersz zostanie pominięty i pozostawiony pusty w arkuszu kalkulacyjnym. Pozwala to na dodanie wierszy "separatorów".
+* '''Właściwość''': Jest to rzeczywiste zapytanie, które ma zostać wykonane na wszystkich obiektach wybranych przez zapytanie. Mogą to być dwie rzeczy: słowo {{incode|count}} lub właściwość obiektu:
+** Jeśli wpiszesz {{incode|count}} ''(lub {{incode|Count}} lub {{incode|COUNT}}, wielkość liter nie ma znaczenia)'' wybrane obiekty zostaną po prostu zliczone.
+** Jeśli wprowadzi właściwość obiektu, wartość tej właściwości będzie odzyskana dla każdego z zaznaczonych obiektów i zsumowana. Obiekty, które nie mają danej właściwości będą pominięte. Ogólnie nazwa właściwości będzie tą pokazaną w [[Property_editor/pl|Edytorze właściwości]], bez spacji (np. typ {{incode|PerimeterLength}} w kolumnie właściwości jeśli obiekt ma właściwość {{incode|Perimeter Length}} w Edytorze właściwości). Użyj notacji kropkowej, aby pobrać właściwości właściwości: {{incode|PropertyOfObject.PropertyOfProperty1.PropertyOfProperty2}}. Jeśli właściwość przed pierwszą kropką zaczyna się od małej litery, zostanie ona uznana za odniesienie do samego obiektu i zignorowana. Wpisanie na przykład {{incode|object.Shape.Volume}} jest tym samym, co wpisanie {{incode|Shape.Volume}}.
+* '''Jednostka''': Opcjonalna jednostka, w której wyrażone zostaną wyniki. Do użytkownika należy podanie jednostki, która pasuje do zapytania, które wykonuje, na przykład, jeśli pobierasz objętości, powinieneś użyć jednostki objętości, takiej jak {{incode|m^3}} lub {{incode|m³}}. Jeśli użyjesz niewłaściwej jednostki dla właściwości, np. {{incode|cm}} dla objętości, otrzymasz błędne wyniki.
+* '''Obiekty''': Można pozostawić to pole puste, wtedy wszystkie obiekty dokumentu będą brane pod uwagę przez to zapytanie, lub podać listę nazw obiektów oddzielonych średnikiem {{incode|;}}. Jeśli którykolwiek z obiektów na tej liście jest grupą, jego dzieci również zostaną wybrane. Najprostszym sposobem na użycie tej funkcji jest pogrupowanie obiektów w dokumencie i podanie nazwy grupy w tym miejscu. Możesz także użyć przycisku {{Button|[[Image:Edit-select-all.svg|16px]] Dodaj wybrane}}, aby dodać obiekty aktualnie zaznaczone w dokumencie. W tym przypadku należy użyć nazw wewnętrznych. Aby wybrać obiekty według ich etykiety, pozostaw tę kolumnę pustą i użyj zamiast niej kolumny Filtr.
+* '''Filtr''': W tym miejscu można dodać listę filtrów oddzielonych średnikami{{incode|;}}. Każdy filtr ma postać: {{incode|property:value}}. Można używać tylko właściwości, które przechowują wartość łańcuchową. Zarówno właściwość, jak i wartość nie uwzględniają wielkości liter. Można pominąć {{incode|value}}, ale nie {{incode|:}}. Aby poprawnie obsługiwać harmonogramy utworzone w poprzednich wersjach Obmiaru, właściwość {{incode|type}} zostanie przetłumaczona na właściwość {{incode|ifctype}}. Zaleca się, aby nie używać {{incode|type}} w nowych harmonogramach.
+
+{| class="wikitable"
+|+ Example filter queries
+|-
+! Zapytanie
+! Opis
+|-
+| {{incode|label:floor1;ifctype:window}}
+| Zachowa tylko obiekty, które mają "floor1" w ich {{PropertyData|Label}} i "window" w ich {{PropertyData|IFC Type}}. Okno z {{PropertyData|Label}} "Floor1-AA" i {{PropertyData|IFC Type}} "Standardowym Przypadkiem Okna" będzie uwzględnione.
+|-
+| {{incode|label:door}}
+| Zachowa tylko obiekty, które mają "door" w ich {{PropertyData|Label}}
+|-
+| {{incode|!label:door}}
+| Zachowa tylko obiekty, które nie mają "door" w ich {{PropertyData|Label}}
+|-
+| {{incode|ifctype:structural}}
+| Zachowa tylko obiekty, które mają "structural" w ich {{PropertyData|IFC Type}}
+|-
+| {{incode|!ifctype:something}}
+| Zachowa tylko obiekty, które nie mają "structural" w ich {{PropertyData|IFC Type}} lub te, które nie mają właściwości {{PropertyData|IFC Type}}
+|-
+| {{incode|!ifctype:}}
+| Zachowa tylko obiekty, które nie mają właściwości {{PropertyData|IFC Type}}
+|}
+
+Przycisk {{Button|[[Image:Document-open.svg|16px]] Import}} umożliwia zaimportowanie listy utworzonej w innej aplikacji arkusza kalkulacyjnego, w postaci pliku csv.
+
+Ukończony obmiar może wyglądać tak:
+
+[[Image:ArchScheduleExample.png]]
+
+Wreszcie, naciśnij {{Button|OK}} i nowy obmiar zostanie dodany do dokumentu. Jeśli została wybrana powiązana opcja, obmiar będzie zawierał skojarzony arkusz:
+
+[[Image:Arch_schedule_example04.jpg]]
+
+Aby edytować istniejący obmiar, kliknij na nim dwukrotnie w widoku drzewa. Dwukrotne kliknięcie samego arkusza kalkulacyjnego powoduje wyświetlenie wyników w 3 kolumnach: Opis, Wartość, Jednostka ''(jeśli dotyczy)'':
+
+[[Image:Arch_schedule_example05.jpg]]
+
+Arkusz kalkulacyjny można następnie normalnie wyeksportować do formatu csv z poziomu [[Spreadsheet_Workbench/pl|środowiska pracy Arkusz Kalkulacyjny]].
+
+<span id="Dynamic_properties"></span>
+==Własności dynamiczne==
+
+Możliwe jest dodawanie własnych właściwości do obiektów. Są one nazywane [[Property_editor/pl#Działania|właściwościami dynamicznymi]]. Jeśli zostały one dodane z zaznaczoną opcją {{MenuCommand|Prefiks dla nazwy grupy}}, ich nazwy rzeczywiście zaczynają się od nazwy grupy, ale ten przedrostek nie jest wyświetlany w [[Property_editor/pl|Edytorze właściwości]]. Ich nazwy mają następującą postać: {{incode|NameOfGroup_NameOfProperty}}. Aby odwołać się do nich w harmonogramie, należy użyć tej pełnej nazwy.
+
+
+{{Docnav/pl
+|[[BIM_Material/pl|Materiały]]
+|[[BIM_Preflight/pl|Kontrola wstępna]]
+|[[BIM_Workbench/pl|środowisko pracy BIM]]
+|IconL=BIM_Material.svg
+|IconR=BIM_Preflight.png
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

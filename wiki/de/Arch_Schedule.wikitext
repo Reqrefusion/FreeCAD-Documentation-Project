@@ -1,0 +1,116 @@
+<languages/>
+
+{{Docnav/de
+|[[BIM_Material/de|Material]]
+|[[BIM_Preflight/de|Preflight]]
+|[[BIM_Workbench/de|BIM]]
+|IconL=BIM_Material.svg
+|IconR=BIM_Preflight.png
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|DIESER BEFEHL IST BESTANDTEIL DES INTEGRIERTEN ARBEITSBEREICHS [[BIM_Workbench/de|BIM]] IN V1.0<br>
+Diese Seite wurde für diese Version aktualisiert.}}
+
+{{GuiCommand
+|Name=Arch Schedule
+|Name=Arch Ablaufplan
+|MenuLocation=Verwalten → Planung
+|Workbenches=[[BIM_Workbench/de|BIM]]
+|SeeAlso=
+}}
+
+<span id="Description"></span>
+==Beschreibung==
+
+Das Werkzeug '''ArchAblaufplan''' ermöglicht ein [[Spreadsheet_Workbench/de|Tabellenblatt]] zu erstellen und automatisch mit Inhalten aus dem Modell zu befüllen.
+
+Für eine allgemeinere Lösung siehe Arbeitsbereich [https://github.com/furti/FreeCAD-Reporting/tree/master Reporting] in der Liste der [[External_workbenches/de|externen Arbeitsbereiche]]. Dieser Arbeitsbereich verwendet die SQL-Syntax, um Informationen aus dem Dokument zu extrahieren.
+
+<span id="Usage"></span>
+==Anwendung==
+
+# Ein FreeCAD-Dokument öffnen oder erstellen, das einige Objekte enthält.
+# Die Schaltfläche {{Button|[[Image:Arch_Schedule.svg|16px]] [[Arch_Schedule/de|Planung]]}} drücken.
+# Die gewünschten Optionen einstellen. Die Option {{MenuCommand|Tabelle verknüpfen}} aktivieren, wenn der Ablaufplan eine FreeCAD-[[Spreadsheet_Workbench/de|Kalkulationstabelle]] erstellen soll. Oder alternativ den Ablaufplan nach der Erstellung in der [[Tree_view/de|Baumansicht]] mit der rechten Maustaste anklicken und {{MenuCommand|Kalkulationstabelle anhängen}} im Kontextmenü auswählen.
+# {{Button|OK}} drücken.
+
+<span id="Workflow"></span>
+==Arbeitsablauf==
+
+Zuerst muss ein Modell vorhanden sein. Hier ist zum Beispiel ein Dokument mit einigen Arch-Objekten, aber andere Objekte werden auch unterstützt.
+
+[[Image:Arch_schedule_example01.jpg]]
+
+Wird die Schaltfläche {{Button|[[Image:Arch_Schedule.svg|16px]] [[Arch_Schedule/de|Planung]]}} gedrückt, öffnet sich dieser Dialog:
+
+[[Image:ArchSchedule.png]]
+
+Nun kann der Plan Zeile für Zeile gefüllt werden. Jede Zeile ist eine "Abfrage" und ergibt eine Zeile auf dem Tabellenblatt. Die Schaltfläche {{Button|[[Image:List-add.svg|16px]] Zeile hinzufügen}} drücken, um eine Zeile hinzuzufügen; danach jede Zelle der Zeile doppelt anklicken, um die Werte einzugeben. Die Schaltfläche {{Button|[[Image:List-remove.svg|16px]] Zeile löschen}} löscht die Zeile, die eine aktuell ausgewählte Zelle enthält und {{Button|[[Image:Delete.svg|16px]] Löschen}} entfernt alle Zeilen. Mögliche Werte zum füllen der Spalten sind:
+
+* '''Beschreibung''': Eine Beschreibung dieser Abfrage. Die Spalte Beschreibung wird die erste Spalte des resultierenden Tabellenblatts sein. Die Beschreibung ist verpflichtend für die Ausführung einer Abfrage. Wenn die Zelle Beschreibung leer ist, wird die komplette Zeile übersprungen und im Kalkulationsblatt nicht ausgefüllt. Dies erlaubt es, Trennzeilen hinzuzufügen.
+* '''Eigenschaft''': Dies ist die echte Abfrage, die auf alle von der Abfrage ausgewählten Objekte ausgeführt werden soll. Es kann zwei Dinge enthalten: entweder das Wort {{incode|count}} oder eine Objekteigenschaft:
+** Wird {{incode|count}} (oder {{incode|Count}} oder {{incode|COUNT}}, Groß-/Kleinschreibung wird ignoriert) eingegeben, werden die ausgewählten Objekte einfach nur gezählt.
+** Wird eine Objekteigenschaft eingegeben, dann wird der Wert dieser Eigenschaft für jedes der ausgewählten Objekte ermittelt und aufsummiert. Objekte ohne diese Eigenschaft werden übersprungen. Im Allgemeinen ist es der Name der Eigenschaft, der im [[Property_editor/de|Eigenschafteneditor]] angezeigt wird, ohne Leerzeichen (z.B. tippt man {{incode|PerimeterLength}} in der Spalte Eigenschaft ein, wenn der Eigenschafteneditor die Eigenschaft {{incode|Perimeter Length}} für das Objekt anzeigt). Mit Punktnotation wird auf Eigenschaften von Eigenschaften zugegriffen: {{incode|EigenschaftDesObjekts.EigenschaftDerEigenschaft1.EigenschaftDerEigenschaft2}}. Falls die Eigenschaft vor dem ersten Punkt mit einem Kleinbuchstaben beginnt, wird sie als Referenz auf das Objekt selbst angesehen und ignoriert. Bspw. ist {{incode|object.Shape.Volume}} das Gleiche wie {{incode|Shape.Volume}}.
+* '''Einheit''': Eine optionale Einheit für das Ergebnis. Es liegt an dir, eine Einheit anzugeben, die zum Ergebnis passt. Wenn du z.B. Volumen ermittelst, solltest du eine Volumeneinheit angeben, wie {{incode|m^3}} oder {{incode|m³}}. Wird eine unpassende Einheit für die Eigenschaft verwendet, z.B. {{incode|cm}} für ein Volumen, erhält man ein falsche Ergebnisse.
+* '''Objekte''': Du kannst diese Spalte leer lassen, dann werden alle Objekte des Dokuments berücksichtigt oder eine durch {{incode|;}} getrennte Liste von Objektnamen angeben. Wenn eines der Objekte in dieser Liste eine Gruppe ist, werden auch die Kinder ausgewählt. Daher ist der einfachste Weg, diese Möglichkeit zu nutzen, die Objekte sinnvoll zu gruppieren und hier einen Gruppennamen anzugeben. Du kannst auch die Schaltfläche {{Button|[[Image:Edit-select-all.svg|16px]] Auswahl hinzufügen}} benutzen, um gerade im Dokument ausgewählte Objekte hinzuzufügen. Hier müssen die internen Namen verwendet werden. Um Objekte über ihre Benennungen (Labels) auszuwählen, wird diese Spalte leer gelassen und stattdessen die Spalte Filter verwendet.
+* '''Filter''': Hier kannst du eine durch {{incode|;}} getrennte Liste von Filtern angeben. Jeder Filter hat die Form {{incode|property:value}}. Du kannst nur Eigenschaften verwenden, die als Wert eine Zeichenfolge enthalten. Sowohl bei {{incode|property}} (Eigenschaft) als auch bei {{incode|value}} (Wert) wird Groß-/Kleinschreibung ignoriert. {{incode|value}} kann entfallen, nicht aber {{incode|:}}. Um mit älteren Versionen von Arch Zeitplan erstellte Pläne korrekt zu behandeln, wird die {{incode|type}}-Eigenschaft in die {{incode|ifctype}}-Eigenschaft konvertiert. Es ist ratsam, nicht mehr {{incode|type}} in neuen Zeitplänen zu benutzen.
+
+{| class="wikitable"
+|+ Beispiele für Filter-Abfragen
+|-
+! Abfrage
+! Beschreibung
+|-
+| {{incode|label:floor1;ifctype:window}}
+| Behält nur Objekte, die "floor1" in ihrer {{PropertyData/de|Label}} und "window" in ihrer {{PropertyData/de|IFC Type}} enthalten. Ein Fenster mit der {{PropertyData/de|Label}} "Floor1-AA" und der {{PropertyData/de|IFC Type}} "Window Standard Case" gehört dazu.
+|-
+| {{incode|label:door}}
+| Behält nur Objekte, die "door" in ihrer {{PropertyData/de|Label}} enthalten
+|-
+| {{incode|!label:door}}
+| Behält nur Objekte, die "door" nicht in ihrer {{PropertyData/de|Label}} enthalten
+|-
+| {{incode|ifctype:structural}}
+| Behält nur Objekte, die "structural" in ihrer {{PropertyData/de|IFC Type}} enthalten
+|-
+| {{incode|!ifctype:something}}
+| Behält nur Objekte, die "structural" in ihrer {{PropertyData/de|IFC Type}} enthalten oder die die {{PropertyData/de|IFC Type}} nicht besitzen
+|-
+| {{incode|!ifctype:}}
+| Behält nur Objekte, die keine {{PropertyData/de|IFC Type}} besitzen
+|}
+
+Die Schaltfläche {{Button|[[Image:Document-open.svg|16px]] Importieren}} ermöglicht, diese Liste in einer anderen Tabellenkalkulation zu erstellen und hier als csv-Datei zu importieren.
+
+Der fertiggestellte Plan könnte so aussehen:
+
+[[Image:ArchScheduleExample.png]]
+
+Schließlich die Schaltfläche {{Button|OK}} drücken und ein neuer Plan wird zum Dokument hinzugefügt. Wurde die zugehörige Option ausgewählt, enthält der Plan ein verknüpftes Tabellenblatt.
+
+[[Image:Arch_schedule_example04.jpg]]
+
+Um einen vorhandenen Plan zu bearbeiten, wird dieser in der Baumansicht doppelt angeklickt. Mit einem Doppelklick auf das Tabellenblatt erhält man die Ergebnisse in 3 Spalten: Beschreibung (Description), Wert (Value), Einheit (Unit)(falls zutreffend):
+
+[[Image:Arch_schedule_example05.jpg]]
+
+Das Tabellenblatt kann dann ganz normal vom Arbeitsbereich [[Spreadsheet_Workbench/de|Spreadsheet]] aus in eine csv-Datei exportiert werden.
+
+<span id="Dynamic_properties"></span>
+==Dynamische Eigenschaften==
+
+Es ist möglich, eigene Eigenschaften zu Objekten hinzuzufügen. Diese werden [[Property_editor/de#Maßnahmen|Dynamische Eigenschaften]] genannt. Falls sie mit der Option {{MenuCommand|Prefix group name}} ausgewählt wurden, beginnen ihre Namen tatsächlich mit dem Gruppennamen, aber dieser Präfix wird nicht im [[Property_editor/de|Eigenschafteneditor]] angezeigt. Ihre Namen haben die Form: {{incode|NameOfGroup_NameOfProperty}}. Um sie in einem Plan zu referenzieren muss dieser vollständige Name verwendet werden.
+
+
+{{Docnav/de
+|[[BIM_Material/de|Material]]
+|[[BIM_Preflight/de|Preflight]]
+|[[BIM_Workbench/de|BIM]]
+|IconL=BIM_Material.svg
+|IconR=BIM_Preflight.png
+|IconC=Workbench_BIM.svg
+}}
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

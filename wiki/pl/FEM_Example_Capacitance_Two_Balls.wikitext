@@ -1,0 +1,135 @@
+<languages/>
+
+{{TutorialInfo/pl
+|Topic=Analiza metodą elementów skończonych
+|Level=Początkujący
+|Time=30 min
+|Author=[https://wiki.freecadweb.org/User:Sudhanshu_Dubey Sudhanshu Dubey]
+|FCVersion=0.19 lub nowszy
+|Files=Tworzone automatycznie
+}}
+
+<span id="Introduction"></span>
+==Wprowadzenie== 
+
+Ten przykład pokazuje jak zasymulować przypadek 6 z dokumentu [https://www.nic.funet.fi/pub/sci/physics/elmer/doc/ElmerTutorials.pdf Elmer GUI Tutorials], '''Electrostatic equation – Capacitance of two balls''' (Równanie elektrostatyczne – Pojemność elektryczna dwóch kul) przy pomocy [[FEM_Examples/pl|Przykładów MES]]. Wyjaśnia jak ustawić przykład, przeanalizować jego różne części, rozwiązać używając [[FEM_SolverElmer/pl|solvera Elmer]] i zwizualizować wyniki za pomocą [[FEM_PostFilterClipRegion/pl|filtra przycinania]].
+
+[[File:Two_balls_result_2.png|1000px]]
+{{Caption|Wynik końcowy tego przykładu}}
+
+<span id="Requirements"></span>
+==Wymagania== 
+
+* Kompatybilna wersja programu FreeCAD wskazana w opisie przykładu. 
+*: Użyj opcji {{MenuCommand|Pomoc → Informacje o FreeCAD}} aby sprawdzić jaka wersja programu jest zainstalowana
+* Do wczytania przykładu, obejrzenia siatki i geometrii oraz wizualizacji wyników nie jest wymagane żadne zewnętrzne oprogramowanie.
+* Do przeprowadzenia analizy metodą elementów skończonych (MES), solver ELmer musi być zainstalowany na komputerze. Zobacz [[FEM_SolverElmer/pl#Instalacja|tę stronę]] aby dowiedzieć się jak zainstalować solver Elmer.
+
+<span id="Set_up_the_example"></span>
+== Ustaw przykład == 
+
+<span id="Load_FEM_Workbench"></span>
+=== Załaduj środowisko pracy MES ===
+
+* Uruchom FreeCAD, moduł Start powinien być załadowany
+* Przełącz się na [[Image:Workbench_FEM.svg|32px]] [[FEM_Workbench/pl|środowisko pracy MES]].
+
+<span id="Load_the_example"></span>
+=== Załaduj plik przykładu === 
+
+* Idź do {{MenuCommand|Narzędzia → [[File:FEM_Examples.svg|24px]] Otwórz przykłady}}.
+* Gdy otworzy się okno dialogowe, znajdź i otwórz przykład "Electrostatics Capacitance Two Balls". Możesz go łatwo znaleźć w kategoriach {{MenuCommand|All}} lub {{MenuCommand|Solvers → Elmer}}. Aby otworzyć przykład, kliknij na nim dwukrotnie lub zaznacz go i wciśnij przycisk {{Button|Setup}}.
+
+[[File:Two_balls_selection.png|300px]]
+
+<span id="Understanding_the_Simulation_Case"></span>
+== Zrozumienie przypadku obliczeniowego ==
+
+Ten przypadek przedstawia rozwiązanie pojemności elektrycznej doskonale przewodzących kul w wolnej przestrzeni. Różnica napięć między kulami wywołuje ładunek elektryczny w układzie. Kule mają też własną pojemność elektryczną, która wynika z różnicy napięć z dalekim otoczeniem. Zatem rozwiązania musi być symetryczna macierz 2 x 2 pojemności elektrycznej. Pojemności mogą być obliczone z dwóch różnych konfiguracji napięć.
+
+<span id="Understanding_the_Model"></span>
+== Zrozumienie modelu ==
+
+* Model zawiera trzy kule.
+# Dwie mniejsze są doskonale przewodzące.
+# Większa symuluje otaczające powietrze.
+* Dwie mniejsze kule są ze sobą scalone a następnie wycięte z większej kuli.
+
+[[File:Two_balls_model_full.png|1000px]]
+{{Caption|Początkowy model}}
+
+<span id="Analysis_container_and_its_objects"></span>
+=== Kontener analizy i jego obiekty ===
+
+Obiekty używane w tej analizie elektrostatycznej:
+# [[Image:FEM_Analysis.svg|24px]] Kontener analizy
+# [[Image:FEM_SolverElmer.svg|24px]] SolverElmer
+# [[Image:FEM_EquationElectrostatic.svg|24px]] Electrostatic, równanie elektrostatyczne
+# [[Image:FEM_MaterialFluid.svg|24px]] FemMaterial, materiał płynu reprezentujący otaczające powietrze
+# [[Image:FEM_ConstraintElectrostaticPotential.svg|24px]] ElectrostaticPotential, warunki brzegowe (trzy)
+# [[Image:FEM_ConstantVacuumPermittivity.svg|24px]] ConstantVaccumPermittivity, opcjonalne
+# [[Image:FEM_MeshGmshFromShape.svg|24px]] Mesh, siatka [[FEM_MeshGmshFromShape/pl|Gmsh]]
+# [[Image:FEM_MeshRegion.svg|24px]] MeshRegion, obszar siatki dla mniejszych kul
+
+[[File:Two_balls_analysis.png]]
+{{Caption|Obiekty w [[Tree_view/pl|widoku drzewa]]}}
+
+<span id="Running_the_FEA"></span>
+===  Uruchamianie analizy ===
+
+* W [[Tree_view/pl|widoku drzewa]] dwukrotnie kliknij na obiekcie solvera [[Image:FEM_SolverElmer.svg|24px]].
+* Wciśnij przycisk {{Button|Zapisz}} w tym samym panelu zadań. Obserwuj okno dziennika aż pojawi się w nim komunikat "write completed." Możesz zignorować ewentualne ostrzeżenie o przenikalności elektrycznej próżni.
+* Wciśnij przycisk {{Button|Uruchom}}. Jest to mała analiza, więc powinna trwać tylko kilka sekund. Poczekaj aż zbaczysz komunikat "ELMER SOLVER FINISHED AT". 
+* Wciśnij przycisk {{Button|Zamknij}} w panelu zadań po zakończeniu analizy.
+* W widoku drzewa utworzone zostaną dwa nowe obiekty wyników, [[Image:FEM_PostPipelineFromResult.svg|24px]] SolverElmerResult oraz [[Image:TextDocument.svg|24px]] SolverElmerOutput.
+
+Jeśli podczas uruchamiania analizy pojawi się błąd o pliku wykonywalnym solvera lub zbliżony, sprawdź [[FEM_SolverElmer/pl#Instalacja|instalację]] solvera Elmer.
+
+<span id="Visualizing_Results"></span>
+===Wizualizacja wyników===
+
+* Upewnij się, że siatka jest niewidoczna. Jeśli tak nie jest, wybierz [[Image:FEM_MeshGmshFromShape.svg|24px]] obiekt siatki i wciśnij klawisz {{KEY|Spacja}} aby przełączyć widoczność.
+* Upewnij się też, że obiekt Cut jest niewidoczny.
+* Dwukrotnie kliknij na obiekcie [[Image:FEM_PostPipelineFromResult.svg|24px]] SolverElmerResult aby otworzyć jego okno dialogowe.
+* Zmień "Pole" na "potential" i kliknij {{Button|OK}}.
+* Zobaczysz, że kula zmieniła kolor na niebieski a gradient po prawej stronie pokazuje wartości od 0 do 1. Powinno to wyglądać mniej więcej tak:
+
+[[File:Two_balls_potential.png|1000px]]
+
+<span id="Post_Processing_the_Result"></span>
+== Obróbka wyników ==
+
+* Chociaż poprawnie zwizualizowaliśmy wyniki potencjału, widzimy tylko zerowy potencjał powietrza otaczającego dwie kule. Aby zobaczyć potencjał na kulach, musimy zastosować [[FEM_PostFilterClipRegion/pl|filtr przycinania]].
+* W widoku drzewa wybierz obiekt [[Image:FEM_PostPipelineFromResult.svg|24px]] SolverElmerResult i kliknij przycisk {{Button|[[Image:FEM_PostFilterClipRegion.svg|20px]] Filtr przycięcia obszaru}} na pasku narzędzi.
+* Otworzy to okno z konfiguracjami filtra. Kliknij w nim przycisk {{Button|[[Image:list-add.svg|16px]] Utwórz}} i wybierz [[Image:FEM_PostCreateFunctionPlane.svg|24px]] Płaszczyzna. Dodaje to płaszczyznę przecinającą siatkę wyników przez środek kuli. Aby wygładzić powierzchnię cięcia, zaznacz opcję '''Wytnij komórki'''. W końcu kliknij {{Button|Zastosuj}}.
+
+[[File:Two_balls_postcreate.png|300px]]
+
+* W widoku drzewa jest nowy obiekt o nazwie Functions. Zawiera utworzoną [[Image:FEM_PostCreateFunctionPlane.svg|24px]] Płaszczyznę. Schowaj go wciskając klawisz {{KEY|Spacja}}.
+* Dwukrotnie kliknij na obiekcie [[Image:FEM_PostFilterClipRegion.svg|24px]] filtra przycinania w widoku drzewa.
+* Zmień "Pole" na "potential" i kliknij {{Button|OK}}.
+* Przełącz widoczność obiektu [[Image:FEM_PostPipelineFromResult.svg|24px]] SolverElmerResult używając klawisza {{KEY|Spacja}} a powinieneś zobaczyć coś takiego:
+
+[[File:Two_balls_result.png|1000px]]
+
+Teraz wyraźnie widzimy rozkład potencjału w i dookoła kul.
+
+Zauważ, że gdyby opcja [[Image:FEM_PostApplyChanges.svg|24px]] [[FEM_PostApplyChanges|Zastosuj zmiany]] była włączona, mógłbyś wybrać "Pole" w oknie dialogowym filtra przycinania bezpośrednio a nie musiałbyś otwierać go ponownie po utworzeniu płaszczyzny.
+
+<span id="Finding_the_Capacitance"></span>
+== Znalezienie poejmności ==
+
+* Naszym faktycznym celem jest znalezienie pojemności, która jest zawarta w dokumencie [[Image:TextDocument.svg|24px]] SolverElmerOutput.
+* Dwukrotnie kliknij na dokumencie [[Image:TextDocument.svg|32px]] SolverElmerOutput aby go otworzyć. Przewiń w dół aż znajdziesz:
+
+<pre>
+StatElecSolve: Capacitance matrix computation performed (i,j,C_ij)
+StatElecSolve:   1  1    5.07016E+00
+StatElecSolve:   1  2    1.69328E+00
+StatElecSolve:   2  2    5.07201E+00
+</pre>
+
+* Tutaj naszym poszukiwanym wynikiem jest <code>C<sub>12</sub> = 1.69328</code>. Ta wartość jest zbliżona do wartości {{incode|1.691}} podanej w dokumencie [https://www.nic.funet.fi/pub/sci/physics/elmer/doc/ElmerTutorials.pdf Elmer GUI Tutorials]. Możemy uzyskać jeszcze dokładniejszy wynik poprzez użycie większego [[FEM_MeshRegion/pl|zagęszczenia siatki]], ale to pozostawiamy użytkownikowi. Zalecamy też przetestowanie [[FEM_PostFilterClipRegion/pl|filtra przycinania]] aby uzyskać wizualny wynik podobny do pierwszego rysunku w tym przykładzie.
+
+{{FEM Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

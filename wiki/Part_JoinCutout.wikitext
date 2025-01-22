@@ -1,0 +1,120 @@
+<languages/>
+<translate>
+
+<!--T:19-->
+{{Docnav
+|[[Part_JoinEmbed|JoinEmbed]]
+|[[Part_BooleanFragments|BooleanFragments]]
+|[[Part_Workbench|Part]]
+|IconL=Part_JoinEmbed.svg
+|IconR=Part_BooleanFragments.svg
+|IconC=Workbench_Part.svg
+}}
+
+<!--T:1-->
+{{GuiCommand
+|Name=Part JoinCutout
+|MenuLocation=Part → Join → Cutout for object
+|Workbenches=[[Part_Workbench|Part]]
+|Version=0.16
+|SeeAlso=[[Part_JoinConnect|Part JoinConnect]], [[Part_JoinEmbed|Part JoinEmbed]], [[Part_Boolean|Part Boolean]], [[Part_Thickness|Part Thickness]]
+}}
+
+==Description== <!--T:2-->
+
+<!--T:23-->
+The [[Image:Part_JoinCutout.svg|24px]] '''Part JoinCutout''' tool creates a cutout in a walled object (e.g. a pipe) to fit another walled object.
+
+</translate>
+[[image:JoinFeatures_Cutout.png|600px]]
+<translate>
+
+==Usage== <!--T:24--> 
+
+<!--T:4-->
+# Select the base object first, then the object to define the cutout. The order of selection is important. It is enough to select one sub-shape of each object (e.g. faces).
+# There are several ways to invoke the tool:
+#* Press the {{Button|[[Image:Part_JoinCutout.svg|16px]] [[Part_JoinCutout|Cutout for object]]}} button.
+#* Select the {{MenuCommand|Part → Join → [[Image:Part_JoinCutout.svg|16px]] Cutout for object}} option from the menu.
+# A Part JoinFeature object is created, with Mode set to 'Cutout'. Original objects are hidden, and the result of cutting is shown in the [[3D_view|3D view]].
+
+==Properties== <!--T:25--> 
+
+<!--T:29-->
+{{TitleProperty|Base}}
+
+<!--T:6-->
+* {{PropertyData|Base}}: Reference to base object (the one to make the cutout in). The object should be a single solid.
+* {{PropertyData|Tool}}: Reference to tool object (the object that is to fit into the cutout). The object can be a single solid, or a [[Part_Compound|valid compound]] of solids.
+* {{PropertyData|Mode}}: The mode of operation, equals 'Cutout' (Changing that will transform the tool into another Part_JoinXXX). The value of 'bypass' can be used to temporarily disable the long computations (a compound of Base and Tool will be created, which is a fast operation).
+* {{PropertyData|Refine}}: Sets whether to apply [[Part_RefineShape|Refine]] operation or not, to the final shape. The default value is determined by a 'Automatically refine shape after boolean operation' checkbox in PartDesign preferences. When Mode property is 'bypass', Refine is ignored (never applied).
+
+==Example== <!--T:26--> 
+
+<!--T:7-->
+# Create a pipe by applying [[Part_Thickness|thickness]] to a [[Part_Cylinder|cylinder]]: <br />[[image:JoinFeatures_Example_step1.png|320px]]
+# Create another, smaller diameter pipe, and [[Placement|place]] it so that it pierces the wall of the first pipe: <br />[[image:JoinFeatures_Example_step2.png|320px]]
+# Select the first pipe, then the second pipe (order of selection is important), and click the 'Cutout for object' option from the Join tools dropdown toolbar button. <br />[[image:JoinFeatures_Example_step3_Cutout.png|320px]]
+
+==Algorithm== <!--T:27--> 
+
+<!--T:8-->
+The algorithms behind Join tools are quite simple, and understanding them is important to use the tools correctly.
+
+<!--T:9-->
+1. Base object is [[Part_Cut|boolean-cut]] with Tool object. The resulting shape is a set ([[Part_Compound|compound]]) of non-intersecting solids (typically, two). 
+
+<!--T:10-->
+2. The resulting compound is filtered: only the largest solid is kept.
+
+<!--T:11-->
+3. If Refine property is true, the resulting shape is [[Part_RefineShape|refined]].
+<br /><br />[[image:JoinFeatures-Algo-Cutout.png|800px]]
+
+===Notes=== <!--T:28--> 
+
+<!--T:12-->
+* If after step 1, the object remains in one piece, the result of Cutout will be equivalent to [[Part_Cut|boolean cut]] of Base with Tool.
+* Now, the tool will produce unexpected result, if a compound is supplied as Base. This may be changed in the future.
+* Because the largest piece is determined by comparing volumes of pieces, the tool can only work with solids. This may be changed in the future.
+
+==Scripting== <!--T:13-->
+
+<!--T:14-->
+The Join tools can by used in [[macros]] and from the python console by using the following function:
+
+</translate>
+{{Code|code=JoinFeatures.makePartJoinFeature(name = 'Cutout', mode = 'Cutout')}}
+<translate>
+<!--T:15-->
+* Creates an empty Cutout feature (or other Join feature, depending on mode passed). The properties Base and Tool must be assigned explicitly, afterwards.
+* Returns the newly created object.
+
+<!--T:16-->
+Example:
+</translate>
+{{code|code=
+import JoinFeatures
+j = JoinFeatures.makePartJoinFeature(name = 'Cutout', mode = 'Cutout' )
+j.Base = FreeCADGui.Selection.getSelection()[0]
+j.Tool = FreeCADGui.Selection.getSelection()[1]
+}}
+<translate>
+
+<!--T:17-->
+The tool itself is implemented in Python, see {{FileName|/Mod/Part/JoinFeatures.py}} ([https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/Part/JoinFeatures.py Github link]) under where FreeCAD is installed.
+
+
+<!--T:20-->
+{{Docnav
+|[[Part_JoinEmbed|JoinEmbed]]
+|[[Part_BooleanFragments|BooleanFragments]]
+|[[Part_Workbench|Part]]
+|IconL=Part_JoinEmbed.svg
+|IconR=Part_BooleanFragments.svg
+|IconC=Workbench_Part.svg
+}}
+
+</translate>
+{{Part_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

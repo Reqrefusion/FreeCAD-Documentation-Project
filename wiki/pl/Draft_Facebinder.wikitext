@@ -1,0 +1,134 @@
+<languages/>
+
+{{Docnav/pl
+|[[Draft_Point/pl|Punkt]]
+|[[Draft_ShapeString/pl|Kształt z tekstu]]
+|[[Draft_Workbench/pl|środowisko pracy Rysunek Roboczy]]
+|IconL=Draft_Point.svg 
+|IconR=Draft_ShapeString.svg 
+|IconC=Workbench_Draft.svg
+}}
+
+{{GuiCommand/pl
+|Name=Draft Facebinder
+|Name/pl=Rysunek Roboczy: Łącznik kształtu
+|MenuLocation=Kreślenie → Łącznik kształtu<br>3D/BIM → Ogólne narzędzia 3D → Łącznik kształtu
+|Workbenches=[[Draft_Workbench/pl|Rysunek Roboczy]], [[BIM_Workbench/pl|BIM]]
+|Shortcut=Rysunek Roboczy: {{KEY|F}} {{KEY|F}}
+|Version=0.14
+}}
+
+<span id="Description"></span>
+==Opis==
+
+Polecenie [[Image:Draft_Facebinder.svg|24px]] '''Łącznik kształtu''' tworzy obiekt powierzchniowy z wybranych ścian. Łącznik kształtu jest parametryczny, będzie się aktualizował jeśli zmodyfikujesz jego obiekt źródłowy ''(lub obiekty źródłowe)''.
+
+Można go użyć do utworzenia wyciągnięcia z kolekcji powierzchni. Takie wytłoczenie może na przykład reprezentować wykończenie ściany w projekcie architektonicznym.
+
+[[Image:Draft_facebinder_example.jpg|400px]]
+{{Caption|Łącznik kształtu stworzony z powierzchni ścian}}
+
+<span id="Usage"></span>
+==Użycie==
+
+# Wybierz jedną lub więcej ścian.
+# Istnieje kilka sposobów na wywołanie tego polecenia:
+#* Naciśnij przycisk {{Button|[[Image:Draft_Facebinder.svg|16px]] [[Draft_Facebinder/pl|Tworzy obiekt powiązania ścian ...]]}}.
+#* [[Draft_Workbench/pl|Środowisko pracy Rysunek Roboczy]]: Wybierz z menu opcję {{MenuCommand|Kreślenie → [[Image:Draft_Facebinder.svg|16px]] Łącznik kształtu}}.
+#* [[BIM_Workbench/pl|Środowisko pracy BIM]]: Wybierz opcję {{MenuCommand|3D/BIM → Ogólne narzędzia 3D → [[Image:Draft_Facebinder.svg|16px]] Łącznik kształtu}} z menu.
+#* Rysunek Roboczy: Użyj skrótu klawiaturowego: {{KEY|F}}, a następnie {{KEY|F}}.
+
+<span id="Properties"></span>
+==Właściwości==
+
+Zapoznaj się również z informacjami na stronie: [[Property_editor/pl|Edytor właściwości]].
+
+Obiekt Łącznik kształtu wywodzi się z obiektu [[Part_Feature/pl|Część: Cecha]] i dziedziczy wszystkie jego właściwości. Posiada on również następujące dodatkowe właściwości:
+
+<span id="Data"></span>
+===Dane===
+
+{{TitleProperty|Rysunek Roboczy}}
+
+* {{PropertyData/pl|Powierzchnia|Area}}: (tylko do odczytu): określa całkowitą powierzchnię połączonych powierzchni w elemencie wiążącym.
+* {{PropertyData/pl|Wyciągnięcie|Distance}}: określa grubość wyciągnięcia w elemencie wiążącym.
+* {{PropertyData/pl|Ściany|LinkSubList}}: określa grubość wyciągnięć w elemencie wiążącym.
+* {{PropertyData/pl|Odsunięcie|Distance}}: określa odległość, jaka ma być zastosowana między elementem łączącym a oryginalnymi powierzchniami przed wyciągnięciem.
+* {{PropertyData/pl|Usuń rozdzielenie|Bool}}: Określa, czy usuwać linie podziału, które dzielą współpłaszczyznowe powierzchnie.
+* {{PropertyData/pl|Zszyj|Bool}}: Określa, czy wykonywać operację zespolenia topologicznego na elemencie wiążącym.
+
+<span id="View"></span>
+===Widok===
+
+{{TitleProperty|Rysunek Roboczy}}
+
+* {{PropertyView/pl|Wzór|Enumeration}}: określa [[Draft_Pattern/pl|wzór]], którym ma być wypełniona powierzchnia w elemencie wiążącym. Ta właściwość działa tylko wtedy, gdy {{PropertyData/pl|Utwórz ścianę}} ma wartość {{TRUE}} i gdy {{PropertyView/pl|Tryb wyświetlania}} ma wartość {{value|Linie płaskie}}.
+* {{PropertyView/pl|Rozmiar wzoru|Float}}: określa rozmiar [[Draft_Pattern/pl|wzoru]].
+
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+Zobacz również stronę: [https://freecad.github.io/SourceDoc/ Dokumentacja API generowana automatycznie] oraz [[FreeCAD_Scripting_Basics/pl|Podstawy tworzenia skryptów FreeCAD]].
+
+Aby utworzyć Łącznik kształtu użyj metody {{incode|make_facebinder}} modułu Rysunek Roboczy ({{Version/pl|0.19}}). Ta metoda zastępuje przestarzałą metodę {{incode|makeFacebinder}}.
+
+{{Code|code=
+facebinder = make_facebinder(selectionset)
+}}
+
+* Tworzy obiekt {{incode|facebinder}} z podanego {{incode|selectionset}}, który jest listą {{incode|SelectionObject}} zwróconą przez {{incode|FreeCADGui.Selection.getSelectionEx()}}. Pod uwagę brane są tylko wybrane powierzchnie.
+** {{incode|selectionset}} może być również {{incode|PropertyLinkSubList}}.
+ 
+Lista {{incode|PropertyLinkSubList}} jest listą krotek; każda krotka zawiera jako pierwszy element {{incode|object}}, a jako drugi element listę (lub krotkę) łańcuchów; łańcuchy te wskazują nazwy elementów podrzędnych (powierzchni) tego obiektu.
+
+{{Code|code=
+PropertyLinkSubList = [tuple1, tuple2, tuple3, ...]
+PropertyLinkSubList = [(object1, list1), (object2, list2), (object3, list3), ...]
+PropertyLinkSubList = [(object1, ['Face1', 'Face4', 'Face6']), ...]
+PropertyLinkSubList = [(object1, ('Face1', 'Face4', 'Face6')), ...]
+}}
+
+Grubość obiektu Łącznika kształtu może być dodana poprzez nadpisanie jego atrybutu {{incode|Extrusion}}, wartość jest wprowadzana w milimetrach.
+
+Umiejscowienie elementu Łącznika kształtu można zmienić, nadpisując jego atrybut {{incode|Placement}} lub indywidualnie nadpisując jego atrybuty {{incode|Placement.Base}} i {{incode|Placement.Rotation}}.
+
+Przykład:
+
+{{Code|code=
+import FreeCAD as App
+import FreeCADGui as Gui
+import Draft
+
+doc = App.newDocument()
+
+# Insert a solid box
+box = doc.addObject("Part::Box", "Box")
+box.Length = 2300
+box.Width = 800
+box.Height = 1000
+
+# selection = Gui.Selection.getSelectionEx()
+selection = [(box, ("Face1", "Face6"))]
+facebinder = Draft.make_facebinder(selection)
+facebinder.Extrusion = 50
+
+doc.recompute()
+
+facebinder.Placement.Base = App.Vector(1000, -1000, 100)
+facebinder.ViewObject.ShapeColor = (0.99, 0.99, 0.4)
+
+doc.recompute()
+}}
+
+
+{{Docnav/pl
+|[[Draft_Point/pl|Punkt]]
+|[[Draft_ShapeString/pl|Kształt z tekstu]]
+|[[Draft_Workbench/pl|środowisko pracy Rysunek Roboczy]]
+|IconL=Draft_Point.svg 
+|IconR=Draft_ShapeString.svg 
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}

@@ -1,0 +1,203 @@
+<languages/>
+
+{{Docnav/es
+|[[Debugging/es|Depuración]]
+|[[FreeCAD_Build_Tool/es|FreeCAD Herramienta Compilación]]
+}}
+
+[[Image:Workbench_Test.svg|thumb|128px|Icono del ambiente Prueba]]
+
+{{TOCright}}
+
+<span id="Introduction"></span>
+== Introducción ==
+
+<div class="mw-translate-fuzzy">
+El [[Testing/es|Ambiente de trabajo del marco Pruebas]] no es realmente un ambiente de trabajo de modelado, pero contiene un conjunto de scripts de [[Python/es|Python]] para realizar diferentes pruebas en los componentes principales de FreeCAD, con el fin de depurar problemas. Ver también [[debugging/es|depuración]].
+</div>
+
+Puede ejecutar las pruebas desde la línea de comandos, utilizando las opciones {{incode|-t}} o {{incode|--run-test}}.
+
+Ejecutar todas las pruebas:
+
+{{Code|code=
+freecad --run-test 0
+}}
+
+Ejecutar sólo algunas de las pruebas unitarias especificadas, por ejemplo:
+
+{{Code|code=
+freecad -t TestDraft
+}}
+
+If a test does not need the GUI, it can also be executed in console mode by setting the {{incode|-c}} or {{incode|--console}} option in addition. This usually results in much faster startup time as the GUI is not loaded. For example:
+
+{{Code|code=
+freecad -c -t TestPartDesignApp
+}}
+
+<span id="Test_menu"></span>
+== Menú de prueba ==
+
+Cada directorio de nivel superior en FreeCAD debe tener un archivo con las pruebas que se pueden ejecutar para ese ambiente de trabajo o módulo en particular. El archivo suele empezar con la palabra {{incode|Test}}.
+
+Para ejecutar una prueba desde FreeCAD, cambia al ambiente de trabajo Pruebas, luego {{MenuCommand|Comandos de prueba → TestHierramientasGui → Autoprueba → Seleccionar nombre de la prueba}}, luego introduce el nombre del archivo Python con las pruebas; por ejemplo, para el [[Draft Workbench/es|Ambiente de trabajo Borrador]], esto sería {{MenuCommand|PruebaBorrador}}, luego presiona {{Button|Inicio}}.
+
+<span id="Test_functions"></span>
+== Funciones de prueba ==
+
+Esta es la lista de aplicaciones de prueba a partir de la versión 0.15 git 4207:
+
+=== TestAPP.All ===
+
+Add test function
+
+=== BaseTests ===
+
+Add test function
+
+=== UnitTests ===
+
+Add test function
+
+<span id="Document"></span>
+=== Documento ===
+
+Add test function
+
+=== UnicodeTests ===
+
+Add test function
+
+=== MeshTestsApp ===
+
+Add test function
+
+=== TestDraft ===
+
+Add test function
+
+=== TestSketcherApp ===
+
+Add test function
+
+=== TestPartApp ===
+
+Add test function
+
+=== TestPartDesignApp ===
+
+Add test function
+
+=== TestCAMApp ===
+
+Path workbench test cases:
+* depthTestCases: 
+* PathTestUtils: 
+* TestDressupDogbone: Test functionality of Dogbone dressup.
+* TestHoldingTags: Test functionality of Holding Tags dressup.
+* TestPathAdaptive: Test selection capability of Adaptive operation.
+* TestPathCore: Test core functionality of Path workbench.
+* TestPathDeburr: Test general functionality of Deburr operation.
+* TestPathGeom: Test various functions available in the PathGeom module.
+* TestPathHelix: Test general functionality of Helix operation.
+* TestPathLog: Test various functions available in the PathLog debugging and feedback module.
+* TestPathOpTools: 
+* TestPathPreferences: Test various functions available in the PathPreferences module.
+* TestPathPropertyBag: 
+* TestPathSetupSheet: 
+* TestPathStock: 
+* TestPathThreadMilling: 
+* TestPathTool: 
+* TestPathToolBit: 
+* TestPathToolController: 
+* TestPathTooltable: 
+* TestPathUtil: Test various functions available in the PathUtil module.
+* TestPathVcarve: Test general functionality of Vcarve operation.
+* TestPathVoronoi:
+
+<span id="Workbench"></span>
+=== Ambiente de trabajo ===
+
+Add test function
+
+<span id="Menu"></span>
+=== Menú ===
+
+Add test function
+
+=== Menu.MenuDeleteCases ===
+
+Add test function
+
+=== Menu.MenuCreateCases ===
+
+Add test function
+
+<span id="Scripting"></span>
+==Guionización==
+
+{{Emphasis|Ver también:}} [[FreeCAD_Scripting_Basics/es|Básicos de Guionización FreeCAD]].
+
+===Get a list of all top-level test modules===
+
+{{Code|code=
+FreeCAD.__unit_test__
+}}
+
+Note that the test modules returned here depend on whether a GUI available or not. I.e. when executed in console mode, various tests ending in "Gui" are missing.
+
+===Run specific tests===
+
+There are various ways of running tests using [https://docs.python.org/3/library/unittest.html Python's unittest library]. FreeCAD's test framework removes some of the boiler plate for the most common cases.
+
+Run all tests defined in a Python module:
+{{Code|code=
+import Test, TestFemApp
+Test.runTestsFromModule(TestFemApp)
+}}
+
+Run all tests defined in a Python class:
+{{Code|code=
+import Test, femtest.app.test_solver_calculix
+Test.runTestsFromClass(femtest.app.test_solver_calculix.TestSolverCalculix)
+}}
+
+<span id="Example_1"></span>
+===Ejemplo 1===
+
+Within the Python Console of FreeCAD, the following code format may be used to run built-in tests.  Replace the red "'''TestFem'''" text in the code below with the desired module test name.
+* For example, use "'''TestPathApp'''" to run all unit tests for the Path workbench unit test framework.
+* Submodules are available using dot notation, like "'''TestPathApp.TestPathAdaptive'''" to only run the Adaptive unit tests within the greater Path workbench test framework.
+* Multiple test modules or submodules may be combined by adding another `'''suite.addTest(...)'''` method call just like the one in the code below, but with a different module or submodule reference.
+* Output for the code below will be in the Report View panel within the FreeCAD GUI.
+* Code source is copied from post by FreeCAD forum user, ''sgrogan'', in the [https://forum.freecadweb.org/viewtopic.php?style=3&p=153251#p153251 unit tests per python] topic, with credit there given to forum user, ''wmayer''.
+
+{{Code|code=
+import unittest
+suite = unittest.TestSuite()
+suite.addTest(unittest.defaultTestLoader.loadTestsFromName("TestFem"))
+r = unittest.TextTestRunner()
+r.run(suite)
+}}
+
+<span id="Additional_Resources"></span>
+==Recursos adicionales==
+
+<span id="Forum_Topics"></span>
+===Temas del foro===
+
+* [https://forum.freecadweb.org/viewtopic.php?style=3&f=27&t=18379 Support for running specific unit tests with --run-test #331]
+
+
+{{Docnav/es
+|[[Debugging/es|Depuración]]
+|[[FreeCAD_Build_Tool/es|FreeCAD Herramienta Compilación]]
+}}
+
+<!--T:21-->
+{{Userdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Test Framework{{#translation:}}]]
+[[Category:Workbenches{{#translation:}}]]
+[[Category:Testing{{#translation:}}]]

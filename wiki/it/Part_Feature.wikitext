@@ -1,0 +1,154 @@
+<languages/>
+{{TOCright}}
+
+<span id="Introduction"></span>
+== Introduzione ==
+
+[[File:Part_3D_object.svg|32px]]
+
+Un oggetto [[Part_Feature/it|Part Feature]], (Funzione Part) o formalmente un {{incode|Part::Feature}}, è un elemento semplice a cui è associato una [[Part_TopoShape/it|forma topologica]] che può essere visualizzato nella [[3D_view/it|Vista 3D]].
+
+La Part Feature è la classe genitore della maggior parte degli oggetti 2D (Draft, Sketcher) e 3D (Part, PartDesign), ad eccezione delle mesh, che normalmente si basano su [[Mesh_Feature/it|Mesh Feature]], o su [[FEM_Mesh/it|FEM FemMeshObject]] per gli oggetti FEM.
+
+[[File:FreeCAD_core_objects.svg|800px]]
+
+{{Caption|Diagramma semplificato delle relazioni tra gli oggetti principali in FreeCAD}}
+
+<span id="Usage"></span>
+==Utilizzo==
+
+[[Part_Feature/it|Part Feature]] è un oggetto interno, quindi non può essere creato dall'interfaccia grafica, ma solo dalla [[Python_console/it|console Python]]  come descritto nel paragrafo [[#Script|Script]].
+
+L'oggetto {{Incode|Part::Feature}} è definito in [[Part_Workbench/it|Part]] ma può essere usato come classe base per [[Scripted_objects/it|script di oggetti]] in tutti gli [[Workbenches/it|ambienti]] che producono forme geometriche 2D e 3D. Sostanzialmente tutti gli oggetti prodotti in [[Part_Workbench/it|Part]] sono istanze di una {{incode|Part::Feature}}.
+
+{{incode|Part::Feature}} è anche la classe genitrice dei [[PartDesign_Body/it|Corpi di PartDesign]], delle [[PartDesign_Feature/it|PartDesign Features]], e dei [[Part_Part2DObject/it|Part Part2DObject]], che è specializzato per le forme 2D (planari).
+
+Gli ambienti possono aggiungere altre proprietà a questo elemento di base per produrre un oggetto con un comportamento complesso.
+
+<span id="Properties"></span>
+== Proprietà ==
+
+Vedere [[Property/it|Proprietà]] per tutti i tipi di proprietà che possono avere oggetti con script.
+
+La [[Part_Feature/it|Part Feature]] (classe {{incode|Part::Feature}}) è derivata dalla base [[App_GeoFeature/it|App GeoFeature]] (classe{{incode|App::GeoFeature}}) ed eredita tutte le sue proprietà. Ha anche diverse proprietà aggiuntive. In particolare una proprietà {{PropertyData|Shape}}, che memorizza la [[Part_TopoShape/it|Part TopoShape]] dell'oggetto. Questa è la geometria mostrata nella [[3D_view|Vista 3D]]. Altre proprietà di questo oggetto sono quelle legate all'aspetto del suo [[Part_TopoShape/it|TopoShape]].
+
+Queste sono le proprietà disponibili nell'[[Property_editor/it|editor delle proprietà]]. Le proprietà nascoste possono essere mostrate usando il comando {{MenuCommand|Mostra tutto}} nel menu contestuale dell '[[Property_editor/it|editor delle proprietà]].
+
+<span id="Data"></span>
+=== Dati ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyData|Proxy|PythonObject|Hidden}}: una classe personalizzata associata a questo oggetto. Questa esiste solo per la versione [[Python/it|Python]]. Vedere [[#Script|Script]]
+* {{PropertyData|Shape|PartShape|Hidden}}: una classe [[Part_TopoShape/it|Part TopoShape]] associata a questo oggetto.
+* {{PropertyData|Placement}}: la posizione dell'oggetto nella [[3D view/it|Vista 3D]]. Il posizionamento è definito da un punto {{incode|Base}} (vettore) e una {{incode| Rotation}} (asse e angolo). Vedere [[Placement/it|Posizionamento]].
+** {{PropertyData|Angle}}: l'angolo di rotazione attorno al {{PropertyData|Axis}}. Di default, è {{value|0°}} (zero gradi).
+** {{PropertyData|Axis}}: il vettore unitario che definisce l'asse di rotazione per il posizionamento. Ogni componente ha un valore in virgola mobile compreso tra {{value|0}} e {{value|1}}. Se un valore è superiore a {{value|1}}, il vettore viene normalizzato in modo che l'entità del vettore sia {{value|1}}. Di default, è l'asse Z positivo, {{value|(0, 0, 1)}}
+** {{PropertyData|Position}}: un vettore con le coordinate 3D del punto base. Di default, è l'origine {{value|(0, 0, 0)}}
+* {{PropertyData|Label|String}}: il nome modificabile dall'utente di questo oggetto, è una stringa UTF8 arbitraria.
+* {{PropertyData|Label2|String|Hidden}}: una descrizione più lunga e modificabile dall'utente di questo oggetto, è una stringa UTF8 arbitraria che può includere ritorni a capo. Per impostazione predefinita, è una stringa vuota {{value|""}}.
+* {{PropertyData|Expression Engine|ExpressionEngine|Hidden}}: un elenco di espressioni. Per impostazione predefinita, è vuoto {{value|[]}}.
+* {{PropertyData|Visibility|Bool|Hidden}}: se visualizzare o meno l'oggetto.
+
+<span id="View"></span>
+===Vista===
+
+La maggior parte degli oggetti in FreeCAD ha quello che viene chiamato un "[[viewprovider/it|viewprovider]]", che è una classe che definisce l'aspetto visivo dell'oggetto nella [[3D_view/it|vista 3D]] e nella [[Tree_view/it|vista ad albero]]. Il viewprovider predefinito degli oggetti Part Feature definisce le seguenti proprietà. Anche gli oggetti con script derivati da Part Feature hanno accesso a queste proprietà.
+
+{{TitleProperty|Base}}
+* {{PropertyView|Proxy|PythonObject|hidden}}: una classe [[Viewprovider/it|viewprovider]] personalizzata associata a questo oggetto. Questo esiste solo per la versione [[Python/it|Python]]. Vedere [[#Script|Script]].
+
+{{TitleProperty|Display Options}}
+
+* {{PropertyView|Bounding Box|Bool}}: se è {{TRUE}}, l'oggetto mostrerà il riquadro di delimitazione nella [[3D_view/it|Vista 3D]].
+* {{PropertyView|Display Mode|Enumeration}}: {{value|Flat Lines}} (visualizzazione normale), {{value|Shaded}} (senza bordi), {{value|Wireframe}} (senza facce), {{value|Points}} (solo vertici).
+* {{PropertyView|Show In Tree|Bool}}: il valore predefinito è {{TRUE}}, nel qual caso l'oggetto apparirà nella [[Tree_view/it|Vista ad albero]]; in caso contrario, l'oggetto verrà nascosto nella vista ad albero. Una volta che un oggetto nell'albero è invisibile, lo si può vedere di nuovo aprendo il menu contestuale sopra il nome del documento (tasto destro) e selezionando {{CheckBox|TRUE|Mostra elementi nascosti}}. Quindi è possibile scegliere l'elemento nascosto e {{PropertyView|Show In Tree}} può essere riportato a {{TRUE}}.
+* {{PropertyView|Visibility|Bool}}: se è {{TRUE}}, l'oggetto appare nella [[3D_view/it|Vista 3D]]; altrimenti è invisibile. Per impostazione predefinita, questa proprietà può essere attivata e disattivata premendo la barra {{KEY|Space}}.
+
+{{TitleProperty|Object style}}
+
+* {{PropertyView|Angular Deflection|Angle}}: accompagna {{PropertyView|Deviation}}. È un altro modo per specificare la precisione con cui generare la mesh per il rendering sullo schermo o durante l'esportazione. Il valore predefinito è {{value|28,5 degrees}} o {{value|0,5 radians}}. Questo è il valore massimo, minore è il valore più uniforme sarà l'aspetto nella [[3D_view/it|Vista 3D]] e più fine sarà la mesh che verrà esportata.
+
+* {{PropertyView|Deviation|FloatConstraint}}: accompagna {{PropertyView|Angular Deflection}}. È un altro modo per specificare la precisione con cui generare la mesh per il rendering sullo schermo o durante l'esportazione. Il valore predefinito è {{value|0,5%}}. Questo è il valore massimo, minore è il valore più uniforme sarà l'aspetto nella [[3D_view/it|Vista 3D]] e più fine sarà la mesh che verrà esportata.
+* {{PropertyView|Diffuse Color|ColorList|hidden}}: è una lista di tuple RGB che definiscono i colori, simile a {{PropertyView|Shape Color}}. Il valore predefinito è un elenco di un {{value|[(0.8, 0.8, 0.8)]}}.
+* {{PropertyView|Draw Style|Enumeration}}: {{value|Solid}} (predefinito), {{value|Dashed}}, {{value|Dotted}}, {{value|Dashdot}}; definisce lo stile dei bordi nella [[3D_view/it|Vista 3D]].
+* {{PropertyView|Lighting|Enumeration}}: {{value|Two side}} (predefinito), {{value|One side}}; l'illuminazione proviene da due lati o da un lato nella [[3D_view/it|Vista 3D]].
+* {{PropertyView|Line Color|Color}}: una tupla di tre valori RGB in virgola mobile {{value|(r,g,b)}} per definire il colore dei bordi nella [[3D_view/it|Vista 3D]]; per impostazione predefinita è {{value|(0.09, 0.09, 0.09)}}, che viene visualizzato come {{value|[25,25,25]}} su base 255,  <span style="background-color:#222; color:#eee; width:3em; height:12pt; padding: 2px 1em 2px;"> almost black </span>.
+* {{PropertyView|Line Color Array|ColorList|hidden}}: è una lista di tuple RGB che definiscono i colori, simile a {{PropertyView|Line Color}}. Il valore predefinito è un elenco di un {{value|[(0.09, 0.09, 0.09)]}}.
+* {{PropertyView|Line Material|Material|hidden}}: un [[App_Material/it|App Material]] associato ai bordi di questo oggetto. Per impostazione predefinita è vuoto.
+* {{PropertyView|Line width|FloatConstraint}}: un float che determina la larghezza in pixel dei bordi nella [[3D_view/it|Vista 3D]]. Il valore predefinito è {{value|2.0}}.
+
+* {{PropertyView|Point Color|Color}}: simile a {{PropertyView|Line Color}}, definisce il colore dei vertici.
+* {{PropertyView|Point Color Array|ColorList|hidden}}: è una lista di tuple RGB che definiscono i colori, simile a {{PropertyView|Point Color}}. Il valore predefinito è un elenco di un {{value|[(0.09, 0.09, 0.09)]}}.
+* {{PropertyView|Point Material|Material|hidden}}: un [[App_Material/it|App Material]] associato ai vertici di questo oggetto. Per impostazione predefinita è vuoto.
+* {{PropertyView|Point Size|FloatConstraint}}: simile a {{PropertyView|Line width}}, definisce la dimensione dei vertici.
+
+* {{PropertyView|Shape Color|Color}}: simile a {{PropertyView|Line Color}}, definisce il colore delle facce. Il valore predefinito è {{value|(0.8, 0.8, 0.8)}}, che viene visualizzato come {{value|[204, 204, 204]}} su base 255, un <span style="background-color:#ccc; width:3em; height:12pt; padding: 2px 1em 2px;">light gray</span>.
+* {{PropertyView|Shape Material|Material|hidden}}: un [[App_Material/it|App Material]] associato a questo oggetto. Per impostazione predefinita è vuoto.
+* {{PropertyView|Transparency|Percent}}: un numero intero da {{value|0}} a {{value|100}} (una percentuale) che determina il livello di trasparenza delle facce nella [[3D_view/it|Vista 3D ]]. Un valore di {{value|100}} indica facce completamente invisibili; le facce sono invisibili ma possono comunque essere selezionate purché {{PropertyView|Selectable}} sia {{TRUE}}.
+
+{{TitleProperty|Selection}}
+
+* {{PropertyView|On Top When Selected|Enumeration}}: controlla il modo in cui avviene la selezione nella [[3D_view/it|Vista 3D]] se l'oggetto ha una [[Part_TopoShape/it|Shape (forma)]] e ci sono molti oggetti oggetti parzialmente coperti da altri. Il valore predefinito è {{value|Disabled}}, il che significa che non verrà eseguita alcuna evidenziazione speciale; {{value|Enabled}} significa che l'oggetto apparirà sopra qualsiasi altro oggetto quando selezionato; {{value|Object}} significa che l'oggetto apparirà in primo piano solo se l'intero oggetto è selezionato nella [[Tree_view/it|Vista ad albero]]; {{value|Element}} significa che l'oggetto apparirà in primo piano solo se un sottoelemento (vertice, bordo, faccia) è selezionato nella [[3D_view/it|Vista 3D]].
+* {{PropertyView|Selectable|Bool}}: se è {{TRUE}}, l'oggetto può essere selezionato con il puntatore nella [[3D_view/it|Vista 3D]]. Altrimenti, l'oggetto non potrà essere selezionato finché questa opzione non sarà impostata su {{TRUE}}.
+* {{PropertyView|Selection Style|Enumeration}}: controlla il modo in cui l'oggetto viene evidenziato. Se è {{value|Shape}}, l'intera forma (vertici, bordi e facce) verrà evidenziata nella [[3D_view/it|Vista 3D]]; se è {{value|BoundBox}} apparirà un riquadro di delimitazione che circonda l'oggetto e sarà evidenziato.
+
+<span id="Angular_deflection_and_deviation"></span>
+=== Deflessione e deviazione angolare ===
+
+[[File:View_property_Deviation.svg|500px]]
+{{Caption|Deflessione angolare e parametri di deviazione; d < deflessione lineare, α < deflessione angolare.}}
+
+La deviazione è un valore in percentuale correlato alle dimensioni in millimetri del parallelepipedo contenitore dell'oggetto. La deviazione in millimetri può essere calcolata come segue:
+
+{{Code|code=
+deviation_in_mm = (w + h + d)/3 * deviation/100
+}}
+
+dove {{value|w}}, {{value|h}}, {{value|d}} sono le dimensioni del contenitore.
+
+<span id="Scripting"></span>
+== Script ==
+
+{{Emphasis|Vedere anche:}} [[FreeCAD_Scripting_Basics/it|Script di base per FreeCAD]], e [[Scripted_objects/it|script di oggetti]].
+
+Un oggetto Part Feature viene creato con il metodo {{incode|addObject()}} del documento.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("Part::Feature", "Name")
+obj.Label = "Custom label"
+}}
+
+Per la sottoclasse [[Python/it|Python]], si dovrebbe creare un oggetto {{incode|Part::FeaturePython}}.
+
+{{Code|code=
+import FreeCAD as App
+
+doc = App.newDocument()
+obj = App.ActiveDocument.addObject("Part::FeaturePython", "Name")
+obj.Label = "Custom label"
+}}
+
+<span id="Name"></span>
+=== Nome ===
+
+Vedere anche: [[Object_name/it|Nome oggetto]] per ulteriori informazioni sulle proprietà di {{incode|Name}}.
+
+Il metodo {{incode|addObject}} ha due argomenti stringa di base.
+
+* Il primo argomento indica il tipo di oggetto, in questo caso, {{incode|"Part::FeaturePython"}}.
+* Il secondo argomento è una stringa che definisce l'attributo {{incode|Name}}. Se non viene fornito, il valore predefinito è lo stesso nome della classe, ovvero {{incode|"Part__FeaturePython"}}. {{incode|Name}} può includere solo semplici caratteri alfanumerici e il carattere di sottolineatura, {{incode|[_0-9a-zA-Z]}}. Se vengono forniti altri simboli, questi verranno convertiti in trattini bassi; ad esempio, {{incode|"A+B:C*"}} viene convertito in {{incode|"A_B_C_"}}.
+
+<span id="Label"></span>
+=== Etichetta ===
+
+Se lo si desidera, l'attributo {{incode|Label}} può essere modificato in un testo più significativo.
+* {{incode|Label}} può accettare qualsiasi stringa UTF8, inclusi accenti e spazi. Poiché la [[Tree_view/it|Vista ad albero]] mostra l'{{incode|Label}}, è una buona pratica cambiare l'{{incode|Label}} in una stringa più descrittiva.
+* Per impostazione predefinita, l'{{incode|Label}} è univoco, proprio come l'{{incode|Name}}. Tuttavia, questo comportamento può essere modificato nell'[[Preferences_Editor/it|editor delle preferenze]], {{MenuCommand|Modifica → Preferenze → Generale → Documento → Consenti etichette oggetto duplicate in un documento}}. Ciò significa che in generale l'{{incode|Label}} può essere ripetuto nello stesso documento; durante il test per un elemento specifico, l'utente dovrebbe fare affidamento su {{incode|Name}} anziché su {{incode|Label}}.
+
+
+{{Document_objects_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
