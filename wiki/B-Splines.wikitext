@@ -1,90 +1,134 @@
 <languages/>
 {{TOCright}}
+<translate>
 
+<!--T:1-->
 This page describes how to use B-splines in FreeCAD. It gives also background information what B-splines are and for what applications they are useful.
 
-==Motivation==
+==Motivation== <!--T:2-->
 
+<!--T:3-->
 If you know already about B-splines and their application, you can directly continue with section [[#B-splines_in_FreeCAD|B-splines in FreeCAD]].
 
+<!--T:4-->
 Let's assume you want to design a part that should be produced with a 3D printer. The part must have an edge this way:
 
+</translate>
 [[File:B-splines Motivation-start.png|450px]]
+<translate>
 
+<!--T:5-->
 You have to print the part in direction of the sketch's bottom to the top. Outer support structures might not be an option. Therefore you need to add a support directly to your part. What options do you have?
 
+<!--T:6-->
 * Option 1: you could add a line from point (20, 0) to point (80, 40):
 
+</translate>
 [[File:B-splines Motivation-line.png|450px]]
+<translate>
 
+<!--T:7-->
 However this solution needs a lot of volume, thus weight and material.
 
+<!--T:8-->
 * Option 2: you can connect the two points with an arc of a circle. To save volume, the arc should end tangentially in point (80,40). Then your solution looks like this:
 
+</translate>
 [[File:B-splines Motivation-circle.png|450px]]
+<translate>
 
+<!--T:9-->
 OK. But at the bottom you don't need immediate support.
 
+<!--T:10-->
 * Option 3: you could save some more volume if the connection between the 2 points is a curve that begins tangentially at (0, 20) and ends tangentially at (80, 40):
 
+</translate>
 [[File:B-splines Motivation-bezier.png|450px]]
+<translate>
 
+<!--T:11-->
 So a curve with which you can connect two points tangentially to a reference point can be very useful for constructions. Bézier curves provide this feature.
 
-== Bézier curves ==
+== Bézier curves == <!--T:12-->
 
-=== Derivation ===
+=== Derivation === <!--T:13-->
 
+<!--T:14-->
 Bézier curves are polynomials to describe the connection between 2 points. The simplest polynomial connecting 2 points is a line (<math>A*x^1+B</math>) thus linear Bézier curves are also line segments:
 
+</translate>
 [[File:Bezier_linear_anim.gif]]
+<translate>
+<!--T:15-->
 {{Caption|Animation 1: Linear Bézier curve.}}
 
+<!--T:16-->
 However a polynomial becomes useful when we can control it. So there should be a point between the 2 endpoints that allows us to define how the endpoints are connected. Like in the above example option 3 the curve is helpful when it starts and ends tangentially to lines crossing the endpoints. And this is a main feature of Bézier curves. So let's add a control point between the 2 endpoints. The curve will start tangentially towards this control point, meaning it is tangential to the line that we can draw between the startpoint and the control point. Going backwards from the endpoint the curve will also be tangential to the line we can draw between the control point and the end point. Animation 2 shows how such a curve looks.
 
+</translate>
 [[File:Bezier_quadratic_anim.gif]]
+<translate>
+<!--T:17-->
 {{Caption|Animation 2: Quadratic Bézier curve. P1 is hereby the control point.}}
 
+<!--T:18-->
 The animation makes clear what the curve basically is - a transition from P0 to P2 by rotating the line P0-P1 to become the line P1-P2. Therefore we get the nice tangential start/end feature.
 
+<!--T:19-->
 Such a curve can only be described by a quadratic polynomial. (The number of left-hand/right-hand turns + 1 is the necessary polynomial order. A quadratic polynomial is a single turn, a cubic polynomial has two turn, and so on.) Therefore a Bézier curve with one control point is a quadratic (second order) Bézier curve.
 
+<!--T:20-->
 Having only one control point is often not sufficient. Take the above motivation example. There in option 3 we end the curve tangentially in x-direction. But how can you connect the points (20, 0) and (80, 40) so that the curve ends tangentially in y-direction? To achieve this you need first a right-hand and then a left-hand turn, so a cubic (third order) polynomial. And that means for a Bézier curve that we need (or you can say we gain) a second control point. Animation 3 shows a cubic Bézier curve.
 
+</translate>
 [[File:Bezier_cubic_anim.gif]]
+<translate>
+<!--T:21-->
 {{Caption|Animation 3: Cubic Bézier curve.}}
 
+<!--T:22-->
 To answer the question, the solution with the tangential y-direction ending for the example is this one:
 
+</translate>
 [[File:B-splines Motivation-cubic-bezier.png|450px]]
+<translate>
 
-=== Rules ===
+=== Rules === <!--T:29-->
 
+<!--T:30-->
 In the derivation you might already noticed some "rules" for Bézier curves:
 * The polynomial degree is also the degree of the curves.
 * If you need <math>n</math> turns, you need at least a <math>n+1</math> degree Bézier curve.
 * A Bézier curve always begins tangentially to the line between the startpoint and the first control point (and ends tangentially to the line between the last control point and the endpoint).
 
-=== Math ===
+=== Math === <!--T:23-->
 
+<!--T:24-->
 If you are interested to understand the background math, here are the basics.
 
+<!--T:25-->
 A Bézier curve is calculated using this formula:
 
+<!--T:26-->
 <math>\quad
 \textrm{Bezier}(n,t)=\sum_{i=0}^{n}\underbrace{\binom{n}{i}}_{\text{polynomial term}}\underbrace{\left(1-t\right)^{n-i}t^{i}}_{\text{polynomial term}}\; \underbrace{P_{i}}_{\text{point coordinate}}
 </math>
 
+<!--T:27-->
 ''n'' is hereby the degree of the curve. So a Bézier curve of degree ''n'' is a polygon with order ''n''. The factors <math>P_{i}</math> are hereby in fact the coordinates of the Bézier curves' control points. For a visualization see [https://pomax.github.io/bezierinfo/#control Controlling Bézier curvatures].
 
+<!--T:28-->
 If you are further interested, have a look at [https://pomax.github.io/bezierinfo/#explanation The mathematics of Bézier curves] with a nicely animated derivation of the math of Bézier curves.
 
-== B-Splines ==
+== B-Splines == <!--T:31-->
 
-=== Basics ===
+=== Basics === <!--T:32-->
 
+<!--T:33-->
 [https://www.youtube.com/watch?v=bE1MrrqBAl8 This video] lists at the beginning the practical problems with Bézier curves. For example that adding or changing a control point changes the whole curve. These problems can be resolved by joining several Bézier curves. The result is a so-called spline, in particular a B-spline (basis spline). The video also explains that a union of quadratic Bézier curves forms a uniform quadratic B-spline and that a union of cubic Bézier curves forms a uniform cubic B-spline.
 
+<!--T:34-->
 From the videos we can collect useful "rules" for B-splines:
 * The first and last control point is the end/start point of the spline.
 * Like for Bézier curves, splines always begin tangentially to the line between the startpoint and the first control point (and end tangentially to the line between the last control point and the endpoint).
@@ -93,14 +137,18 @@ From the videos we can collect useful "rules" for B-splines:
 * A B-spline with the degree <math>D</math> offers at every point a continuous <math>D-1</math> order derivative.
 ** For a cubic B-spline this means that the curvature (second order derivative) does not change when traveling from one segment to the next one. This is a very useful feature as we will later see.
 
+<!--T:35-->
 If you are interested in more details about B-Spline properties, have a look at [https://www.youtube.com/watch?v=xXJylM2S72s this video].
 
-==== Basis ====
+==== Basis ==== <!--T:97-->
 
+<!--T:98-->
 Since we will only introduce the basics of B-spline, we don't go here into the details.
 
+<!--T:99-->
 The basis constructs the spline. Looking at the definition of Bézier curves in section [[#Math|Math]] we remember that a Bézier curve is a linear combination of polynomials with the x/y coordinate of each of the control points as a factor. These polynomials are called Bernstein polynomials.
 
+<!--T:100-->
 As several Bézier curves are combined to form a spline, we get a set of  Bernstein polynomials forming the spline (they are the basis). As we want to overcome the mentioned limitations of Bézier curves, we don't geometrically combine the different Bernstein polynomials of the Bézier curves, but define Bernstein polynomials over the whole geometrical range of the spline. So we '''don't combine''' the Bézier curves with its Bernstein polynomials, which would be 
 :<math>\textrm{Bezier-combination}=\begin{cases}
   \sum_{i=0}^{n}P_{i}\cdot B_{i,n}(t),  & 0\le t\le1\\
@@ -108,107 +156,149 @@ As several Bézier curves are combined to form a spline, we get a set of  Bernst
 \cdots
 \end{cases}</math>
 
+<!--T:101-->
 whereas <math>B_{i,n}(t)</math> is the i-th Bernstein polynomial with order <math>n</math> and the coefficients <math>P_{i}</math> are the point coordinates of the Bézier curve control points. But we use a '''different set of functions''' that are defined over the whole spline range:
 :<math>\textrm{B-spline}= \sum_{i=0}^{n}p_{i}\cdot N_{i,n}(t)</math>.
 
+<!--T:102-->
 Note that in general <math>N_{i,n}(t) \ne B_{i,n}(t)</math>, and the Bezier control points <math>\{P_1, P_2,\dots\}</math> are different from B-spline control points <math>\{p_1, p_2,\dots\}</math>.
 
+<!--T:103-->
 The different  <math>N_{i,n}(t)</math> are defined piecewise where the interval of every piece is the interval of the Bézier piece.
 
+<!--T:117-->
 When the lengths of all <math>N_{i,n}</math> pieces is equal, we speak of a uniform spline. (In literature this is often denoted as equal travel time <math>t</math> per piece.)
 
+<!--T:104-->
 To understand how the <math>p_{i}</math> are the coordinates of the B-spline control points, see the first minute of [https://www.youtube.com/watch?v=dPPTCy4L4rY&list=PL8bSwVy8_IcMvtI70tZoYesCS0hGVO5qd this video].
 
-==== Knot vector ====
+==== Knot vector ==== <!--T:105-->
 
+<!--T:106-->
 As derived above, B-splines are created out of <math>N_{i,n}</math> piecewise polynomials with continuity up to a certain derivative between the pieces. The endpoints of the piece's definition interval are called knots. For a spline defined over <math>k</math> pieces, there are <math>k+1</math> knots given by the so-called ''knot vector'':</br><math>\{t_0, t_1, t_2,\dots, t_k\}</math> whereas <math> t_0 < t_1 < t_2 < \dots < t_k</math>
 
+<!--T:107-->
 The knot vector comprises the knots of the <math>N_{i,n}</math> basis functions that define the B-spline, see [https://www.youtube.com/watch?v=ni5NNPCVvDY this video]. The basis functions of a B-spline can be calculated using the knot vector and a creation algorithm, see [https://www.youtube.com/watch?v=hrsO45AHtbs this video].
 
+<!--T:108-->
 The derivative until which continuity exists is given by the multiplicity <math>m</math>. Therefore we can specify a vector with the multiplicity for every knot: <math>\{m_0, m_1,\dots, m_k\}</math>. A knot on a spline with degree ''d'' and the multiplicity ''m'' tells that the curve left and right to the knot has at least an equal ''n'' order derivative (called ''C''<sup>''n''</sup> continuity) whereas <math>n=d-m</math>.
 
-=== Non-uniform B-splines ===
+=== Non-uniform B-splines === <!--T:43-->
 
+<!--T:44-->
 The derivation of B-splines from Bézier curves have the mathematical consequence that in B-splines every polynomial piece has the same length. Such B-splines are called ''uniform''. The more general case is that they can but must not have the same length. Such ''non-uniform'' splines have the advantage that one can control how close the splines cross its control point.
 
+<!--T:118-->
 Mathematically this is achieved by defining the different <math>N_{i,n}</math> pieces at different intervals. If for example a B-spline is defined for the interval [0, 1], it is uniform if all its e.g. 5 pieces are also defined in this interval. If now <math>N_{1,4}</math> is only defined in the interval [0, 0.6] (outside the interval it is set to zero), it is shorter and thus the spline becomes non-uniform.
 
+<!--T:109-->
 As described above the parameters of the knots are described by the knot vector. So the knot vector stores the definition intervals. When now one piece gets another interval, also the knot vector changes, see [https://www.youtube.com/watch?v=w-l5R70y6u0 this video] for a visualization.
 
-=== Rational B-splines ===
+=== Rational B-splines === <!--T:110-->
 
+<!--T:111-->
 A further generalization can be made for B-splines by introducing weights for the control points. This way it can be controlled "how important" a control point is.
 
+<!--T:112-->
 The equation for such a spline is
 
+<!--T:48-->
 :<math>
 c(n, t)=\cfrac{\sum_{i=0}^{n}d_{i}N_{i, n}(t)\cdot w_i}{\sum_{i=0}^{n}N_{i, n}(t)\cdot w_i}
 </math>
 
+<!--T:113-->
 Notice that the function is no longer a polynomial, but a rational function, and these splines are called rational B-splines. Observe that when all <math>w_i</math> are equal, the equation reduces to a regular non-rational B-spline. So non-rational B-splines are a subset of rational B-splines.
 
+<!--T:49-->
 Non-uniform and rational B-splines are often called '''[https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline NURBS]''' and are widely used in geometric modeling.
 
-== B-splines in FreeCAD ==
+== B-splines in FreeCAD == <!--T:53-->
 
+<!--T:54-->
 FreeCAD offers to create uniform or non-uniform B-splines of any degree in 2D via the [[Sketcher_Workbench|Sketcher workbench]].
 
-=== Creation ===
+=== Creation === <!--T:55-->
 
+<!--T:56-->
 To create B-splines, go into a sketch and use the toolbar button {{Button|[[File:Sketcher_CreateBSpline.svg|16px]] [[Sketcher_CreateBSpline|Create B-spline]]}}. Then left-click to set a control point, move the mouse left-click to set the next control point and so on. Finally right-click to finish the definition and create the B-spline.
 
+<!--T:57-->
 By default uniform cubic splines are created, except there are not enough control points to do this. So when you create a B-spline with only 2 control points, you get of course a spline that is single linear Bézier curve, for 3 control points you get a quadratic Bézier curve, first with 5 control points you get a cubic B-spline consisting of 2 Bézier segments. {{Version|0.20}} You can also use press D while making creating a B-spline to set it's degree (it will still fall to a lower degree if less points are provided).
 
+<!--T:58-->
 To create periodic B-splines (B-splines that form a closed curve), use the toolbar button {{Button|[[File:Sketcher_CreatePeriodicBSpline.svg|16px]] [[Sketcher_CreatePeriodicBSpline|Periodic B-spline]]}}. It is not necessary to set the last control point onto the first one because the B-spline will automatically be closed:
 
+</translate>
 [[File:Sketcher_Periodic-B-spline-creation.gif]]
+<translate>
 
+<!--T:59-->
 B-splines can also be generated out of existing sketch segments. To do this, select the elements and press the the toolbar button {{Button|[[File:Sketcher_BSplineConvertToNURBS.svg|24px]] [[Sketcher_BSplineConvertToNURBS|Convert Geometry to B-spline]]}}.
 
+<!--T:93-->
 While creating a B-spline, its degree can be specified by pressing the {{KEY|D}} key. With this, the default to create a cubic B-spline if possible, can be overridden. {{Version|0.20}}
 
-=== Changing the Degree ===
+=== Changing the Degree === <!--T:60-->
 
+<!--T:61-->
 To change the degree, select the B-spline and use either the toolbar button {{Button|[[File:Sketcher_BSplineIncreaseDegree.svg|24px]] [[Sketcher_BSplineIncreaseDegree|Increase B-spline degree]]}} or {{Button|[[File:Sketcher_BSplineDecreaseDegree.svg|24px]] [[Sketcher_BSplineDecreaseDegree|Decrease B-spline degree]]}}.
 
+<!--T:62-->
 '''Note:''' Decreasing the degree cannot revert a prior increase of the degree, see the Wiki page [[Sketcher_BSplineDecreaseDegree|Decrease B-spline degree]] for an explanation.
 
-=== Changing the Knot Multiplicity ===
+=== Changing the Knot Multiplicity === <!--T:63-->
 
+<!--T:64-->
 The points where two Bézier curves are connected to form the B-spline are called knots. The knot multiplicity determines how the Bézier parts are connected, see the Wiki page [[Sketcher_BSplineIncreaseKnotMultiplicity|Increase knot multiplicity]] for details.
 
+<!--T:65-->
 To change the knot multiplicity, use the toolbar buttons {{Button|[[File:Sketcher_BSplineIncreaseKnotMultiplicity.svg|24px]] [[Sketcher_BSplineIncreaseKnotMultiplicity|B-spline increase knot multiplicity]]}} or {{Button|[[File:Sketcher_BSplineDecreaseKnotMultiplicity.svg|24px]] [[Sketcher_BSplineDecreaseKnotMultiplicity|B-spline decrease knot multiplicity]]}}.
 
+<!--T:66-->
 '''Note:''' Creating two B-Splines that are connected to each other will not unite to a single new B-spline. So their connection point is not a knot. The only way to get a new knot in an existing B-spline is to decrease the degree. However, you may get many new knots. Thus the better choice is to redraw the B-spline with more control points.
 
-=== Changing the Weight ===
+=== Changing the Weight === <!--T:67-->
 
+<!--T:68-->
 Around every control point you see a dark yellow circle. Its radius sets the weight for the corresponding control point. By default all circles have the radius ''1''. This is indicated with a radius constraint for the first control point circle.
 
+<!--T:114-->
 To create a rational B-spline the weights have to be made independent. To achieve that you can delete the constraint that all circles are equal and then set different radius constraints for the circles.
 
+<!--T:71-->
 If no radius constraint is set, you can also change the radius by dragging:
 
+</translate>
 [[File:Sketcher_Changing-control-point-weigth-dragging.gif]]
+<translate>
 
+<!--T:72-->
 In the dragging example you see that a high weight attracts the curve to the control point while a very low weight changes the curve so as if the control point does almost not exist.
 
+<!--T:73-->
 When you look at the [[#Rational_B-splines|creation function]] for non-uniform rational B-splines you see that a weight of zero would lead to a division by zero. Negative weights are theoretically possible but they are not supported. Therefore you can only specify weights greater than zero.
 
+<!--T:115-->
 '''Note:''' When dragging points, knots or widths, the circle diameters denoting the weight will change. This is because the diameter depends on the overall B-spline length for visualization reasons. The actual weight is not changed.
 
-=== Editing Knots ===
+=== Editing Knots === <!--T:94-->
 
+<!--T:95-->
 New knots can be added using the {{Button|[[File:Sketcher_BSplineInsertKnot.svg|24px]] [[Sketcher_BSplineInsertKnot|B-spline insert knot]]}} button. {{Version|0.20}}
 
+<!--T:96-->
 A knot is deleted by decreasing it's degree to 0 (i.e applying {{Button|[[File:Sketcher_BSplineDecreaseKnotMultiplicity.svg|24px]] [[Sketcher_BSplineDecreaseKnotMultiplicity|B-spline decrease knot multiplicity]]}} when it's degree is 1).
 
+<!--T:116-->
 Changing the parameter value of a knot is not yet supported.
 
-=== Display Information ===
+=== Display Information === <!--T:74-->
 
+<!--T:75-->
 Since the form of a B-spline does not tell much about its properties, FreeCAD offers [[Sketcher_Workbench#Sketcher_B-spline_tools|different tools]] to display the properties:
 
+<!--T:76-->
 {| class="wikitable float-right"
 |Property
 |Toolbar button
@@ -229,48 +319,72 @@ Since the form of a B-spline does not tell much about its properties, FreeCAD of
 | {{Button|[[File:Sketcher_BSplinePoleWeight.svg|16px]] [[Sketcher_BSplinePoleWeight|Show/hide B-spline control point weight]]}}
 |}
 
-=== Limitations ===
+=== Limitations === <!--T:77-->
 
+<!--T:78-->
 At the moment (FreeCAD 0.20) there are some limitations when using splines you should know:
 # You cannot set tangential constraints.</br>In this example</br> [[File:Sketcher_spline-limit-tangential.png|450px]]</br> you want to assure that the spline touches the blue curve 2 times tangentially. This would be useful because the blue line could for example be the spatial border for your design.
 # You cannot create an offset curve for a B-spline using the tool [[Draft_Offset|Draft Offset]].
 
-== Typical Use Cases ==
+== Typical Use Cases == <!--T:79-->
 
+<!--T:80-->
 According to the properties of B-splines, there are 3 main use cases:
 # Curves that start/end tangentially to a certain direction. An example for this is the motivation example [[#Motivation|above]].
 # Curves describing larger designs and providing the freedom of local changes. See [[#Designing |this example]] below.
 # Curves providing a certain continuity (derivative). See [[#Continuity at Geometric Transitions|this example]] below.
 
-=== Designing ===
+=== Designing === <!--T:81-->
 
+<!--T:82-->
 Take for example the case that you design a housing of a kitchen mixer. Its desired shape should look like this one:
 
+</translate>
 [[File:Sketcher_spline-exmple-mixer-shell.png]]
+<translate>
 
+<!--T:83-->
 To define the outer form it is advantageous to use a B-spline because when you change a control point to change the curvature at the bottom, the curvature at the side and top will not be changed:
 
+</translate>
 [[File:Sketcher_spline-exmple-mixer-sketch.gif]]
+<translate>
 
-=== Continuity at Geometric Transitions ===
+=== Continuity at Geometric Transitions === <!--T:84-->
 
+<!--T:85-->
 There are several cases where it is physically necessary to have a certain surface continuity at geometric transitions. Take for example the inner walls of a fluid channel. When you have a change in the diameter of the channel, you don't want to have an edge because edges would introduce turbulences. Therefore, like in  the motivation example [[#Motivation|above]], one uses splines for this purpose.
 
+<!--T:86-->
 The development of the Bézier curves was initially triggered by the French car industry. Besides the saving of material and the reduction of the air flow drag, the look of the cars should also be improved. And when you look at the fancy design of French cars from the 60's and 70's you see that the Bézier curves gave car design a boost.
 
+<!--T:87-->
 Let's take for example this task in the design of cars: The car fender should "look nice". Here is a basic sketch of our task:
 
+</translate>
 [[File:Spline-Fender-sketch1.svg|250px]]
+<translate>
 
+<!--T:88-->
 "Looking nice" means that the (potential) customer looks at the fender and does not see unexpected light reflections and also no sudden changes in the reflection from the automotive paint at all. So what do you need to avoid changes in the reflections? Looking closely to the fender:
 
+</translate>
 [[File:Spline-Fender-sketch2.svg|300px]]
+<translate>
+<!--T:89-->
 {{Caption|At the spatial area above the edge the intensity of reflected light is low (denoted by the red ellipse) because no light is directly reflected in the direction from the edge to the eye.}}
 
+<!--T:90-->
 you see when there is an edge, there is a spatial area where the reflected light has less intensity and this is what you will notice when looking at the fender. To avoid this you need a continuous change in the slope of your surface elements. The slope is the first order derivative and as explained in section [[#Basics|Basics]], a second degree (quadratic) B-spline offers at every point a continuous first order derivative.
 
+<!--T:91-->
 But is this really sufficient? At the point of geometric transition we have now at both sides the same slope, but the slope might change differently at both sides. Then we have this situation:
 
+</translate>
 [[File:Spline-Fender-sketch3.svg|300px]]
+<translate>
 
+<!--T:92-->
 So we have also spatial areas in which the intensity of reflected light is different. To avoid this, we need at the geometrical point of transition also a continuity of the second order derivative and thus a cubic B-spline.
+
+</translate>
