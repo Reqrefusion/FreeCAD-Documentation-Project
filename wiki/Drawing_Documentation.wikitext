@@ -1,119 +1,132 @@
 <languages/>
+<translate>
+<!--T:1-->
 This page documents jcc242's understanding of the Drawing module. It includes files and features that he is currently working on and may not yet be in the master branch. The source for those files is on [https://github.com/jcc242/FreeCAD his Github], but be careful as that is very unstable!
 
-== Base (Mod/Drawing) ==
+== Base (Mod/Drawing) == <!--T:2-->
 
-=== gdtsvg.py ===
+=== gdtsvg.py === <!--T:3-->
 Python script that generates svg snippets for things such as gd&t symbols, dimension symbols, and basic svg elements such as lines, circles, and paths.
 
+<!--T:4-->
 It has several support files that don't really do much. Run DrawingTest.py to create a bunch of svg icons in the icon directory that previews various icons in the gdtsvg.py file. settingslist.py and dimesettings, and convert.py are all deprecated from older settings methods and should probably be removed as the Drawing branch approaches merging into master. 
 
-=== DrawingAlgos.py ===
+=== DrawingAlgos.py === <!--T:5-->
 Creates svg lines from a list of vertices, supports both hidden and visible edges. Should probably be merged with gdtsvg.py as that file matures.
  
 ==== createSVG ====
 Accepts part as an argument, projects the part into lines from the Drawing.project object and then draws creates the svg for each line.
 
-== App ==
+== App == <!--T:6-->
 Contains the backend side of the drawing module.
 
-=== AppDrawing.cpp ===
+=== AppDrawing.cpp === <!--T:7-->
 Initializes the various namespaces and modules and stuff used in the drawing module. Will throw an error if it cannot load the Part module.
 
-=== DrawingExport.cpp ===
+=== DrawingExport.cpp === <!--T:8-->
 Two classes: SVGOutput and DXFOutput. They both contain methods to put out the code in their respective language. Typically require an object of the appropriate typedef, and sometimes some additional identifier information.
 
-=== FeatureClip.cpp ===
+=== FeatureClip.cpp === <!--T:9-->
 Callback (?) methods for the feature clipping gui, so it would seem. Called alone it will create the clip path, if ShowFrame.getValue is TRUE set it will show the frame border as well.
 
-=== FeaturePage.cpp ===
+=== FeaturePage.cpp === <!--T:10-->
 Manages the views. 
 
+<!--T:11-->
 onChanged() for doing stuff when properties get changed. 
 
+<!--T:12-->
 execute() for recalculating a feature view, or so it claims. It seems to have stuff for checking for editable texts and saving drawings. Need to investigate further.
 
+<!--T:13-->
 getEditableTextsFromTemplate() for retrieving text that can be edited by FreeCAD from an SVG file.
 
-=== FeatureProjection.cpp ===
+=== FeatureProjection.cpp === <!--T:14-->
 Flattens object to a 2D image?
 
-=== FeatureView.cpp ===
+=== FeatureView.cpp === <!--T:15-->
 Defines the properties for views.
 
-=== FeatureViewAnnotation.cpp ===
+=== FeatureViewAnnotation.cpp === <!--T:16-->
 Defines properties for annotations (right now just text), has an execute method to update the text if changed/moved.
 
-=== FeatureViewPart.cpp ===
+=== FeatureViewPart.cpp === <!--T:17-->
 Constructor to add properties. Gets appearance stuff for projected parts.
 
-=== PageGroup.cpp ===
+=== PageGroup.cpp === <!--T:18-->
 Just adds a property for a list of pages, does not much else.
 
-=== Precompiled.cppp ===
+=== Precompiled.cppp === <!--T:19-->
 Just #include "PreCompiled.h"
 
-=== ProjectionAlgos.cpp ===
+=== ProjectionAlgos.cpp === <!--T:20-->
 The constructor just runs the execute() method to update it's stuff
 
+<!--T:21-->
 invertY: since SVG does its y-axis backwards to every other coordinate system in the world, we must invert it when converting from a FreeCAD part to an SVG projection for the Drawing view.
 
+<!--T:22-->
 getSVG: fetches the SVG code from the DrawingExport stuff. Formats depending on type of line (hidden or not and some other stuff I need to figure out).
 
+<!--T:23-->
 getDXF: same as getSVG except for DXF format.
 
 
-== Gui ==
+== Gui == <!--T:24-->
 
-=== AppDrawingGui.cpp ===
+=== AppDrawingGui.cpp === <!--T:25-->
 Initializes the drawing gui.
 
-=== AppDrawingGuiPy.cpp ===
+=== AppDrawingGuiPy.cpp === <!--T:26-->
 Provides opening, importing, and exporting interfaces? Looks like it is python accessible.
 
-=== Command.cpp ===
+=== Command.cpp === <!--T:27-->
 Handles commands (from the toolbar?) such as creating new drawings and stuff. It looks like this handles QT calls from clicking the button to whatever command it needs to go to e.g. clicking the CmdDrawingOrthoViews button will show the Ortho views gui in the task dialog spot.
 
-=== DrawingView.cpp ===
+=== DrawingView.cpp === <!--T:28-->
 Does a bunch of qt gui stuff, need to read more on it.
 
-=== TaskDialog.cpp ===
+=== TaskDialog.cpp === <!--T:29-->
 Creates the task dialog thing on the side and probably switches to it from the tree view, as appropriate.
 
-=== TaskOrthoViews.cpp ===
+=== TaskOrthoViews.cpp === <!--T:30-->
 Creates the task dialog for placing the orthographic views!
 
+<!--T:31-->
 Does a lot of the calculations for where to position stuff (automatic calculations as well, it seems).
 
+<!--T:32-->
 Takes the input from the TaskOrthoViews gui and does stuff with it. Uses the single inheritance method talked about [http://doc.qt.digia.com/qt/designer-using-a-ui-file.html on the qt website].
 
-=== ViewProviderPage.cpp ===
+=== ViewProviderPage.cpp === <!--T:33-->
 Constructor adds some properties for the view stuff.
 Destructor does nothing.
 Attaches something (attaches what? attaches the view to the page?) sets and gets display modes (what are display modes? what do they do and what are possible options?)
 Does something about updating some kind of data has a context menu that says "Show drawing", figure out what this means
 Has a thing for double clicking to select the view (I think?)
 
+<!--T:34-->
 showDrawingView seems to do some work on settings things up: gets the current document, sets the window icon and title, adds it to the main window (of FreeCAD?)
 
-=== ViewProviderView.cpp ===
+=== ViewProviderView.cpp === <!--T:35-->
 Doesn't seem to do much, though I am sure it is important.
 
-=== Workbench.cpp ===
+=== Workbench.cpp === <!--T:36-->
 Adds the icons to the toolbars and stuff.
 
-= Workflow =
+= Workflow = <!--T:37-->
 
-== Program Flow ==
+== Program Flow == <!--T:38-->
 CanvasView is the actual QGraphicsScene object and DrawingView processes a list of FeatureView that are linked by reference in /App/FeatureViewPage. DrawingView then chooses the appropriate QGraphicsItem class (QGraphicsItemViewPart or QGraphicsItemViewDimension) and then calls a function in CanvasView to create this and add it to the scene.
 
-== Adding commands to the Drawing Workbench ==
+== Adding commands to the Drawing Workbench == <!--T:39-->
 4 simple steps:
 # Add a class to Command.cpp. Follow the others for an example of the formatting.
 # Add a title, icon, tooltip, etc., again, follow the existing classes in command.cpp
 # Add your class to the bottom of Command.cpp
 # Add your information to Workbench.cpp, this will tell FreeCAD/Drawing module where to place the icons defined in command.cpp  in the actual freecad interface (the toolbars, dropdowns, etc.)
 
+</translate>
 [[Category:Developer_Documentation{{#translation:}}]]
 {{Drawing Tools navi{{#translation:}}}}
 {{clear}}
