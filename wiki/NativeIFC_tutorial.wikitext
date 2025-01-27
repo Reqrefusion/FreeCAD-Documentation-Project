@@ -253,20 +253,30 @@ IfcOpenShell offers a [https://docs.ifcopenshell.org/ broad documentation] that 
 
 As a user, you can also use directly both IfcOpenShell and ifc_tools to manipulate IFC data. Below is a short example of how to use IfcOpenShell to open an IFC file and analyze its contents:
 
-</translate><syntaxhighlight lang="python">import ifcopenshell
+</translate>
+{{Code|code=
+import ifcopenshell
 my_ifc_file = ifcopenshell.open("/path/to/some/file.ifc")
 walls = my_ifc_file.by_type("IfcWall") # get a list of all IfcWalls
 some_specific_object = my_ifc_file[66] # get an object by its ID
 some_specific_object = my_ifc_file.by_id(66) # alternative way
-print(some_specific_object.Name) # you can access attributes that way</syntaxhighlight><translate>
+print(some_specific_object.Name) # you can access attributes that way
+}}
+<translate>
+
 IfcOpenShell itself has no specific FreeCAD functionality (yet), so you would use it basically to do non-FreeCAD operations on objects, for example retrieve or modify objects and attributes, modify attributes, or even directly add objects. Be sure to have a look at the [https://docs.ifcopenshell.org/ifcopenshell-python.html IfcOpenShell Python documentation] to know more.
 
 In FreeCAD, once you load an IFC file, an IfcOpenShell file object is created and attached to the project (the project object for unlocked files or the FreeCAD document itself for locked projects). Everything you do in FreeCAD actually manipulates that object. You can easily get access and manipulate the IfcOpenShell file object of a FreeCAD native IFC project. For example, in locked mode, you do:
 
-</translate><syntaxhighlight lang="python">import FreeCAD
+</translate>
+{{Code|code=
+import FreeCAD
 my_doc = FreeCAD.loadFile("/path/to/some/file.ifc")
-my_ifc_file = my_doc.Proxy.ifcfile</syntaxhighlight><translate>
-In unlocked mode, each project object also has a <code>Proxy.ifcfile</code> member.
+my_ifc_file = my_doc.Proxy.ifcfile
+}}
+<translate>
+
+In unlocked mode, each project object also has a {{Incode|Proxy.ifcfile}} member.
 
 === The ifc_tools module ===
 
@@ -274,64 +284,95 @@ The [https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/BIM/nativeifc/ifc_tool
 
 When working with FreeCAD objects, using ifc_tools is much more convenient as it handles for you all the relationship between the FreeCAD object and the IFC object it represents. For example:
 
-</translate><syntaxhighlight lang="python">from nativeifc import ifc_tools
+</translate>
+{{Code|code=
+from nativeifc import ifc_tools
 selection = FreeCADGui.Selection.getSelection()
 my_obj = selection[0] # just get the first selected object
 project = ifc_tools.get_project(my_obj)
 ifcfile = ifc_tools.get_ifcfile(project)
 ifc_elem = ifc_tools.get_ifc_element(my_obj)
 my_obj.LongName = "Changed long name" # this updates the IFC data too
-print(ifc_elem.LongName) </syntaxhighlight><translate>
+print(ifc_elem.LongName) 
+}}
+<translate>
+
 There is much more in ifc_tools, such as utilities to create and modify FreeCAD objects (and their underlying IFC elements). Below are a few simple examples to get you started:
 
 ==== Load the shape of selected objects ====
 
 By default, opening an IFC file will only load a lightweight 3D representation of each element. To do more serious work with them, we might need to load their full shape:
 
-</translate><syntaxhighlight lang="python">for obj in FreeCADGui.Selection.getSelection():
+</translate>
+{{Code|code=
+for obj in FreeCADGui.Selection.getSelection():
     obj.ShapeMode = "Shape"
-FreeCAD.ActiveDocument.recompute()</syntaxhighlight><translate>
+FreeCAD.ActiveDocument.recompute()
+}}
+<translate>
 
 ==== Load the property sets of selected objects ====
 
 Property sets and their included properties are rendered as object properties in FreeCAD. Once they are loaded, you can simply manipulate the values through the properties editor in FreeCAD (or via Python):
 
-</translate><syntaxhighlight lang="python">from nativeifc import ifc_psets
+</translate>
+{{Code|code=
+from nativeifc import ifc_psets
 for obj in FreeCADGui.Selection.getSelection():
     ifc_psets.show_psets(obj)
-my_object.FireResistanceClass = "1B" # manipulate properties once loaded</syntaxhighlight><translate>
+my_object.FireResistanceClass = "1B" # manipulate properties once loaded
+}}
+<translate>
 
 ==== Saving an IFC file ====
 
-</translate><syntaxhighlight lang="python">ifc_tools.save(project)</syntaxhighlight><translate>
+</translate>
+{{Code|code=
+ifc_tools.save(project)
+}}
+<translate>
 
 ==== Add a new IFC document ====
 
 Use the '''Project''' tool from the [https://wiki.freecad.org/BIM_Workbench BIM workbench] to produce a native IFC project object. It is not mandatory to save your new IFC project immediately, but it is a good practice anyway. If you forget to do so, you will get notified and be able to do it when saving the FreeCAD document.
 
-</translate><syntaxhighlight lang="python">doc = FreeCAD.ActiveDocument
+</translate>
+{{Code|code=
+doc = FreeCAD.ActiveDocument
 new_project = ifc_tools.create_document(doc)
-ifc_tools.save(new_project, "/path/for/our/new/file.ifc")</syntaxhighlight><translate>
+ifc_tools.save(new_project, "/path/for/our/new/file.ifc")
+}}
+<translate>
 
 ==== Modifying the IFC class of an object ====
 
 Changing the class is very easy, one can simply select another one in the object’s '''class''' property. Be warned, this might also change the predefined attributes of that object, so some attributes might vanish.
 
-</translate><syntaxhighlight lang="python">my_object.Class = "IfcWall"</syntaxhighlight><translate>
+</translate>
+{{Code|code=
+my_object.Class = "IfcWall"
+}}
+<translate>
 
 ==== Aggregate (and convert) any FreeCAD object to an IFC project ====
 
 Suppose we built a new wall, and we need to add it to an IFC project. We can do that graphically by dragging it and dropping it onto the project in the tree view, but it is as easy in Python:
 
-</translate><syntaxhighlight lang="python">import Arch
+</translate>
+{{Code|code=
+import Arch
 my_new_wall = Arch.makeWall(None, 200, 20, 300)
-ifc_tools.aggregate(my_new_wall, project)</syntaxhighlight><translate>
+ifc_tools.aggregate(my_new_wall, project)
+}}
+<translate>
 
 ==== Add a new model structure ====
 
 When creating a new project, you can also have a basic structure automatically created for you by answering “yes” on the dialog that will pop up. But you can also easily do that in Python:
 
-</translate><syntaxhighlight lang="python">import Arch
+</translate>
+{{Code|code=
+import Arch
 doc = FreeCAD.ActiveDocument
 project = ifc_tools.create_document(doc)
 site = Arch.makeSite()
@@ -339,13 +380,20 @@ site = ifc_tools.aggregate(site, project)
 building = Arch.makeBuilding()
 building = ifc_tools.aggregate(building, site)
 level = Arch.makeFloor()
-level = ifc_tools.aggregate(floor, building)</syntaxhighlight><translate>
+level = ifc_tools.aggregate(floor, building)
+}}
+<translate>
 
 ==== Change the schema of an IFC document ====
 
 Simply change the ‘Schema’ property of the project. Be warned, this can have deep consequences (some object types might have changed in the new schema version), so use with care and check your data afterwards.
 
-</translate><syntaxhighlight lang="python">project.Schema = "IFC4"</syntaxhighlight><translate>
+</translate>
+{{Code|code=
+project.Schema = "IFC4"
+}}
+<translate>
+
 There is much more to explore, as more functionality is available through the different [https://github.com/FreeCAD/FreeCAD/tree/main/src/Mod/BIM/nativeifc native IFC submodules], each one provides tools to deal with a certain aspect of IFC (property sets, geometry, layers…). Be sure to explore them if needed!
 
 I hope you now have a good idea of where to start and what can be done with native IFC in FreeCAD. Be sure to head to the [https://forum.freecad.org/viewforum.php?f=23 BIM section on the FreeCAD forum] if you need some help!
