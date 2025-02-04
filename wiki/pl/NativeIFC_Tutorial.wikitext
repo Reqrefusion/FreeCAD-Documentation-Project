@@ -78,181 +78,116 @@ Tworzenie wysokiej jakości modeli IFC nie jest jednak trudne. Ale wymaga to apl
 
 Jest kilka rzeczy, które powinieneś wiedzieć:
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 <ul>
-<li><p>As inherited from the STEP format, an IFC file is '''a text file''', where each line represents an element, and starts with an ID number. For example:</p>
+<li><p>Jak dziedziczy po formacie STEP, plik IFC jest '''plikiem tekstowym''', w którym każda linia reprezentuje element i zaczyna się od numeru ID. Na przykład:</p>
 <pre>#66=IFCWALL('3JmWkr',$,'MyWall',$,$,(#71),$,$,$,.SOLIDWALL.);</pre>
-<p>The above line defines an element of class '''IfcWall''', with ID 66. the things inside the parentheses are its attributes. More about attributes below.</p>
-<p>The important piece is the '''class''' (as in 'Industry Foundation Classes'). Each element has a class, that defines the type of element: A wall, a window, but also a floor, a space, or even a line, a circle, a point in the 3D space or even concepts like a moment in time, or a task to do. Most useful IFC classes for building elements are derived from the [https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/schema/ifcproductextension/lexical/ifcbuildingelement.htm IfcBuildingElement] class.</p></li>
-<li><p>IFC models usually follow a '''strict structure''': In each file there should be one and only one '''IfcProject'''. The [https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/IfcProject.htm IfcProject] is the root of all objects inside an IFC model. Under the IfcProject, there is usually at least one '''IfcSite''', that can contain one or more '''IfcBuildings''', which in turn are divided in '''IfcBuildingStoreys'''. These can be further divided into '''IfcZones''' and '''IfcSpaces'''.</p></li>
-<li><p>Building elements, such as '''IfcWalls''' or '''IfcWindows''' are then '''related''' to one of the structures above, usually an IfcBuildingStorey, but they can also be related to another building element, so one element can be composed of several others. These relations are always explicitly stated in the IFC files, they are never automatic or implicit.</p></li>
-<li><p>IFC elements, be they building elements such as walls or windows, or structure elements such as sites and storeys, or any of the many other [https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/annex-b1.html element classes] offered by the IFC format, all have a predefined set of '''attributes'''. Attributes are things like name, position in space, or unique ID number, that are defined in the format. All entities of the same class must have the same attributes. Elements can also have '''properties'''. Contrary to attributes, properties are not defined by the IFC format, and can be defined freely by the user (or the BIM application). Think of them as custom attributes. The IFC format also proposes default sets of properties for many element classes. For example, for beams, there is a set called [https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/Pset_BeamCommon.htm BimCommon] that holds a series of properties that are typical for beams.</p></li>
-<li><p>The '''geometry''' of IFC elements is defined in separate elements, that are attached to each wall, window, door, etc. It can also be shared by several elements. There are many, many ways to define geometry, and that's where many problems begin. Building elements can have both a 3D geometry and a 2D geometry (for example a plan view or footprint), and also for example a linear geometry (that is useful for stability studies). Good geometry is usually well-defined and sensibly constructed. For example, the geometry of a simple wall would be defined by a rectangle on the ground, with width and length, that is then extruded vertically by a given height to produce the wall shape. This is 3 lines in the IFC file: The rectangle, the extrusion, and the position of the final object. It is recognizable by other BIM applications, and the parameters can be changed, for example the width of the base rectangle.</p></li>
-<li><p>In some IFC files you might receive, this logical information might be completely lost, and the wall geometry defined as a bunch of triangular facets. This is often the cases with files that have been converted to IFC from another format. There might be further problems such as incomplete relationships, etc. Suffices to say, the IFC format allows for a huge range of ways to define geometry, from the 'dumbest' ones (triangular facets) to the 'smartest' ones (NURBS-based objects), with a big focus on well-defined solids (such as our extruded rectangle). Fortunately for us, that is FreeCAD's specialty.</p></li></ul>
-</div>
+<p>Powyższa linia definiuje element klasy '''IfcWall''', o ID 66. Elementy wewnątrz nawiasów to jego atrybuty. Więcej o atrybutach poniżej.</p>
+<p>Ważnym elementem jest '''klasa''' (jak w ''Industry Foundation Classes''). Każdy element ma klasę, która definiuje typ elementu: Ściana, okno, ale także piętro, przestrzeń, a nawet linia, okrąg, punkt w przestrzeni 3D, a nawet pojęcia takie jak moment w czasie czy zadanie do wykonania. Najbardziej użyteczne klasy IFC dla elementów budowlanych pochodzą z klasy [https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/schema/ifcproductextension/lexical/ifcbuildingelement.htm IfcBuildingElement].</p></li>
+<li><p>Modele IFC zwykle przestrzegają '''sztywnej struktury''': W każdym pliku powinien znajdować się tylko jeden '''IfcProject'''. [https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/IfcProject.htm IfcProject] to korzeń wszystkich obiektów w modelu IFC. Pod IfcProject zazwyczaj znajduje się co najmniej jedno '''IfcSite''', które może zawierać jeden lub więcej '''IfcBuildings''', które z kolei są podzielone na '''IfcBuildingStoreys'''. Te mogą być dalej dzielone na '''IfcZones''' i '''IfcSpaces'''.</p></li>
+<li><p>Elementy budowlane, takie jak '''IfcWalls''' lub '''IfcWindows''', są następnie '''powiązane''' z jedną ze struktur powyżej, zazwyczaj z IfcBuildingStorey, ale mogą być również powiązane z innym elementem budowlanym, tak więc jeden element może składać się z kilku innych. Te relacje są zawsze wyraźnie określone w plikach IFC, nigdy nie są automatyczne ani domyślne.</p></li>
+<li><p>Elementy IFC, czy to elementy budowlane, takie jak ściany czy okna, czy elementy strukturalne, takie jak miejsca i piętra, czy jakiekolwiek inne [https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/annex-b1.html klasy elementów] oferowane przez format IFC, wszystkie mają zdefiniowany zestaw '''atrybutów'''. Atrybuty to takie rzeczy jak nazwa, pozycja w przestrzeni czy unikalny numer ID, które są zdefiniowane w formacie. Wszystkie encje tej samej klasy muszą mieć te same atrybuty. Elementy mogą również mieć '''właściwości'''. W przeciwieństwie do atrybutów, właściwości nie są zdefiniowane przez format IFC i mogą być swobodnie definiowane przez użytkownika (lub aplikację BIM). Można je traktować jako niestandardowe atrybuty. Format IFC proponuje również domyślne zestawy właściwości dla wielu klas elementów. Na przykład, dla belek, istnieje zestaw o nazwie [https://ifc43-docs.standards.buildingsmart.org/IFC/RELEASE/IFC4x3/HTML/lexical/Pset_BeamCommon.htm BimCommon], który zawiera szereg właściwości typowych dla belek.</p></li>
+<li><p>'''Geometria''' elementów IFC jest definiowana w oddzielnych elementach, które są przypisane do każdej ściany, okna, drzwi itd. Może być również współdzielona przez kilka elementów. Istnieje wiele sposobów definiowania geometrii, i to tam zaczynają się problemy. Elementy budowlane mogą mieć zarówno geometrię 3D, jak i 2D (na przykład widok z planu lub kontur), a także na przykład geometrię liniową (przydatną w badaniach stabilności). Dobra geometria jest zazwyczaj dobrze zdefiniowana i sensownie skonstruowana. Na przykład geometria prostej ściany byłaby zdefiniowana jako prostokąt na ziemi, o szerokości i długości, który następnie jest wyciągany w górę o daną wysokość, tworząc kształt ściany. To trzy linie w pliku IFC: Prostokąt, wyciągnięcie i pozycja ostatecznego obiektu. Jest to rozpoznawane przez inne aplikacje BIM, a parametry mogą być zmieniane, na przykład szerokość podstawowego prostokąta.</p></li>
+<li><p>W niektórych plikach IFC, które możesz otrzymać, ta logiczna informacja może zostać całkowicie utracona, a geometria ściany może być zdefiniowana jako zbiór trójkątnych powierzchni. Często zdarza się to w plikach, które zostały przekonwertowane na IFC z innego formatu. Mogą wystąpić dalsze problemy, takie jak niekompletne relacje itp. Wystarczy powiedzieć, że format IFC pozwala na ogromny zakres sposobów definiowania geometrii, od ''najprostszych'' (trójkątnych powierzchni) po ''najbardziej zaawansowane'' (obiekty oparte na NURBS), z dużym naciskiem na dobrze zdefiniowane bryły (takie jak nasz wyciągnięty prostokąt). Na szczęście dla nas, to specjalność FreeCAD.</p></li>
+</ul>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Opening, creating and converting IFC models ===
-</div>
+<span id="Opening,_creating_and_converting_IFC_models"></span>
+=== Otwieranie, tworzenie i konwersja modeli IFC ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-In FreeCAD, opening an IFC file is done like any other file, via menu '''File → Open'''. By default, IFC files will load with only one element appearing in the '''Tree view'''. That is the fastest way to import, and you can usually import a 100Mb model in seconds.
-</div>
+We FreeCAD otwieranie pliku IFC odbywa się tak samo jak każdego innego pliku, przez menu '''Plik → Otwórz'''. Domyślnie pliki IFC będą ładowane z tylko jednym elementem pojawiającym się w '''Widoku drzewa'''. Jest to najszybszy sposób importu, i zazwyczaj model o wielkości 100 MB można załadować w kilka sekund.
 
 [[Image:Nativeifc-tutorial-05.jpg]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-You can change the native IFC import preferences under '''Edit → Preferences → BIM → Native IFC'''. You can have for example the whole building structure revealed on import, or being asked each time.
-</div>
+Możesz zmienić preferencje importu natywnego IFC w '''Edycja → Preferencje → BIM → Natywne IFC'''. Możesz na przykład ustawić, aby cała struktura budynku była ujawniana przy imporcie lub aby system pytał o to za każdym razem.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Creating a new IFC model simply starts with creating a new IFC project under menu '''3D/BIM'''.
-</div>
+Tworzenie nowego modelu IFC zaczyna się po prostu od utworzenia nowego projektu IFC w menu '''3D/BIM'''.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Converting a non-IFC FreeCAD model to nativeIFC can be done simply by exporting it to IFC, using menu '''File → Export''' or using the lock button (more about that below).
-</div>
+Konwertowanie modelu FreeCAD, który nie jest w formacie IFC, na natywny IFC można wykonać po prostu eksportując go do formatu IFC, za pomocą menu '''Plik → Eksportuj''' lub używając przycisku blokady (więcej o tym poniżej).
 
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Exploring the model ==
-</div>
+<span id="Exploring_the_model"></span>
+== Eksplorowanie modelu ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Expanding model contents ===
-</div>
+<span id="Expanding_model_contents"></span>
+== Rozszerzanie zawartości modelu ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-By default, opening IFC files will show only the first, outer element of the file. Usually the IfcSite. To view the contents of that element, and of the subsequent ones, you need to '''expand''' it. Expanding is done by '''double-clicking the element in the Tree view''' or, alternatively, via the '''Utils → IFC expand''' menu option. This command can be [[Interface_Customization|customized]] and be assigned a keyboard shortcut, so it's possible to navigate the Tree view with the arrow keys and expand your model where needed entirely using the keyboard.
-</div>
+Domyślnie, otwierając pliki IFC, wyświetlany jest tylko pierwszy, zewnętrzny element pliku. Zwykle jest to IfcSite. Aby zobaczyć zawartość tego elementu oraz kolejnych, należy go '''rozwinąć'''. Rozwijanie odbywa się przez '''podwójne kliknięcie elementu w Widoku drzewa''' lub alternatywnie, poprzez opcję menu '''Narzędzia → Rozwiń IFC'''. Ta komenda może być [[Interface_Customization/pl|dostosowana]] i przypisana do skrótu klawiaturowego, dzięki czemu możliwe jest poruszanie się po Widoku drzewa za pomocą strzałek i rozwijanie modelu w razie potrzeby, używając wyłącznie klawiatury.
 
 [[Image:Nativeifc-tutorial-06.jpg]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Double-clicking an element in the Tree view will, the first time, reveal its children, and, the second time, or if there are no more children to reveal, '''load its full properties, material and shape'''.
-</div>
+Podwójne kliknięcie elementu w Widoku drzewa spowoduje, że za pierwszym razem zostaną ujawnione jego dzieci, a za drugim razem, lub jeśli nie ma więcej dzieci do ujawnienia, '''załadowane zostaną jego pełne właściwości, materiały i kształt'''.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-This allows to load a model as quickly as possible, and expand/define elements as needed. You can change this behavior under '''Edit → Preferences → BIM → Native IFC'''.
-</div>
+Pozwala to na jak najszybsze załadowanie modelu oraz rozszerzanie/definiowanie elementów w razie potrzeby. Możesz zmienić to zachowanie w '''Edycja → Preferencje → BIM → Natywne IFC'''.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Locking and unlocking ===
-</div>
+<span id="Locking_and_unlocking"></span>
+=== Blokowanie i odblokowywanie ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-When an IFC model is loaded in FreeCAD, it can be locked or unlocked. By default, opening IFC files will lock them, while importing them (using '''File → Import''') will leave them unlocked.
-</div>
+Kiedy model IFC jest załadowany w FreeCAD, może być zablokowany lub odblokowany. Domyślnie, otwieranie plików IFC spowoduje ich zablokowanie, podczas gdy importowanie ich (za pomocą '''Plik → Importuj''') pozostawi je odblokowane.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Locking or unlocking is simply done using the lock button in the FreeCAD status bar:
-</div>
+Blokowanie lub odblokowywanie odbywa się po prostu za pomocą przycisku blokady na pasku stanu w FreeCAD:
 
 [[Image:Nativeifc-tutorial-07.jpg]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* '''Locked mode''' means that the FreeCAD document IS the IFC file. You don't see the IfcProject (it is the FreeCAD document itself in the Tree view), and anything you do in that document is automatically, transparently and immediately done in the IFC data itself. Adding a wall will modify the IFC file, as well as adding a line or a dimension, everything is done in IFC. you cannot have any FreeCAD element in the document that is not part of the IFC file. You can convert any FreeCAD model (BIM or not) to IFC by clicking the lock button.
-* '''Unlocked mode''', also called hybrid mode, means the IFC project resides inside a '''project''' object. You can still have normal, non-IFC FreeCAD objects besides the IFC elements. To add an element to the IFC project, you must add it yourself to it by dragging it onto the project or one of the sub-elements of the project. You can create a new, blank IFC project using menu '''3D/BIM → Project'''.
-* '''Working with no IFC project at all''': Remember you don't need to create an IFC project to start a BIM project (that can be done anytime later if needed). You can simply start building walls, adding floors and roofs, without defining an IFC structure or even caring about IFC.
-</div>
+* '''Tryb zablokowany''' oznacza, że dokument FreeCAD JEST plikiem IFC. Nie widzisz IfcProject (jest to sam dokument FreeCAD w Widoku drzewa), a wszystko, co robisz w tym dokumencie, jest automatycznie, przezroczysto i natychmiastowo robione w danych IFC. Dodanie ściany zmieni plik IFC, tak samo jak dodanie linii czy wymiaru, wszystko odbywa się w IFC. Nie możesz mieć żadnych elementów FreeCAD w dokumencie, które nie są częścią pliku IFC. Możesz przekonwertować każdy model FreeCAD (BIM lub nie) na IFC, klikając przycisk blokady.
+* '''Tryb odblokowany''', zwany także trybem hybrydowym, oznacza, że projekt IFC znajduje się w obiekcie '''projekt'''. Możesz nadal mieć normalne, niefunkcjonujące w IFC obiekty FreeCAD obok elementów IFC. Aby dodać element do projektu IFC, musisz dodać go samodzielnie, przeciągając go na projekt lub jeden z pod-elementów projektu. Możesz utworzyć nowy, pusty projekt IFC za pomocą menu '''3D/BIM → Projekt'''.
+* '''Praca bez projektu IFC''': Pamiętaj, że nie musisz tworzyć projektu IFC, aby rozpocząć projekt BIM (można to zrobić w dowolnym momencie później, jeśli zajdzie taka potrzeba). Możesz po prostu zacząć budować ściany, dodawać piętra i dachy, bez definiowania struktury IFC lub nawet bez zajmowania się IFC.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Locked mode means careful mode: When opening a file by somebody else, you don't want to break anything, you want to explore the file, and maybe fix something or do a few localized changes. You want to make sure the changes you did are strictly located and traceable.
-</div>
+Tryb zablokowany oznacza tryb ostrożności: Kiedy otwierasz plik stworzony przez kogoś innego, nie chcesz niczego zepsuć, chcesz zbadać plik, a może naprawić coś lub dokonać kilku lokalnych zmian. Chcesz mieć pewność, że wprowadzone zmiany są ściśle określone i możliwe do śledzenia.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-In all other cases, there is no real need or advantage to lock your model. In fact, you can change the default behavior to open IFC models as unlocked if you prefer, under '''Edit → Preferences → BIM → Native IFC'''.
-</div>
+We wszystkich innych przypadkach nie ma rzeczywistej potrzeby ani korzyści zablokowania modelu. W rzeczywistości, możesz zmienić domyślne zachowanie, aby otwierać modele IFC w trybie odblokowanym, jeśli wolisz, w '''Edycja → Preferencje → BIM → Natywne IFC'''.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-When changing to an IFC model, you often want to verify '''what you have changed in the IFC data''' since the last save. This is done using '''Utils → IFC Diff''' (or right-clicking the project in the Tree view and selecting '''IFC → Diff'''). The changes are presented in the [https://en.wikipedia.org/wiki/Diff diff format], with sections highlighted in red and green. This format is also understandable by computer systems like Git, which are able to track large change sets, and therefore turn your IFC files first-class citizens under such systems.
-</div>
+Przy przechodzeniu na model IFC, często chcesz zweryfikować '''co zostało zmienione w danych IFC''' od ostatniego zapisania. Robi się to za pomocą '''Narzędzia → Różnice IFC''' (lub klikając prawym przyciskiem myszy na projekt w Widoku drzewa i wybierając '''IFC → Diff'''). Zmiany są prezentowane w formacie [https://pl.wikipedia.org/wiki/Diff diff], z sekcjami wyróżnionymi na czerwono i zielono. Ten format jest również zrozumiały dla systemów komputerowych, takich jak Git, które potrafią śledzić duże zestawy zmian, przez co twoje pliki IFC stają się obiektami pierwszoklasowymi takich systemów.
 
 [[Image:Nativeifc-tutorial-08.jpg]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Model structure ===
-</div>
+<span id="Model_structure"></span>
+=== Struktura modelu ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-As seen above, most IFC files use a standard '''Site → Building → Storey''' structure. This is so common that it is often considered mandatory, although it is not expressly stated in the IFC standard. You could very well have all your elements directly related to the IfcProject. However, since standardization works when everybody decides to use the same system, it is advisable to have at least one site, one building and one storey (called '''Level''' in FreeCAD) in your model.
-</div>
+Jak wspomniano powyżej, większość plików IFC korzysta ze standardowej struktury '''Site → Building → Storey'''. Jest to tak powszechne, że często uważa się to za obowiązkowe, choć nie jest to wyraźnie określone w standardzie IFC. Można równie dobrze mieć wszystkie elementy bezpośrednio powiązane z IfcProject. Jednakże, ponieważ standaryzacja działa, gdy wszyscy decydują się używać tego samego systemu, zaleca się, aby w modelu znajdowało się przynajmniej jedno miejsce (site), jeden budynek i jedno piętro (nazywane '''Level''' we FreeCAD).
 
 [[Image:Nativeifc-tutorial-09.jpg]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-In FreeCAD, it is possible to use '''Groups''' to organize your objects further under a level. For example, inside your first floor, you could create a 'Walls' group to add all your walls, a 'Carpentry' group to add your wooden beams, etc. Groups are supported by IFC, however it is not standard to put groups inside a building structure element like a storey. For this reason, groups by default are written as '''IfcBuildingElementAssemblies''' instead of IfcGroups. At FreeCAD, though, we believe such behavior is useful and should be permitted. So there is a preference option to allow it. Most BIM applications will happily open files with groups inside other elements. That preference option is there to help spread our vision and possibly convince people.
-</div>
+We FreeCAD można używać '''Grup''' do dalszej organizacji obiektów w obrębie poziomu. Na przykład, w obrębie pierwszego piętra, można utworzyć grupę 'Walls' do dodania wszystkich ścian, grupę 'Carpentry' do dodania drewnianych belek, itd. Grupy są obsługiwane przez IFC, jednakże nie jest standardem umieszczanie grup wewnątrz elementów strukturalnych budynku, takich jak piętro. Z tego powodu grupy domyślnie są zapisywane jako '''IfcBuildingElementAssemblies''' zamiast IfcGroups. We FreeCAD jednak wierzymy, że takie zachowanie jest przydatne i powinno być dozwolone. Dlatego istnieje opcja preferencji, która na to pozwala. Większość aplikacji BIM z powodzeniem otworzy pliki z grupami wewnątrz innych elementów. Ta opcja preferencji ma na celu szerzenie naszej wizji i ewentualne przekonanie innych.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-So, hands on, let's start breaking our model…
-</div>
+Zaczynajmy więc od praktyki i rozpracowania naszego modelu...
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Adding and modifying elements ==
-</div>
+<span id="Adding_and_modifying_elements"></span>
+== Dodawanie i modyfikowanie elementów ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Modifying attributes and properties ===
-</div>
+<span id="Modifying_attributes_and_properties"></span>
+=== Modyfikowanie atrybutów i właściwości ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Once we have opened a model, we can start modifying its contents. Be aware that at the moment I'm writing this tutorial, there is '''no graphical geometry editor''' for IFC elements (this is on the roadmap and should land pretty soon, though). The way to modify the geometry of elements is by modifying their '''geometric properties'''.
-</div>
+Po otwarciu modelu możemy zacząć modyfikować jego zawartość. Należy jednak pamiętać, że w momencie pisania tego poradnika, nie ma '''graficznego edytora geometrii''' dla elementów IFC (choć znajduje się to na liście planów i powinien pojawić się wkrótce). Sposób modyfikacji geometrii elementów polega na edytowaniu ich '''właściwości geometrycznych'''.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-When IFC elements are loaded from the file, their attributes are rendered in the [[Property_editor|properties editor]] under the '''IFC''' group. There, you can change things like name, description or even the class of elements.
-</div>
+Gdy elementy IFC są ładowane z pliku, ich atrybuty są wyświetlane w [[Property_editor/pl|edytorze właściwości]] w grupie '''IFC'''. Tam można zmieniać takie rzeczy, jak nazwa, opis, a nawet klasa elementów.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-When double-clicking an element in the Tree view, you will first reveal the child elements of that element. When double-clicking it a second time, you will load additional data such as '''property sets''', '''custom properties''', '''materials''' and '''shape data'''. It will additionally create a set of '''geometry properties''' that will allow you to modify the geometry of that element. These geometry properties also form the foundations of the future graphical editor.
-</div>
+Podwójne kliknięcie elementu w widoku drzewa spowoduje najpierw ujawnienie elementów podrzędnych tego elementu. Podwójne kliknięcie po raz drugi załaduje dodatkowe dane, takie jak '''zbiory właściwości''', '''własne właściwości''', '''materiały''' i '''dane kształtu'''. Dodatkowo utworzy zestaw '''właściwości geometrii''', które pozwolą na modyfikację geometrii tego elementu. Te właściwości geometrii tworzą również podstawy przyszłego edytora graficznego.
 
 [[Image:Nativeifc-tutorial-10.jpg]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-All these additional properties can be changed directly, and new custom properties can be added using the two buttons under the properties editor.
-</div>
+Wszystkie te dodatkowe właściwości można zmieniać bezpośrednio, a nowe własne właściwości można dodać za pomocą dwóch przycisków znajdujących się pod edytorem właściwości.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Modifying geometry ===
-</div>
+<span id="Modifying_geometry"></span>
+=== Modyfikowanie geometrii ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-You can change the position of any element by changing its '''Placement''' property (or using the [[Draft_Move|Move]] or [[Draft_Rotate|Rotate]] tools).
-</div>
+Możesz zmienić pozycję dowolnego elementu, zmieniając jego właściwość '''Umiejscowienie''' (lub używając narzędzi [[Draft_Move/pl|Przesuń]] lub [[Draft_Rotate/pl|Obróć]]).
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-To modify the geometry, such as the width of a wall, you need first to double-click twice to reveal its '''geometry properties'''. If that wall was constructed the standard way, as an extruded rectangle, you will see the width and length of the rectangle, as well as the extrusion height, among those properties.
-</div>
+Aby zmodyfikować geometrię, na przykład szerokość ściany, musisz najpierw dwukrotnie kliknąć, aby ujawnić jej '''właściwości geometrii'''. Jeśli ta ściana została skonstruowana w standardowy sposób, jako wyciągnięty prostokąt, zobaczysz szerokość i długość prostokąta, a także wysokość wyciągnięcia wśród tych właściwości.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Of course, everything depends on how the wall was defined in the IFC file. It might not be an extruded rectangle. In that case, fewer or other geometry properties might be available.
-</div>
+Oczywiście, wszystko zależy od tego, jak ściana została zdefiniowana w pliku IFC. Może to nie być wyciągnięty prostokąt. W takim przypadku dostępnych może być mniej lub inne właściwości geometrii.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Adding new BIM objects ===
-</div>
+<span id="Adding_new_BIM_objects"></span>
+=== Dodawanie nowych obiektów BIM ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-How you add new objects depends on the current mode: locked or unlocked. When locked, anything you draw, such as a wall or a column, is automatically created in the IFC file itself. You might need to put it under the right level or building after creation, which is done simply by dragging the new wall under the right level in the Tree view.
-</div>
+Sposób dodawania nowych obiektów zależy od bieżącego trybu: zablokowanego lub odblokowanego. W trybie zablokowanym wszystko, co narysujesz, takie jak ściana lub kolumna, jest automatycznie tworzone w samym pliku IFC. Może być konieczne przypisanie jej do odpowiedniego poziomu lub budynku po utworzeniu, co odbywa się po prostu przez przeciągnięcie nowej ściany do odpowiedniego poziomu w widoku drzewa.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-In unlocked mode, your new wall will not be an IFC element yet. You always need to drag the wall yourself to the right place after creation.
-</div>
+W trybie odblokowanym, twoja nowa ściana nie będzie jeszcze elementem IFC. Zawsze musisz ręcznie przeciągnąć ścianę w odpowiednie miejsce po jej utworzeniu.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Types ===
-</div>
+<span id="Types"></span>
+=== Typy ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-In IFC, any element can be defined by a [https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/schema/ifckernel/lexical/ifctypeproduct.htm type]. A type (ex. IfcWallType, IfcWindowType) is an IFC element that can hold common characteristics, properties or even geometry, that will automatically be used by all objects of that type. In some BIM applications, this is sometimes referred to as families.
-</div>
+W IFC, każdy element może być zdefiniowany przez [https://standards.buildingsmart.org/IFC/RELEASE/IFC4_1/FINAL/HTML/schema/ifckernel/lexical/ifctypeproduct.htm typ]. Typ (np. IfcWallType, IfcWindowType) to element IFC, który może zawierać wspólne cechy, właściwości, a nawet geometrię, które będą automatycznie używane przez wszystkie obiekty tego typu. W niektórych aplikacjach BIM, jest to czasem określane jako rodziny.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-In FreeCAD, in non-IFC BIM projects, we used to do this using cloning. In native IFC, there is full support for types. To define a type, the easiest way is to build an object of a desired class, for example a wall, then right-click it in the tree view and choose '''IFC → convert to type'''.
-</div>
+We FreeCAD, w projektach BIM bez IFC, zwykle robiliśmy to za pomocą klonowania. W natywnym IFC, pełne wsparcie dla typów jest dostępne. Aby zdefiniować typ, najłatwiej jest zbudować obiekt pożądanej klasy, na przykład ścianę, a następnie kliknąć prawym przyciskiem myszy na obiekcie w widoku drzewa i wybrać '''IFC → konwertuj na typ'''.
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 When an object is converted to a type, it is moved to a special ''Types'' group under the project. It can then be referenced by any other wall in the project.
