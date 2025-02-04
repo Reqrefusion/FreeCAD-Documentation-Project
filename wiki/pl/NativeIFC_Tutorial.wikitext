@@ -14,115 +14,69 @@
 
 [[Image:Nativeifc-tutorial-01.jpg]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-[https://freecad.org FreeCAD], a Free and Open-Source (FOSS) 3D CAD modeling platform, offers [https://en.wikipedia.org/wiki/Building_information_modeling BIM] tools since many years with the Arch workbench. Starting from version 1.0, released in November 2024, the Arch tools have been extended and renamed to become the [[BIM_Workbench|BIM workbench]], and extended with a new native IFC system. This tutorial will walk you through the different concepts used in native IFC, and how to apply them working on an example model.
-</div>
+[https://freecad.org FreeCAD], darmowa i otwartoźródłowa (FOSS) platforma do modelowania CAD 3D, od wielu lat oferuje narzędzia [https://pl.wikipedia.org/wiki/Building_Information_Modeling BIM] w środowisku pracy Arch. Począwszy od wersji 1.0, wydanej w listopadzie 2024 roku, narzędzia Arch zostały rozszerzone i przemianowane na [[BIM_Workbench/pl|środowisko pracy BIM]], wzbogacone o nowy natywny system IFC. Ten poradnik przeprowadzi Cię przez różne koncepcje stosowane w natywnym IFC oraz pokaże, jak zastosować je na przykładowym modelu.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== The IFC format ===
-</div>
+<span id="The_IFC_format"></span>
+=== Format IFC ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-One cannot start talking of native IFC without a word first about the [https://en.wikipedia.org/wiki/Industry_Foundation_Classes Industry Foundation Classes], better known as IFC. IFC is a file format, but also and more fundamentally a data format. It is a standard (it is a registered ISO norm) that specifies how the different components of a building should be represented digitally, what properties each of them should have, what relationship they can or should have with other elements. etc. In short, it is a recipe to describe a building digitally.
-</div>
+Nie sposób zacząć rozmowy o natywnym IFC bez wspomnienia o [https://en.wikipedia.org/wiki/Industry_Foundation_Classes Industry Foundation Classes], znanym lepiej jako IFC. IFC to format pliku, ale także, co ważniejsze, format danych. Jest to standard (zarejestrowana norma ISO) określający, w jaki sposób różne elementy budynku powinny być reprezentowane cyfrowo, jakie właściwości powinny posiadać oraz jakie relacje mogą lub powinny mieć z innymi elementami. Krótko mówiąc, jest to przepis na cyfrowy opis budynku.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The IFC format has many interesting features. First of all, it is open and public (it is maintained by a consortium, like the HTML format), it derives from the STEP format, a well-known, rock-solid 3D geometry format widely used in the mechanical industry, it is human-readable (you can open it with a text editor), and the data can be written in not only one, but several file formats, and even be used as a database.
-</div>
+Format IFC posiada wiele interesujących cech. Przede wszystkim jest otwarty i publiczny (utrzymywany przez konsorcjum, podobnie jak format HTML), wywodzi się z formatu STEP — dobrze znanego, niezawodnego formatu geometrii 3D szeroko stosowanego w przemyśle mechanicznym, jest czytelny dla człowieka (można go otworzyć w edytorze tekstu), a dane mogą być zapisywane nie tylko w jednym, ale w kilku formatach plików, a nawet wykorzystywane jako baza danych.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-These features make the format geometrically reliable, thanks to its STEP (grand)father, but also a very wise choice to trust your data to, because in 50 years from now you will still be able to open IFC files and recover the data, even if your BIM application has disappeared. IFC files are also increasingly becoming the preferred file format requested by authorities when delivering building permits.
-</div>
+Te cechy czynią ten format niezawodnym pod względem geometrii, dzięki jego "przodkowi" STEP, a także bardzo rozsądnym wyborem do przechowywania danych, ponieważ nawet za 50 lat będzie można otworzyć pliki IFC i odzyskać dane, nawet jeśli Twoja aplikacja BIM zniknie. Pliki IFC stają się również coraz częściej preferowanym formatem wymaganym przez władze przy składaniu wniosków o pozwolenia budowlane.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Up to now, though, the IFC format has mostly been used as an ''export'' format. Designers would still save their projects using the native file format of their BIM application, and would export IFC files when needed. This is good enough to show your work around, but pretty bad if other people need to work with that model too, because there is a lot of data loss and the data is entirely rewritten on each export, so using a new version of the model is often a headache for other people.
-</div>
+Do tej pory format IFC był głównie używany jako format ''eksportu''. Projektanci nadal zapisywali swoje projekty w natywnym formacie plików swojej aplikacji BIM, a pliki IFC eksportowali w razie potrzeby. To wystarczające, aby zaprezentować swoją pracę, ale bardzo problematyczne, gdy inni muszą pracować na tym modelu, ponieważ dochodzi do dużej utraty danych, a przy każdym eksporcie dane są całkowicie przepisywane. Korzystanie z nowej wersji modelu bywa więc dla innych prawdziwym utrapieniem.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-With native IFC, we aim to change that.
-</div>
+Dzięki natywnemu IFC chcemy to zmienić.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== The native IFC concept ===
-</div>
+<span id="The_native_IFC_concept"></span>
+=== Koncepcja natywnego IFC ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The idea comes from a [https://github.com/brunopostle/ifcmerge/blob/main/docs/whitepaper.rst paper by Bruno Postle] that describes how the IFC format could be used not only as an export format, but also as a main project file, instead of the (usually proprietary) formats used by BIM applications. To achieve that, it is essential that BIM applications treat the IFC format natively, that is, instead of converting their own content from their internal format to IFC each time, they should directly manipulate IFC data.
-</div>
+Pomysł pochodzi z [https://github.com/brunopostle/ifcmerge/blob/main/docs/whitepaper.rst pracy Bruno Postle], która opisuje, jak format IFC mógłby być wykorzystywany nie tylko jako format eksportu, ale także jako główny plik projektu, zamiast (zwykle zastrzeżonych) formatów stosowanych przez aplikacje BIM. Aby to osiągnąć, kluczowe jest, aby aplikacje BIM obsługiwały format IFC natywnie — zamiast każdorazowego konwertowania własnej zawartości z wewnętrznego formatu do IFC, powinny bezpośrednio manipulować danymi IFC.
 
 [[Image:Nativeifc-tutorial-02.jpg]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|image from Bruno Postle's paper}}
-</div>
+{{Caption|rysunek z pracy Bruno Postle}}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Concretely, in FreeCAD, you can open or create IFC models, explore them, modify their contents, and each change will be clearly registered, locatable, identifiable, undoable. Changes done by others while you were working can be merged together, even if they are working with other (native IFC) applications.
-</div>
+Konkretne w FreeCAD można otwierać lub tworzyć modele IFC, eksplorować je, modyfikować ich zawartość, a każda zmiana będzie wyraźnie zarejestrowana, możliwa do zlokalizowania, zidentyfikowania i cofnięcia. Zmiany dokonane przez innych podczas Twojej pracy mogą zostać scalone, nawet jeśli korzystają z innych aplikacji (z natywnym IFC).
 
 [[Image:Nativeifc-tutorial-03.jpg]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|The image above shows a compact and limited change to a file when adding a new wall}}
-</div>
+{{Caption|Powyższy rysunek przedstawia zwartą i ograniczoną zmianę pliku podczas dodawania nowej ściany}}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The work on native IFC in FreeCAD is not finished, but it is already totally usable 'for real work'. If you already know the FreeCAD BIM tools, there is very little to learn, as most of the workflow uses the same tools.
-</div>
+Praca nad natywnym IFC we FreeCAD nie jest jeszcze zakończona, ale jest już całkowicie użyteczna "do prawdziwej pracy". Jeśli już znasz narzędzia BIM we FreeCAD, musisz nauczyć się bardzo niewiele, ponieważ większość podejść korzysta z tych samych narzędzi.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Do I need IFC? ===
-</div>
+<span id="Do_I_need_IFC?"></span>
+=== Czy potrzebuję IFC? ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The decision is yours. IFC is a strict format, where each element (a wall, a storey, a window) has very strict attributes and features, that cannot be modified. This standardization ensures its compatibility and reliability. It also means 'you cannot do whatever you want' with IFC. You need to respect what the format defines. This is welcome and excellent when working with others, as that's exactly what we ask of a ''standard''. There are guarantees about what you will find when opening an IFC file, but this can also obviously limit creativity.
-</div>
+Decyzja należy do Ciebie. IFC to surowy format, w którym każdy element (ściana, piętro, okno) ma bardzo ścisłe atrybuty i cechy, których nie można modyfikować. Ta standaryzacja zapewnia jego kompatybilność i niezawodność. Oznacza to również, że "nie możesz robić, czego chcesz" z IFC. Musisz przestrzegać tego, co format definiuje. To jest pożądane i doskonałe podczas pracy z innymi, ponieważ dokładnie tego oczekujemy od ''standardu''. Istnieją gwarancje dotyczące tego, co znajdziesz po otwarciu pliku IFC, ale oczywiście może to również ograniczać kreatywność.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-One of the axioms of the BIM workbench in FreeCAD is not to limit creativity. Anything is possible, any geometric shape is possible, any parametric relationship is possible. When working with the BIM workbench without native IFC, this freedom is at your fingertips. When enabling native IFC, this freedom becomes restricted. Is that good of bad for your project? It depends.
-</div>
+Jednym z aksjomatów środowiska pracy BIM we FreeCAD jest brak ograniczeń dla kreatywności. Możliwe jest wszystko, każda forma geometryczna, każde parametryczne powiązanie. Pracując w środowisku pracy BIM bez natywnego IFC, ta wolność jest w zasięgu ręki. Włączając natywne IFC, ta wolność staje się ograniczona. Czy to dobre, czy złe dla Twojego projektu? To zależy.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-I would personally recommend working without IFC when you are working alone and still developing concepts, so you benefit from maximum freedom. When your project has stabilized, and other people get involved, that might be the moment to switch to native IFC, to benefit from standardization. Remember, you can switch anytime, or even export your non-native IFC project to IFC anytime. It is rarely necessary to start with native IFC immediately.
-</div>
+Osobiście zalecałbym pracować bez IFC, gdy pracujesz samodzielnie i nadal rozwijasz koncepcje, aby skorzystać z maksymalnej wolności. Gdy projekt się ustabilizuje i zaangażują się inni, to może być moment, aby przejść na natywne IFC, aby skorzystać ze standaryzacji. Pamiętaj, że możesz przełączyć się w dowolnym momencie lub nawet wyeksportować swój projekt nienatywny do IFC w dowolnym czasie. Rzadko jest konieczne, aby od razu zaczynać od natywnego IFC.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Opening and creating IFC models ==
-</div>
+<span id="Opening_and_creating_IFC_models"></span>
+== Otwieranie i tworzenie modeli IFC ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Finding and viewing IFC models ===
-</div>
+<span id="Finding_and_viewing_IFC_models"></span>
+=== Wyszukiwanie i przeglądanie modeli IFC ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-If you have never worked with IFC before, you might want to start by having a good look at a few example models. Being an open format, fortunately, example models are very easy to find on the internet. A simple 'example IFC models' search will get you far. I would suggest for example this [https://github.com/buildingSMART/Sample-Test-Files/tree/main/PCERT-Sample-Scene/IFC%204.0.2.1%20(IFC%204) canonical example house] kept by the IFC consortium, but several websites have gathered collections of example files, such as [https://bimplot.com/free-ifc-project-samples-for-architects-and-bim-enthusists/ this one on BIMPlot].
-</div>
+Jeśli nigdy wcześniej nie pracowałeś z IFC, warto zacząć od dokładnego zapoznania się z kilkoma przykładowymi modelami. Jako format otwarty, na szczęście przykładowe modele są bardzo łatwe do znalezienia w internecie. Proste wyszukiwanie "przykładowe modele IFC" pozwoli Ci szybko dotrzeć do materiałów. Sugeruję na przykład ten [https://github.com/buildingSMART/Sample-Test-Files/tree/main/PCERT-Sample-Scene/IFC%204.0.2.1%20(IFC%204) kanoniczny przykład domu] udostępniony przez konsorcjum IFC, ale wiele stron internetowych zgromadziło kolekcje przykładowych plików, jak na przykład [https://bimplot.com/free-ifc-project-samples-for-architects-and-bim-enthusists/ ta na BIMPlot].
 
 [[Image:Nativeifc-tutorial-04.jpg]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-There are many applications to view IFC files. Some are free of charge, and some are even Free and Open-Source (FOSS). Among proprietary but free IFC viewers, good ones are [https://bimvision.eu/ BIMVision] or the [https://openifcviewer.com/ ODA IFC viewer] (which runs on Win/Mac/Linux). Among FOSS viewer, a simple one I use a lot is [http://www.ifcquery.com/ IFC++], which is included in the Debian/Ubuntu repositories. Both [https://freecad.org FreeCAD] and [https://bonsaibim.org Bonsai] are also good and fast IFC viewers.
-</div>
+Istnieje wiele aplikacji do przeglądania plików IFC. Niektóre są tylko darmowe, a niektóre są nawet darmowe i otwartoźródłowe (FOSS). Wśród komercyjnych, ale darmowych przeglądarek IFC, dobrymi opcjami są [https://bimvision.eu/ BIMVision] lub [https://openifcviewer.com/ przeglądarka ODA IFC] (działająca na Win/Mac/Linux). Wśród przeglądarek FOSS, prostą, którą często używam, jest [http://www.ifcquery.com/ IFC++], która jest dostępna w repozytoriach Debian/Ubuntu. Zarówno [https://freecad.org FreeCAD], jak i [https://bonsaibim.org Bonsai] są również dobrymi i szybkimi przeglądarkami IFC.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Being able to open and view your IFC files in another application is fundamental when working with IFC files, as it allows you to double-check that what you are sending to your coworkers or your clients has everything it needs to have.
-</div>
+Możliwość otwierania i przeglądania plików IFC w innej aplikacji jest kluczowa podczas pracy z plikami IFC, ponieważ pozwala na podwójne sprawdzenie, czy to, co wysyłasz do współpracowników lub klientów, zawiera wszystko, co powinno.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== What makes a good IFC model ===
-</div>
+<span id="What_makes_a_good_IFC_model"></span>
+=== Co sprawia, że model IFC jest dobry ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The IFC format is complex, and BIM applications, even the most expensive commercial ones, are notoriously bad or very bad at handling IFC files. So your mileage might vary, the IFC files you encounter might be of very bad quality and full of junk, sometimes to the point where they are hardly usable. This has often been used by advocates of proprietary BIM applications to discredit the IFC format and try to demonstrate its inefficiency.
-</div>
+Format IFC jest skomplikowany, a aplikacje BIM, nawet te najdroższe komercyjne, są powszechnie złe lub bardzo złe w obsłudze plików IFC. Dlatego wyniki mogą się różnić, pliki IFC, z którymi się spotkasz, mogą mieć bardzo słabą jakość i być pełne niepotrzebnych danych, czasami do tego stopnia, że są ledwo użyteczne. Często wykorzystywano to przez zwolenników zastrzeżonych aplikacji BIM, aby zdyskredytować format IFC i próbować wykazać jego nieskuteczność.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-It is not hard to create quality IFC models, though. But one needs an application that treats the format seriously and leaves the user in control of what is exported and how.
-</div>
+Tworzenie wysokiej jakości modeli IFC nie jest jednak trudne. Ale wymaga to aplikacji, która traktuje ten format poważnie i pozostawia użytkownikowi kontrolę nad tym, co jest eksportowane i w jaki sposób.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The things that you should know are few:
-</div>
+Jest kilka rzeczy, które powinieneś wiedzieć:
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 <ul>
