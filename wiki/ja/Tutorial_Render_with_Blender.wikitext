@@ -12,29 +12,30 @@
 <span id="Introduction"></span>
 == 概要 ==
 
-This tutorial shows how to produce a rendered image in [https://www.blender.org/ Blender], beginning from a part or assembly created with FreeCAD. It assumes that the user already created the part in FreeCAD, or has imported it into it. Then this part is exported to Blender for rendering.
+このチュートリアルでは、[https://www.blender.org/ Blender]を使って、FreeCADで作成したパーツやアセンブリからレンダリング画像を作成する方法を紹介します。ユーザは既にFreeCADでパーツを作成あるいはインポートし終えている状態から始めて、それをレンダリングのためのBlenderにエクスポートします。
 
-It produces a rendering with Blender 2.80 with both the EEVEE and Cycles renderers. It shows various [[Python|Python]] commands that can be used to perform actions quicker both in FreeCAD and Blender.
+Bleander 2.80のEEVEEまたはCyclesエンジンを使ってレンダリング画像を生成します。以下では、FreeCADおよびBlenderの両方で、より早く作業を進めるために使うことのできる[[Python|Python]]コマンドについても示します。
 
-A similar description of this process is described in a series of videos, [https://www.youtube.com/watch?v=U7e6-Wfv2b0 Render Solidworks and FreeCAD Models in Blender], by Joko Engineering.
+Joko Engineeringによる一連の動画「
+[https://www.youtube.com/watch?v=U7e6-Wfv2b0 Render Solidworks and FreeCAD Models in Blender]」で、同様の手順について説明しています。
 
 == FreeCAD ==
 
-1. Create an assembly using bodies from the [[Part_Workbench|Part Workbench]] or [[PartDesign_Workbench|PartDesign Workbench]], or any other workbench that produces solid objects, for example, the [[Arch_Workbench|Arch Workbench]]. Assign colors or materials to the individual bodies that make the assembly, approximately matching the color that you want in your render.
+1. [[Part_Workbench|Partワークベンチ]]または[[PartDesign_Workbench|PartDesignワークベンチ]]で作った部品からなるアセンブリ、または、例えば[[Arch_Workbench|Archワークベンチ]]などを使って、ソリッドなモデルを作成します。最終的なレンダリング画像でほしいものと概ね合致した色や材質を、個々の部品に設定します。
 
 [[Image:01_T03_FreeCAD_Blender_model.png|600px|center]]
 
-{{Caption|align=center|Assembly of three bodies created in FreeCAD, and with colors or materials assigned.}}
+{{Caption|align=center|FreeCADで作成し、色及び材質を設定したアセンブリの例}}
 
-2. If your model is very detailed, make sure the {{PropertyView|Deviation}} of the body is set to a low value, between {{incode|0.1}} and {{incode|0.01}}, or even smaller. The lower this value is, the more detailed the exported mesh will be, and thus the better the quality of the render will be.
+2. もしモデルが非常に精細なものの場合は、物体の{{PropertyView|Deviation}}を{{incode|0.1}}から{{incode|0.01}}の間、あるいはさらにそれよりも小さな値にします。小さな値を設定すると、エクスポートするメッシュがより細かくなり、レンダリング結果もより高品質になります。
 
 [[Image:02_T03_FreeCAD_Blender_deviation.png|center]]
 
-{{Caption|align=center|Deviation property of the bodies created in FreeCAD; the deviation needs to be small in order to export the parts with good resolution.}}
+{{Caption|align=center|FreeCADで作成した部品のDeviationプロパティー。十分な解像度を持たせるためには、この値を小さくする必要がります。}}
 
-3. Select the {{incode|Part}}, then {{MenuCommand|File → Export}}, or press {{KEY|Ctrl}}+{{KEY|E}}, and export it as {{incode|Wavefront OBJ}}.
+3. {{incode|Part}}を選択してから、{{MenuCommand|ファイル → エクスポート}}または{{KEY|Ctrl}}+{{KEY|E}}で、{{incode|Wavefront OBJ}}形式のファイルにエクスポートします。
 
-Alternatively, the export can be done from the [[Python|Python]] console. Define a list of objects to be exported and use the exporting function with a file name.
+あるいは、[[Python|Python]]コンソールからコマンドを入力してエクスポートすることも可能です。エクスポートするオブジェクトのリストを定義してから、エクスポートのための関数をファイル名を与えて呼び出します。
 
 {{Code|code=
 import importOBJ
@@ -43,9 +44,9 @@ objs = FreeCAD.ActiveDocument.getObjectsByLabel("Part")[0]
 importOBJ.export(objs, "/home/user/assembly.obj")
 }}
 
-{{Emphasis|Note:}} when exporting to OBJ, two files are created; the first one contains the mesh information itself, {{incode|assembly.obj}}; the second one contains the definition of the materials, which in most cases is just the color, {{incode|assembly.mtl}}.
+{{Emphasis|注意：}}OBJにエスクポートすると、ファイルが2つ作られます。1つ目のファイル（例えば{{incode|assembly.obj}}）にはメッシュの情報が入っています。2つ目のファイル（例えば{{incode|assembly.mtl}}）には材質の情報（ほとんどの場合は色の情報）が入っています。
 
-{{Emphasis|Note 2:}} if the resulting OBJ file appears to be empty, you may have to export the individual bodies. In this case, select each of the bodies under the part, and repeat the export.
+{{Emphasis|注意2：}}もしOBJファイルが空の場合は、個々のボディーを個別にエクスポートする必要があります。この場合は、Partの下の個々のボディーを選択し、個別にエクスポートしてください。
 
 {{Code|code=
 import importOBJ
@@ -58,28 +59,29 @@ importOBJ.export(objs, "/home/user/assembly.obj")
 
 == Blender ==
 
-=== Prepare the model ===
+<span id="Prepare_the_model"></span>
+=== モデルの準備 ===
 
-4. Open Blender. Change the {{incode|Timeline}} panel into a {{incode|Python Console}} ({{KEY|Shift}}+{{KEY|F4}}). This will help you to input commands and see the results. You may divide this panel, to keep the console on one side, and make the other division an {{incode|Info}} panel; this will allow you to see the code of the actions as you click on the interface.
+4. Blenderを開きます。{{KEY|Shift}}+{{KEY|F4}}を押して、{{incode|タイムライン}}パネルを{{incode|Pythonコンソール}}に切り替えておきます。こうしておくと、コマンドを入力して結果を確認するのが簡単になります。このパネルを分割し、片側をコンソールに、もう片方を{{incode|情報}}パネルにしてもいいでしょう。こうすると、GUI上の操作に対応するPythonコードを確認することができます。
 
-Make sure you are using the EEVEE renderer. In the {{incode|Properties}} panel go to {{incode|Render}}, and for {{incode|Render Engine}} select {{incode|Eevee}}.
+EEVEEエンジンを使っていることを確認してください。{{incode|プロパティ}}パネルの{{incode|レンダー}}の中の{{incode|レンダーエンジン}}を{{incode|Eevee}}にしてくだい。
 
 {{Code|code=
 bpy.context.scene.render.engine = 'BLENDER_EEVEE'
 }}
 
-5. Import the model file from the menu, {{MenuCommand|File → Import → Wavefront (.obj)}}.
+5. メニューから{{MenuCommand|ファイル → インポート → Wavefront (.obj)}}を選んでモデルをインポートします。
 
-Alternatively, importing can be done from the {{incode|Python Console}}.
+あるいは、{{incode|Pythonコンソール}}にコマンドを入力することでインポートすることもできます。
 
 {{Code|code=
 obj_file = "/home/user/assembly.obj"
 bpy.ops.import_scene.obj(filepath=obj_file)
 }}
 
-6. Change the scale.
+6. 縮尺を変えます。
 
-If the bodies appear to be very large you may have to change the units so the objects appear at the right scale.
+もし物体が非常に大きく見える場合は、単位を変更して適切な縮尺にする必要があるかもしれません。
 
 In the {{incode|Properties}} panel go to {{incode|Scene}}, {{incode|Units}}, and select the appropriate {{incode|Unit System}}, {{incode|Unit Scale}}, and {{incode|Length}}.
 
