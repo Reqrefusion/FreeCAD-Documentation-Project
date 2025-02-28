@@ -141,7 +141,7 @@ Powszechnie używane ciągi nazw licencji:
 
 WYMAGANE
 
-Znacznik <content> opisuje rzeczywistą zawartość pakietu. Nie posiada atrybutów i zawiera dowolną liczbę elementów podrzędnych. Te elementy podrzędne mogą mieć dowolne nazwy znaczników, z których tylko niektóre mogą być rozpoznawane przez FreeCAD. FreeCAD obsługuje obecnie elementy "workbench", "macro" i "preferencepack". Każdy element potomny jest następnie definiowany rekurencyjnie przez ten standard, zawierający dowolne lub wszystkie elementy dozwolone dla węzła głównego <package>. Na przykład:
+Znacznik <content> opisuje rzeczywistą zawartość pakietu. Nie posiada atrybutów i zawiera dowolną liczbę elementów podrzędnych. Te elementy podrzędne mogą mieć dowolne nazwy znaczników, z których tylko niektóre mogą być rozpoznawane przez FreeCAD. FreeCAD obsługuje obecnie elementy "workbench", "macro", "preferencepack", "bundle" ({{Version/pl|1.1}}) i "other" ({{Version/pl|1.1}}). Każdy element potomny jest następnie definiowany rekurencyjnie przez ten standard, zawierający dowolne lub wszystkie elementy dozwolone dla węzła głównego <package>. Na przykład:
 
 <pre>
 <content>
@@ -154,7 +154,7 @@ Znacznik <content> opisuje rzeczywistą zawartość pakietu. Nie posiada atrybut
 </content>
 </pre>
 
-Istnienie elementów <content> implikuje zestaw podfolderów, po jednym dla każdego elementu zawartości, nazwanych dokładnie tak, jak dana nazwa elementu. Tak więc w powyższym przykładzie struktura folderów pakietu jest następująca:
+Istnienie większości elementów <content> implikuje zestaw podfolderów, po jednym dla każdego elementu zawartości, nazwanych dokładnie tak, jak dana nazwa elementu. Tak więc w powyższym przykładzie struktura folderów pakietu jest następująca:
 
 <pre>
 Package Directory/
@@ -240,15 +240,18 @@ Imię i nazwisko osoby, która jest autorem pakietu, jako potwierdzenie jej prac
 <span id=""></span>
 ===<depend>===
 
-Dozwolona jest wielokrotność
+Dozwolona jest wiele, przynajmniej jeden jest wymagany dla bundles.
 
 Deklaruje zależność od innego dodatku FreeCAD lub wewnętrznego środowiska pracy, lub pakietu Python. Nazwana zależność jest najpierw sprawdzana względem listy znanych dodatków ''(np. tych dostępnych w oficjalnym repozytorium git FreeCAD Addons lub tych w niestandardowym repozytorium określonym przez użytkownika)''. Sprawdzana jest kanoniczna nazwa dodatku. Jeśli plik package.xml jest obecny dla tego dodatku, nazwa jest elementem <name> tego pakietu. Wymagane jest dokładne dopasowanie. Jeśli nie zostanie znalezione żadne dopasowanie, sprawdzana jest lista znanych wewnętrznych środowisk pracy ''(zarówno zainstalowanych, jak i odinstalowanych)''. Wreszcie, jeśli nazwana zależność nie została zlokalizowana w poprzednich dwóch krokach, zakłada się, że jest to zależność pakietu Python. Należy pamiętać, że nie wszystkie funkcje związane z zależnościami są jeszcze w pełni zaimplementowane.
+
+A "bundle" content item ({{Version|1.1}}) is expected to contain multiple "depends" lines, one for each external addon being "bundled". Note that the bundling is not literal, in the sense that the bundle is not expected to actually contain the source code of the dependency, but only to declare that it must be installed by the Addon Manager as part of installing the bundle.
 
 <span id="Attributes"></span>
 ====Atrybuty====
 
 Wszystkie zależności i relacje mogą ograniczać ich zastosowanie do określonych wersji. Dla każdego operatora porównania można użyć atrybutu. Dwa z tych atrybutów mogą być użyte razem do opisania zakresu wersji.
 
+<div class="mw-translate-fuzzy">
 * version_lt="VERSION" ''(opcjonalnie)'': Zależność od pakietu jest ograniczona do wersji mniejszych niż podany numer wersji.
 * version_lte="VERSION" ''(opcjonalne)'': Zależność od pakietu jest ograniczona do wersji mniejszych lub równych podanemu numerowi wersji.
 * version_eq="VERSION" ''(opcjonalne)'': Zależność od pakietu jest ograniczona do wersji równej podanemu numerowi wersji.
@@ -257,6 +260,7 @@ Wszystkie zależności i relacje mogą ograniczać ich zastosowanie do określon
 * condition="CONDITION_EXPRESSION": Każda zależność może być uzależniona od wyrażenia warunku. Jeśli wyrażenie warunku ma wartość "true", zależność jest używana i traktowana tak, jakby nie miała atrybutu warunku. Jeśli wyrażenie warunku ma wartość "false", zależność jest ignorowana i traktowana tak, jakby nie istniała. Wyrażenie musi być prawidłowym wyrażeniem FreeCAD (tj. składnią Pythona) i może odnosić się do zmiennych "$BuildVersionMajor", "$BuildVersionMinor" i "$BuildRevision" reprezentujących aktualnie uruchomioną wersję FreeCAD.
 * optional="true|false": Jeśli "optional" ma wartość "true", wówczas zależność jest traktowana jako opcjonalna, gdy dodatek jest instalowany za pomocą Menedżera dodatków. Ogólnie oznacza to, że niepowodzenie instalacji zależności nie uniemożliwia instalacji dodatku, a użytkownik może zostać zapytany, czy chce go zainstalować. Wersje FreeCAD wcześniejsze niż 0.21 nie rozpoznają tego atrybutu i będą go ignorować.
 * type="automatic|addon|internal|python": Opcjonalny, domyślnie "automatyczny". Wskazuje, do czego odnosi się ta instrukcja zależności. "addon" dotyczy dodatków zewnętrznych, "internal" dotyczy wewnętrznych środowisk pracy ''(np. "arch", "sketcher" itp.)'', a "python" wskazuje na zależność od pakietu Python. Wersje FreeCAD wcześniejsze niż 0.21 nie używają tego atrybutu, a "automatic" jest zawsze zakładany.
+</div>
 
 <span id=""></span>
 ===<conflict>===
