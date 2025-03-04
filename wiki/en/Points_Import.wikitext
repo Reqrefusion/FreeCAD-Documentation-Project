@@ -47,6 +47,37 @@ See [[Points_Convert|Points Convert]].
 
 For testing you can use [https://raw.githubusercontent.com/FreeCAD/Examples/master/Point_cloud_ExampleFiles/PointCloud-Data_Stanford-Bunny.asc this file], which is a low polygon version of the [http://graphics.stanford.edu/data/3Dscanrep/ Stanford Bunny].
 
+==Scripting==
+
+The code below can be used to scale an imported point cloud. Select the point cloud and run the code, either by pasting it in the [[Python_console|Python console]], or by saving it as a macro and [[Std_DlgMacroExecute|executing]] that macro.
+
+{{Code|code=
+from PySide import QtWidgets
+import FreeCAD as App
+import FreeCADGui as Gui
+
+def scale_points(obj, scale_x, scale_y, scale_z):
+    mtx = App.Matrix()
+    mtx.scale(scale_x, scale_y, scale_z)
+    pts = obj.Points.copy()
+    pts.transformGeometry(mtx)
+    obj.Points = pts
+    App.ActiveDocument.recompute()
+
+if Gui.Selection.getSelection():
+    obj = Gui.Selection.getSelection()[0]
+    if obj.isDerivedFrom("Points::Feature"):
+        scale, ok = QtWidgets.QInputDialog.getDouble(
+            None,
+            "Scale point cloud",
+            "Scale:",
+            value=1.0,
+            decimals=6
+        )
+        if ok:
+            scale_points(obj, scale, scale, scale)
+}}
+
 
 {{Docnav
 |
