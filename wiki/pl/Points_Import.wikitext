@@ -53,6 +53,40 @@ Zobacz stronę [[Points_Convert/pl|Konwertuj na punkty]].
 
 Do testów możesz użyć [https://raw.githubusercontent.com/FreeCAD/Examples/master/Point_cloud_ExampleFiles/PointCloud-Data_Stanford-Bunny.asc ten plik], który jest wersją low polygon [http://graphics.stanford.edu/data/3Dscanrep/ Stanford Bunny].
 
+<span id="Scripting"></span>
+==Tworzenie skryptów==
+
+<div class="mw-translate-fuzzy">
+Poniższy kod może zostać użyty do przeskalowania zaimportowanej chmury punktów. Wybierz chmurę punktów i uruchom skrypt wklejając go do [[Python_console/pl|konsoli Pythona]] lub zapisując jako makro i [[Std_DlgMacroExecute/pl|uruchamiając]] je.
+</div>
+
+{{Code|code=
+from PySide import QtWidgets
+import FreeCAD as App
+import FreeCADGui as Gui
+
+def scale_points(obj, scale_x, scale_y, scale_z):
+    mtx = App.Matrix()
+    mtx.scale(scale_x, scale_y, scale_z)
+    pts = obj.Points.copy()
+    pts.transformGeometry(mtx)
+    obj.Points = pts
+    App.ActiveDocument.recompute()
+
+if Gui.Selection.getSelection():
+    obj = Gui.Selection.getSelection()[0]
+    if obj.isDerivedFrom("Points::Feature"):
+        scale, ok = QtWidgets.QInputDialog.getDouble(
+            None,
+            "Scale point cloud",
+            "Scale:",
+            value=1.0,
+            decimals=6
+        )
+        if ok:
+            scale_points(obj, scale, scale, scale)
+}}
+
 
 {{Docnav/pl
 |
