@@ -1,0 +1,132 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|[[Arch_Window/pt-br|Janela]]
+|[[Arch_CompAxis/pt-br|Ferramentas de eixo]]
+|[[Arch_Workbench/pt-br|Arch]]
+|IconL=Arch_Window.svg
+|IconR=Arch_CompAxis.png
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+{{GuiCommand
+|Name=Arch SectionPlane
+|MenuLocation=Annotation → Section Plane
+|Workbenches=[[BIM_Workbench|BIM]]
+|Shortcut={{KEY|S}} {{KEY|P}}
+|SeeAlso=[[Draft_Shape2DView|Draft Shape2DView]]
+}}
+
+<span id="Description"></span>
+==Descrição==
+
+The '''Arch SectionPlane''' tool places in the current document a section plane "thing", which defines a section or view plane. The "thing" takes its placement according to the current [[Draft_SelectPlane|Draft Working Plane]] and can be relocated and reoriented by moving and rotating it, until it describes the 2D view you want to obtain. The Section plane object will only consider a certain set of objects. Objects that are selected when you create a Section Plane will be added to that set automatically. Other objects can later be added or removed from a SectionPlane object with the [[Arch_Add|Arch Add component]] and [[Arch_Remove|Arch Remove component]] tools, or by double-clicking the Section Plane in the tree view.
+
+The Section Plane alone won't create any view of its objects set. For that, you must create a [[TechDraw_ArchView|TechDraw ArchView]] to create a view in a [[TechDraw_Workbench|TechDraw page]]. 
+
+[[Image:Arch SectionPlane example.jpg|600px]]
+
+<span id="Usage"></span>
+==Utilização==
+
+# Optionally, set the [[Draft_SelectPlane|Draft Working Plane]] to reflect the plane where you want to place the Section Plane.
+# Select objects you want to be included in your section view.
+# Press the {{Button|[[Image:Arch_SectionPlane.svg|16px]] [[Arch_SectionPlane|Section Plane]]}} button or press {{KEY|S}} then {{KEY|P}} keys.
+# [[Draft Move|Move]]/[[Draft Rotate|rotate]] the Section Plane into correct position if needed.
+# Select the Section Plane if not selected already.
+# Use either [[Draft_Shape2DView|Draft Shape2DView]] or [[TechDraw_ArchView|TechDraw ArchView]] to create a view.
+
+<span id="Options"></span>
+==Opções==
+
+* The Section plane object will only consider  a certain set of objects, not all the objects of the document. Objects can be added or removed from a SectionPlane object by using the [[Arch_Add|Arch Add]] and [[Arch_Remove|Arch Remove]] tools, or by double-clicking the Section Plane in the tree view, selecting objects either in the list of in the 3D scene, and pressing the '''add''' or '''remove''' buttons.
+
+* With a section plane object selected, use the [[Draft_Shape2DView|Draft Shape2DView]] tool to create a shape object representing the section view in the document.
+
+[[Image:Arch Section example2.jpg|600px]]
+
+* Create [[TechDraw_ArchView|TechDraw ArchView]].
+
+[[Image:Arch Section example3.jpg|600px]]
+
+* The Section Plane can also be used to show the entire 3D view cut by an infinite plane. This is only visual, and won't affect the geometry of the objects being cut.
+
+[[Image:Arch SectionPlane CutView.jpg|600px]]
+
+<span id="Properties"></span>
+==Propriedades==
+
+* {{PropertyData|Only Solids}}: If this is True, non-solid objects in the set will be disregarded
+* {{PropertyView|Display Length}}: The length of the section plane gizmo in the 3D view. Doesn't affect the resulting view
+* {{PropertyView|Display Height}}: The height of the section plane gizmo in the 3D view. Doesn't affect the resulting view
+* {{PropertyView|Arrow Size}}: The size of the arrows of the section plane gizmo in the 3D view. Doesn't affect the resulting view
+* {{PropertyView|Cut View}}: If this is {{TRUE}}, the whole 3D view will be cut at the location of this section plane.
+* {{PropertyView|Clip view}}: if this is {{TRUE}}, it will clip the view to the display height and length of the section plane. This effectively turns the section plane into an orthographic camera, limiting the field of view.
+
+[[Image:Arch_SectionPlane_ClipView.png|600px]]
+
+{{Caption|The Arch SectionPlane with the clip view option will behave like a camera, limiting the field of view.}}
+
+==Tweaks==
+
+* Adding manually a property named '''RotateSolidRender''' of type '''App::PropertyAngle''' to the section plane's '''View''' properties (right-click the properties view -> show hidden, right-click again -> add property) allows to rotate the render when using Solid mode. This is useful when a rendered view has for example both Arch and Draft elements, and the rendering of the Arch elements is rotated in relation to the Draft elements.
+
+==Scripting==
+
+{{Emphasis|See also:}} [[Arch_API|Arch API]] and [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+The SectionPlane tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following function:
+
+{{Code|code=
+Section = makeSectionPlane(objectslist=None, name="Section")
+}}
+
+* Creates a {{incode|Section}} object from {{incode|objectslist}}, which is a list of objects.
+
+Example:
+
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 0, 0)
+baseline = Draft.makeLine(p1, p2)
+baseline2 = Draft.makeLine(p1, -1*p2)
+
+Wall1 = Arch.makeWall(baseline, length=None, width=150, height=2000)
+Wall2 = Arch.makeWall(baseline2, length=None, width=150, height=1800)
+Structure = Arch.makeStructure(length=1000, width=1000, height=200)
+FreeCAD.ActiveDocument.recompute()
+
+BuildingPart = Arch.makeBuildingPart([Wall1, Wall2])
+
+Floor = Arch.makeFloor([BuildingPart])
+Building = Arch.makeBuilding([Floor, Structure])
+Site = Arch.makeSite(Building)
+FreeCAD.ActiveDocument.recompute()
+
+Section1 = Arch.makeSectionPlane([Wall1, Wall2])
+Section2 = Arch.makeSectionPlane([Structure])
+Section3 = Arch.makeSectionPlane([Site])
+FreeCAD.ActiveDocument.recompute()
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|[[Arch_Window/pt-br|Janela]]
+|[[Arch_CompAxis/pt-br|Ferramentas de eixo]]
+|[[Arch_Workbench/pt-br|Arch]]
+|IconL=Arch_Window.svg
+|IconR=Arch_CompAxis.png
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
