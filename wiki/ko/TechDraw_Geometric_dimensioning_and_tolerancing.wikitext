@@ -1,0 +1,264 @@
+<languages/>
+
+{{Docnav
+|[[TechDraw_Hatching|Hatching]]
+|[[TechDraw_Preferences|Preferences]]
+|[[TechDraw_Workbench|TechDraw]]
+|IconL=
+|IconR=
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{TOCright}}
+
+<span id="Concept"></span>
+==개념==
+
+기술 도면의 주요 목적은 설계자가 어떤 허용 오차 범위 내에서 무엇을 만들려고 하는지, 그리고 그것을 어떻게 만들어야 하는지를 다른 사람들이 이해하게 하는 것입니다. 대부분의 부품은 조립품에 끼워 맞춰야 하므로 다른 부품과의 기하학적 관계가 중요합니다. 이를 달성하기 위해 [https://en.wikipedia.org/wiki/Geometric_dimensioning_and_tolerancing 기하학적 치수 및 공차] (GD&T) 시스템이 개발되었습니다.
+
+아래 부품을 예로 들어 보겠습니다:
+
+[[Image:TechDraw_Hole-Position-Example.png]]
+
+In the application an axis should be put through the 2 holes of the part. That means we have to specify the following things
+* The diameter of the holes and their positions.
+* That the holes are along a certain axis that is not perpendicular to the XZ base plane.
+* That the axis part must have a certain straightness.
+
+The straightness is important because a bent axis would not fit through the holes. The hole alignment is important because just drilling each hole at the given position without taking care of the axis, would lead to holes through which the axis will not fit. So just specifying the hole dimension and position is not sufficient. The first point is "classical" dimensioning while the 2 others are geometric information, thus  GD&T comes into play. The example also makes clear that GD&T is essential to assure that parts fit well to assemblies.
+
+If you are not familiar with the concept of GD&T, we highly recommend to learn about it now. For example a quick introduction is given in [https://www.youtube.com/watch?v=P5GT9ZSRYl0 this video]. For more like the concept of the "maximum material condition", have a look at [https://www.youtube.com/watch?v=UXZjTb3ZUQI this video]. For details to all sorts of GD&T features, look around in the Internet. For example [https://www.youtube.com/c/Gdandtbasics/videos this YouTube channel] provides some good explanations.
+
+GD&T is defined in the standards [http://geo-dim-tol.ir/files/iso1101.pdf ISO 1101] and [http://www.sharifcadcam.ir/uploaded/2e22f9ef-dfc5-47bc-a126-cc51e9686c4f.pdf ASME Y14.5].
+
+TechDraws' capabilities to fulfill the common GD&T standards is limited (as of FreeCAD 0.20) but you can achieve already many things. This Wiki page explains what is implemented and what tricks can be used for non-implemented features. '''Note:''' this Wiki page is not about to teach GD&T!
+
+<span id="Dimensioning"></span>
+==치수==
+
+기술도면 작업대는 다양한 유형의 치수를 만드는 데 필요한 여러 가지 도구를 제공합니다. 다양한 치수를 생성하고 수정하는 방법은 [[TechDraw_Workbench/ko#치수|다양한 치수]]를 참조하세요.
+
+<span id="Formatting"></span>
+===서식===
+
+The default font for new dimension is determined by the [[TechDraw_Preferences#Labels|preferences]] setting '''Label Font'''. The default font size is specified by the [[TechDraw_Preferences#Dimensions|preferences]] setting '''Font Size'''.</br>'''Note:''' It is recommended to use a font in which the minus sign has the same width as the plus sign because this assured that tolerances will be formatted as proposed by the GD&T norms. Such a font is for example ''osifont'' that is part of all FreeCAD installations.
+
+The default format for new dimension numbers depends on the [[TechDraw_Preferences#Dimensions|preferences]] options '''Use Global Decimals''' and '''Alternate Decimals'''. This specifies the number of decimals, but in every case the dimension is a floating point number. For example if the setting is to have 2 decimals, the used format specifier is "%.2f" (floating point number with 2 decimals).
+
+The number format can be changed:
+# Either double-click on the dimension in the drawing or onto the dimension object in the model tree
+# In the appearing dimension dialog the field '''Format Specifier''' contains the format specifier, so change it to what you need
+
+The syntax of the format specifier is [https://www.cplusplus.com/reference/cstdio/printf/ explained here]. You can also use [https://onlinetexttools.com/printf-text this online tool] to see what formatting specifier will format numbers.
+
+'''Examples:'''
+* You use 2 decimals but for an angle you want to have only one decimal use the format specifier ''%.1f''.
+* You use 2 decimals but don't like that trailing zeroes are printed (you prefer ''4'' instead of ''4.00''). Then use this format specifier: ''%g''. The 'g' will use the shortest possible output and thus it omits trailing zeroes. Moreover it will automatically switch to [https://en.wikipedia.org/wiki/Scientific_notation#E_notation scientific notation] if necessary.
+
+With the property {{PropertyData|Inverted}} you can make length dimensions negative and flip angles from the range 0 - 180° to the the reflex range 180° - 360°.
+
+Setting the option '''Theoretically Exact''' in the dimension dialog will mark the dimension as theoretically exact by adding a frame around it.
+
+You can use your own text instead of a formatted number by setting the option '''Arbitrary Text''' in the dimension dialog. Then the content of the field '''Format Specifier''' will be printed as dimension.
+
+With the properties {{PropertyData|X}} and {{PropertyData|Y}} you can change the horizontal and vertical position of the dimension text relative to the view. Alternatively you can change the position by dragging the dimension number or text.
+
+<span id="Tolerances"></span>
+===공차(Tolerances)===
+
+====Creation====
+
+# Create a [[TechDraw_Workbench#Dimensions|dimension]] in your drawing
+# Either double-click on the dimension in the drawing or onto the dimension object in the model tree
+# In the appearing dimension dialog specify as '''Overtolerance''' the amount by which the dimension can be exceeded.</br>This will result in an equal tolerance like this: [[Image:TechDraw_equal-tolerance.png|100px]]
+# If you have unequal tolerances, specify as '''Undertolerance''' the amount by which the dimension can be smaller and uncheck the option '''Equal Tolerance'''.</br>This will result in an unequal tolerance like this: [[Image:TechDraw_Non-equal-tolerance.png|80px]]
+
+====Deletion====
+
+To get rid of a tolerance, change '''Overtolerance''' and '''Undertolerance''' to each zero.
+
+====Formatting====
+
+The default font for new tolerances is the same than for dimensions. The default font size is specified by the [[TechDraw_Preferences#Dimensions_2|preferences]] setting '''Tolerance Text Scale'''. This scale is a factor of the font size used for the dimension.
+
+The default number format for new tolerances is by default the same format than for the dimension. It can be changed in the dimension dialog.
+
+You can also use your own text instead of a formatted number by checking the option '''Arbitrary Tolerance Text''' in the dimension dialog. Then the content of '''Tolerance Format Specifier''' will be used as tolerance text.
+
+==Geometrical Tolerancing==
+
+Tolerances are created by using the [[TechDraw_Balloon|Balloon]] feature of TechDraw. Since for most features a frame is required, it is helpful to change in the [[TechDraw_Preferences#Annotation|TechDraw preferences]] the '''Balloon Shape''' to '''Rectangle'''.
+
+===Tolerance indicator===
+
+[[File:TechDraw_GD%26T-Toleranced-rod.png|thumb|280px|right|Example of a toleranced rod. (The run-out already defines the straightness, it is only there as example.)]]
+
+The tolerance indicator of GD&T is a frame, also called "feature control frame". It can be created by using the [[TechDraw_Balloon|Balloon]] feature of TechDraw:
+* after adding a Balloon and if its shape is not already a frame, double-click on it in the model tree and set in the appearing dialog the '''Shape''' to '''Rectangle'''.
+* add the corresponding Unicode character for the feature you need to the Balloon '''Text'''. (You can copy them from the reference tables [[TechDraw_Geometric_dimensioning_and_tolerancing#Symbol_reference|below]] or use [[TechDraw_ExtensionCustomizeFormat|TechDraw ExtensionCustomizeFormat]].)
+* by adding the character '|' to the '''Text''', you start a new indicator field.
+
+There is no rule that defines if or how the tolerance indicator must have a leader line or not, so you can either:
+* set the property '''Line Visible''' to '''False''' in the balloon dialog.
+* set '''End Symbol''' to '''Filled Arrow''' or '''Dot'''.
+
+The example at the right side shows the two possible tolerance indicator layouts.
+
+===Datums===
+
+Datums in the GD&T sense of the meaning are surfaces your tolerance is relative to. They are created as Balloon:
+* after adding a Balloon, set '''End Symbol''' to '''Filled Triangle''' in the balloon dialog.
+* if the bubble shape is not already a frame, set '''Bubble Shape''' to '''Rectangle'''.
+* drag the bubble with the mouse so that the triangle points away from the datum surface.
+* since it is common to have a straight line for datums unless the datum surface is not perpendicular to X or Y, assure that either the properties {{PropertyData|X}} and {{PropertyData|Origin X}} or {{PropertyData|Y}} and {{PropertyData|Origin Y}} are equal to get a straight Balloon line.
+
+[[File:TechDraw_GD&T-Datum.png|thumb|left|Example of a datum in a drawing]]
+{{clear}}
+
+===Symbol reference===
+
+To insert GD&T symbols TechDraw provides the [[TechDraw_ExtensionCustomizeFormat|Customize format label]] feature.
+
+As reference, here are lists of characters to be used for geometric tolerancing:
+
+{| class="wikitable sortable"
+|+ Geometric tolerancing reference chart <small>(according to table 2 in [http://geo-dim-tol.ir/files/iso1101.pdf ISO 1101-2017])</small>
+|-
+! Type of control !! Geometric characteristics !! Symbol !! [https://en.wikipedia.org/wiki/Unicode Unicode] character !! Datum necessary !! Notes
+|-
+| Form
+! Straightness
+| <center>[[File:GD&T Straightness.svg|30px]]</center>
+| <center><big>⏤</big> <small>U+23E4</small></center>
+| <center>no</center>
+|
+|-
+| Form
+! Flatness
+| <center>[[File:GD&T Flatness.svg|30px]]</center>
+| <center><big>⏥</big> <small>U+23E5</small></center>
+| <center>no</center>
+|
+|-
+| Form
+! Roundness
+| <center>[[File:GD&T Circularity.svg|30px]]</center>
+| <center><big>○</big> <small>U+25CB</small></center>
+| <center>no</center>
+| In older norms also called circularity.
+|-
+| Form
+! Cylindricity
+| <center>[[File:GD&T Cylindricity.svg|30px]]</center>
+| <center><big>⌭</big> <small>U+232D</small></center>
+| <center>no</center>
+|
+|-
+| Form / Orientation / Location
+! Line profile
+| <center>[[File:GD&T Profileofaline.svg|30px]]</center>
+| <center><big>⌒</big> <small>U+2312</small></center>
+| <center>yes</center>
+| No datum necessary when used for form purpose
+|-
+| Form / Orientation / Location
+! Surface profile
+| <center>[[File:GD&T Profileofasurface.svg|30px]]</center>
+| <center><big>⌓</big> <small>U+2313</small></center>
+| <center>yes</center>
+| No datum necessary when used for form purpose
+|-
+| Orientation
+! Parallelism
+| <center>[[File:GD&T Parallelism.svg|30px]]</center>
+| <center><big>∥</big> <small>U+2225</small></center>
+| <center>yes</center>
+|
+|-
+| Orientation
+! Perpendicularity
+| <center>[[File:GD&T Perpendicularity.svg|30px]]</center>
+| <center><big>⟂</big> <small>U+27C2</small></center>
+| <center>yes</center>
+|
+|-
+| Orientation
+! Angularity
+| <center>[[File:GD&T Angularity.svg|30px]]</center>
+| <center><big>∠</big> <small>U+2220</small></center>
+| <center>yes</center>
+|
+|-
+| Location
+! Position
+| <center>[[File:GD&T Position.svg|30px]]</center>
+| <center><big>⌖</big> <small>U+2316</small></center>
+| <center>yes</center>
+| No datum necessary when working with norm ISO 5458.
+|-
+| Location
+! Concentricity / Coaxiality
+| <center>[[File:GD&T Concentricity.svg|30px]]</center>
+| <center><big>◎</big> <small>U+25CE</small></center>
+| <center>yes</center>
+| Named concentricity when used for center points and coaxiality when used for median lines. In the norm ASME Y14.5 it was eliminated since the version from 2018.
+|-
+| Location
+! Symmetry
+| <center>[[File:GD&T Symmetry.svg|30px]]</center>
+| <center><big>⌯</big> <small>U+232F</small></center>
+| <center>yes</center>
+| In the norm ASME Y14.5 from 2018, the symmetry was eliminated.
+|-
+| [https://en.wikipedia.org/wiki/Run-out Run-out]
+! Circular run-out
+| <center>[[File:GD&T Circular runout.svg|30px]]</center>
+| <center><big>↗</big> <small>U+2197</small></center>
+| <center>yes</center>
+|
+|-
+| [https://en.wikipedia.org/wiki/Run-out Run-out]
+! Total run-out
+| <center>[[File:GD&T Totalrunout.svg|30px]]</center>
+| <center><big>⌰</big> <small>U+2330</small></center>
+| <center>yes</center>
+|
+|}
+
+{| class="wikitable sortable"
+|+ Symbols used in the feature control frame to specify a feature's description, tolerance, modifier and datum references
+|-
+! Symbol !! [https://en.wikipedia.org/wiki/Unicode Unicode] character !! Modifier !! Notes
+|-
+| [[File:Gd&t freestate.svg|32px|center]] || <center><big>Ⓕ</big> <small>U+24BB</small></center> ||Free state || Applies only when part is otherwise restrained
+|-
+| [[File:Gd&t leastmaterialcondition.svg|32px|center]] || <center><big>Ⓛ</big> <small>U+24C1</small></center> || Least material condition (LMC) || Useful to maintain minimum wall thickness
+|-
+| [[File:Gd&t maximummaterialcondition.svg|32px|center]] || <center><big>Ⓜ</big> <small>U+24C2</small></center> || Maximum material condition (MMC) || Provides bonus tolerance only for a feature of size
+|-
+| [[File:Gd&t projectedtolerancezone.svg|32px|center]] || <center><big>Ⓟ</big> <small>U+24C5</small></center> || Projected tolerance zone || Useful on threaded holes for long studs
+|-
+| [[File:Gd&t regardlessoffeaturesize.svg|32px|center]] || <center><big>Ⓢ</big> <small>U+24C8</small></center> || Regardless of feature size (RFS) || Not part of the 1994 version. See para. A5, bullet 3. Also para. D3. Also, Figure 3-8.
+|-
+| [[File:Gd&t tangentplane.svg|32px|center]] || <center><big>Ⓣ</big> <small>U+24C9</small></center> || Tangent plane || Useful for interfaces where form is not required
+|-
+| [[File:Gd&t continuousfeature.svg|47px|center]] || <center>—</center> || Continuous feature || Identifies a group of features that should be treated geometrically as a single feature
+|-
+| [[File:Gd&t statisticaltolerance.svg|47px|center]] || <center>—</center> || Statistical tolerance || Appears in the 1994 version of the standard, assumes appropriate statistical process control.
+|-
+| [[File:Gd&t unilateral.svg|32px|center]] || <center><big>Ⓤ</big> <small>U+24CA</small></center> || Unequal bilateral || Added in the 2009 version of the standard, and refers to unequal profile distribution. Number after this symbol indicates tolerance in the "plus material" direction.
+|}
+
+
+{{Docnav
+|[[TechDraw_Hatching|Hatching]]
+|[[TechDraw_Preferences|Preferences]]
+|[[TechDraw_Workbench|TechDraw]]
+|IconL=
+|IconR=
+|IconC=Workbench_TechDraw.svg
+}}
+
+{{TechDraw Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
+{{clear}}
