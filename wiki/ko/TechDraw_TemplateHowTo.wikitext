@@ -1,0 +1,120 @@
+<languages/>
+
+{{TutorialInfo
+|Topic=제도
+|Level=중간
+|Time=60 분
+|Author=[http://freecadweb.org/wiki/index.php?title=User:wandererfan wandererfan]
+|FCVersion=0.17
+}}
+
+<span id="Introduction"></span>
+== 소개 ==
+
+이 자습서에서는 [[TechDraw_Workbench/ko|기술도면 작업대]] 페이지의 배경 [[TechDraw_Templates/ko|템플릿]]으로 사용할 수 있는 [[SVG/ko|SVG]] 파일을 만드는 방법을 보여줍니다.
+
+이 자습서에서는 여러분이 [https://en.wikipedia.org/wiki/Inkscape 잉크스케이프]와 [[SVG/ko|SVG]], 그리고 프리캐드와 [[TechDraw_Workbench/ko|기술도면 작업대]]에 대해 어느 정도 알고 있다고 가정합니다.
+
+우리는 가로 방향으로 US Letter 크기 용지에 맞는 간단한 템플릿을 만들어 보겠습니다.
+
+이 자습서의 결과 사본은 아래에서 찾아 볼 수 있습니다.{{Code|code= $INSTALL_DIR/Mod/TechDraw/Templates/HowToExample.svg }}
+
+여기서 {{incode|$INSTALL_DIR}}은 프리캐드가 설치된 디렉토리입니다. 예: {{Code|code= /usr/share/freecad/Mod/TechDraw/Templates/HowToExample.svg }}
+
+<span id="Create_base_document"></span>
+== 기본 문서 만들기 ==
+
+1. 잉크스케이프에서 새 문서를 엽니다.
+
+2. 문서 속성에서 
+* 페이지 크기 "US Letter" 또는 "A4" 및 방향 "가로"를 선택합니다.
+* 기본 단위를 "mm"로 설정하고, 페이지 크기를 너비 "279.4", 높이 "215.9"로 설정합니다. DIN-A4의 경우 "210"과 "297"을 사용합니다. [[Image:InkDocProp.png|800px|center]] {{Caption|align=center|잉크스케이프: 페이지 크기와 방향이 있는 문서}} {{clear}}
+
+3. Use the XML Editor to add a "freecad" namespace clause to the {{incode|<svg>}} item.
+* {{VersionMinus|0.20}}: <code>xmlns:freecad="http://www.freecadweb.org/wiki/index.php?title=Svg_Namespace"</code>
+: Note that your editable texts will ''not'' work if you use "https://...", even though the wiki is reached via https these days.
+* {{VersionPlus|0.21}}: <code>xmlns:freecad="https://www.freecad.org/wiki/index.php?title=Svg_Namespace"</code>
+Since SVG is a human readable format you can also enter the line above into the file with a text editor.
+[[File:InkXMLNameSpace.png|800px|center]]
+{{Caption|align=center|Inkscape: XML Editor adding the "freecad" namespace clause to the <svg> item}}
+{{clear}}
+
+== Create template drawing ==
+
+4. Draw outlines, zone numbers, center lines, and other geometry.
+
+5. Draw the boxes and lines for the title block.
+
+6. Add and position your static text.
+
+7. Add and position the text that will be editable.
+
+8. You now have your finished artwork, that should look something like this:
+[[File:InkFinishedArt.png|800px|center]]
+{{Caption|align=center|Inkscape: tentative template layout}}
+{{clear}}
+
+== Create editable fields ==
+
+9. Use the XML Editor to add a {{incode|freecad:editable}} tag to each editable {{incode|<text>}} item.
+* Assign a meaningful field name to each editable text.
+[[File:InkXMLeditableTag.png|800px|center]]
+{{Caption|align=center|Inkscape: XML Editor adding the "freecad:editable" property to the desired <text> item}}
+{{clear}}
+
+== Adjust size of the SVG ==
+
+10. Use the XML editor to adjust the {{incode|viewBox}} attribute to match your page size in millimeters.
+* It is four values, in the format {{incode|"0 0 width height"}}
+[[File:InkXMLviewBox.png|800px|center]]
+{{Caption|align=center|Inkscape: XML Editor adjusting the viewbox to match the page size in millimeters}}
+{{clear}}
+
+11. Your template will now appear much bigger than desired.
+[[File:InkMuchTooBig.png|800px|center]]
+{{Caption|align=center|Inkscape: tentative template layout exceeding the page size}}
+{{clear}}
+
+12. We need to shrink it.
+* {{MenuCommand|Edit → Select All in All Layers}}, or box select and select all.
+* Adjust the {{Button|W:}} and {{Button|H:}} spinboxes to match your artwork's size in millimeters.
+* Set it to the page size less any applicable margins, for example, {{Button|W: 250}}, and {{Button|H: 200}}.
+
+13. Use "Align and Distribute" or the {{Button|X:}} and {{Button|Y:}} spinboxes to position the artwork within the limits of the page if required.
+
+14. Your template should now look right, just like it did in the finished artwork picture above.
+
+== Remove transformans on the SVG ==
+
+15. Ensure that all your editable texts are "ungrouped" with {{KEY|Shift}}+{{KEY|Ctrl}}+{{KEY|g}}.
+
+16. Select everything on your page, {{MenuCommand|Edit → Select All}}, and then {{MenuCommand|Edit → Copy}} ({{KEY|Ctrl}}+{{KEY|c}}).
+
+17. Then delete the current layer, {{MenuCommand|Layer → Delete Current Layer}}. 
+: Note: if you deleted the layer already (in your layer panel is no layer listed) this step is not required. In that case you should select all ({{KEY|Ctrl}}+{{KEY|a}}), cut the selection ({{KEY|Ctrl}}+{{KEY|x}}) and paste it with the command in the next step.
+
+18. Then paste, {{MenuCommand|Edit → Paste in Place}}.
+: '''Note:''' This command prevents that the text positions are stored in transform tags. <u>It's important that you do not use the normal paste command!</u>
+
+19. Your template should now look right and shouldn't have any unwanted transforms.
+
+20. Save your template. When you use Inkscape, save it preferably as '''Plain SVG''' because FreeCAD can only handle the features of the SVG 1.1 specification. '''Plain SVG''' will remove any Inkscape-specific XML tags.
+
+21. Try it in FreeCAD and [[TechDraw_Workbench|TechDraw Workbench]] with [[TechDraw_PageTemplate|Insert Page using Template]].
+[[File:FCTemplateHow.png|center]]
+{{Caption|align=center|FreeCAD: finished template with an editable text field being modified}}
+{{clear}}
+
+== Notes ==
+Don't use Layers in Inkscape until you've mastered template creation without them. Layers and Groups can automatically insert unwanted transforms into your [[SVG|SVG]] file.
+
+As a final step before using your new template, make sure to remove any transform clauses from the Svg code. Transform clauses '''will cause problems'''.
+
+See a Stackoverflow discussion on [https://stackoverflow.com/questions/13329125/removing-transforms-in-svg-files removing transform clauses in SVG files].
+
+If you do not see the green boxes for your editable texts, there might be something wrong with your document scale. Open your file in Inkscape again and confirm the values of the viewBox and the sizes are matching. 
+
+If texts appear offset in FreeCAD, you may need to remove the {{Incode|xml:space<nowiki>=</nowiki>"preserve"}} attributes in the SVG file. See: https://www.forum.freecadweb.org/viewtopic.php?t=50897.
+
+{{TechDraw Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
