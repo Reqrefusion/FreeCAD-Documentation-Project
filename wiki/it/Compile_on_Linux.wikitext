@@ -282,14 +282,10 @@ Per ulteriori informazioni, [https://forum.freecadweb.org/viewtopic.php?f=42&t=3
 === Fedora ===
 
 <div class="mw-collapsible-content">
-<div class="mw-translate-fuzzy">
-C'è un bug in cmake distribuito da Fedora 34/35 che fa sì che cmake non riesca a trovare le librerie opencascade. Questo può essere facilmente risolto apportando una piccola modifica al file cmake di livello superiore di opencascade installato su Fedora. Dettagli qui:
+C'è un bug nei file cmake opencascade che fa sì che cmake non riesca a trovare le librerie opencascade in Fedora. Questo può essere facilmente risolto apportando una piccola modifica al file cmake di livello superiore di opencascade installato su Fedora. Dettagli qui:
 https://bugzilla.redhat.com/show_bug.cgi?id=2083568.
-</div>
 
-<div class="mw-translate-fuzzy">
-Nella parte superiore del file {{FileName|OpenCASCADEConfig.cmake}}, modificare la seguente riga per utilizzare {{Incode|REAL_PATH()}}. Questa operazione corregge un bug introdotto dall'uso di un collegamento simbolico da {{Incode|/lib}} a {{Incode|/usr/lib}} di Fedora, che causa l'errore di cmake.
-</div> 
+Nella parte superiore del file {{FileName|OpenCASCADEConfig.cmake}}, modificare la seguente riga per utilizzare {{Incode|REAL_PATH()}}. Questa operazione corregge un bug innescato dall'uso di un collegamento simbolico da {{Incode|/lib}} a {{Incode|/usr/lib}} di Fedora, che lo script cmake non riesce a gestire correttamente. Ciò è dovuto alle ipotesi restrittive su dove si trovano solitamente i file include su Linux e al mancato test per un risultato valido. 
 
 Questo file è solitamente installato in {{FileName|/usr/lib64/cmake/opencascade/OpenCASCADEConfig.cmake}}.
 
@@ -307,32 +303,32 @@ Questa banale modifica deve essere apportata all'interno della directory di buil
 
 ==== Fedora40 ====
 
-Fedora allows concurrent installation of Qt5 and Qt6 libraries. Adding the Qt6 libraries relevent to FreeCAD can be done using dnf:
+Fedora consente l'installazione simultanea delle librerie Qt5 e Qt6. L'aggiunta delle librerie Qt6 rilevanti per FreeCAD può essere eseguita tramite dnf:
 
 {{Code|lang=bash|code=
 dnf install python3-shiboken6 python3-shiboken6-devel python3-pyside6 python3-pyside6-devel\
  pyside6-tools qt6-qtsvg qt6-qtsvg-devel qt6-qttools-devel python3-pyqt6-devel
 }}
 
-'''BEWARE:''' A new feature, PCL, was introduced in March 2025. This requires two additional packages: pcl and pcl-devel. However, it fails to build on Fedora when using Qt6 libraries. Add the following to the cmake command line to disable this code.
+'''ATTENZIONE:''' Una nuova funzionalità, PCL, è stata introdotta a marzo 2025. Richiede due pacchetti aggiuntivi: pcl e pcl-devel. Tuttavia, non riesce a compilare su Fedora quando si usano le librerie Qt6. Aggiungere quanto segue alla riga di comando cmake per disabilitare questo codice.
 
 {{Code|lang=bash|code=
 -DFREECAD_USE_PCL=Off 
 }}
 
-Some remote Google code for automatic testing of coding practice is now included by default. If you do not want to include this external code, which is subject to change without notice, use the cmake option:
+Ora è incluso di default un po' di codice remoto di Google per il test automatico delle coding practice. Se non si vuole includere questo codice esterno, che è soggetto a modifiche senza preavviso, usare l'opzione cmake:
 
 {{Code|lang=bash|code=
 -DENABLE_DEVELOPER_TESTS=Off
 }}
 
-The following cmake command should be suitable for Fedora 40 with Qt6:
+Il seguente comando cmake dovrebbe essere adatto per Fedora 40 con Qt6:
 
 {{Code|lang=bash|code=
 cmake -DCMAKE_BUILD_TYPE=Release -DFREECAD_QT_VERSION=6 -Wno-dev -DENABLE_DEVELOPER_TESTS=Off -DFREECAD_USE_PCL=Off  ../FreeCAD
 }}
 
-Adjust the final directory to point to the FreeCAD source code directory.
+Modificare la directory finale in modo che punti alla directory del codice sorgente di FreeCAD.
 
 ==== Fedora38/39 ====
 
