@@ -1,0 +1,368 @@
+<languages/>
+
+{{TutorialInfo
+|Topic=Modeling
+|Level=Beginner
+|Author=Carlo Dormeletti ([[User:onekk|onekk]])<br>Ed Williams ([[User:edwilliams16|edwilliams16]])<br>Roy 043 ([[User:Roy_043|Roy 043]])
+|Time=1 hour
+|FCVersion=0.19 or higher
+|SeeAlso=[[Basic_Part_Design_Tutorial|Basic Part Design Tutorial]]
+}}
+
+== Introduction ==
+
+''This is an updated version of the [[Basic_Part_Design_Tutorial|Basic Part Design Tutorial]].''
+
+[[File:Pd_tut_final_solid.png]]
+
+This tutorial introduces users to the [[PartDesign_Workbench|Part Design Workbench]]. In this tutorial we will create a 3D solid model of the part shown in the image above. In the [[TechDraw_Workbench|drawing]] at the end of this paragraph all the necessary dimensions to complete the task are given.
+
+We will start by creating a core solid shape from a base Sketch and then build on that shape, adding what are known as features. These features will either add material to, or remove material from the solid by use of additional sketches and accompanying feature operations.
+
+We will follow some of the techniques described in [[Feature_editing#Advice_for_creating_stable_models|Advice for creating stable models]]:
+* We will use a '''master sketch'''.
+* '''Named constraints''' will be used to hold dimensions that can be referenced later in the model construction.<br>For instance, to change the model width from 53 mm, as in the technical drawing, to 55 mm we need only modify the '''Length''' value of the appropriate '''named constraint''' in the '''master sketch''' and the whole model will modify accordingly. This is ''parametric'' design in action.
+* '''External geometries''' are potentially subject to the [[Topological_naming_problem|Topological Naming Problem]]. We will use them only when strictly necessary and will attempt to reference to the most '''stable''' elements available. Referencing edges and vertices of sketches is normally more stable than referencing edges and vertices of generated solid geometry.
+
+This Tutorial will not use every feature and tool available in the Part Design Workbench, but will provide a basic foundation upon which users can build their knowledge and skills.
+
+Feel free to signal any errors or problems in this forum thread: [https://forum.freecad.org/viewtopic.php?f=36&t=73235 New Part Design Tutorial for FC 019 and 020].
+
+[[File:Tutorial_Drawing_Sheet.png|900px]]
+
+== Preliminary notes ==
+
+* This tutorial will provide detailed instructions when it describes an operation for the first time. Subsequent operations will have a more concise description. When in doubt, find the operation that contains the more detailed description. For instance, when creating a sketch for the first time the process of choosing the sketch plane will be explained in detail, for subsequent sketches it will not.
+* All mentioned tools can be accessed from toolbars and from the menu.
+* This tutorial assumes that {{CheckBox|TRUE|Auto constraints}} in the Sketcher's '''Edit controls''' window is checked. This ensures that some constraints are applied automatically. Otherwise you will need to apply them yourself.
+* If the Sketcher Solver detects a redundant constraint it will turn the sketch orange in color. Before further constraints are added, redundant constraints should be removed. Redundant constraints are shown in the task panel, click the blue reference and press {{KEY|Delete}}.
+* The color mentioned above is a default color, it can be changed in the preferences. The same applies to the other colors mentioned in this tutorial.
+* You exit a Sketcher drawing tool by pressing the {{KEY|Esc}} key or by right-clicking an empty area of the [[3D_view|3D view]]. The mouse cursor will change to the standard arrow cursor. If you press {{KEY|Esc}} an additional time you will exit sketch edit mode. To return to the editor, click the Model tab, then either double-click the Sketch element in the [[Tree_view|Tree view]], or right-click it and select '''Edit sketch''' from the context menu. To avoid leaving edit mode when pressing {{KEY|Esc}} too often, change the '''Esc can leave sketch edit mode''' preference, see [[Sketcher_Preferences#General|Sketcher Preferences]].
+* It's possible that some elements in a task panel, for instance the {{Button|OK}} button, are not visible if the panel is not wide enough. You can make it wider by dragging its right border. Place your mouse pointer over the border, when the pointer changes to a two-way arrow, hold down the left mouse button and drag.
+* A {{Button|&gt;&gt;}} button in a toolbar indicates that the toolbar is truncated. You can either use the mentioned button to expand it, or move the toolbar to a position where more room is available. To move a toolbar place your mouse pointer over the grip before the first icon in the toolbar, hold down the left mouse button and drag.
+* During the v0.21 development cycle a new icon was introduced for the [[Sketcher_CreatePolyline|Sketcher Create polyline]] tool: [[File:Sketcher_CreatePolyline.svg|24px|link=Sketcher_CreatePolyline]]. The old icon looks like this: [[File:Sketcher_CreatePolyline_rel_0.20.svg|24px|link=Sketcher_CreatePolyline]]. In this tutorial we will use the new icon.
+* See [[Part_and_PartDesign#PartDesign_Workbench_Concepts|Part Design Workbench Concepts]] for some conceptual background.
+* See the [[Sketcher_Workbench|Sketcher WorkBench]] for a more detailed explanation of some of the terminology used here.
+
+== Startup ==
+
+First make sure you are in the [[File:Workbench_PartDesign.svg|24px|link=PartDesign_Workbench]] [[PartDesign_Workbench|Part Design Workbench]]. If required select it from the [[Std_Workbench|Workbench dropdown list]]. Once there, you will want to create a new document if you have not done so already. It is a good habit to save your work often, so first save the new document, giving it any name you choose.
+
+All work in Part Design begins with a [[Glossary#Body|body]]. Click [[File:PartDesign_Body.svg|24px|link=PartDesign_Body]] [[PartDesign_Body|Create new body]] to create and activate one. Note that it is also possible to skip this step: when creating a sketch using the Part Design [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch]] [[PartDesign_NewSketch|Create sketch]] tool, if no existing body is found, a new one is automatically created and activated.
+
+== Master sketch ==
+
+The master sketch contains the model's rectangular base shape and two '''named constraints''' that will supply correct dimensions to other parts of the model: '''length''' that will contain 53 mm (the result of adding the 39 mm dimension to the two 7 mm sides), and '''width''' that will contain 26 mm. To be able to take advantage of the model's symmetry in later steps, the top edge of the rectangle will be centered around the origin with a symmetrical constraint.
+
+'''<big>Sketch</big>'''
+
+[[File:Pd_start_00.png|thumb|300px|Fig: MS1]]
+[[File:Pd_tut_sketch_start.png|thumb|300px|Fig: MS2]]
+[[File:Pd_tut_sel_points_h.png|thumb|300px|Fig: MS3]] 
+[[File:Pd_tut_rect_h_dim_end.png|thumb|300px|Fig: MS4]]
+[[File:Pd_tut_rect04.png|thumb|300px|Fig: MS5]]
+[[File:Pd_tut_rect_v3.png|thumb|300px|Fig: MS6]]
+
+'''Step A: Create the sketch'''
+
+# Click [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch]] [[PartDesign_NewSketch|Create sketch]]. This will create the sketch within the just created body. It will be named '''Sketch'''.
+# A task panel like '''Fig: MS1''' will open where you have to choose to which plane the sketch will be attached.
+## Select '''XY_Plane''' from the list or select that plane in the [[3D_view|3D view]].
+## Click {{Button|OK}}.
+# FreeCAD automatically switches to the [[File:Workbench_Sketcher.svg|24px|link=Sketcher_Workbench]] [[Sketcher_Workbench|Sketcher Workbench]].
+# The sketch is opened in edit mode: you will see something like '''Fig: MS2'''. The X axis (the red line) and Y axis (the green line) of the sketch are indicated, as well as its origin (the red point).
+
+'''Step B: Add geometry'''
+
+# Click [[File:Sketcher_CreateRectangle.svg|24px|link=Sketcher_CreateRectangle]] [[Sketcher_CreateRectangle|Create rectangle]].
+# While the tool is active the cursor has this appearance:<br>[[File:Pd_tut_rec_cursor.png]]
+# Pick two points to create a rectangle roughly centered around the '''Y axis''' similar to '''Fig: MS3'''. Note:
+#* Don't place points on an axis as the Solver will automatically apply constraints that will create problems later.
+#* The dimensions of the rectangle are unimportant at this point. They will be assigned using constraints in a later step.
+# Once done, press {{KEY|Esc}} or right-click to exit the tool.
+
+'''Step C: Assign a horizontal distance constraint'''
+
+# Select the line defined by '''P2''' and '''P3''' in '''Fig: MS3'''. The labels like P1, P2 etc. will not appear in sketches, they were added for reference in the images of this tutorial.
+# Click [[File:Sketcher_ConstrainDistanceX.svg|24px|link=Sketcher_ConstrainDistanceX]] [[Sketcher_ConstrainDistanceX|Horizontal distance constraint]]:
+## A dimension will appear between the endpoints of the selected line. This dimension is the current distance.
+## Additionally a dialog will appear:<br>[[File:Pd_tut_rect03.png]]
+## Assign '''Length = 53 mm'''.
+## To be able to reference this dimension later a name is required. You are free to use any name, it need only be unique within the sketch. Assign '''Name = length'''.
+## Click {{Button|OK}}.
+# The result should resemble '''Fig: MS4'''
+
+'''Step D: Assign a symmetrical constraint'''
+
+# Select points '''P2''' and '''P3''' of the rectangle.
+# Select the '''origin''' of the sketch. Note: the selection order of the points is important.
+# Click [[File:Sketcher_ConstrainSymmetric.svg|24px|link=Sketcher_ConstrainSymmetric]] [[Sketcher_ConstrainSymmetric|Symmetrical constraint]].
+# You will end up with something that resembles '''Fig: MS5'''.
+
+'''Step E: Assign a vertical distance constraint'''
+
+: Assign a vertical distance constraint following the same procedure as used for the previous horizontal distance constraint:
+
+# Select the line defined by '''P3''' and '''P4''' in '''Fig: MS3'''.
+# Click [[File:Sketcher_ConstrainDistanceY.svg|24px|link=Sketcher_ConstrainDistanceY]] [[Sketcher_ConstrainDistanceY|Vertical distance constraint]]:
+## Assign '''Length = 26 mm'''
+## Assign '''Name = width'''.
+## Click {{Button|OK}}.
+# The result should resemble '''Fig: MS6'''.
+# The sketch is fully constrained now:
+#* The lines in the sketch are bright green.
+#* The '''Solver messages''' section of the task panel displays '''Fully constrained'''.
+#* If you select any line or vertex of the sketch and try to drag it, it won't move.
+
+'''Step F: Close the sketch'''
+
+: Click {{Button|Close}} at the top of the [[Task_panel|tasks panel]] to leave sketch edit mode.
+
+{{Clear}}
+
+== Main profile ==
+
+The main profile is created by [[PartDesign_Pad|padding]] a new sketch.
+
+'''<big>Sketch001</big>'''
+
+[[File:OffsetSketch001.png|thumb|240px|right|Fig. MP1]]
+[[File:Pd_tut_side_fc.png|thumb|240px|Fig: MP2]]
+
+'''Step A: Create the sketch'''
+
+: Click [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch]] [[PartDesign_NewSketch|Create sketch]] and create a sketch attached to the '''YZ_Plane'''. FreeCAD will assign the name '''Sketch001'''.
+
+'''Step B: Add geometry'''
+
+# Click [[File:Sketcher_CreatePolyline.svg|24px|link=Sketcher_CreatePolyline]] [[Sketcher_CreatePolyline|Create polyline]] and make a shape like in '''Fig: MP1'''.
+# For the last point of the final segment make sure to pick the first point of the shape. The point will change color and you will see the symbol for a [[File:Sketcher_ConstrainCoincident.svg|24px|link=Sketcher_ConstrainCoincident]] [[Sketcher_ConstrainCoincident|Coincident constraint]] appear near the cursor. Coincident constraints have to be explicit. Just having two points visually coincident is not sufficient.
+# Press {{KEY|Esc}} or right-click to exit the tool.
+
+'''Step C: Assign constraints'''
+
+# The three vertical and horizontal constraints you see in the image should have been added automatically provided you drew those lines that way. If you didn't you need to add them.
+# Select the point '''P2''' and the '''Y axis''' of the sketch and apply a [[File:Sketcher_ConstrainPointOnObject.svg|24px|link=Sketcher_ConstrainPointOnObject]] [[Sketcher_ConstrainPointOnObject|Point onto object constraint]]. Because the sketch is attached to the YZ_Plane, the Y axis of the sketch does not match the Y axis of the body.
+# Select the '''origin''' and the point '''P1''' and apply a [[File:Sketcher_ConstrainHorizontal.svg|24px|link=Sketcher_ConstrainHorizontal]] [[Sketcher_ConstrainHorizontal|Horizontal constraint]]. Why not a [[File:Sketcher_ConstrainCoincident.svg|24px|link=Sketcher_ConstrainCoincident]] [[Sketcher_ConstrainCoincident|Coincident constraint]]? you might ask. Try it (and undo). The sketch will turn orange and a solver message '''Redundant constraints''' will appear. Because the line P1 to P2 has already been constrained to be vertical, the only remaining degree of freedom is P1's Y coordinate. The coincidence constraint sets both the X and Y coordinates to zero, but the X coordinate is already determined. The horizontal constraint, on the other hand, only sets the Y coordinate to zero, which is sufficient.
+# Select the line defined by the points '''P2''' and '''P3''', apply a [[File:Sketcher_ConstrainDistanceX.svg|24px|link=Sketcher_ConstrainDistanceX]] [[Sketcher_ConstrainDistanceX|Horizontal distance constraint]], and assign '''Length = 5 mm'''.
+# Select the line defined by the points '''P1''' and '''P2''', apply a [[File:Sketcher_ConstrainDistanceY.svg|24px|link=Sketcher_ConstrainDistanceY]] [[Sketcher_ConstrainDistanceY|Vertical distance constraint]], and assign '''Length = 26 mm'''.
+# Select the line defined by the points '''P1''' and '''P4''' and apply a [[File:Sketcher_ConstrainDistanceX.svg|24px|link=Sketcher_ConstrainDistanceX]] [[Sketcher_ConstrainDistanceX|Horizontal distance constraint]]:
+## For this value you will use a '''named constraint''' using [[Expressions|Expressions]]. To do so you have to click the little button in the '''Length''' input field: [[File:Bound-expression.svg|24px|link=Bound-expression]].
+## You will be presented with a new dialog named '''Formula editor''' that contains an input field and a '''Result:''' label, similar to the image below:<br>[[File:Pd_tut_expressions.png]]<br>When you start typing in the input field, you will be presented with some autocompletions.
+## Select the label of the sketch. In our case we want '''<code><<Sketch>>.</code>'''. Note the period after the label.
+## To select the '''named constraint''' "width", you first have to enter '''<code>Constraints.</code>''' with the period. Here autocomplete works.
+## To add "width", as yet autocompletion is not available, so complete the cell to read '''<code><<Sketch>>.Constraints.width</code>'''. If all went well the red error message after '''Result:''' has been replaced by the correct value as in the image below:<br>[[File:Pd_tut_expression_end.png]]
+## Click {{Button|OK}} to close the '''Formula editor''' dialog.
+## Click {{Button|OK}} to close the '''Insert length''' dialog.
+# You should have a fully constrained sketch similar to '''Fig: MP2'''.
+# Note the different colors used for distance constraints assigned using expressions, and those assigned specifying a length.
+
+'''Step D: Close the sketch'''
+
+: Click {{Button|Close}} at the top of the [[Task_panel|tasks panel]] to leave sketch edit mode.
+
+'''<big>Pad</big>'''
+
+[[File:Pd_tut_pad1.png|thumb|240px|Fig: MP3]]
+
+# Make sure '''Sketch001''' is selected.
+# Click [[File:PartDesign_Pad.svg|24px|link=PartDesign_Pad]] [[PartDesign_Pad|Pad]]:
+## The '''Pad parameters''' task panel opens.
+## For '''Type''' select {{ComboBox|Dimension}}.
+## For '''Length''' again use an expression, but this time enter '''<code><<Sketch>>.Constraints.length</code>'''. This should evaluate to 53 mm.
+## Select {{CheckBox|TRUE|Symmetric to plane}}.
+## Click {{Button|OK}} to close the task panel.
+# You should now have a solid as shown in '''Fig: MP3'''.
+
+{{Clear}}
+
+== Corner cutouts ==
+
+For the corner cutouts two features are added to the model. A [[PartDesign_Pocket|pocket]], based on another sketch, is used to create the first cutout, and this feature is then [[PartDesign_Mirrored|mirrored]].
+
+'''<big>Sketch002</big>'''
+
+[[File:Pd_tut_sk2_start.png|thumb|300px|Fig: CC1]]
+[[File:Pd_tut_sk2_eg01.png|thumb|300px|Fig: CC2]]
+[[File:Pd_tut_sk2_end.png|thumb|300px|Fig: CC3]]
+
+'''Step A: Hide the solid'''
+
+: Hide the just created solid: Select '''Pad''' and click the {{KEY|Spacebar}}.
+
+'''Step B: Create the sketch'''
+
+: Click [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch]] [[PartDesign_NewSketch|Create sketch]] and create a sketch attached to the '''XZ_Plane'''. The sketch will be named '''Sketch002'''.
+
+'''Step C: Add geometry'''
+
+# Select [[File:Sketcher_CreateRectangle.svg|24px|link=Sketcher_CreateRectangle]] [[Sketcher_CreateRectangle|Create rectangle]], and create a rectangle. Do not create it too near an axis, to avoid any automatic constraints that would make it difficult to move it into the correct position later.
+# Exit the tool.
+
+'''Step D: Assign dimensional constraints'''
+
+# Select one of the horizontal lines, apply a [[File:Sketcher_ConstrainDistanceX.svg|24px|link=Sketcher_ConstrainDistanceX]] [[Sketcher_ConstrainDistanceX|Horizontal distance constraint]], and assign a value of '''11 mm'''.
+# Select one of the vertical lines, apply a [[File:Sketcher_ConstrainDistanceY.svg|24px|link=Sketcher_ConstrainDistanceY]] [[Sketcher_ConstrainDistanceY|Vertical distance constraint]], and assign a value of '''5 mm'''.
+# You should obtain something similar to '''Fig: CC1'''.
+
+'''Step E: Close the sketch'''
+
+: Click {{Button|Close}}. '''Sketch002''' is not fully constrained at this stage.
+
+'''Step F: Make previous sketches visible'''
+
+: To use [[Sketcher_External|external geometry]], the sketches whose elements we want to reference must be visible. Make sure '''Sketch''' and '''Sketch001''' are both visible. Use the {{KEY|Spacebar}} to toggle visibility if needed. Expand the '''Pad''' node in the [[Tree_view|Tree view]] to access '''Sketch001'''.
+
+'''Step G: Add external geometry and fully constrain the sketch'''
+
+# Double click '''Sketch002''' to enter edit mode.
+# Rotate the view so you can clearly see the points as shown in '''Fig: CC2'''. This will ease subsequent steps. Note that the rectangle's initial position may be different in your sketch. 
+# Click [[File:Sketcher_External.svg|24px|link=Sketcher_External]] [[Sketcher_External|External geometry]].
+# While the tool is active the cursor has this appearance:<br>[[File:Pd_tut_eg_cursor.png]]
+# Select point '''P1''' in '''Fig: CC2'''. The selected point is added to the sketch as external geometry. In the '''Elements''' section of the task panel it will appear with a purple X icon or, {{Version|0.21}}, a purple dot icon.
+# With the tool still active select point '''P2''' in '''Fig: CC2'''. This external geometry should also appear in the '''Elements''' section.
+# Exit the tool.
+# Select point '''P1''' and point '''P3''' and apply a [[File:Sketcher_ConstrainVertical.svg|24px|link=Sketcher_ConstrainVertical]] [[Sketcher_ConstrainVertical|Vertical constraint]]. The rectangle will be aligned with the X position of '''P1'''.
+# Select point '''P2''' and point '''P3''' and apply a [[File:Sketcher_ConstrainHorizontal.svg|24px|link=Sketcher_ConstrainHorizontal]] [[Sketcher_ConstrainHorizontal|Horizontal constraint]]. The rectangle will be aligned with the Y position of '''P2'''. 
+# You should have a fully constrained sketch similar to '''Fig: CC3'''.
+
+'''Step H: Close the sketch'''
+
+: Click {{Button|Close}}.
+
+'''<big>Pocket</big>'''
+
+[[File:Pd_tut_pck01.png|thumb|300px|Fig: CC4]]
+[[File:Pd_tut_pck02-mir.png|thumb|300px|Fig: CC5]]
+
+To create the cutouts we will use the [[File:PartDesign_Pocket.svg|24px|link=PartDesign_Pocket]] [[PartDesign_Pocket|Pocket]] tool. This tool is the opposite of the Pad tool. Whereas the Pad tool adds material, the Pocket tool removes material.
+
+# Select '''Sketch002'''.
+# Click [[File:PartDesign_Pocket.svg|24px|link=PartDesign_Pocket]] [[PartDesign_Pocket|Pocket]]:
+## The '''Pocket parameters''' task panel opens.
+## Select '''Type''' {{ComboBox|Through all}}.
+## Check {{CheckBox|TRUE|Reversed}}
+## Click {{Button|OK}}.
+# You should have something that resembles '''Fig: CC4'''
+
+'''<big>Mirror</big>'''
+
+Instead of creating another sketch and pocketing it, we take advantage of the model's symmetry about the YZ plane and use [[File:PartDesign_Mirrored.svg|24px|link=PartDesign_Mirrored]] [[PartDesign_Mirrored|Mirrored]] to create the second cutout.
+
+# Select '''Pocket''' in the [[Tree_view|Tree view]].
+# Click [[File:PartDesign_Mirrored.svg|24px|link=PartDesign_Mirrored]] [[PartDesign_Mirrored|Mirrored]]:
+## The '''Mirrored parameters''' task panel opens. 
+## Select '''Plane''' {{ComboBox|Vertical sketch axis}} from the pulldown menu. The plane will be defined by this axis (the Y axis) and also by the Z axis of the sketch. Note that selecting '''Base YZ Plane''' would have the same result.
+## Click {{Button|OK}}.
+# You should now have a part that looks like '''Fig: CC5'''.
+
+{{Clear}}
+
+== Sides ==
+
+The sides are created in a similar manner, but instead of removing material we will add material with a [[PartDesign_Pad|pad]] feature.
+
+'''<big>Sketch003</big>'''
+
+[[File:Pd_tut_sk3_1.png|thumb|300px|Fig: SD1]]
+[[File:Pd_tut_pad001.png|thumb|300px|Fig: SD2]]
+[[File:Pd_tut_pad02-mir.png|thumb|300px|Fig: SD3]]
+
+# Make sure '''Sketch''' is visible, and '''Mirrored''' is hidden.
+# Click [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch]] [[PartDesign_NewSketch|Create sketch]] and create a new sketch attached to the '''XY_Plane'''. The sketch will be named '''Sketch003'''.
+# Click [[File:Sketcher_CreateRectangle.svg|24px|link=Sketcher_CreateRectangle]] [[Sketcher_CreateRectangle|Create rectangle]] and create a rectangle similar to the smaller rectangle in '''Fig: SD1'''. Because the rectangle is offset from the X axis this should not trigger an automatic [[File:Sketcher_ConstrainPointOnObject.svg|24px|link=Sketcher_ConstrainPointOnObject]] [[Sketcher_ConstrainPointOnObject|Point onto object constraint]].
+# Exit the tool.
+# Click [[File:Sketcher_External.svg|24px|link=Sketcher_External]] [[Sketcher_External|External geometry]].
+# Select the point '''P1''' as shown in '''Fig: CC2''' from '''Sketch'''.
+# Exit the tool.
+# Apply these constraints:
+## Select one of the horizontal lines, apply a [[File:Sketcher_ConstrainDistanceX.svg|24px|link=Sketcher_ConstrainDistanceX]] [[Sketcher_ConstrainDistanceX|Horizontal distance constraint]], and assign a value of '''7 mm'''.
+## Select one of the vertical lines, apply a [[File:Sketcher_ConstrainDistanceY.svg|24px|link=Sketcher_ConstrainDistanceY]] [[Sketcher_ConstrainDistanceY|Vertical distance constraint]], and assign this expression: '''<code><<Sketch>>.Constraints.width</code>'''.
+## Select the '''top-left''' point of the created rectangle (marked '''TL''' in '''Fig: SD1''') and the newly added '''external geometry point''' and apply a [[File:Sketcher_ConstrainCoincident.svg|24px|link=Sketcher_ConstrainCoincident]] [[Sketcher_ConstrainCoincident|Coincident constraint]].
+# The sketch should be fully constrained now.
+# Click {{Button|Close}}.
+
+'''<big>Pad001</big>'''
+
+# Select '''Sketch003'''.
+# Click [[File:PartDesign_Pad.svg|24px|link=PartDesign_Pad]] [[PartDesign_Pad|Pad]]:
+## Assign '''Type = ''' {{ComboBox|Dimension}}.
+## Assign '''Length = 16.7 mm''' 
+## Click {{Button|OK}}.
+# You should have a result as shown in '''Fig: SD2'''
+
+'''<big>Mirrored001</big>'''
+
+# Select '''Pad001'''.
+# Click [[File:PartDesign_Mirrored.svg|24px|link=PartDesign_Mirrored]] [[PartDesign_Mirrored|Mirrored]]:
+## Make sure '''Plane''' {{ComboBox|Vertical sketch axis}} is selected.
+## Click {{Button|OK}}.
+# You should now have a part that looks like '''Fig: SD3'''.
+
+'''<big>Note</big>'''
+
+Our two mirror operations have a common symmetry plane, so we could have made our model a little simpler by combining them. We would:
+# Omit the first '''Mirror''' operation.
+# Select both '''Pad001''' and '''Pocket''' in step 1 of the above '''Mirrored001''' operation.
+
+This emphasizes the important concept that we are mirroring the selected features (the operations we performed on the body, in the selected order), not the body itself.
+
+{{Clear}}
+
+== Center hole ==
+
+Now it is time for the most challenging part of our modeling, a challenge that arises because some of the dimensions of the center hole are defined along the slanted face. If you use this face, created by padding '''Sketch001''', as a reference for the next sketch, you expose yourself to the [[Topological_naming_problem|Topological Naming Problem]]. A better solution is to reference '''Sketch001''' itself.
+
+'''<big>Sketch004</big>'''
+
+[[File:Pd_tut_cen01.png|thumb|240px|Fig: CH1]]
+[[File:Pd_tut_cen02.png|thumb|240px|Fig: CH2]]
+
+# Make '''Sketch001''' visible, and hide '''Sketch''' and '''Mirrored001'''.
+# Click [[File:PartDesign_NewSketch.svg|24px|link=PartDesign_NewSketch]] [[PartDesign_NewSketch|Create sketch]] and create a new sketch attached to the '''YZ_Plane'''. The sketch will be named '''Sketch004'''.
+# Click [[File:Sketcher_CreatePolyline.svg|24px|link=Sketcher_CreatePolyline]] [[Sketcher_CreatePolyline|Create polyline]] and trace a polyline like that indicated by the points '''P1''', '''P2''', '''P3''' and '''P4''' in '''Fig: CH1'''.
+# Remember to close the polyline by picking the first point. This will create the required [[File:Sketcher_ConstrainCoincident.svg|24px|link=Sketcher_ConstrainCoincident]] [[Sketcher_ConstrainCoincident|Coincident constraint]].
+# Exit the tool.
+# Check the applied constraints:
+#* Delete the redundant [[File:Sketcher_ConstrainVertical.svg|24px|link=Sketcher_ConstrainVertical]]  [[Sketcher_ConstrainVertical|Vertical constraint]] applied to the line defined by '''P1''' and '''P2'''.
+#* Make sure a [[File:Sketcher_ConstrainHorizontal.svg|24px|link=Sketcher_ConstrainHorizontal]] [[Sketcher_ConstrainHorizontal|Horizontal constraint]] has been applied to the lines defined by '''P1''' and '''P4''', and '''P2''' and '''P3'''.
+#* Make sure a [[File:Sketcher_ConstrainPointOnObject.svg|24px|link=Sketcher_ConstrainPointOnObject]] [[Sketcher_ConstrainPointOnObject|Point onto object constraint]] has been applied to '''P1''' and the '''Y axis''', and to '''P2''' and the '''Y axis'''.
+# Click [[File:Sketcher_External.svg|24px|link=Sketcher_External]] [[Sketcher_External|External geometry]]
+# Select the line defined by '''EGP1''' and '''EGP2''' in '''Sketch001''', indicated by the purple color in '''Fig: CH2'''.
+# Exit the tool.
+# Apply a [[File:Sketcher_ConstrainPointOnObject.svg|24px|link=Sketcher_ConstrainPointOnObject]] [[Sketcher_ConstrainPointOnObject|Point onto object constraint]] to '''P3''' and the '''external geometry''', and repeat this for '''P4'''. This will make the line defined by '''P3''' and '''P4''' coincident with the line defined by '''EGP1''' and '''EGP2'''.
+# Select the line '''P3''' to '''P4''', apply a [[File:Sketcher_ConstrainDistance.svg|24px|link=Sketcher_ConstrainDistance]] [[Sketcher_ConstrainDistance|Distance constraint]], and assign '''Length = 17 mm'''
+# Select the points '''EGP2''' and '''P4''', apply a [[File:Sketcher_ConstrainDistance.svg|24px|link=Sketcher_ConstrainDistance]] [[Sketcher_ConstrainDistance|Distance constraint]], and assign '''Length = 7 mm'''.
+# This will result in a fully constrained sketch like '''Fig: CH2'''.
+# Click {{Button|Close}}.
+# Hide '''Sketch001'''.
+
+'''<big>Pocket001</big>'''
+
+# Select '''Sketch004'''.
+# Click [[File:PartDesign_Pocket.svg|24px|link=PartDesign_Pocket]] [[PartDesign_Pocket|Pocket]]:
+## Select '''Type''' {{ComboBox|Two Dimensions}}.
+## Assign '''8.5 mm''' to '''Length''' and '''2nd length'''.
+## Click {{Button|OK}}.
+# Select the newly created '''Pocket001'''.
+# On the Data tab of the [[Property_editor|Property editor]] change its '''Refine''' property to '''True'''. The property editor can be found on the Model tab of the [[Combo_view|Combo View]].
+
+'''<big>Notes</big>'''
+
+# For '''Pocket001''' we could have alternatively used '''Type''' {{ComboBox|Dimension}}, checked '''Symmetric to Plane''', and entered '''17 mm''' for the '''Length''' value.
+# '''Refine''' will try to remove seams left by previous operations. It is advisable to only refine the final solid, as some operations can fail if a previous feature has been refined. However, there are also cases where refine can make an operation succeed. So in case of problems check this property and test. Unfortunately there is not yet a general rule to follow.
+
+{{Clear}}
+
+== Result ==
+
+The model is complete. It should look like the image below.
+
+Finally, select '''Sketch''' in the [[Tree_view|Tree view]] and on the Data tab of the [[Property_editor|Property editor]] look for '''Sketch → Constraints'''. Expand that node and changed the '''length''' and '''width''' constraints. The model should change parametrically.
+
+[[File:Pd_tut_final_solid.png]]
+
+
+{{PartDesign Tools navi{{#translation:}}}}
+{{Sketcher Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
