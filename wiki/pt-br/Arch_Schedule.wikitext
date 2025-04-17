@@ -1,0 +1,117 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|[[Arch_MultiMaterial/pt-br|Multi-Material]]
+|[[Arch_CutLine/pt-br|Corte com uma linha]]
+|[[Arch_Workbench/pt-br|Arch]]
+|IconL=Arch_MultiMaterial.svg
+|IconR=Arch_CutLine.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS PART OF THE INTEGRATED [[BIM_Workbench|BIM WORKBENCH]] IN V1.0<br>
+This page has been updated for that version.}}
+
+{{GuiCommand
+|Name=Arch Schedule
+|MenuLocation=Manage → Schedule
+|Workbenches=[[BIM_Workbench|BIM]]
+|SeeAlso=
+}}
+
+<span id="Description"></span>
+==Descrição==
+
+The '''Arch Schedule''' tool allows you to create and automatically populate a [[Spreadsheet_Workbench|spreadsheet]] with contents gathered from the model.
+
+For a more general solution, see the [https://github.com/furti/FreeCAD-Reporting/tree/master Reporting Workbench] in the list of [[External_workbenches|external workbenches]]. This workbench uses SQL syntax to extract information from the document.
+
+<span id="Usage"></span>
+==Utilização==
+
+# Open or create a FreeCAD document which contains some objects.
+# Press the {{Button|[[Image:Arch_Schedule.svg|16px]] [[Arch_Schedule|Schedule]]}} button.
+# Adjust the desired options. Enable the {{MenuCommand|Associate spreadsheet}} option if you want the schedule to generate a FreeCAD [[Spreadsheet_Workbench|spreadsheet]]. Or, alternatively, right-click the schedule in the [[Tree_view|Tree view]] after creation, and select {{MenuCommand|Attach spreadsheet}} from the context menu.
+# Press {{Button|OK}}.
+
+==Workflow==
+
+First you need to have a model. For example, here is a document with a couple of Arch objects, but other objects are also supported.
+
+[[Image:Arch_schedule_example01.jpg]]
+
+When you press the {{Button|[[Image:Arch_Schedule.svg|16px]] [[Arch_Schedule|Schedule]]}} button this dialog opens:
+
+[[Image:ArchSchedule.png]]
+
+You can now fill the schedule row by row. Each row is a "query" and will render one row in the spreadsheet. Press the {{Button|[[Image:List-add.svg|16px]] Add row}} button to add a new row, and double-click each cell from that row to fill in the values. The {{Button|[[Image:List-remove.svg|16px]] Del row}} button will delete the row which contains a currently selected cell, and {{Button|[[Image:Delete.svg|16px]] Clear}} will delete all rows. Possible values to put in columns are:
+
+* '''Description''': A description for this query. The Description column will be the first column of the resulting spreadsheet. The description is mandatory to have a query performed. If you leave the description cell empty, the whole row will be skipped and left blank in the spreadsheet. This allows you to add "separator" rows.
+* '''Property''': This is the real query that you want to perform on all the objects selected by the query. It can be two things: either the word {{incode|count}} or an object property:
+** If you enter {{incode|count}} (or {{incode|Count}} or {{incode|COUNT}}, it's case-insensitive) the selected objects will simply be counted.
+** If you enter an object property the value of this property will be retrieved for each of the selected objects and summed up. Objects that do not have the given property will be skipped. Generally a property name will be that shown in the [[Property_editor|Property editor]], without spaces (e.g. type {{incode|PerimeterLength}} in the Property column if the object has a {{incode|Perimeter Length}} in the Property editor). Use the dot notation to retrieve properties of properties: {{incode|PropertyOfObject.PropertyOfProperty1.PropertyOfProperty2}}. If the property before the first dot starts with a lowercase letter it will be considered a reference to the object itself and be ignored. Entering for example {{incode|object.Shape.Volume}} is the same as entering {{incode|Shape.Volume}}.
+* '''Unit''': An optional unit to express the results in. It's up to you to give a unit that matches the query you are doing, for example, if you are retrieving volumes, you should use a volume unit, such as {{incode|m^3}} or {{incode|m³}}. If you use a wrong unit for the property, e.g. {{incode|cm}} for volume, you'll get wrong results.
+* '''Objects''': You can leave this empty, then all the objects of the document will be considered by this query, or give a semicolon{{incode|;}}-separated list of object names. If any of the objects in this list is a group, its children will be selected as well. So the easiest way to use this feature is to group your objects meaningfully in the document, and just give a group name here. You can also use the {{Button|[[Image:Edit-select-all.svg|16px]] Add selection}} button to add objects currently selected in the document. You must use internal names here. To select objects by their label, leave this column empty and use the Filter column instead.
+* '''Filter''': Here you can add a semicolon{{incode|;}}-separated list of filters. Each filter is written in the form: {{incode|property:value}}. You can only use properties that hold a string value. Both the property and the value are case-insensitive. The {{incode|value}} can be left out but not the {{incode|:}}. To properly handle schedules created with previous versions of Arch Schedule the {{incode|type}} property will be translated to the {{incode|ifctype}} property. It is advisable to not use {{incode|type}} in new schedules.
+
+{| class="wikitable"
+|+ Example filter queries
+|-
+! Query
+! Description
+|-
+| {{incode|label:floor1;ifctype:window}}
+| Will retain only objects that have "floor1" in their {{PropertyData|Label}} and "window" in their {{PropertyData|IFC Type}}. A window with the {{PropertyData|Label}} "Floor1-AA" and the {{PropertyData|IFC Type}} "Window Standard Case" will be included.
+|-
+| {{incode|label:door}}
+| Will retain only objects that have "door" in their {{PropertyData|Label}}
+|-
+| {{incode|!label:door}}
+| Will retain only objects that do not have "door" in their {{PropertyData|Label}}
+|-
+| {{incode|ifctype:structural}}
+| Will retain only objects that have "structural" in their {{PropertyData|IFC Type}}
+|-
+| {{incode|!ifctype:structural}}
+| Will retain only objects that do not have "structural" in their {{PropertyData|IFC Type}} or that do not have the {{PropertyData|IFC Type}} property
+|-
+| {{incode|!ifctype:}}
+| Will retain only objects that do not have the {{PropertyData|IFC Type}} property
+|}
+
+The {{Button|[[Image:Document-open.svg|16px]] Import}} button allows you to build this list in another spreadsheet application, and import that as a csv file here.
+
+The finished schedule may look like this:
+
+[[Image:ArchScheduleExample.png]]
+
+Finally, press {{Button|OK}} and a new schedule is added to the document. If the related option has been selected, the schedule will contain an associate spreadsheet:
+
+[[Image:Arch_schedule_example04.jpg]]
+
+To edit an existing schedule double-click it in the Tree view. By double-clicking the spreadsheet, you get the results in 3 columns: Description, Value, Unit (if applicable):
+
+[[Image:Arch_schedule_example05.jpg]]
+
+The spreadsheet can then be exported to csv normally, from the [[Spreadsheet_Workbench|Spreadsheet Workbench]].
+
+==Dynamic properties==
+
+It is possible to add your own properties to objects. These are called [[Property_editor#Actions|Dynamic properties]]. If they have been added with the {{MenuCommand|Prefix group name}} option selected, their names will indeed start with the group name, but this prefix is not displayed in the [[Property_editor|Property editor]]. Their names have this form: {{incode|NameOfGroup_NameOfProperty}}. To reference them in a schedule this full name must be used.
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|[[Arch_MultiMaterial/pt-br|Multi-Material]]
+|[[Arch_CutLine/pt-br|Corte com uma linha]]
+|[[Arch_Workbench/pt-br|Arch]]
+|IconL=Arch_MultiMaterial.svg
+|IconR=Arch_CutLine.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
