@@ -1,0 +1,193 @@
+<languages/>
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|[[Arch_Floor/pt-br|Piso]]
+|[[Arch_Building/pt-br|Edifício]]
+|[[Arch_Workbench/pt-br|Arch]]
+|IconL=Arch_Floor.svg
+|IconR=Arch_Building.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{VeryImportantMessage|THIS COMMAND IS OBSOLETE<br>
+It is not available in {{VersionPlus|1.0}}.<br>The BuildingPart object however is not obsolete, the [[Arch_Building|Arch Building]] and [[Arch_Floor|Arch Floor]] commands are used to create it instead.}}
+
+{{GuiCommand
+|Name=Arch BuildingPart
+|MenuLocation=Arch → BuildingPart, 3D/BIM → Level
+|Workbenches=[[Arch_Workbench|Arch]]
+|Version=0.18
+|SeeAlso=[[Arch_Building|Arch Building]], [[Arch_Site|Arch Site]]
+}}
+
+<span id="Description"></span>
+==Descrição==
+
+The BuildingPart object can be used in all kinds of situations where different Arch/BIM objects need to be grouped and that group might need to be handled as one object or replicated.
+
+<span id="Usage"></span>
+==Utilização==
+
+# Optionally, select one or more objects to be included in your new Building Part.
+# Press the {{Button|[[Image:Arch BuildingPart.svg|16px]] [[Arch_BuildingPart|Arch BuildingPart]]}} button.
+
+<span id="Notes"></span>
+==Notas==
+
+BuildingParts have a built-in, implicit [[Arch_SectionPlane|Arch SectionPlane]].
+
+This plane is always parallel to the BuildingPart's base plane, but you can specify the offset between them. So all tools that work with a section plane, such as [[Draft_Shape2DView|Draft Shape2DView]] and [[TechDraw_ArchView|TechDraw ArchView]] also work with BuildingParts.
+
+<span id="Options"></span>
+==Opções==
+
+* After creating a BuildingPart, you can add more objects to it by dragging and dropping them in the Tree View or by using the {{Button|[[Image:Arch Add.svg|16px]] [[Arch_Add|Arch Add]]}} tool.
+* You can remove objects from a BuildingPart by dragging and dropping them out of the Tree View or by using the {{Button|[[Image:Arch Remove.svg|16px]] [[Arch_Remove|Arch Remove]]}} tool.
+* By double-clicking the BuildingPart object in the tree view, the [[Draft_SelectPlane|Working Plane]] will be set to its location, and the BuildingPart will become active, which means that new objects will be added automatically to it. Double-clicking the BuildingPart again will deactivate it and set the working plane back to its previous position (to be available this option needs to be set up as true, in View Property panel - Interaction - Double Click Activates).
+* The BuildingPart can display a mark in the 3D view with a label and level indication.
+* When a BuildingPart is moved/rotated, all its children that either have no {{PropertyData|Move With Host}} property, or have it turned on, will move/rotate together.
+* Building Parts can be [[Draft Clone|Draft Clone]]d.
+* Building Parts can take any IFC type. Its '''IFC Type''' property determines its use. If you set it to '''Building Storey''' it will behave as a level. If you set it to '''Building''' it behaves as a building, and if you set it to '''Element Assembly''' it behaves as an assembly. Its icon will change to reflect this setting, but other than that it has no other impact in FreeCAD. However, being exported to IFC as one or another type can have an impact in other BIM applications.
+* Building Parts allow to define an '''Auto-group capture box'''. Subsequent Draft and Arch objects, or anything else that uses Draft.autogroup(), will be automatically added to that Building Part if they are fully inside the capture box. {{Version|0.20}}
+
+<span id="Properties"></span>
+==Propriedades==
+
+See also: [[Property_editor|Property editor]].
+
+An Arch BuildingPart is derived from an [[App_GeoFeature|App GeoFeature]] object and inherits all its properties. It also has the following additional properties:
+
+===Data===
+
+{{TitleProperty|Base}}
+
+* {{PropertyData|Group|LinkList}}: List of referenced objects.
+* {{PropertyData|_ Group Touched|Bool|Hidden}}
+
+{{TitleProperty|Building Part}}
+
+* {{PropertyData|Area|Area}}: The computed floor area of this floor.
+* {{PropertyData|Height|Length}}: The height of this object, and of its children objects. The children objects could be, for example, [[Arch Wall|Arch Walls]]. Each wall's height must be set to {{incode|0}} (zero), so the height property of the BuildingPart propagates to the objects inside of it.
+* {{PropertyData|Level Offset|Length}}: The level of the (0,0,0) point of this level. This value is added to the {{incode|Placement.Base.z}} attribute of the BuildingPart, to indicate a vertical offset without actually moving the object. The resulting offset is displayed if {{PropertyView|Show Level}} is {{TRUE}}.
+* {{PropertyData|Materials Table|Map|Hidden}}: A MaterialName:SolidIndexesList map that relates material names with solid indexes to be used when referencing this object from other files.
+* {{PropertyData|Only Solids|Bool}}: If true, only solids will be collected by this object when referenced from other files.
+* {{PropertyData|Saved Inventor|FileIncluded|Hidden}}: This property stores an inventor representation for this object.
+* {{PropertyData|Shape|PartShape|Hidden}}: The shape of this object.
+
+{{TitleProperty|Children}}
+
+* {{PropertyData|Height Propagate|Bool}}: If true, the height value propagates to contained objects. See the {{PropertyData|Height}} property for additional conditions that apply.
+
+{{TitleProperty|IFC}}
+
+* {{PropertyData|Ifc Data|Map|Hidden}}: IFC data.
+* {{PropertyData|Ifc Properties|Map|Hidden}}: IFC properties of this object.
+* {{PropertyData|Ifc Type|Enumeration}}: The IFC type of this object.
+
+{{TitleProperty|IFC Attributes}}
+
+* {{PropertyData|Description|String}}: An optional description for this component
+* {{PropertyData|Global Id|String}}
+* {{PropertyData|Object Type|String}}
+* {{PropertyData|Overall Height|Length}}
+* {{PropertyData|Overall Width|Length}}
+* {{PropertyData|Partitioning Type|Enumeration}}
+* {{PropertyData|Predefined Type|Enumeration}}
+* {{PropertyData|Tag|String}}: An optional tag for this component.
+* {{PropertyData|User Defined Partitioning Type|String}}
+
+===View===
+
+{{TitleProperty|Auto Group}}
+
+* {{PropertyView|Autogroup Autosize|Bool}}: Automatically set the capture box size from the Building Part contents. {{Version|0.20}}
+* {{PropertyView|Autogroup Box|Bool}}: Turns auto grouping (and the display of the capture box) on/off. {{Version|0.20}}
+* {{PropertyView|Autogroup Margin|Length}}: A margin to use when autosize is turned on. {{Version|0.20}}
+* {{PropertyView|Autogroup Size|IntegerList}}: The capture box for newly created objects expressed as [XMin,YMin,ZMin,XMax,YMax,ZMax]. {{Version|0.20}}
+
+{{TitleProperty|Building Part}}
+
+* {{PropertyView|Diffuse Color|ColorList|Hidden}}: The individual face colors.
+* {{PropertyView|Display Offset|Placement}}: A transformation to apply to the level mark.
+* {{PropertyView|Font Name|Font}}: The font to be used for texts.
+* {{PropertyView|Font Size|Length}}: The font size of texts.
+* {{PropertyView|Line Width|Float}}: The line width of this object.
+* {{PropertyView|Origin Offset|Bool}}: If true, when activated, Display offset will affect the origin mark too.
+* {{PropertyView|Override Unit|String}}: An optional unit to express levels.
+* {{PropertyView|Show Label|Bool}}: If true, when activated, the object's label is displayed.
+* {{PropertyView|Show Level|Bool}}: If true, show the level.
+* {{PropertyView|Show Unit|Bool}}: If true, show the unit on the level tag.
+
+{{TitleProperty|Children}}
+
+* {{PropertyView|Children Line Color|Color}}: The line color to apply to the children of this Building Part.
+* {{PropertyView|Children Line Width|Float}}: The line width to apply to the children of this Building Part.
+* {{PropertyView|Children Override|Bool}}: If true, the objects contained in this Building Part will adopt these line, color and transparency settings.
+* {{PropertyView|Children Shape Color|Color}}: The shape color to apply to the children of this Building Part.
+* {{PropertyView|Children Transparency|Percent}}: The transparency to apply to the children of this Building Part.
+
+{{TitleProperty|Clip}}
+
+* {{PropertyView|Auto Cut View|Bool}}: Turn cutting on when activating this level.
+* {{PropertyView|Cut Margin|Length}}: The distance between the level plane and the cut line.
+* {{PropertyView|Cut View|Bool}}: Cut the view above this level.
+
+{{TitleProperty|Interactions}}
+
+* {{PropertyView|Auto Working Plane|Bool}}: If set to True, the working plane will be kept on Auto mode.
+* {{PropertyView|Double Click Activates|Bool}}: If True, double-clicking this object in the tree activates it.
+* {{PropertyView|Restore View|Bool}}: If set, the view stored in this object will be restored on double-click.
+* {{PropertyView|Save Inventor|Bool}}: If this is enabled, the inventor representation of this object will be saved in the FreeCAD file, allowing to reference it in other files in lightweight mode.
+* {{PropertyView|Saved Inventor|FileIncluded|Hidden}}: A slot to save the inventor representation of this object, if enabled.
+* {{PropertyView|Set Working Plane|Bool}}: If true, when activated, the working plane will automatically adapt to this Building Part.
+* {{PropertyView|View Data|FloatList|Hidden}}: Camera position data associated with this object.
+
+==Scripting==
+
+{{Emphasis|See also:}} [[Arch_API|Arch API]] and [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]].
+
+The BuildingPart tool can be used in [[Macros|macros]] and from the [[Python|Python]] console by using the following function:
+
+{{Code|code=
+BuildingPart = makeBuildingPart(objectslist=None)
+}}
+
+* Creates a {{incode|BuildingPart}} object from {{incode|objectslist}}, which is a list of objects.
+
+Example:
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+p1 = FreeCAD.Vector(0, 0, 0)
+p2 = FreeCAD.Vector(2000, 0, 0)
+baseline = Draft.makeLine(p1, p2)
+baseline2 = Draft.makeLine(p1, -1*p2)
+
+Wall1 = Arch.makeWall(baseline, length=None, width=150, height=2000)
+Wall2 = Arch.makeWall(baseline2, length=None, width=150, height=1800)
+FreeCAD.ActiveDocument.recompute()
+
+BuildingPart = Arch.makeBuildingPart([Wall1, Wall2])
+
+Floor = Arch.makeFloor([BuildingPart])
+Building = Arch.makeBuilding([Floor])
+Site = Arch.makeSite(Building)
+FreeCAD.ActiveDocument.recompute()
+}}
+
+
+<div class="mw-translate-fuzzy">
+{{Docnav
+|[[Arch_Floor/pt-br|Piso]]
+|[[Arch_Building/pt-br|Edifício]]
+|[[Arch_Workbench/pt-br|Arch]]
+|IconL=Arch_Floor.svg
+|IconR=Arch_Building.svg
+|IconC=Workbench_Arch.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
