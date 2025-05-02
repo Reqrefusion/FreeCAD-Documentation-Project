@@ -1,0 +1,101 @@
+<languages/>
+{{Macro/ru
+|Name=Macro Copy3DViewToClipboard
+|Icon=Macro_Copy3DViewToClipboard.png
+|Description=Макрос скопирует содержимое 3D-вида в буфер обмена в виде растрового изображения (BMP).<br/>Копирование в Gimp невозможно. Gimp использует свой собственный метод для функции копирования. 
+|Author=Mario52
+|Version=00.01
+|Date=2016-09-14
+|FCVersion= <=0.17
+|Download=[https://www.freecadweb.org/wiki/images/8/84/Macro_Copy3DViewToClipboard.png ToolBar Icon]
+|Shortcut=G, Q
+|SeeAlso=[[Macro_Snip/ru|Макрос Snip (Обрезать)]] [[Image:Snip.png|24px]]<br/>[[Macro Screen Wiki/ru|Макрос Screen Wiki (Вики на Экране)]] [[Image:Macro_Screen_Wiki.png|24px]]
+}}
+
+<span id="Description"></span>
+== Описание ==
+
+Macro will copy the contents of the 3D view to the clipboard in bitmap (BMP) image. Copying in Gimp is not possible. Gimp uses its own method for the copy function. 
+
+{{Codeextralink|https://gist.githubusercontent.com/mario52a/f5c3738f858f7b058897c6c235232cbe/raw/a10bc3b8789badc1e405541d4697d7286d9f0fd3/Macro_Copy3DViewToClipboard.FCMacro}}
+
+==How To Use==
+
+*Run once to activate macro (the macro is loaded resident into the memory of the PC).
+*Press {{KEY|G}} to grab the contents of the 3d view and copy them to the clipboard.
+*Press {{KEY|Q}} to quit.
+
+PS: if you want other formats, modify the values of the line number 33 ex:
+
+line 33 : '''''glw.resize(640, 480)                                    # reduce the SubWindow'''''
+
+to
+
+line 33 : '''''glw.resize(800, 600)                                    # reduce the SubWindow'''''
+
+==Discussion==
+
+See [http://forum.freecadweb.org/viewtopic.php?f=3&t=16731 forum-thread here].
+
+==Code==
+
+The icon for you toolbar  [[File:Macro_Copy3DViewToClipboard.png]]
+
+
+'''Macro_Copy3DViewToClipboard.FCMacro'''
+
+{{MacroCode|code=
+# -*- coding: utf-8 -*-
+import PySide
+from PySide.QtGui import *
+from PySide import QtGui ,QtCore
+from PySide import QtOpenGL
+#from gimpfu import *
+ 
+__title__   = "Macro_Copy3DViewToClipboard"
+__author__  = "Mario52"
+__url__     = "http://www.freecadweb.org/index-fr.html"
+__version__ = "00.01"
+__date__    = "14/09/2016"
+           
+class ViewObserver:
+    print "run FCGrab .."
+ 
+    def logPosition(self, info):
+        import tempfile
+        import os
+        from PySide import QtGui
+ 
+        pos = info["Key"]
+        if pos.upper() == "G":
+            pos = ""
+           
+            mw=Gui.getMainWindow()
+            gl=mw.findChildren(QtOpenGL.QGLWidget)
+            glw=gl[0] # just use the first element
+ 
+            originalsize = glw.size()                               # originalsize SubWindow
+            print "originalsize : ",originalsize.width(),", ", originalsize.height()
+ 
+            glw.resize(640, 480)                                    # reduce the SubWindow
+            glw.show()
+            Gui.SendMsgToActiveView("ViewFit")
+            print "resize in : ",glw.frameGeometry().width()," ",glw.frameGeometry().height()
+ 
+            i=glw.grabFrameBuffer()
+            cb=QtGui.qApp.clipboard()
+            cb.setImage(i)
+            glw.resize(originalsize.width(), originalsize.height()) # restore originalsize SubWindow
+            print "Grab"
+ 
+        if (pos.upper() == "Q"):
+            v.removeEventCallback("SoKeyboardEvent",c)
+            print "End FCGrab"
+ 
+ 
+v=Gui.activeDocument().activeView()
+o = ViewObserver()
+c = v.addEventCallback("SoKeyboardEvent",o.logPosition)
+
+}}
+{{clear}}
