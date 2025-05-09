@@ -90,13 +90,13 @@ Man beachte, dass es auch eine Alternative zu {{incode|addEventCallbackPivy()}} 
 def getpoint(self, event_cb):
 }}
 
-Nun definieren wir die Funktion {{incode|getpoint()}}, die beim Drücken einer Maustaste in einer 3D-Ansicht ausgeführt wird. Diese Funktion erhält ein Argument, das wir {{incode|event_cb}} nennen. Von dieser Ereignisrückmeldung aus können wir auf das Ereignisobjekt zugreifen, das verschiedene Informationen enthält (weitere Informationen [[Code_snippets/de#Mausereignisse_in_der_3D-Ansicht_beobachten_mit_Python|Hier]]).
+Nun definieren wir die Funktion {{incode|getpoint()}}, die ausgeführt wird, wenn eine Maustaste in einer 3D-Ansicht gedrückt wird. Diese Funktion empfängt ein Argument, das wir {{incode|event_cb}} nennen. Von diesem Ereignisrückruf (event callback) aus können wir auf das Ereignisobjekt zugreifen, das verschiedene Informationen enthält (weitere Infos findet man [[Code_snippets/de#Mausereignisse_in_der_3D-Ansicht_beobachten_mit_Python|hier]]).
 
 {{Code|code=
 if event.getState() == SoMouseButtonEvent.DOWN:
 }}
 
-Die {{incode|getpoint()}} Funktion wird aufgerufen, wenn eine Maustaste gedrückt oder losgelassen wird. Aber wir wollen einen 3D Punkt nur dann aufnehmen, wenn er gedrückt ist, sonst würden wir zwei 3D Punkte sehr nahe aneinander bekommen. Das müssen wir also hier überprüfen.
+Die {{incode|getpoint()}} Funktion wird aufgerufen, wenn eine Maustaste gedrückt oder losgelassen wird. Aber wir wollen einen 3D-Punkt nur dann auswählen, wenn eine Maustaste gedrückt wird, andernfalls würden wir zwei 3D-Punkte sehr nahe beieinander erhalten. Daher müssen wir das an dieser Stelle überprüfen.
 
 {{Code|code=
 pos = event.getPosition()
@@ -108,7 +108,7 @@ Hier erhalten wir die Bildschirmkoordinaten des Mauszeigers.
 point = self.view.getPoint(pos[0], pos[1])
 }}
 
-Diese Funktion gibt uns einen FreeCAD Vektor (x,y,z), der den 3D Punkt enthält, der auf der Brennpunktebene direkt unter unserem Mauszeiger liegt. Wenn Du Dich in der Kameraansicht befindest, stelle dir einen Strahl vor, der von der Kamera kommt, durch den Mauszeiger hindurchgeht und auf die Brennpunktebene trifft. Das ist die Position ist unseres 3D Punktes. Wenn wir uns in der orthogonalen Ansicht befinden, ist der Strahl parallel zur Blickrichtung.
+Diese Funktion liefert uns einen FreeCAD-Vektor (x,y,z), der den 3D-Punkt enthält, der auf der fokussierten Ebene direkt unter unserem Mauszeiger liegt. Befindet man sich in der Kameraansicht befindest, kann man sich einen Strahl vorstellen, der von der Kamera kommt, durch den Mauszeiger hindurchgeht und auf die fokussierte Ebene trifft. Das ist die Position unseres 3D-Punktes. Wenn wir uns in der orthogonalen Ansicht befinden, ist der Strahl parallel zur Blickrichtung.
 
 {{Code|code=
 self.stack.append(point)
@@ -120,36 +120,36 @@ Wir fügen unseren neuen Punkt dem Stapel hinzu.
 if len(self.stack) == 2:
 }}
 
-Haben wir schon genug Punkte? Wenn ja, dann zeichnen wir die Linie!
+Haben wir schon genug Punkte? Wenn ja, dann zeichnen wir jetzt die Linie!
 
 {{Code|code=
 l = Part.LineSegment(self.stack[0], self.stack[1])
 }}
 
-Hier verwenden wir die {{incode|LineSegment()}}-Funktion aus dem Part-Arbeitsbereich, die eine Linie aus zwei FreeCAD-Vektoren erzeugt. Die Linie ist nicht an irgendein Objekt unseres aktiven Dokuments gebunden, so dass nichts auf dem Bildschirm erscheint.
+Hier verwenden wir die Funktion {{incode|LineSegment()}} aus dem Modul Part, die eine Linie aus zwei FreeCAD-Vektoren erstellt. Die Linie ist nicht an irgendein Objekt unseres aktiven Dokuments gebunden, so dass nichts auf dem Bildschirm erscheint.
 
 {{Code|code=
 shape = l.toShape()
 }}
 
-Das FreeCAD Dokument kann nur Formen aus dem Part Modul übernehmen. Formen sind der grundlegendste Typ des Part Moduls. Daher müssen wir unsere Linie in eine Form konvertieren, bevor wir sie dem Dokument hinzufügen.
+Das FreeCAD-Dokument kann nur Formen (Shapes) aus dem Modul Part übernehmen. Formen sind der grundlegendste Typ des Moduls Part. Daher müssen wir unsere Linie in eine Form konvertieren, bevor wir sie dem Dokument hinzufügen.
 
 {{Code|code=
 Part.show(shape)
 }}
 
-Das Part Modul hat eine sehr nützliche {{incode|show()}} Funktion, die ein neues Objekt im Dokument erzeugt und eine Form daran bindet. Wir hätten auch zuerst ein neues Objekt im Dokument erstellen können, und dann die Form manuell an dieses Objekt binden können.
+Das Modul Part hat eine sehr nützliche Funktion {{incode|show()}}, die ein neues Objekt im Dokument erzeugt und eine Form daran bindet. Wir hätten auch zuerst ein neues Objekt im Dokument erstellen können und dann die Form manuell an dieses Objekt binden.
 
 {{Code|code=
 self.view.removeEventCallbackPivy(SoMouseButtonEvent.getClassTypeId(), self.callback)
 }}
 
-Da wir mit unserer Linie fertig sind, entfernen wir den Rückrufmechanismus hier.
+Da wir mit unserer Linie fertig sind, entfernen wir den Rückrufmechanismus an dieser Stelle.
 {{Top}}
 <span id="Testing_the_script"></span>
 ==Testen des Skripts==
 
-Nun speichern wir unser Skript an einem Ort, an dem der FreeCAD Python Interpreter es finden kann. Beim Import von Modulen wird der Interpreter an folgenden Stellen suchen: die Python Installationspfade, das FreeCAD bin Verzeichnis und alle FreeCAD Modulverzeichnisse. Die beste Lösung ist also, ein neues Verzeichnis in einem der FreeCAD [[Installing_more_workbenches/de|Mod Verzeichnisse]] anzulegen und unser Skript darin zu speichern. Erstellen wir zum Beispiel ein Verzeichnis "MyScripts" und speichern unser Skript als "exercise.py".
+Nun speichern wir unser Skript an einem Ort, an dem FreeCADs Python-Interpreter es finden kann. Beim Import von Modulen wird der Interpreter an folgenden Stellen suchen: die Python-Installationspfade, FreeCADs {{FileName|bin}}-Verzeichnis und alle FreeCAD {{FileName|Mod}}-Verzeichnisse (Modulverzeichnisse). Die beste Lösung ist also, ein neues Verzeichnis in einem von FreeCADs {{FileName|Mod}}-Verzeichnissen anzulegen. Erstellen wir also ein Verzeichnis {{FileName|MyScripts}} und sichern darin unser Skript unter dem Namen {{FileName|exercise.py}}.
 
 Nun, alles ist bereit. Lass uns FreeCAD starten, ein neues Dokument erstellen und im Python Interpreter eingeben:
 
