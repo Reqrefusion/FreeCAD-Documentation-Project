@@ -1,0 +1,134 @@
+<languages/>
+
+{{Docnav
+|[[Draft_ShapeString|ShapeString]]
+|[[Draft_Text|Text]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_ShapeString.svg
+|IconR=Draft_Text.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{GuiCommand
+|Name=Draft Hatch
+|MenuLocation=Drafting → Hatch<br>Annotation → Hatch
+|Workbenches=[[Draft_Workbench|Draft]], [[BIM_Workbench|BIM]]
+|Shortcut={{KEY|H}} {{KEY|A}}
+|Version=0.20
+|SeeAlso=[[Draft_Pattern|Draft Pattern]]
+}}
+
+<span id="Description"></span>
+== Описание ==
+
+The [[Image:Draft_Hatch.svg|24px]] '''Draft Hatch''' command creates hatches on the planar faces of a selected object.
+
+== Usage ==
+
+# Select an object with faces. Only the planar faces of the object will be hatched.
+# There are several ways to invoke the command:
+#* Press the {{Button|[[Image:Draft_Hatch.svg|16px]] [[Draft_Hatch|Hatch]]}} button.
+#* [[Draft_Workbench|Draft]]: Select the {{MenuCommand|Drafting → [[Image:Draft_Hatch.svg|16px]] Hatch}} option from the menu.
+#* [[BIM_Workbench|BIM]]: Select the {{MenuCommand|Annotation → [[Image:Draft_Hatch.svg|16px]] Hatch}} option from the menu.
+#* Use the keyboard shortcut: {{KEY|H}} then {{KEY|A}}.
+# The {{MenuCommand|Hatch}} task panel opens. See [[#Options|Options]] for more information.
+# Press the {{Button|OK}} button to finish the command.
+
+== Options ==
+
+* Press the {{Button|...}} button to select a {{MenuCommand|PAT file}}. See [[#Notes|Notes]].
+* Select a {{MenuCommand|Pattern}} from the file.
+* Specify a {{MenuCommand|Scale}} for the pattern.
+* Specify a {{MenuCommand|Rotation}} for the pattern.
+* Press {{KEY|Esc}} or the {{Button|Cancel}} button to abort the command.
+
+== Pattern alignment ==
+
+When the hatch pattern for a face is calculated it is temporarily translated to the global XY plane by default. For a face with straight edges the first straight edge determines how this happens. The first point of that edge is put on the origin, and the edge itself is aligned with the X-axis. If you create [[Draft_Wire|Draft Wires]] with that in mind you can control how the hatch pattern is aligned with the outline of the face.
+
+If all faces of the selected object are on the global XY plane you can switch off this default behavior by setting the {{PropertyData|Translate}} property of the Draft Hatch to {{FALSE}}. The hatch pattern is then aligned with the origin and the X axis of the global coordinate system. For faces on the XY plane with straight edges the {{PropertyData|Translate}} property can be used to switch between absolute (on the left in the image) and relative (on the right in the image) patterns.
+
+[[Image:Draft_Hatch_alignment.png|400px]]
+{{Caption|
+Two Draft Wires with hatches.<br>
+The wires were created in a CCW direction starting from the bottom left point.<br>
+For the Draft Hatch on the left the Translate property is set to false.<br>
+For the Draft Hatch on the right it is set to true.
+}}
+
+== Notes ==
+
+* For now the advice is to download a PAT file. Many can be found online. You can for example do a web search for {{FileName|acad.pat}} or {{FileName|acadiso.pat}}.
+* A small PAT file is installed with FreeCAD: {{FileName|<program_folder>/data/Mod/TechDraw/PAT/FCPAT.pat}}, where {{FileName|<program_folder>}} is the FreeCAD program folder:
+** On Linux it is usually {{FileName|/usr/share/freecad}}.
+** On Windows it is usually {{FileName|C:\Program Files\FreeCAD}}.
+** On macOS it is usually {{FileName|/Applications/FreeCAD}}.
+* {{VersionMinus|1.0}}: Patterns with dashed lines are not handled properly.
+
+== Preferences ==
+
+See also: [[Preferences_Editor|Preferences Editor]] and [[Draft_Preferences|Draft Preferences]].
+
+The following preferences are involved:
+
+* PAT file: {{MenuCommand|Tools → Edit parameters... → BaseApp → Preferences → Mod → TechDraw → PAT → FilePattern}}.
+* Pattern: {{MenuCommand|Tools → Edit parameters... → BaseApp → Preferences → Mod → TechDraw → PAT → NamePattern}}.
+* Scale: {{MenuCommand|Tools → Edit parameters... → BaseApp → Preferences → Mod → Draft → HatchPatternScale}}.
+* Rotation: {{MenuCommand|Tools → Edit parameters... → BaseApp → Preferences → Mod → Draft → HatchPatternRotation}}.
+
+== Properties ==
+
+See also: [[Property_editor|Property editor]].
+
+A Draft Hatch object is derived from a [[Part_Feature|Part Feature]] object and inherits all its properties. It also has the following additional properties:
+
+=== Data ===
+
+{{TitleProperty|Hatch}}
+
+* {{PropertyData|Base|Link}}: specifies the object whose faces are hatched.
+* {{PropertyData|File|File}}: specifies the PAT file.
+* {{PropertyData|Pattern|String}}: specifies the pattern name.
+* {{PropertyData|Rotation|Angle}}: specifies the rotation of the pattern.
+* {{PropertyData|Scale|Float}}: specifies the scale of the pattern.
+* {{PropertyData|Translate|Bool}}: specifies if the faces are temporarily translated to the global XY plane during the hatching process. Setting it to {{FALSE}} may give wrong results for non-XY faces.
+
+== Scripting ==
+
+See also: [https://freecad.github.io/SourceDoc/ Autogenerated API documentation] and [[FreeCAD Scripting Basics|FreeCAD Scripting Basics]].
+
+To create a Draft Hatch use the {{incode|make_hatch}} method of the Draft module.
+
+{{Code|code=
+hatch = make_hatch(baseobject, filename, pattern, scale, rotation)
+}}
+
+Example: 
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+rectangle = Draft.make_rectangle(4000, 1000)
+rectangle.MakeFace = True
+filename = App.getHomePath() + "data/Mod/TechDraw/PAT/FCPAT.pat"
+pattern = "Horizontal5"
+hatch = Draft.make_hatch(rectangle, filename, pattern, scale=50, rotation=45)
+
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Draft_ShapeString|ShapeString]]
+|[[Draft_Text|Text]]
+|[[Draft_Workbench|Draft]]
+|IconL=Draft_ShapeString.svg
+|IconR=Draft_Text.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
