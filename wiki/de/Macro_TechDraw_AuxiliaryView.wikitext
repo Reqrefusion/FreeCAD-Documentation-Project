@@ -61,38 +61,27 @@ Das manuelle Zeichnen von Hilfsansichten erfordert eine zweite Basisansicht, um 
 <span id="Notes"></span>
 ==Hinweise==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* The selection order of the vertices controls the view direction.
-* The view origin is the center of the bounding box and thus useless for any geometric operation like measuring the distance to the line/vector between the selected vertices. Such a distance would allow to define a section line in the base view and use the information in 3D space to create a section view.
-* The auxiliary views are placed at the page center by default and have to be positioned manually.
-</div>
+* Die Auswahlreihenfolge der Knotenpunkte bestimmt die Ausrichtung der Ansicht.
+* Der Ursprung der Ansicht ist der Mittelpunkt des Begrenzungsrahmens und daher nutzlos für geometrische Vorgänge, wie das Messen des Abstandes zur Linie bzw. zum Vektor zwischen den ausgewählten Knotenpunkten. So ein Abstand würde das Festlegen einer Schnittlinie in der Basisansicht ermöglichen, und diese Information könnte im 3D-Raum zum Festlegen einer Schnittansicht verwendet werden.
+* Die Hilfsansichten werden in der Mitte des Zeichnungsblattes erstellt und müssen manuell positioniert werden.
 
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 <div class="mw-collapsible mw-collapsed toccolours">
-===Expand to copy and paste the macro===
+===Ausklappen, um das Makro zu kopieren und einzufügen===
 <div class="mw-collapsible-content">
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Press the {{Button|[[Image:Std_DlgMacroExecute.svg|16px]] [[Std_DlgMacroExecute|Macros...]]}} button and [[Std_DlgMacroExecute#Create|create]] a new macro. Copy and paste the macro below to the macro editor
-</div> 
+Die Schaltfläche {{Button|[[Image:Std_DlgMacroExecute.svg|16px]] [[Std_DlgMacroExecute/de|Makros...]]}} drücken und ein neues Makro [[Std_DlgMacroExecute/de#Create|erstellen]]. Das folgende Makro kopieren und in den Makro-Editor einzufügen. 
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {{MacroCode|code=
 #! python
 # -*- coding: utf-8 -*-
 """
 This script creates an Auxiliary View from two selectec vertices
 of one base view.
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 What is required: an active document, a drawing page containing one
 or more views with a projection of a shape.
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 A possible workflow:
 1. Extract base view from selection (two vertices)
 2. Extract work page from app objects
@@ -104,18 +93,14 @@ A possible workflow:
     and base view's z direction
 8. Set new view rotation including base view rotation
 9. (Add annotations etc.)
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 I have tried to follow this naming rule:
  class names:    CamelCase
  function names: mixedCase
  constant names: ALL_CAPITAL + underscore
  variable names: lower_case + underscore
 """
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 __Name__= ""
 __Comment__ = ""
 __Author__ = "FBXL5"
@@ -131,14 +116,10 @@ __Status__ = "Alpha"
 __Requires__ = "FreeCAD >= 1.0 + Python3"
 __Communication__ = "https://www.freecad.org/wiki/index.php?title=User: FBXL5"
 __Files__ = ""
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 import math # to use some predefined conversions
 from PySide.QtGui import (QMessageBox)
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 def displayMessage(title,message):
     '''
     displayMessage('Title','Messagetext')
@@ -147,9 +128,7 @@ def displayMessage(title,message):
     message_box.setText(message)
     message_box.setWindowTitle(title)
     message_box.exec()
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 def getActiveDocument():
     '''
     Returns the active document or sends a message
@@ -159,9 +138,7 @@ def getActiveDocument():
         return ado
     displayMessage("AuxView", "No active document available!")
     return False
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 # (borrowed from TechDraw sources)
 def getSelView(nSel=0):
     '''
@@ -175,9 +152,7 @@ def getSelView(nSel=0):
     else:
         view = Gui.Selection.getSelection()[nSel]
     return view
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 # (borrowed from TechDraw sources)
 def getSelVertexes(nVertex=1, nSel=0):
     '''
@@ -194,25 +169,19 @@ def getSelVertexes(nVertex=1, nSel=0):
         displayMessage('AuxView','No vertex selected')
         return False
     objectList = Gui.Selection.getSelectionEx()[nSel].SubElementNames
-</div>
 
-    <div lang="en" dir="ltr" class="mw-content-ltr">
-vertexes = []
+    vertexes = []
     for objectString in objectList:
         if objectString[0:6] == 'Vertex':
             vertexes.append(view.getVertexBySelection(objectString))
-</div>
 
-    <div lang="en" dir="ltr" class="mw-content-ltr">
-if (len(vertexes) < nVertex):
+    if (len(vertexes) < nVertex):
         displayMessage('AuxView','Select at least '+
                         str(nVertex)+' vertices')
         return False
     else:
         return vertexes
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 def getPageOfSelection(doc, b_view):
     '''Retrieves the Page that holds the selected elements'''
     #- Find an object starting with 'Page' that contains the selected object
@@ -227,9 +196,7 @@ def getPageOfSelection(doc, b_view):
                     if item.Name == b_view.Name:
                         return each
     return False
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 def getCcwAngle(vertex1,vertex2,view_rotation):
     '''Creates 3D vectors to calculate the 2D angle towards the x direction of the
     base view which is parallel to the page view's x direction.
@@ -256,9 +223,7 @@ def getCcwAngle(vertex1,vertex2,view_rotation):
     #print('b. view_rotation: ', float(view_rotation))
     angle_x -= float(view_rotation)
     return angle_x
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 def main():
     ''' The main section, no more, no less '''
     # Operations are performed in the active document of the application
@@ -282,10 +247,8 @@ def main():
     print("2. work page name: ", work_page.Name)  # checklist
     # At this point the input elements are gathered:
     #  active_doc, work_page, base_view, and vertices
-</div>
 
-    <div lang="en" dir="ltr" class="mw-content-ltr">
-#- Create a new view
+    #- Create a new view
     new_view = active_doc.addObject('TechDraw::DrawViewPart', 'AuxView')
     print('3. new view: ', new_view.Name)  # checklist
     #- Add the new view to the page
@@ -298,17 +261,13 @@ def main():
     new_view.Source = new_view.BaseView.Source
     print('4. new_view.BaseView: ', new_view.BaseView.Name, ', Label:',
         new_view.BaseView.Label)  # checklist
-</div>
 
-    <div lang="en" dir="ltr" class="mw-content-ltr">
-#- 2D: Calculate the ccw angle between the x axes of base view and new view
+    #- 2D: Calculate the ccw angle between the x axes of base view and new view
     turn_ccw = getCcwAngle(vertices[0],vertices[1],new_view.BaseView.Rotation)
     # Returns a float value representing degrees
     print('7. 2D angle: ', turn_ccw) # checklist
-</div>
 
-    <div lang="en" dir="ltr" class="mw-content-ltr">
-# 3D: Turn base_view.XDirection around base_view.Direction to get
+    # 3D: Turn base_view.XDirection around base_view.Direction to get
     #     new_view.XDirection
     #- Create a rotation, angle input in float (for degrees), stored in rad
     around_direction = App.Rotation(new_view.BaseView.Direction, turn_ccw)
@@ -319,34 +278,25 @@ def main():
     #- The cross-product of base view Z and new view X gives new view Z direction
     new_view.Direction = new_view.BaseView.Direction.cross(new_view.XDirection)
     print('10. Direction', new_view.Direction)  # checklist
-</div>
 
-    <div lang="en" dir="ltr" class="mw-content-ltr">
-# 2D: Take base_view.Rotation into account, it has to be converted
+    # 2D: Take base_view.Rotation into account, it has to be converted
     #     to float since it is stored in deg
     #- Add the rotation of the base view to the angle between the x axes
     new_view.Rotation = turn_ccw + float(new_view.BaseView.Rotation)
     print('11. new_view.Rotation', new_view.Rotation)  # checklist
     Gui.runCommand('TechDraw_RedrawPage',0)
     # At this point the Auxiliary View is complete
-</div>
 
-    <div lang="en" dir="ltr" class="mw-content-ltr">
-return
-</div>
+    return
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 if __name__ == "__main__":
     # This will be true only if the file is "executed"
     # but not if imported as module
     main()
 }}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 </div> <!-- End of collapsible element for Macro section. Do not remove! -->
 </div> <!-- End of collapsible element for Structure section. Do not remove! -->
-</div>
 
 
 {{TechDraw Tools navi{{#translation:}}}}
