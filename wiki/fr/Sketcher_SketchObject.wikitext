@@ -7,7 +7,7 @@
 
 Un [[Sketcher_SketchObject/fr|Sketcher SketchObject]], ou formellement un {{incode|Sketcher::SketchObject}}, est l'élément de base pour créer des objets 2D avec l'[[Sketcher_Workbench/fr|atelier Sketcher]].
 
-{{incode|Sketcher::SketchObject}} est dérivé de [[Part_Part2DObject/fr|Part Part2DObject]]. Cela signifie qu'il s'agit d'un objet [[Part Feature/fr|Part Feature]] spécialisé dans la géométrie 2D. Comme Part2DObject, l'objet SketchObject peut être attaché à des plans et à des faces. En plus de cela, SketchObject peut gérer les contraintes géométriques des lignes et des courbes qui y sont dessinées.
+{{incode|Sketcher::SketchObject}} est dérivé de [[Part_Part2DObject/fr|Part Part2DObject]]. Cela signifie qu'il s'agit d'un objet [[Part Feature/fr|Part Feature]] spécialisé dans la géométrie 2D. Comme Part2DObject, l'objet SketchObject peut être ancré à des plans et à des faces. En outre, le SketchObject peut gérer des contraintes géométriques.
 
 [[File:FreeCAD_core_objects.svg|800px]]
 
@@ -32,51 +32,48 @@ Sketcher SketchObject possède également les propriétés supplémentaires suiv
 
 {{TitleProperty|Base}}
 
-* {{PropertyData|Internal Shape|PartShape|Hidden}}: TBD.
+* {{PropertyData|Internal Shape|PartShape|Hidden}} : à définir.
 
 {{TitleProperty|Internal Geometry}}
 
-* {{PropertyData|Make Internals|Bool}}: if true intersecting edges are split (does not seem to work).
+* {{PropertyData|Make Internals|Bool}} : si {{True}}, les arêtes qui se croisent sont scindées (ne semble pas fonctionner).
 
 {{TitleProperty|Sketch}}
 
-<div class="mw-translate-fuzzy">
 * {{PropertyData|Geometry|GeometryList|Hidden}} : une liste des géométries de Part qui existent dans l'esquisse.
 * {{PropertyData|Constraints|}} : contraintes nommées, si elles existent ; sinon, il s'agit d'une liste vide {{incode|[]}}.
-* {{PropertyData|External Geometry|LinkSubList}} : une liste de géométries de pièces extérieures à cette esquisse qui sont utilisées comme référence.
-* {{PropertyData|Fully Constrained|Bool|Hidden}} : (en lecture seule) si {{TRUE}} l'esquisse est entièrement contrainte.
-</div>
+* {{PropertyData|External Geometry|LinkSubList|ReadOnly}} : liste des Part géométries extérieures à l'esquisse utilisées à titre de référence.
+* {{PropertyData|External Types|IntegerList|Hidden}} : type de géométrie externe de l'esquisse : {{Value|0}} (projection), {{Value|1}} (intersection) ou {{Value|2}} (les deux). {{Version/fr|1.1}}
+* {{PropertyData|Fully Constrained|Bool|Hidden, ReadOnly}} : si {{TRUE}}, l'esquisse est entièrement contrainte.
+* {{PropertyData|Exports|LinkListHidden|Hidden}} : géométrie d'exportation de l'esquisse.
+* {{PropertyData|External Geo|GeometryList|Hidden}} : géométrie externe de l'esquisse.
+* {{PropertyData|Arc Fit Tolerance|Precision}} : tolérance d'ajustement des arcs de la géométrie externe projetée.
 
 <span id="View"></span>
 === Vue ===
 
 {{TitleProperty|Auto Constraints}}
 
-<div class="mw-translate-fuzzy">
 * {{PropertyView|Autoconstraints|Bool}} : si {{TRUE}} les contraintes sont automatiquement ajoutées lorsque la géométrie est dessinée.
 * {{PropertyView|Avoid Redundant|Bool}} : si {{TRUE}} les contraintes automatiques redondantes sont évitées.
-</div>
 
 {{TitleProperty|Grid}}
 
-<div class="mw-translate-fuzzy">
 * {{PropertyView|Grid Auto|Bool}} : si {{TRUE}}, la grille est redimensionnée en fonction de la boîte de délimitation de la géométrie de l'esquisse.
-* {{PropertyView|Grid Size|Length}} : la taille de l'espacement des lignes de la grille locale dans la [[3D_view/fr|vue 3D]] ; la valeur par défaut est {{value|10 mm}}.
+* {{PropertyView|Grid Size|Length}} : la taille de l'espacement des lignes de la grille locale dans la [[3D_view/fr|vue 3D]]. Par défaut {{value|10 mm}}.
 * {{PropertyView|Show Grid|Bool}} : si {{TRUE}}, une grille locale à l'objet sera affichée dans la [[3D_view/fr|vue 3D]]. Cette grille est indépendante de la [[Draft_ToggleGrid/fr|Draft Grille]].
-</div>
 
 {{TitleProperty|Layers}}
 
-* {{PropertyView|Visual Layer List|BadType}}:
+* {{PropertyView|Visual Layer List|BadType}} :
 
-{{TitleProperty|Object Style}}
+{{TitleProperty|Object style}}
 
-* {{PropertyView|Auto Color|Bool}}: if true the object will be colored based on user preferences. Set to {{False}} to specify color explicitly.
+* {{PropertyView|Auto Color|Bool}} : si {{true}}, l'objet sera coloré en fonction des préférences de l'utilisateur. Définir à {{False}} pour spécifier la couleur de manière explicite.
 
 {{TitleProperty|Visibility automation}}
 
-<div class="mw-translate-fuzzy">
-* {{PropertyView|Editing Workbench|String}} : nom de l'atelier à activer lors de l'édition de l'esquisse ; la valeur par défaut est {{value|SketcherWorkbench}}.
+* {{PropertyView|Editing Workbench|String}} : nom de l'atelier à activer lors de l'édition de l'esquisse. Par défaut {{value|SketcherWorkbench}}.
 * {{PropertyView|Force Ortho|Bool}} : si {{TRUE}}, la caméra sera forcée à [[Std_OrthographicCamera/fr|mode de vue orthographique]] lorsque l'esquisse est ouverte.
 * {{PropertyView|Hide Dependent|Bool}} : si {{TRUE}}, tous les objets qui dépendent de l'esquisse sont masqués lorsque l'esquisse est ouverte.
 * {{PropertyView|Restore Camera|Bool}} : si {{TRUE}}, la position de la caméra est enregistrée avant l'ouverture de l'esquisse et est restaurée après sa fermeture.
@@ -84,7 +81,6 @@ Sketcher SketchObject possède également les propriétés supplémentaires suiv
 * {{PropertyView|Show Links|Bool}} : si {{TRUE}}, tous les objets utilisés dans les liens vers la géométrie externe sont affichés à l'ouverture de l'esquisse.
 * {{PropertyView|Show Support|Bool}} : si {{TRUE}}, tous les objets auxquels cette esquisse est attachée sont affichés lorsque l'esquisse est ouverte.
 * {{PropertyView|Tempo Vis|PythonObject|Hidden}} : une classe personnalisée associée à cet objet, qui gère le masquage et l'affichage d'autres objets lors de l'ouverture et de la fermeture de l'esquisse.
-</div>
 
 <span id="Scripting"></span>
 == Création de scripts ==
@@ -103,7 +99,7 @@ obj = App.ActiveDocument.addObject("Sketcher::SketchObject", "Sketch")
 obj.Label = "Custom label"
 }}
 
-Pour la sous-classification de [[Python/fr|Python]], vous devez créer l'objet {{incode|Sketcher::SketchObjectPython}}.
+Pour la sous-classification en [[Python/fr|Python]], vous devez créer l'objet {{incode|Sketcher::SketchObjectPython}}.
 
 {{Code|code=
 import FreeCAD as App
