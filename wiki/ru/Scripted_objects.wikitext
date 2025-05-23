@@ -184,7 +184,9 @@ obj.Length = 1.0
 <span id="Other_more_complex_example"></span>
 == Другой более сложный пример ==
 
+<div class="mw-translate-fuzzy">
 Данный пример использует [[Part_Workbench/ru|верстак Part]] для создания октаэдра, затем создает собственное Coin представление с помощью Pivy.
+</div>
 
 Сначала сам Документированный Объект:
 
@@ -387,7 +389,9 @@ ViewProviderOctahedron(a.ViewObject)
 
 Если вы хотите чтобы ваш объект можно было выбрать, или по крайней мере его часть, щелкнув по нему в окне, вы должны включить его Coin геометрию внутрь узла SoFCSelection. Если ваш объект обладает сложным представлением, с виджетами, аннотациями, и т.д, вам может потребоваться только часть его в SoFCSelection. Всё, что находится в SoFCSelection постоянно сканируется FreeCAD для обнаружения выделения/предварительного отбора, так что имеет смысл попробовать не перегружать его ненужным сканированием.
 
+<div class="mw-translate-fuzzy">
 Как только части графа сцены, которые должны быть выбраны, оказываются внутри узлов SoFCSelection, вам необходимо предоставить два метода для обработки пути выбора. Путь выбора может принимать форму строки, содержащей имена каждого элемента в пути, или массива объектов графа сцены. Вы предоставляете два метода: {{incode|getDetailPath}}, который преобразует путь строки в массив объектов scenegraph (графа сцены), и {{incode|getElementPicked}}, который принимает элемент, по которому щелкнули в графе сцены, и возвращает его строковое имя (примечание, а не его строковый путь).
+</div>
 
 Вот вышеприведённый пример с молекулой, адаптированный для выбора элементов молекулы:
 
@@ -550,7 +554,7 @@ App.ActiveDocument.recompute()
 <span id="Scenegraph_Structure"></span>
 == Структура графа сцены ==
 
-You may have noticed that the examples above construct their scenegraphs in slightly different ways.  Some use {{incode|obj.addDisplayMode(node, "modename")}} while others use {{incode|obj.SwitchNode.getChild(x).addChild(y)}}.
+You may have noticed that the examples above construct their scenegraphs in slightly different ways. Some use {{incode|obj.addDisplayMode(node, "modename")}} while others use {{incode|obj.SwitchNode.getChild(x).addChild(y)}}.
 
 Each feature in a FreeCAD document is based the following scenegraph structure:
 
@@ -564,13 +568,13 @@ RootNode
 
 The {{incode|SwitchNode}} displays only one of its children, depending on which display mode is selection in FreeCAD.
 
-The examples which use {{incode|addDisplayMode}} are constructing their scenegraphs solely out of coin3d scenegraph elements.  Under the covers, {{incode|addDisplayMode}} adds a new child to the {{incode|SwitchNode}}; the name of that node will match the display mode it was passed.
+The examples which use {{incode|addDisplayMode}} are constructing their scenegraphs solely out of coin3d scenegraph elements. Under the covers, {{incode|addDisplayMode}} adds a new child to the {{incode|SwitchNode}}; the name of that node will match the display mode it was passed.
 
-The examples which use {{incode|SwitchNode.getChild(x).addChild}} also construct part of their geometry using functions from the Part workbench, such as {{incode|1=fp.Shape = Part.makeLine(fp.p1,fp.p2)}}.  This constructs the different display mode scenegraphs under the {{incode|SwitchNode}}; when we later come to add coin3d elements to the scenegraph, we need to add them to the existing display mode scenegraphs using {{incode|addChild}} rather than creating a new child of the {{incode|SwitchNode}}.
+The examples which use {{incode|SwitchNode.getChild(x).addChild}} also construct part of their geometry using functions from the Part Workbench, such as {{incode|1=fp.Shape = Part.makeLine(fp.p1,fp.p2)}}. This constructs the different display mode scenegraphs under the {{incode|SwitchNode}}; when we later come to add coin3d elements to the scenegraph, we need to add them to the existing display mode scenegraphs using {{incode|addChild}} rather than creating a new child of the {{incode|SwitchNode}}.
 
-When using {{incode|addDisplayMode()}} to add geometry to the scenegraph, each display mode should have its own node which is passed to {{incode|addDisplayMode()}}; don't reuse the same node for this.  Doing so will confuse the selection mechanism.  It's okay if each display mode's node has the same geometry nodes added below it, just the root of each display mode needs to be distinct.
+When using {{incode|addDisplayMode()}} to add geometry to the scenegraph, each display mode should have its own node which is passed to {{incode|addDisplayMode()}}; don't reuse the same node for this. Doing so will confuse the selection mechanism. It's okay if each display mode's node has the same geometry nodes added below it, just the root of each display mode needs to be distinct.
 
-Here is the above molecule example, adapted to be drawn only with Coin3D scenegraph objects instead of using objects from the Part workbench:
+Here is the above molecule example, adapted to be drawn only with Coin3D scenegraph objects instead of using objects from the Part Workbench:
 
 {{Code|code=
 import Part
@@ -733,11 +737,11 @@ a,b = makeMolecule()
 <span id="Part_Design_scripted_objects"></span>
 == Программируемый объект Part Design ==
 
-When making scripted objects in Part Design the process is similar to the scripted objects discussed above, but with a few additional considerations.  We must handle 2 shape properties, one for the shape we see in the 3D view and another for the shape used by the pattern tools, such as polar pattern features.  The object shapes also needs to be fused to any existing material already in the Body (or cut from it in the case of Subtractive features).  And we must account for the placement and attachment of our objects a little bit differently.
+When making scripted objects in PartDesign the process is similar to the scripted objects discussed above, but with a few additional considerations. We must handle 2 shape properties, one for the shape we see in the 3D view and another for the shape used by the pattern tools, such as polar pattern features. The object shapes also needs to be fused to any existing material already in the Body (or cut from it in the case of Subtractive features). And we must account for the placement and attachment of our objects a little bit differently.
 
-Part Design scripted solid object features should be based on either PartDesign::FeaturePython, PartDesign::FeatureAdditivePython, or PartDesign::FeatureSubtractivePython rather than Part::FeaturePython.  Only the Additive and Subtractive variants can be used in pattern features, and if based on Part::FeaturePython when the user drops the object into a Part Design Body it becomes a BaseFeature rather than being treated by the Body as a native Part Design object.  Note: all of these are expected to be solids, so if you are making a non-solid feature it should be based on Part::FeaturePython or else the next feature in the tree will attempt to fuse to as a solid and it will fail.
+PartDesign scripted solid object features should be based on either PartDesign::FeaturePython, PartDesign::FeatureAdditivePython, or PartDesign::FeatureSubtractivePython rather than Part::FeaturePython. Only the Additive and Subtractive variants can be used in pattern features, and if based on Part::FeaturePython when the user drops the object into a PartDesign Body it becomes a BaseFeature rather than being treated by the Body as a native PartDesign object. Note: all of these are expected to be solids, so if you are making a non-solid feature it should be based on Part::FeaturePython or else the next feature in the tree will attempt to fuse to as a solid and it will fail.
 
-Here is a simple example of making a Tube primitive, similar to the Tube primitive in Part Workbench except this one will be a Part Design solid feature object.  For this we will 2 separate files: pdtube.FCMacro and pdtube.py.  The .FCMacro file will be executed by the user to create the object.  The .py file will hold the class definitions, imported by the .FCMacro.  The reason for doing it this way is to maintain the parametric nature of the object after restarting FreeCAD and opening a document containing one of our Tubes.
+Here is a simple example of making a Tube primitive, similar to the Tube primitive in Part Workbench except this one will be a PartDesign solid feature object.  For this we will 2 separate files: pdtube.FCMacro and pdtube.py. The .FCMacro file will be executed by the user to create the object. The .py file will hold the class definitions, imported by the .FCMacro. The reason for doing it this way is to maintain the parametric nature of the object after restarting FreeCAD and opening a document containing one of our Tubes.
 
 First, the class definition file:
 
@@ -912,6 +916,7 @@ else:
 == Available object types ==
 
 The object types you can create with {{incode|FreeCAD.ActiveDocument.addObject()}} depend on the loaded modules. After loading all internal workbenches a complete list can be obtained with {{incode|FreeCAD.ActiveDocument.supportedTypes()}}. Only object types with a name ending in {{incode|Python}} can be used for scripted objects. These are listed here (for FreeCAD v1.0):
+
 * {{incode|App::DocumentObjectGroupPython}}
 * {{incode|App::FeaturePython}}
 * {{incode|App::GeometryPython}}
@@ -1078,6 +1083,7 @@ For view objects:
 * {{incode|PartGui::ViewProviderSplineExtensionPython}}
 
 There exist other extensions but they do not work as-is:
+
 * {{incode|App::ExtensionPython}}
 * {{incode|TechDrawGui::ViewProviderCosmeticExtensionPython}}
 * {{incode|TechDrawGui::ViewProviderDrawingViewExtensionPython}}
@@ -1095,11 +1101,11 @@ There exist other extensions but they do not work as-is:
 
 Интересные темы форума про создание объектов с помощью скриптов:
 
-* [http://forum.freecadweb.org/viewtopic.php?f=22&t=13740 Python object attributes lost at load]
-* [http://forum.freecadweb.org/viewtopic.php?t=12139 New FeaturePython is grey]
-* [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009 Explanation on dumps and loads], [https://docs.python.org/3/library/pickle.html#object.__getstate__ official documentation]
-* [https://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=20#p109709 Eigenmode frequency always 0?]
-* [https://forum.freecadweb.org/viewtopic.php?f=22&t=21330 how to implement python feature's setEdit properly?]
+* [https://forum.freecad.org/viewtopic.php?f=22&t=13740 Python object attributes lost at load]
+* [https://forum.freecad.org/viewtopic.php?t=12139 New FeaturePython is grey]
+* [https://forum.freecad.org/viewtopic.php?f=18&t=44009 Explanation on dumps and loads], [https://docs.python.org/3/library/pickle.html#object.__getstate__ official documentation]
+* [https://forum.freecad.org/viewtopic.php?f=18&t=13460&start=20#p109709 Eigenmode frequency always 0?]
+* [https://forum.freecad.org/viewtopic.php?f=22&t=21330 how to implement python feature's setEdit properly?]
 
 В дополнение к представленным примерам, посмотрите FreeCAD [https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/TemplatePyMod/FeaturePython.py  src/Mod/TemplatePyMod/FeaturePython.py], находящийся в папке с исходными кодами FreeCAD.
 
