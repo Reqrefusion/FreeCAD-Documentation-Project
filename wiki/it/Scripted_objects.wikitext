@@ -180,7 +180,9 @@ obj.Length = 1.0
 <span id="Other_more_complex_example"></span>
 == Un altro esempio più complesso ==
 
+<div class="mw-translate-fuzzy">
 In questo esempio si utilizza il Modulo [[Part_Workbench/it|Part]] per creare un ottaedro, quindi si crea la sua rappresentazione Coin con Pivy.
+</div>
 
 Prima si crea l'oggetto del documento:
 
@@ -383,7 +385,9 @@ ViewProviderOctahedron(a.ViewObject)
 
 Se volete rendere il vostro oggetto selezionabile, o almeno una parte di esso, facendo clic su di esso nella finestra, è necessario includere la sua geometria Coin all'interno di un nodo SoFCSelection. Se l'oggetto ha una rappresentazione complessa, con widget, annotazioni, etc, si potrebbe voler includere solo una parte di esso in un SoFCSelection. Tutto quello che compone un SoFCSelection viene costantemente analizzato da FreeCAD per rilevare selezioni/preselezioni, quindi non ha senso sovraccaricarlo con delle scansioni non necessarie.
 
+<div class="mw-translate-fuzzy">
 Una volta che le parti dello scenegraph, che devono essere selezionabili, si trovano all'interno dei nodi SoFCSelection, è necessario fornire due metodi per gestire il percorso di selezione. Il percorso di selezione può assumere la forma di una stringa che fornisce i nomi di ciascun elemento nel percorso o di un array di oggetti scenegraph. I due metodi che fornisci sono {{incode|getDetailPath}}, che converte da un percorso stringa in un array di oggetti scenegraph, e {{incode|getElementPicked}}, che prende un elemento su cui è stato fatto clic nello scenegraph e restituisce il suo nome di stringa (nota, non il suo percorso di stringa).
+</div>
 
 Ecco l'esempio della molecola sopra, adattato per rendere selezionabili gli elementi della molecola:
 
@@ -909,6 +913,7 @@ else:
 == Tipi di oggetti disponibili ==
 
 I tipi di oggetto che si possono creare con {{incode|FreeCAD.ActiveDocument.addObject()}} dipendono dai moduli caricati. Dopo aver caricato tutti gli ambienti di lavoro interni è possibile ottenere un elenco completo con {{incode|FreeCAD.ActiveDocument.supportedTypes()}}. Solo i tipi di oggetto con un nome che termina con {{incode|Python}} possono essere utilizzati per oggetti con script. Questi sono elencati qui (per FreeCAD v1.0):
+
 * {{incode|App::DocumentObjectGroupPython}}
 * {{incode|App::FeaturePython}}
 * {{incode|App::GeometryPython}}
@@ -995,63 +1000,53 @@ Dove mode può avere questi valori:
 
 Gli attributi possono essere impostati anche utilizzando un elenco di stringhe, ad es. {{incode|obj.setEditorMode("Placement", ["ReadOnly", "Hidden"])}}.
 
-<div class="mw-translate-fuzzy">
-Gli EditorModes non sono fissati nel file reload di FreeCAD. Questo può essere fatto dalla funzione {{Incode|loads}} . Vedere http://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=10#p108072. Usando {{Incode|setEditorMode}} le proprietà sono in sola lettura soltanto nell'[[Property_editor/it|Editor delle proprietà]]. Esse possono ancora essere modificate da un comando Python. Per renderle davvero in sola lettura le impostazioni devono essere passate direttamente all'interno della funzione {{Incode|addProperty}}. Per un esempio, vedere http://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=20#p109709.
-</div>
+Gli attributi impostati utilizzando {{Incode|setEditorMode}} possono essere rimossi dall'utente. Vedere [[Property_editor/it#Context_menu|Editor delle proprietà]]. Tenere presente che le proprietà di sola lettura possono ancora essere modificate da Python.
 
-<div class="mw-translate-fuzzy">
-Utilizzando l'impostazione diretta nella funzione {{Incode|addProperty}}, si hanno anche più possibilità. In particolare, è interessante contrassegnare una proprietà come proprietà di output. In questo modo FreeCAD non contrassegnerà l'elemento come variato durante la modifica (quindi non è necessario ricalcolare).
-</div>
+E' possibile anche impostare questi e altri attributi direttamente con la funzione {{Incode|addProperty}}. Gli attributi impostati con tale funzione non possono essere modificati dall'utente. Una possibilità interessante è contrassegnare una proprietà come proprietà di output. In questo modo FreeCAD non contrassegnerà l'oggetto come touched quando lo si modifica (quindi non è necessario ricalcolarlo).
 
-<div class="mw-translate-fuzzy">
-Esempio di proprietà di output (vedi anche https://forum.freecadweb.org/viewtopic.php?t=24928):
-</div>
+Esempio di proprietà di output (vedi anche https://forum.freecad.org/viewtopic.php?t=24928):
 
 {{Code|code=
 obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 8)
 }}
 
-<div class="mw-translate-fuzzy">
-I tipi di proprietà che possono essere impostati all'ultimo parametro della funzione addProperty sono:
-    0 -- Prop_None, nessun tipo di proprietà speciale
+Gli attributi che possono essere impostati con {{Incode|addProperty}} sono elencati di seguito. È possibile impostare più attributi aggiungendo valori.
+    0 -- Prop_None, nessun attributo di proprietà speciale
     1 -- Prop_ReadOnly, la proprietà è di sola lettura nell'editor
     2 -- Prop_Transient, la proprietà non verrà salvata nel file
     4 -- Prop_Hidden, la proprietà non apparirà nell'editor
     8 -- Prop_Output, la proprietà modificata non tocca il suo contenitore principale
    16 -- Prop_NoRecompute, la proprietà modificata non tocca il suo contenitore per il ricalcolo
    32 -- Prop_NoPersist, la proprietà non verrà affatto salvata nel file
-</div>
 
-<div class="mw-translate-fuzzy">
-I tipi di proprietà sono definiti nel [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyContainer.h file di intestazione PropertyContainer C++].
-</div>
+Gli attributi della proprietà sono definiti nel [https://github.com/FreeCAD/FreeCAD/blob/master/src/App/PropertyContainer.h file di intestazione PropertyContainer C++].
 
-For {{Incode|Prop_ReadOnly}} and {{Incode|Prop_Hidden}} the {{Incode|addProperty}} function has boolean arguments as well:
+Per {{Incode|Prop_ReadOnly}} e {{Incode|Prop_Hidden}} anche la funzione {{Incode|addProperty}} ha argomenti booleani:
 
 {{Code|code=
 obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 0, True, True)
 }}
 
-Which is equivalent to:
+Che equivale a:
 
 {{Code|code=
 obj.addProperty("App::PropertyString", "MyCustomProperty", "", "", 1+4)
 }}
 
-{{Version|1.0}}: The full signature of the function is:
+{{Version/it|1.0}}: La firma completa della funzione è:
 
 {{Code|code=
 obj.addProperty(type: string, name: string, group="", doc="", attr=0, read_only=False, hidden=False, enum_vals=[])
 }}
 
-* {{Incode|type}}: Property type.
-* {{Incode|name}}: Property name.
-* {{Incode|group}}: Property subsection (used in the [[Property_editor|Property editor]]).
+* {{Incode|type}}: Tipo di proprietà.
+* {{Incode|name}}: Nome della proprietà.
+* {{Incode|group}}: Sottosezione della proprietà (utilizzata nell'[[Property_editor/it|Editor della proprietà]]).
 * {{Incode|doc}}: Tooltip (idem).
-* {{Incode|attr}}: Attribute, see above.
-* {{Incode|read_only}}: See above.
-* {{Incode|hidden}}: See above.
-* {{Incode|enum_vals}}: Enumeration values (list of string), only relevant if type is {{Incode|"App::PropertyEnumeration"}}.
+* {{Incode|attr}}: Attributo, vedere sopra.
+* {{Incode|read_only}}: Vedi sopra.
+* {{Incode|hidden}}: Vedi sopra.
+* {{Incode|enum_vals}}: Valori di enumerazione (elenco di stringhe), rilevante solo se il tipo è {{Incode|"App::PropertyEnumeration"}}.
 
 <span id="Available_extensions"></span>
 == Estensioni disponibili ==
@@ -1076,6 +1071,7 @@ Per la vista oggetti:
 * {{incode|PartGui::ViewProviderSplineExtensionPython}}
 
 Esistono altre estensioni ma non funzionano così come sono:
+
 * {{incode|App::ExtensionPython}}
 * {{incode|TechDrawGui::ViewProviderCosmeticExtensionPython}}
 * {{incode|TechDrawGui::ViewProviderDrawingViewExtensionPython}}
@@ -1093,11 +1089,11 @@ Pagine aggiuntive:
 
 Interessanti thread del forum sugli oggetti con script:
 
-* [http://forum.freecadweb.org/viewtopic.php?f=22&t=13740 Python object attributes lost at load]
-* [http://forum.freecadweb.org/viewtopic.php?t=12139 New FeaturePython is grey]
-* [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009 Explanation on dumps and loads], [https://docs.python.org/3/library/pickle.html#object.__getstate__ official documentation]
-* [https://forum.freecadweb.org/viewtopic.php?f=18&t=13460&start=20#p109709 Eigenmode frequency always 0?]
-* [https://forum.freecadweb.org/viewtopic.php?f=22&t=21330 how to implement python feature's setEdit properly?]
+* [https://forum.freecad.org/viewtopic.php?f=22&t=13740 Python object attributes lost at load]
+* [https://forum.freecad.org/viewtopic.php?t=12139 New FeaturePython is grey]
+* [https://forum.freecad.org/viewtopic.php?f=18&t=44009 Explanation on dumps and loads], [https://docs.python.org/3/library/pickle.html#object.__getstate__ official documentation]
+* [https://forum.freecad.org/viewtopic.php?f=18&t=13460&start=20#p109709 Eigenmode frequency always 0?]
+* [https://forum.freecad.org/viewtopic.php?f=22&t=21330 how to implement python feature's setEdit properly?]
 
 Oltre agli esempi presentati qui dare un'occhiata al codice sorgente di FreeCAD  [https://github.com/FreeCAD/FreeCAD/blob/master/src/Mod/TemplatePyMod/FeaturePython.py  src/Mod/TemplatePyMod/FeaturePython.py] per ulteriori esempi.
 
