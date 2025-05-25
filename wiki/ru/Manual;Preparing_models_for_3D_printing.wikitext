@@ -87,81 +87,63 @@
 
 В верстаке ЧПУ генерация траекторий G-кода отлично настраивается. В нём есть инструменты для создания полных траекторий обработки для различных операций, или, наоборот, вы можете создавать частичные сегменты G-кода и собирать их в полноценную операцию фрезерования. Такой модульный подход позволяет настраивать каждый этап процесса обработки, оптимизируя траектории инструментов с учётом эффективности, типа материала и возможностей конкретного станка.
 
-<div class="mw-translate-fuzzy">
-* Загружаем файл, содержащий наш элемент Lego, и переключаемся на [[Path Workbench/ru|верстак Path]].
-* Поскольку конечный элемент не содержит прямоугольный верх, скрываем конечный элемент, и показываем первое из сделанных нами кубических выдавливаний, имеющее прямоугольный верх.
-* Выделяем верхнюю поверхность и нажимаем кнопку [[Image:Path_Profile.svg|16px]] [[Path_Profile/ru|Profile]].
-* Устанавливаем его параметр '''Offset''' в 1 мм.
-</div>
+Процесс работы с ЧПУ действительно намного сложнее, чем 3D-печать, поскольку станки с ЧПУ используют разные инструменты и должны учитывать съем материала, геометрию инструмента и безопасные границы - всё это настраивается вручную. В FreeCAD создание простого КАМ-проекта требует определения траекторий инструментов, настройки глубины резания, выбора подходящих инструментов, настройки смещений, подач и скоростей. В отличие от программ-слайсеров, которые выполняют большую часть этих действий автоматически, в верстаке ЧПУ управление полностью находится в ваших руках, что делает его очень гибким, но и более сложным.
 
-Though generating CNC milling paths is a topic too broad to cover in detail here, we’ll demonstrate how to create a simple CAM project in FreeCAD. While we won’t focus on every detail of real-world CNC machining, this guide will introduce you to the essential steps, emphasizing the level of input required to ensure accurate and efficient results. This added complexity is essential for CNC projects, where precision and customizability are critical to achieving desired machining outcomes.
+Хотя создание траекторий фрезерования с ЧПУ - слишком обширная тема для подробного рассмотрения здесь, мы продемонстрируем, как создать простой КАМ-проект в FreeCAD. Хотя мы не будем останавливаться на всех деталях реальной обработки с ЧПУ, это руководство познакомит вас с основными шагами, сделав акцент на требованиях к уровню ввода данных для обеспечения точности и эффективности результатов. Эта дополнительная сложность необходима для проектов с ЧПУ, где точность и настраиваемость имеют решающее значение для достижения желаемых результатов обработки.
 
-* Load the file containing our Lego piece, and switch to the [[Image:Workbench_CAM.svg|16px]] [[CAM_Workbench|CAM Workbench]].
-* Press on the [[Image:CAM_Job.svg|16px]] [[CAM_Job|Job]] button and select our lego piece.
-* Since this section doesn’t aim to provide an in-depth tutorial of the CAM Workbench, we will be using the default values. If you would like a more detailed tutorial, please refer to [[CAM Walkthrough for the Impatient|CAM walk-through]]. Keep in mind that in the CAM Workbench, a stock body is automatically created around your object, representing the raw material that will be machined. Right now, this stock body extends 1 mm in all directions from the object.
+* Загрузите файл, содержащий нашу деталь Лего, и переключитесь на [[Image:Workbench_CAM.svg|16px]] [[CAM_Workbench/ru|верстак CAM (ЧПУ)]].
+* Нажмите на [[Image:CAM_Job.svg|16px]] [[CAM_Job/ru|Задание]] и выберите нашу деталь лего.
+* Поскольку целью этого раздела не является подробное руководство по верстаку ЧПУ, мы будем использовать значения по умолчанию. Если вы хотите получить более подробное руководство, обратитесь к [[CAM Walkthrough for the Impatient/ru|Пошаговому руководству ЧПУ]]. Помните, что в верстаке ЧПУ вокруг вашего объекта автоматически создаётся технологическое тело, представляющее собой исходный материал, который будет подвергаться обработке. В данный момент этот исходный материал отстоит от объекта на 1 мм во всех направлениях.
 
 [[File:FreeCAD CAM1.png]]
 
-<div class="mw-translate-fuzzy">
-* Затем дублируем первую петлю несколько раз, чтобы инструмент выпилил целый блок. Выберем трассу FaceProfile, и нажмём [[Image:Path_Array.svg|16px]]  [[Path_Array/ru|Array]] button.
-* Установим параметр массива '''Copies''' на 8, и смещение на '''Offset''' -2 мм в направлении Z, и переместим положение массива на 2 мм в направлении Z, так чтобы вырезание началось немного выше выдавки, учитывая высоту точек.
-</div>
+* Первым шагом будет удаление ненужного материала вокруг нашего объекта. На этом этапе мы начинаем с цельного блока исходного материала, и нам нужно вырезать из него кирпичик Лего. Этот процесс включает в себя определение траекторий инструментов, которые будут постепенно отсекать лишний материал, оставляя после себя желаемую форму Лего.
 
-* The following image shows the FreeCAD CAM Workbench setup for machining a Lego block. The model tree includes solid modeling operations like Pad, Pocket, and LinearPattern, which were used to shape the part. A Job is created, containing toolpaths under Operations that define how the material will be removed from the Stock. The Default Tool is selected for machining, and the Model-Body represents the 3D part being worked on. This setup prepares the object for generating G-code to control the CNC machine.
+* На следующем изображении показана настройка верстака FreeCAD ЧПУ для обработки блока Лего. Дерево проекта включает операции твёрдотельного моделирования, такие как Выдавить (Pad), Карман (Pocket) и Линейный массив (LinearPattern), которые были использованы для придания формы детали. Создано задание, содержащее траектории инструментов в разделе Операции (Operations), которые определяют, как будет удаляться материал с заготовки. Для обработки выбирается инструмент по умолчанию, а Модель-Тело представляет собой 3D-деталь, над которой осуществляется работа. Эта настройка подготавливает объект к генерации G-кода для управления станком с ЧПУ.
 
 [[File:FreeCAD CAMtree.png]]
 
-<div class="mw-translate-fuzzy">
-* Теперь у нас определена трасса, следуя по которой фрезерный станок выпилит из заготовки прямоугольный блок. Теперь надо выфрезеровать пространство между точками, чтобы высвободить их. Скройте выдавку, и снова сделайте видимой конечный кирпичик, чтобы мы могли выделить поверхность, лежащую между точками.
-* Выделите верхнюю поверхность, и нажмите кнопку [[Image:Path_Pocket_Shape.svg|16px]] [[Path_Pocket_Shape/ru|Face Pocket]]. Установите параметр '''Offset''' в 1 мм, а '''retraction height''' в 20 мм. Это высота, на которой фреза пройдёт при переходе с одной петли к другой. Без него фреза может прорезать прямо через одну из наших точек:
-</div>
+* Прежде чем приступить к срезанию лишнего материала, давайте сделаем некоторые настройки используемого фрезерного инструмента. Хотя верстак ЧПУ позволяет задавать пользовательские инструменты, для простоты мы изменим инструмент по умолчанию. Это позволит оптимизировать настройки для нашего проекта без необходимости создавать новый инструмент с нуля.
 
-<div class="mw-translate-fuzzy">
-* Теперь всё, что осталось сделать, это объединить эти операции. Это можно сделать через [[Path_Compound/ru|Path Compound]] или [[Path_Job/ru|Path Job]]. Поскольку нам больше ничего не нужно и мы уже готовы к экспорту, мы используем Job. Нажмите кнопку [[Image:Path_Job.svg|16px]] [[Path_Job/ru|Job]].
-* Установите параметр '''Use Placements''' проекта в True, поскольку мы изменили положение массивов, и мы хотим, чтобы это было учтено в проекте.
-* В древе проекта перетащим два массива в проект. Если нужно, массивы внутри проекта можно переупорядочить двойным кликом по ним.
-* Проект теперь можно экспортировать в G-код, выбрав его, выделив в меню '''Файл -> Экспорт''', выбрав формат G-код, и выбрав скрипт постобработки в соответствии с Вашей машиной в открывшемся всплывающем диалоге.
-</div>
+* Щёлкните по тексту '''TC:Default Tool'''. Откроется окно '''Редактор контроллера инструмента (Tool Controller Editor)'''. Измените скорость подачи и скорость вращения шпинделя, как показано на рисунке. Скорость подачи для горизонтального и вертикального резания установлена на 2000 мм/мин, а скорость вращения шпинделя - на 2000 об/мин при прямом вращении. Эти настройки управляют перемещением и скоростью резания инструмента в процессе обработки.
 
-<div class="mw-translate-fuzzy">
-Для симуляции реальной резки доступно много приложений, одно из них [http://camotics.org/ Camotics], такое же мультиплаформенное и разрабатываемое на принципах открытых исходных кодов, как и FreeCAD.
-</div>
+[[File:FreeCAD toolController.png]]
 
-<div class="mw-translate-fuzzy">
+* Дважды щёлкните на самом инструменте и измените его диаметр на 1 мм.
+* Теперь мы готовы приступить к удалению лишнего материала с блока, постепенно вырезая геометрию Лего. В этом процессе будут задействованы заданные нами траектории инструментов, чтобы конечная форма соответствовала задуманному проекту.
+* Нажмите на [[Image:CAM_Profile.svg|16px]] [[CAM_Profile/ru|Профиль (Profile)]]. Эта опция используется для срезания ненужного материала по периметру детали, эффективно формируя внешние границы для достижения общих размеров фигурки Лего. 
+* Обычно вам не нужно менять ни одно из значений по умолчанию, кроме параметра '''Дополнительное смещение (Extra Offset)''', расположенного на вкладке Операции (Operation). Установите этот параметр на 1 мм, чтобы оставшийся объект правильно соответствовал границам Лего.
+* После нажатия кнопки '''Применить (apply)''' вы должны увидеть зелёные линии вокруг объекта. Эти линии отображают путь, по которому будет двигаться наш режущий инструмент при резании исходного блока.
+
+[[File:FreeCAD CAMProfile.png]]
+
+* Следующим шагом будет создание 6 выступающих цилиндров на верхней части блока Лего.
+* Выберите верхнюю грань и нажмите на [[Image:CAM_Pocket_Shape.svg|16px]] [[CAM_Pocket_Shape/ru|Форма кармана (Pocket Shape)]]. На вкладке '''Расширения (Extensions)''' включите Расширения (Extensions) и щёлкните по краю верхней грани (он должен быть автоматически добавлен в поле длины по умолчанию.
+* Наконец, на вкладке '''Операция (Operation)''' введите -1,5 мм в поле Pass Extension box и измените опцию шаблона на ZigZagOffset.
+* Нажмите '''применить (apply)''' и закройте вкладку.
+* Аналогичным образом мы можем создать три цилиндра на нижней части детали Лего.
+* Мы можем легко проследить за этапами фрезеровки объекта, используя [[Image:CAM_SimulatorGL.svg|16px]] [[CAM_SimulatorGL/ru|SimulatorGL (СимуляторGL)]].
+
 '''Загрузки'''
-</div>
 
-<div class="mw-translate-fuzzy">
 * Созданный в этом упражнении файл STL: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/lego.stl
 * Файл, созданный в этом упражнении: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/path.FCStd
 * Файл G-кода, созданный в этом упражнении: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/lego.gcode
-</div>
 
-<div class="mw-translate-fuzzy">
 '''Читать далее'''
-</div>
 
-'''Downloads'''
-
-* The STL file generated in this exercise: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/lego.stl
-* The file generated during this exercise: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/path.FCStd
-* The G-code file generated in this exercise: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/lego.gcode
-
-'''Read more'''
-
-<div class="mw-translate-fuzzy">
-* [[Mesh_Workbench/ru|Верстак Mesh]]
-* [https://en.wikipedia.org/wiki/STL_%28file_format%29 Формат файлов STL]
+* [[Mesh_Workbench/ru|Верстак Сетки (Mesh)]]
+* [https://ru.wikipedia.org/wiki/STL_(формат_файла) Формат файлов STL (рус.)][https://en.wikipedia.org/wiki/STL_%28file_format%29 (англ.)]
 * [http://slic3r.org/ Slic3r]
 * [https://ultimaker.com/en/products/cura-software Cura]
 * [https://github.com/cblt2l/FreeCAD-CuraEngine-Plugin Верстак Cura]
-* [[Path_Workbench/ru|Верстак Path]]
+* [[CAM_Workbench/ru|Верстак CAM (ЧПУ)]]
 * [http://camotics.org/ Camotics]
-</div>
 
-=== Videos ===
+<span id="Videos"></span>
+== Видео ==
 
-* [https://www.youtube.com/playlist?list=PL6Fiih6ItYsWCE20KtUJYpiDPrCA2rVpN How To Use FreeCAD For 3D Printing | Using The Realthunder Branch] A video playlist by Maker Tales about how to use FreeCAD for 3D printing.
+* [https://www.youtube.com/playlist?list=PL6Fiih6ItYsWCE20KtUJYpiDPrCA2rVpN Как использовать FreeCAD для 3D-печати | Использование ветки Realthunder] Видео плейлист от Maker Tales о том, как использовать FreeCAD для 3D-печати.
 
 
 {{Docnav/ru
