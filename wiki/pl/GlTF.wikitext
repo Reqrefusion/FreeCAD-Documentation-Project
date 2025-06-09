@@ -7,37 +7,43 @@
 
 [https://www.khronos.org/gltf/ GL Transmission Format] ''(glTF™)'' to nieodpłatna specyfikacja wydajnego przesyłania i ładowania scen i modeli 3D przez aplikacje. Minimalizuje zarówno rozmiar zasobów 3D, jak i przetwarzanie w czasie wykonywania potrzebne do rozpakowania i wykorzystania tych zasobów.
 
-<span id="Installation"></span>
-==Instalacja==
-
-Zgodnie z tym [https://forum.freecadweb.org/viewtopic.php?f=8&t=31680&p=450917&#p450658 wątkiem na forum], OCC musi zostać skompilowane z obsługą RapidJSON, aby móc korzystać z funkcji glTF. Dlatego należy ustawić opcję {{incode|USE_RAPIDJSON}} w kroku konfiguracji CMake. Wymaga to pakietu rapidjson-dev. 
-
 <span id="Importing"></span>
 ==Importowanie==
 
-Obecnie nie jest obsługiwany przez FreeCAD.
+Polecenie [[Std_Import/pl|Std: Import]] obsługuje format glTF. Wspierana jest zarówno wersja binarna ({{FileName|.glb}}), jak i tekstowa ({{FileName|.gltf}}). {{Version/pl|1.0}}
+
+<span id="Alternative_import_workflow"></span>
+===Alternatywny sposób importu===
+
+Operacja importu odbywa się za pośrednictwem OCCT, jądra CAD programu FreeCAD. Ponieważ jest to zadanie wymagające dużych zasobów, może zająć sporo czasu. Alternatywnym podejściem jest użycie zewnętrznego narzędzia w celu zmniejszenia ilości przetwarzania wykonywanego jednocześnie. Na przykład Blender oferuje dobrą obsługę plików {{FileName|.glTF}} i może bardzo szybko wykonać pierwszy krok, czyli odczytanie strumienia danych i utworzenie obiektu siatki, który można dalej przetwarzać w FreeCAD. Można go też bezpośrednio wykorzystać jako siatkę bez dalszego przetwarzania.
+
+<span id="Step_1:_Conversion_to_STL_using_Blender"></span>
+==== Krok 1: Konwersja do STL przy pomocy Blendera ====
+
+# Otwórz Blender i zaimportuj plik źródłowy siatki: '''File → Import → glTF 2.0'''.
+# Wybierz zaimportowany obiekt.
+# Upewnij się, że jego wymiary są poprawne.
+# Wyeksportuj obiekt za pomocą: '''File → Export → Stl (.stl)'''.
+#* W opcjach eksportu włącz '''Selection Only''' i ustaw '''Scale''' na '''1.0'''.
+#* Zapisz wyjściowy plik STL.
+
+<span id="Step_2:_Creating_a_Solid_from_STL_in_FreeCAD"></span>
+==== Krok 2: Tworzenie bryły z pliku STL we FreeCAD ====
+
+# Zaimportuj plik {{FileName|.stl}} do FreeCAD. Spowoduje to utworzenie obiektu siatki i będzie to szybka operacja.
+# Jeśli zaimportowana siatka ma niewłaściwą skalę (np. błąd przekształcenia metrów na milimetry), przejdź do [[Mesh_Workbench/pl|środowiska pracy Siatka]], wybierz siatkę i użyj narzędzia [[Mesh_Scale/pl|Skaluj]] aby zastosować konieczny współczynnik skali (np. 1000).
+# Przejdź do [[Part_Workbench/pl|środowiska pracy Część]].
+# Wybierz przeskalowany obiekt siatki i przekonwertuj go na kształt przy pomocy narzędzia [[Part_ShapeFromMesh/pl|Część → Utwórz kształt z siatki...]].
+# Wybierz nowy obiekt kształtu i utwórz bryłę za pomocą narzędzia [[Part_MakeSolid/pl|Część → Przekształć na bryłę]].
+
+Wynikiem będzie natywny obiekt bryłowy we FreeCAD gotowy do dalszego modelowania.
 
 <span id="Exporting"></span>
 ==Eksportowanie==
 
-Od wersji FreeCAD 0.19.23074 polecenie [[Std_Export/pl|Std Eksport]] może eksportować również do formatu gITF.
+Polecenie [[Std_Export/pl|Std: Eksport]] może eksportować do formatu gITF.
 
-<span id="Alternative_export_solutions"></span>
-===Alternatywne rozwiązania eksportu===
-
-W przypadku wcześniejszych wersji można zastosować te obejścia:
-
-1. Eksportuj jako STEP → Importuj do CAD Assistant z Opencascade -> Eksportuj do glTF.
-
-lub
-
-2. Użyj biblioteki Python {{incode|cqparts}} ''([https://github.com/cqparts/cqparts strona domowa])'':
-{{code|
-import cqparts
-cqparts.Assembly.importer('step')('myfile.stp').exporter('gltf')('myfile.gltf')
-}}
-
-Żródło: [https://forum.freecadweb.org/viewtopic.php?f=8&t=31680&p=449977#p449977 wątek na forum].
+Przy zapisywania pliku, jeśli rozszerzenie nadane przez użytkownika to {{FileName|.gltf}}, plik zostanie zapisany jako dwuczęściowe połączenie formatu tekstowego {{FileName|filename.gltf}} i binarnego {{FileName|filename.bin}}. Jeśli rozszerzenie nadane przez użytkownika to  {{FileName|.glb}}, plik zostanie zapisany jako jeden plik binarny {{FileName|.glb}}.
 
 <span id="Related"></span>
 ==Powiązane==
