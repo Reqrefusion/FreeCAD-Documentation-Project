@@ -6,34 +6,45 @@
 
 Le [https://www.khronos.org/gltf/ GL Transmission Format] (glTF™) est une spécification libre de droits pour la transmission et le chargement efficaces de scènes et de modèles 3D par des applications. Il minimise à la fois la taille des actifs 3D et le traitement d'exécution nécessaire pour décompresser et utiliser ces actifs.
 
-==Installation==
-
-Selon ce [https://forum.freecadweb.org/viewtopic.php?f=8&t=31680&p=450917&#p450658 fil de discussion du forum], OCC doit être compilé avec le support RapidJSON afin d'utiliser les fonctionnalités glTF. Par conséquent, définissez l'option {{incode|USE_RAPIDJSON}} dans l'étape de configuration de CMake. Cela nécessite le package rapidjson-dev. 
-
+<span id="Importing"></span>
 ==Importer==
 
-Actuellement non pris en charge dans FreeCAD.
+La commande [[Std_Import/fr|Std Importer]] permet d'importer au format glTF. Les formats binaires ({{FileName|.glb}}) et textuels ({{FileName|.gltf}}) sont pris en charge. {{Version/fr|1.0}}
 
+<span id="Alternative_import_workflow"></span>
+===Processus d'importation alternatif===
+
+L'importation se fait via OCCT, le noyau CAO de FreeCAD. Comme il s'agit d'une tâche gourmande en ressources, elle peut prendre un temps considérable. Une autre approche consiste à utiliser un outil externe pour réduire la quantité de traitement effectué en même temps. Blender, par exemple, prend bien en charge {{FileName|.glTF}} et peut très rapidement effectuer la première étape de lecture du flux de données et créer un objet maillé qui peut être traité ultérieurement dans FreeCAD. Il est également possible de l'utiliser directement en tant que maillage sans autre traitement.
+
+<span id="Step_1:_Conversion_to_STL_using_Blender"></span>
+==== Étape 1 : convertir en STL à l'aide de Blender ====
+
+# Ouvrez Blender et importez votre fichier source de maillages: '''Fichier → Importation → glTF 2.0'''.
+# Sélectionnez l'objet importé.
+# Vérifiez que ses dimensions sont correctes.
+# Exportez l'objet via : '''Fichier → Exportation → Stl (.stl)'''.
+#* Dans les options d'exportation, activez '''Sélection uniquement''' et réglez '''Échelle''' à '''1.0.'''
+#* Enregistrez le fichier STL de sortie.
+
+<span id="Step_2:_Creating_a_Solid_from_STL_in_FreeCAD"></span>
+==== Étape 2 : créer un solide à partir d'un STL dans FreeCAD ====
+
+# Importer le fichier {{FileName|.stl}} dans FreeCAD. Cela créera un objet maillé et sera une opération rapide.
+# Si le maillage importé n'est pas à la bonne échelle (par exemple, une erreur de mètre à millimètre), passez à l'[[Mesh_Workbench/fr|atelier Mesh]], sélectionnez le maillage et utilisez [[Mesh_Scale/fr|Mesh Échelle]] pour appliquer le facteur de correction nécessaire (par exemple, 1000).
+# Passez à l'[[Part_Workbench/fr|atelier Part]].
+# Sélectionnez l'objet maillé mis à l'échelle et convertissez-le en une forme à l'aide de [[Part_ShapeFromMesh/fr|Part Forme à partir d'un maillage]].
+# Sélectionnez le nouvel objet de forme et créez un solide en utilisant [[Part_MakeSolid/fr|Part Convertir en solide]].
+
+Le résultat est un objet solide natif de FreeCAD prêt à être modélisé.
+
+<span id="Exporting"></span>
 ==Exporter==
 
-Depuis la version 0.19.23074 de FreeCAD, la commande [[Std_Export/fr|Std Exporter]] peut exporter au format gITF.
+La commande [[Std_Export/fr|Std Exporter]] peut exporter au format glTF.
 
-=== Solutions d'exportation alternatives ===
+Lors de l'enregistrement d'un fichier, si l'extension donnée par l'utilisateur est {{FileName|.gltf}}, il sera enregistré sous la forme d'une combinaison texte {{FileName|filename.gltf}} et binaire {{FileName|filename.bin}} en deux parties. Si l'extension donnée par l'utilisateur est {{FileName|.glb}}, il sera enregistré sous la forme d'un seul fichier binaire {{FileName|.glb}}.
 
-Pour les versions antérieures, ces solutions de contournement peuvent être utilisées:
-
-1. Exporter en STEP → Importer dans l'assistant CAD depuis Opencascade -> Exporter vers glTF
-
-OU
-
-2. Utilisez la bibliothèque Python {{incode|cqparts}} ([https://github.com/cqparts/cqparts website]):
-{{code|
-import cqparts
-cqparts.Assembly.importer('step')('myfile.stp').exporter('gltf')('myfile.gltf')
-}}
-
-Source: [https://forum.freecadweb.org/viewtopic.php?f=8&t=31680&p=449977#p449977 fil du forum]
-
+<span id="Related"></span>
 == En relation ==
 
 * [[Import_Export/fr|Import Export]]
