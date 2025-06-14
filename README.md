@@ -1,5 +1,7 @@
 # Gordian Knot(FreeCAD-Documentation-Project)
 
+If you want to create a PR, it is recommended to create it as in this [link](https://docs.github.com/en/repositories/working-with-files/managing-files/editing-files#editing-files-in-your-repository).
+
 While I was thinking about what the project did, I thought it would be nice to name it Gordian Knot. Because in my opinion, APIs are a thread and this project connects these APIs together. Unlike other projects, it does it without separating it into threads. Actually, this idiom is about using brute force, but since it's the most famous knot in history, it's probably okay.
 
 Check the github wiki for more information. Any contribution is welcomed with great pleasure.
