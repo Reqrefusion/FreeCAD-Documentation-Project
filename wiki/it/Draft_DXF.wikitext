@@ -16,6 +16,8 @@
 
 Draft DXF è un modulo software utilizzato dai comandi [[File:Std_Open.svg|24px]] [[Std_Open/it|Apri]], [[File:Std_Import.svg|24px]] [[Std_Import/it|Importa]]  [[File:Std_Export.svg|24px]] ed [[Std_Export/it|Esporta]] per gestire il formato DXF.
 
+From the user's point of view, the DXF import/export module will be loaded automatically when any of those commands are invoked and the file to open, import or export is a DXF file. The main difference between [[Std_Open|Std Open]] and the import command is that the former will create a new FreeCAD document and then do the import, whereas the later will import the DXF file and insert the result in the currently active document.
+
 [[Image:Screenshot qcad.jpg]]
 {{Caption|Disegno fatto con Qcad esportato in DXF, e successivamente aperto in FreeCAD}}
 
@@ -63,7 +65,7 @@ I solidi 3D all'interno di un file DXF sono memorizzati in un blob binario ACIS/
 | style="text-align:center; color:green;" | '''✓'''
 |-
 | Leaders
-| style="text-align:center; color:green;" | '''✓'''
+| style="text-align:center; color:red;" | '''✗'''
 | style="text-align:center; color:green;" | '''✓'''
 |-
 | Layers
@@ -72,19 +74,19 @@ I solidi 3D all'interno di un file DXF sono memorizzati in un blob binario ACIS/
 |-
 | Points
 | style="text-align:center; color:green;" | '''✓'''
-| style="text-align:center; color:red;" | '''✗'''
+| style="text-align:center; color:green;" | '''✓'''
 |-
 | Dimensions
 | style="text-align:center; color:green;" | '''✓'''
-| style="text-align:center; color:red;" | '''✗'''
+| style="text-align:center; color:green;" | '''✓'''
 |-
 | Blocks
 | style="text-align:center; color:green;" | '''✓''' <br><small>(Geometry only; texts, dimensions, and attributes inside blocks are skipped)</small>
-| style="text-align:center; color:red;" | '''✗'''
+| style="text-align:center; color:green;" | '''✓'''
 |-
 | Paper space objects
 | style="text-align:center; color:green;" | '''✓'''
-| style="text-align:center; color:red;" | '''✗'''
+| style="text-align:center; color:green;" | '''✓'''
 |-
 | 3D Faces
 | style="text-align:center; color:red;" | '''✗'''
@@ -96,26 +98,41 @@ I solidi 3D all'interno di un file DXF sono memorizzati in un blob binario ACIS/
 
 Ci sono anche due esportatori. L'esportatore legacy esporta nel formato DXF R12, l'esportatore C++ nel formato DXF R14. Entrambi i formati possono essere gestiti da molte applicazioni.
 
-<span id="C++_exporter"></span>
-===Esportatore C++===
-
-Alcune delle caratteristiche e limitazioni di questo esportatore sono:
-* Viene esportata tutta la geometria 2D di FreeCAD, eccetto [[Draft_CubicBezCurve/it|Draft CubicBezCurves]], [[Draft_BezCurve/it|Draft BezCurves]] e [[Draft_Point/it|Draft Points]].
-* I bordi diritti delle facce degli oggetti 3D vengono esportati, ma i bordi curvi solo se si trovano su un piano parallelo al piano XY del sistema di coordinate globale. Tenere presente che un DXF creato da oggetti 3D conterrà linee duplicate.
-* Testi e quotature non vengono esportati.
-* I colori vengono ignorati.
-* I layer vengono mappati in base ai nomi degli oggetti.
-
-<span id="Legacy_exporter"></span>
-===Esportatore Legacy===
-
-Alcune delle caratteristiche e limitazioni di questo esportatore sono:
-* Viene esportata tutta la geometria 2D di FreeCAD, eccetto [[Draft_Point/it|Draft Points]]. Ma le ellissi, le B-spline e le curve di Bézier non vengono esportate correttamente.
-* Gli oggetti 3D vengono esportati come viste 2D appiattite.
-* Gli oggetti composti vengono esportati come blocchi.
-* I testi e le quotature vengono esportati.
-* I colori nel DXF si basano sul colore della linea degli oggetti. Il nero è mappato su "ByBlock", gli altri colori sono mappati utilizzando i colori AutoCAD Color Index (ACI).
-* I layer vengono mappati in base ai nomi dei layer e dei gruppi. Quando i gruppi sono nidificati, il nome del layer viene assegnato al gruppo più profondo.
+{| class="wikitable" style="text-align:left;"
+|+ DXF exporter entity support comparison
+|-
+! Feature
+! C++ exporter (R14)
+! Legacy exporter (R12)
+|-
+| Supported 2D Geometry
+| All except Bezier curves. Ellipses and Splines are exported natively.
+| All except Points. Ellipses and B-splines may be inaccurate or exported as polylines.
+|-
+| Points
+| style="text-align:center; color:green;" | '''✓''' <br><small>(If the "Export points" preference is enabled)</small>
+| style="text-align:center; color:red;" | '''✗'''
+|-
+| 3D Objects
+| Edges from faces are exported. Curved edges only if on XY plane. May create duplicate lines.
+| Exported as flattened 2D views.
+|-
+| Texts and Dimensions
+| style="text-align:center; color:red;" | '''✗'''
+| style="text-align:center; color:green;" | '''✓'''
+|-
+| Colors
+| style="text-align:center; color:red;" | '''✗'''
+| style="text-align:center; color:green;" | '''✓''' <br><small>(Based on object line color)</small>
+|-
+| Layers
+| style="text-align:center; color:green;" | '''✓''' <br><small>(Mapped from object names)</small>
+| style="text-align:center; color:green;" | '''✓''' <br><small>(Mapped from layers and nested groups)</small>
+|-
+| Compounds
+| style="text-align:center; color:red;" | '''✗'''
+| style="text-align:center; color:green;" | '''✓''' <br><small>(Exported as blocks)</small>
+|}
 
 <span id="Installing"></span>
 ==Installazione==
