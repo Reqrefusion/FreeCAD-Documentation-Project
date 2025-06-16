@@ -16,6 +16,8 @@
 
 Funkcja DXF, środowiska Rysunek Roboczy jest modułem oprogramowania używanym przez polecenia [[File:Std_Open.svg|24px]] [[Std_Open/pl|Otwórz]], [[File:Std_Import.svg|24px]] [[Std_Import/pl|Importuj]] i [[File:Std_Export.svg|24px]] [[Std_Export/pl|Eksportuj]] do obsługi formatu pliku DXF.
 
+From the user's point of view, the DXF import/export module will be loaded automatically when any of those commands are invoked and the file to open, import or export is a DXF file. The main difference between [[Std_Open|Std Open]] and the import command is that the former will create a new FreeCAD document and then do the import, whereas the later will import the DXF file and insert the result in the currently active document.
+
 [[Image:Screenshot qcad.jpg]]
 {{Caption|Rysunek Qcad wyeksportowany do DXF, który jest następnie otwierany w programie FreeCAD}}
 
@@ -27,6 +29,7 @@ Dostępne są dwa importery, który z nich będzie używany można określić w 
 Bryły 3D wewnątrz pliku DXF są przechowywane w binarnym bloku ACIS/SAT, który w tej chwili nie może być odczytany przez FreeCAD.
 
 
+<div class="mw-translate-fuzzy">
 {| class="wikitable" style="text-align:left;"
 |+ Porównanie wsparcia dla obiektów w importerach DXF
 |-
@@ -90,32 +93,48 @@ Bryły 3D wewnątrz pliku DXF są przechowywane w binarnym bloku ACIS/SAT, któr
 | style="text-align:center; color:red;" | '''✗'''
 | style="text-align:center; color:green;" | '''✓'''
 |}
+</div>
 
 <span id="Exporting"></span>
 ==Eksportowanie==
 
 Istnieją również dwa eksportery. Starszy eksporter eksportuje do formatu R12 DXF, a eksporter C++ do formatu R14 DXF. Oba formaty mogą być obsługiwane przez wiele aplikacji.
 
-<span id="C++_exporter"></span>
-===Eksporter C++===
-
-Niektóre z cech i ograniczeń tego eksportera to:
-* Eksportowana jest cała geometria FreeCAD 2D, z wyjątkiem [[Draft_CubicBezCurve/pl|Draft CubicBezCurves]], [[Draft_BezCurve/pl|Draft BezCurves]] i [[Draft_Point/pl|Draft Points]].
-* Proste krawędzie z powierzchni obiektów 3D są eksportowane, ale krawędzie zakrzywione tylko wtedy, gdy leżą na płaszczyźnie równoległej do płaszczyzny XY globalnego układu współrzędnych. Należy pamiętać, że DXF utworzony z obiektów 3D będzie zawierał zduplikowane linie.
-* Teksty i wymiary nie są eksportowane.
-* Kolory są ignorowane.
-* Warstwy są mapowane na podstawie nazw obiektów.
-
-<span id="Legacy_exporter"></span>
-===Starszy eksporter===
-
-Niektóre z cech i ograniczeń tego eksportera to:
-* Eksportowana jest cała geometria FreeCAD 2D, z wyjątkiem [[Draft_Point/pl|Punktów]] środowiska Rysunek Roboczy. Jednak elipsy, krzywe złożone i krzywe Béziera nie są eksportowane poprawnie.
-* Obiekty 3D są eksportowane jako spłaszczony widok 2D,
-* Obiekty złożone są eksportowane jako bloki,
-* teksty,
-* Kolory w DXF są oparte na kolorze linii obiektów. Czarny jest mapowany do "ByBlock", inne kolory są mapowane przy użyciu kolorów indeksu kolorów AutoCAD Color Index ''(ACI)''.
-* Warstwy są odwzorowywane na podstawie nazw grup. Gdy grupy są zagnieżdżone, najgłębsza grupa nadaje nazwę warstwy'
+{| class="wikitable" style="text-align:left;"
+|+ DXF exporter entity support comparison
+|-
+! Feature
+! C++ exporter (R14)
+! Legacy exporter (R12)
+|-
+| Supported 2D Geometry
+| All except Bezier curves. Ellipses and Splines are exported natively.
+| All except Points. Ellipses and B-splines may be inaccurate or exported as polylines.
+|-
+| Points
+| style="text-align:center; color:green;" | '''✓''' <br><small>(If the "Export points" preference is enabled)</small>
+| style="text-align:center; color:red;" | '''✗'''
+|-
+| 3D Objects
+| Edges from faces are exported. Curved edges only if on XY plane. May create duplicate lines.
+| Exported as flattened 2D views.
+|-
+| Texts and Dimensions
+| style="text-align:center; color:red;" | '''✗'''
+| style="text-align:center; color:green;" | '''✓'''
+|-
+| Colors
+| style="text-align:center; color:red;" | '''✗'''
+| style="text-align:center; color:green;" | '''✓''' <br><small>(Based on object line color)</small>
+|-
+| Layers
+| style="text-align:center; color:green;" | '''✓''' <br><small>(Mapped from object names)</small>
+| style="text-align:center; color:green;" | '''✓''' <br><small>(Mapped from layers and nested groups)</small>
+|-
+| Compounds
+| style="text-align:center; color:red;" | '''✗'''
+| style="text-align:center; color:green;" | '''✓''' <br><small>(Exported as blocks)</small>
+|}
 
 <span id="Installing"></span>
 ==Instalacja==
