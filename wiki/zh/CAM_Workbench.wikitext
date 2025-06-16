@@ -16,20 +16,21 @@
 {{TOCright}}
 
 <span id="Introduction"></span>
-== 简介 ==
+==简介==
 
 <div class="mw-translate-fuzzy">
-路径工作台用于从 FreeCAD 3D模型中生成 [https://en.wikipedia.org/wiki/CNC_router 数控机床] 的机器指令。这些产品在数控机床 (如铣刀、车床、激光切割机或类似设备) 上生产真实世界的 3D 物体。通常，指令集是[https://en.wikipedia.org/wiki/G-Code G 代码] 的方言。
+刀路工作台用于从FreeCAD 3D模型生成[https://en.wikipedia.org/wiki/CNC_router CNC机器]指令。它们可以在CNC机床上生产真实的3D产品，如铣床，车床，激光切割机等。 通常，指令是[https://en.wikipedia.org/wiki/G-Code G-Code]语言。
 </div>
 
 [[Image:pathwb.png|600px]]
 
 <div class="mw-translate-fuzzy">
-FreeCAD 路径工作台工作流程以以下方式创建机器指令:
-* 3D 模型是基本对象, 通常使用一个或多个 [[PartDesign Workbench|零件设计]], [[Part Workbench|零件]] 或 [[Draft Workbench|底图]] 工作台。
-* [[CAM_Job|作业]] 是在路径工作台中创建的。这包含了所有信息用于生成数控机床上处理作业的必要 G 代码: 有库存材料, 铣削有一个确定的 [[CAM_ToolBitLibraryOpen|工具集]], 它遵循某些命令控制速度和动作 (通常是 G 代码)。
-* 根据作业操作的要求选择工具。
-* 铣削路径的创建使用例如 [[CAM_Profile|轮廓]] 和 [[CAM_Pocket_3D|袖珍]] 操作。这些 路径对象 使用内部 FreeCAD G 代码方言, 独立于数控机床。
+FreeCAD刀路工作台按如下工作流程创建这些机器指令：
+* 使用[[PartDesign Workbench/zh|零件设计工作台]]，[[Part Workbench/zh|零件工作台 ]]或[[Draft Workbench/zh|草图工作台]]中的一个或多个创建作为基础对象的3D模型。
+*在[[Path Workbench|刀路工作台]]中创建[[CAM_Job/zh|刀路作业]]。 这包含用于生成在CNC铣床上处理作业的G-code所有必要的信息：有库存材料，工厂有一定的[[CAM_ToolBitLibraryOpen|刀具包]]，它遵循某些命令(通常是G-Code)控制速度和运动。
+*根据作业操作的要求选择刀具。
+*使用例如 [[CAM_Profile|轮廓线]]和[[CAM_Pocket_3D|开槽]]操作创建铣削路径。 这些刀路对象使用FreeCAD内部独立于CNC机器的G-Code语言。
+*使用与您的机器匹配的G-Code形式导出作业。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -37,10 +38,9 @@ FreeCAD 路径工作台工作流程以以下方式创建机器指令:
 </div>
 
 <div class="mw-translate-fuzzy">
-== 一般概念 ==
-路径工作台生成 G 代码，定义了在目标中铣削由 3D 模型表示的项目所需要的路径—在 [https://www.freecadweb.org/wiki/Path_scripting#FreeCAD.27s_internal_GCode_format  路径作业操作 FreeCAD G 代码方言]，然后通过选择合适的后处理器, 将其转换为目标数控控制器的相应方言。
-
-G 代码是从路径作业中包含的指令和操作生成的。 作业工作流按将执行的顺序列出这些任务。通过添加路径操作、路径装饰、路径部分命令和路径修改—从路径菜单或 GUI 按钮。
+==一般概念==
+刀路工作台生成G-code，用于定义铣削产品的刀具运行路径，产品外形通过[https://www.freecadweb.org/wiki/Path_scripting#FreeCAD.27s_internal_GCode_format 刀路作业操作 FreeCAD G-Code指令]模拟铣削后的3D数模所呈现，该G-code指令通过选择适合的前置处理程序被转换为适合目标CNC控制器的指令。
+G-code由包含在刀路作业中的指令和操作生成。作业工作流将这些指令和操作按其执行顺序列出。该列表通过添加刀路操作、刀路修剪、刀路分步命令和通过刀路菜单或者图形界面按钮刀路修改完成。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -48,16 +48,16 @@ The G-code is generated from directives and Operations contained in a CAM Job. T
 </div>
 
 <div class="mw-translate-fuzzy">
-路径工作台提供了一个工具管理器（库，工具表），和 G 代码检查，和模拟工具。它链接到后处理器，和允许导入和导出工作模板。
+刀路工作台提供刀具管理器（库，刀具表），G-code检查和铣削模拟工具。它连接前置处理程序并允许导入和导出工作模板。
 </div>
 
 <div class="mw-translate-fuzzy">
-路径工作台有一个外部依赖：
-# FreeCAD 3D 模型单位是在 Edit->Preference...->General->Units 选项卡的单位进行设置。后处理器配置定义了最终的 G 代码单位。
-# 宏文件路径和几何公差是在Edit->Preferences...->Path->Job Preferences 选项卡中定义
-# 颜色在 Edit->Preferences...->Path->Path colors 选项卡中设置
-# 保存标记参数在 Edit->Preferences...->Path->Dressups 选项卡中设置
-# 基本 3D 模型质量支持路径 WB 要求-通过检查几何。
+刀路工作台的外部依赖包括：
+#在 {{MenuCommand|编辑 → 首选项 → General → 单位标签的单位设定}}中设置的FreeCAD的3D数模尺寸单位。前置处理程序设置定义了最终的G-code尺寸单位。
+#宏文件路径和几何公差在{{MenuCommand|编辑 → 首选项 → 刀路 → 作业偏好设定}}标签中设置.
+#颜色在{{MenuCommand|编辑 → 首选项 → 刀路 → 刀路颜色}}标签中设置.
+#持有标记参数在{{MenuCommand|编辑 → 首选项 → 刀路 → 修剪}}标签中设置.
+#基础3D数模品质支持刀路WB需求，通过几何体检查。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -72,35 +72,34 @@ Some current limitations of which you should be aware are:
 * The operations within the CAM workbench are not aware of clamping mechanisms in use to secure the model to your machine. Consequently, please review and simulate the paths you generate prior to sending the code to your machine. If necessary, model your clamping mechanisms in FreeCAD in order to better inspect the paths generated. Look for possible collisions with clamps or other obstacles along the paths.
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Units ==
+<span id="Units"></span>
+==单位==
+
+<div class="mw-translate-fuzzy">
+刀路工作台中的单位处理可能会令人感到困惑。 有几点需要了解：
+#FreeCAD基本单位的长度和时间分别为'mm'和's'。 因此速度单位为'mm/s'。 这就是FreeCAD内部存储的东西，与其他无关。
+#默认单位模式使用默认单位。如果您使用默认模式并输入没有单位给进率，则给进率的单位为'mm/s'
+#大多数数控机床都需要的进给速率为“mm/min”或“in/min”。 大多数后置处理程序会在生成G-code时自动转换单位。
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Unit handling in CAM can be confusing. There are several points to understand:
-# FreeCAD base units for length and time are 'mm' and 's' respectively. Velocity is thus 'mm/s'. This is what FreeCAD stores internally regardless of anything else
-# The default unit schema uses the default units. If you're using the default schema and you enter a feed rate without a unit string, it will get entered as 'mm/s'
-# Most CNC machines expect feed rate in the form of either 'mm/min' or 'in/min'. Most post-processors will automatically convert the unit when generating gcode.
+<div class="mw-translate-fuzzy">
+模式：
+#更改首选项中的模式会更改输入字段的默认单位。 如果您是刀路工作台用户并且更喜欢以公制设计，则强烈建议您使用“公制小零件和CNC”模式。 如果您使用美国单位进行设计，可以使用英制十进制和美制
+#更改首选单元模式对输出没有影响，但有助于避免输入错误
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Schemas:
-# Changing schema in preferences changes default unit string for the input fields. If you're a CAM user and prefer to design in metric, it's highly recommended that you use the "Metric Small Parts & CNC" schema. If you design in US units, either the Imperial Decimal and Building US will work.
-# Changing your preferred unit schema will have no effect on output but will help avoid input errors.
+<div class="mw-translate-fuzzy">
+输出：
+#在输出中生成正确的单位是后处理器的责任，且这一操作仅在那时完成
+#机器输出单元与您选择的单元模式完全无关
+#后处理程序产生公制（G21）或英制（G20）输出，还可进行配置。
+#可配置的后处理程序默认为公制（G21）
+#如果您希望可配置的后处理器输出英制G-code（G20），请在作业输出配置中设置正确的参数（即--incs for linuxcnc）。 这可以存储在作业模板中，并设置为默认模板，以使其自动适用于所有未来的作业。
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Output:
-# Generating the correct unit in output is the responsibility of the post-processor and is done only at that time.
-# Machine output unit is completely unrelated to your selected unit schema.
-# Post-processors produce either metric (G21) output, Imperial (G20) output or are configurable.
-# Configurable post-processors default to metric (G21).
-# If you want your configurable post-processor to output imperial G-code (G20), set the correct argument in your job output configuration (ie --inches for linuxcnc). This can be stored in a job template and set as your default template to make it automatic for all future jobs.
-</div>
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-CAM Inspection:
-# If you use the CAM Inspect tool to look at G-code, you will see it in 'mm/s' because it is not being post-processed.
+<div class="mw-translate-fuzzy">
+刀路检查
+#如果你使用刀路检查工具查看G-code，你将在其中看到'mm/s'，应为它还没有被进行后置处理。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -108,7 +107,7 @@ CAM Inspection:
 </div>
 
 <div class="mw-translate-fuzzy">
-==路径命令==
+==刀路命令==
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -129,19 +128,19 @@ Some commands are experimental and not available by default. To enable them see 
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:Path-Job.png|32px]] [[CAM_Job|Job]]:  创建一个新的 CNC 作业
+* [[Image:Path-Job.png|32px]] [[CAM_Job/zh|刀路作业]]:创建一个新的CNC作业。
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_PostProcess.png|32px]] [[CAM_Post|Post Process]]: 导出一个项目到 G 代码
+* [[Image:CAM_Post.svg|32px]] [[CAM_Post/zh|后置处理]]: 将一个项目导出为G-code。
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Sanity.png|32px]] [[CAM_Sanity|CAM Errors]]: 检查已选择的作业是否有缺失值
+* [[Image:CAM_Sanity.svg|32px]] [[CAM_Sanity|刀路错误]]: 检查选定作业中的缺失值
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:Path-ExportTemplate.png|32px]] [[CAM_ExportTemplate|Export Template]]: 导出当前作业作为一个模板
+* [[Image:Path-ExportTemplate.png|32px]] [[CAM_ExportTemplate/zh|导出模板]]: 将当前作业导出为模板。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -149,11 +148,11 @@ Some commands are experimental and not available by default. To enable them see 
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Inspect.png|32px]] [[CAM_Inspect|G-Code Inspector]]: 显示 G 代码以便检查
+* [[Image:CAM_Inspect.svg|32px]] [[CAM_Inspect/zh|G-Code检查器]]: 显示需要检查的G-code。
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Simulator.png|32px]] [[CAM_Simulator|Simulator]]: 显示铣削操作, 就像在机器上做的那样
+* [[Image:CAM_Simulator.svg|32px]] [[CAM_Simulator/zh|刀路模拟]]: 展示铣削操作在机器上的运行。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -161,7 +160,7 @@ Some commands are experimental and not available by default. To enable them see 
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:Path-CompleteLoop.png|32px]] [[CAM_SelectLoop|Complete Loop]]: 从两个选定的边完成一个循环
+* [[Image:Path-CompleteLoop.png|32px]] [[CAM_SelectLoop/zh|收尾循环]]: 在选定的两个边上完成收尾循环。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -184,20 +183,20 @@ Some commands are experimental and not available by default. To enable them see 
 * [[Image:CAM_Profile.svg|32px]] [[CAM_Profile|Profile]]: Creates a profile operation of the entire model, or from one or more selected faces or edges.
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* [[Image:CAM_Pocket_Shape.svg|32px]] [[CAM_Pocket_Shape|Pocket Shape]]: Creates a pocketing operation from one or more selected pocket(s).
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Pocket.svg|32px]] [[CAM_Pocket_Shape/zh|开槽]]:创建选定的一个或多个选定挖槽的开槽操作。
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Drilling.png|32px]] [[CAM_Drilling|Drilling]]: 执行钻孔循环
+* [[Image:CAM_Drilling.svg|32px]] [[CAM_Drilling|钻孔]]: 执行钻孔循环
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* [[Image:CAM_MillFace.svg|32px]] [[CAM_MillFace|Face]]: Creates a surfacing path.
+<div class="mw-translate-fuzzy">
+* [[Image:Path-Face.png|32px]] [[CAM_MillFace|面铣削]]: 创建一个面铣削刀路
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* [[Image:CAM_Helix.svg|32px]] [[CAM_Helix|Helix]]: Creates a helical path.
+<div class="mw-translate-fuzzy">
+* [[Image:Path-Helix.png|32px]] [[CAM_Helix|螺旋]]: 创建螺旋刀路。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -208,8 +207,8 @@ Some commands are experimental and not available by default. To enable them see 
 * [[Image:CAM_Slot.svg|32px]] [[CAM_Slot|Slot]]: Creates a slotting operation from selected features or custom points. [[CAM_experimental|{{Emphasis|Experimental}}]].
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* [[Image:CAM_Engrave.svg|32px]] [[CAM_Engrave|Engrave]]: Creates an engraving path.
+<div class="mw-translate-fuzzy">
+* [[Image:Path-Engrave.png|32px]] [[CAM_Engrave|雕刻]]:创建雕刻刀路
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -217,19 +216,19 @@ Some commands are experimental and not available by default. To enable them see 
 </div>
 
 <div class="mw-translate-fuzzy">
-===路径装饰===
+===刀路修剪===
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 === 3D Operations ===
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* [[Image:CAM_Pocket_3D.svg|32px]] [[CAM_Pocket_3D|3D Pocket]]: Creates a path for a 3D pocket.
+<div class="mw-translate-fuzzy">
+* [[Image:Path-3DPocket.png|32px]] [[CAM_Pocket_3D|3D开槽]]:创建3D开槽刀路
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:Path-3DSurface.png|32px]] [[CAM_Surface|3D Surface]]: 为 3D 表面创建路径
+* [[Image:Path-3DSurface.png|32px]] [[CAM_Surface|3D面]]: 创建3D面刀路
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -249,71 +248,72 @@ Some commands are experimental and not available by default. To enable them see 
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Dressup.png|32px]] [[CAM_DressupDogbone|Dogbone Dressup]]: Adds a dogbone dressup modification to a selected path
+* [[Image:CAM_DressupDogbone.svg|32px]] [[CAM_DressupDogbone|避位角修剪]]: 在选定的刀路上添加避位角修剪。
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* [[Image:CAM_DressupDragKnife.svg|32px]] [[CAM_DressupDragKnife|DragKnife]]: Adds a dragknife dressup modification to a selected path.
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupDragKnife.svg|32px]] [[CAM_DressupDragKnife|拖刀修剪]]: 在选定刀路上添加一个拖刀修剪。
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* [[Image:CAM_DressupLeadInOut.svg|32px]] [[CAM_DressupLeadInOut|LeadInOut]]: Adds a lead-in and/or lead-out point to a selected path.
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupLeadInOut.svg|32px]] [[CAM_DressupLeadInOut|引入引出点修剪]]: 在选定道路上添加引入引出点。
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* [[Image:CAM_DressupRampEntry.svg|32px]] [[CAM_DressupRampEntry|RampEntry]]: Adds ramp entry dressup modification to a selected path.
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupRampEntry.svg|32px]] [[CAM_DressupRampEntry|斜坡修剪]]: 在选定的刀路上添加斜坡修剪。
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* [[Image:CAM_DressupTag.svg|32px]] [[CAM_DressupTag|Tag]]: Adds a holding tag dressup modification to a selected path.
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_DressupTag.svg|32px]] [[CAM_DressupTag|夹持耳修剪]] 在选定刀路上添加一个夹持耳修剪。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 * [[Image:CAM_DressupZCorrect.svg|32px]] [[CAM_DressupZCorrect|Z Depth Correction]]: Corrects the Z depth using Probe Map.
 </div>
 
-<span id="Supplemental_Commands"></span>
-<div class="mw-translate-fuzzy">
-===部分命令===
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Supplemental Commands ===
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Fixture.png|32px]] [[CAM_Fixture|Fixture]]: 改变夹具的位置
+* [[Image:CAM_Fixture.svg|32px]] [[CAM_Fixture|夹具]]: 改变夹具位置
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Comment.png|32px]] [[CAM_Comment|Comment]]: 插入一个注释到路径的 G 代码中
+* [[Image:CAM_Comment.svg|32px]] [[CAM_Comment|备注]]: 在刀路G-code中加入备注
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Stop.png|32px]] [[CAM_Stop|Stop]]: 插入一个全部停止机器指令
+* [[Image:CAM_Stop.svg|32px]] [[CAM_Stop|停止]]: 插入机器停止指令
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Custom.png|32px]] [[CAM_Custom|Custom]]: 插入自定义 G 代码
+* [[Image:CAM_Custom.svg|32px]] [[CAM_Custom|自定义]]: 插入自定义G-code
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 * [[Image:CAM_Probe.svg|32px]] [[CAM_Probe|Probe]]: Creates a Probing Grid from a job stock.
 </div>
 
-* [[Image:CAM_Shape.svg|32px]] [[CAM_Shape/zh-cn|From Shape]]: Creates a path object from a selected Part object. [[CAM_experimental|{{Emphasis|Experimental}}]].
+<div class="mw-translate-fuzzy">
+* [[Image:CAM_Shape.svg|32px]] [[CAM_Shape|从形状生成的Gcode]]: 从选定的零件对象创建刀路对象
+</div>
 
 <span id="Path_Modification"></span>
 <div class="mw-translate-fuzzy">
-===路径修改===
+===刀路修改===
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Copy.png|32px]] [[CAM_Copy|Copy]]: 创建选定路径对象的参数化副本
+* [[Image:CAM_Copy.svg|32px]] [[CAM_Copy|副本]]: 创建所选刀路对象的参数化副本。
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_Array.png|32px]] [[CAM_Array|Array]]: 通过复制选定路径创建数组
+* [[Image:CAM_Array.svg|32px]] [[CAM_Array|数组]]: 通过复制选定的刀路创建数组。
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:CAM_SimpleCopy.png|32px]] [[CAM_SimpleCopy|Simple Copy]]: 创建选定路径对象的非参数副本
+* [[Image:CAM_SimpleCopy.svg|32px]] [[CAM_SimpleCopy|简化副本]]: 创建选定刀路的非参数化副本。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -329,11 +329,11 @@ Some commands are experimental and not available by default. To enable them see 
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:Path-Area.png|32px]] [[CAM_Area|Feature area]]: 从从所选对象创建一个特征区域
+* [[Image:Path-Area.png|32px]] [[CAM_Area|特征区域]]:为所选对象创建特征区域
 </div>
 
 <div class="mw-translate-fuzzy">
-* [[Image:Path-Area-Workplane.png|32px]] [[CAM_Area_Workplane|Feature area workplane]]: 创建一个特征区域工作面
+* [[Image:Path-Area-Workplane.png|32px]] [[CAM_Area_Workplane|特征区域工作面]]: 创建一个特征区域工作面
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -357,22 +357,23 @@ Manage tools, bits, and the Tool Library. Based on the ToolBit architecture.
 </div>
 
 <div class="mw-translate-fuzzy">
-路径工作台与其它 CAM 软件包共享很多概念但是它有自己的特性。如果有什么不对劲的地方, 这可能是一个很好的开始。
+刀路工作台与其他CAM软件包共享许多概念，但有其独特之处。 如果出现问题，这个特点可能是一个很好的排错起点。
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Preferences ==
+<span id="Preferences"></span>
+<div class="mw-translate-fuzzy">
+===首选项===
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* [[Image:Preferences-cam.svg|32px]] [[CAM_Preferences|Preferences...]]: Preferences available for the CAM Workbench.
+<div class="mw-translate-fuzzy">
+* [[Image:Std_DlgParameter.png|32px]] [[CAM_Preferences|首选项...]]: 刀路工具中的首选项。
 </div>
 
 <span id="Scripting"></span>
-== 脚本 ==
+==脚本编写==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-See [[CAM_scripting|CAM scripting]].
+<div class="mw-translate-fuzzy">
+见 [[Path scripting|刀路脚本]]页。
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -391,6 +392,7 @@ See [[CAM_scripting|CAM scripting]].
 * [https://www.youtube.com/playlist?list=PLEuOia-QxyFKgzAeTyH62GKqWKVURiWJL FreeCAD Path: Custom paths with Python - Part 1 - 5]: A playlist with a series of 5 videos in English by sliptonic. This series shows how to work with the [[CAM_Workbench|CAM Workbench]]. 
 * [https://www.youtube.com/playlist?list=PLUrr_kHPp4vhGdLlj6IemtF-OPUlRvSTC  FreeCAD CAM Path Workbench]: A playlist with a series of 7 videos in English by CAD CAM Lessons.
 * [https://www.youtube.com/playlist?list=PLUrr_kHPp4vh2n6DcIlegK4dEKIFjmISJ FreeCAD CAM CNC]: A playlist with a series of 8 videos in English by CAD CAM Lessons.
+* Also see the [[Video_tutorials#Computer-Aided_Manufacturing_(CAM)|Computer-Aided Manufacturing (CAM) section]] of the [[Video_tutorials|Video tutorials]] wiki page.
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -403,7 +405,7 @@ See [[CAM_scripting|CAM scripting]].
 
 
 <div class="mw-translate-fuzzy">
-[[Category:User Documentation/zh-cn|分类:用户文档]]
+[[Category:User Documentation/zh|类别:用户文档]]
 </div>
 
 {{CAM_Tools_navi{{#translation:}}}}
