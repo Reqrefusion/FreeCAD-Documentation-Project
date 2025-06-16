@@ -45,6 +45,53 @@ Gardez un œil sur le forum de FreeCAD ou sur la [[Macros_recipes/fr|Liste des m
 Outre les options du menu Edition → Préférences, l'[[TechDraw_Workbench/fr|atelier TechDraw]] peut également exporter des pages de dessin au format DXF à l’aide de la fonction [[TechDraw_ExportPageDXF/fr|TechDraw Exporter au format DXF]].
 
 
+== DXF terms and definitions ==
+
+=== Anonymous blocks ===
+
+When discussing DXF files, several terms are used to describe blocks that are generated automatically by the CAD software rather than by the user. 
+
+* '''Anonymous block''' (or '''"Asterisk" block'''): This is the technical term defined by the DXF standard. It refers to any block whose name begins with an asterisk ({{Incode|*}}). It is the overarching term.
+
+* '''System block''': This term describes the ''purpose'' of most anonymous blocks. They are not typically created by a user directly. Instead, the CAD application (e.g., AutoCAD) generates them automatically to represent complex objects that are composed of simpler geometric entities, such as hatches and dimensions.
+
+* '''Hidden block''': This term describes the typical ''behavior'' of anonymous blocks within a CAD program's user interface. Because they are system-generated and not meant for direct user manipulation, they are usually hidden from the list of blocks that a user can insert.
+
+Essentially, "anonymous block" is the technical name, "system block" describes its function, and "hidden block" describes its typical user interface behavior. For practical purposes in the context of the FreeCAD DXF importer, they all refer to the same category of blocks.
+
+==== Classes of anonymous blocks ====
+
+Anonymous blocks are further categorized based on the character that follows the initial asterisk. This prefix indicates the block's specific purpose. The most common classes are:
+
+* {{Incode|*D...}} (Dimensions): A block representing the graphical components of a dimension entity (lines, arrowheads, etc.).
+* {{Incode|*X...}} (Hatches): A block representing the geometry that makes up a hatch pattern.
+* {{Incode|*P...}} (Paper Space Layouts): A block that contains all the entities that exist on a specific paper space layout. The main model is typically in a block named {{Incode|*Model_Space}}, and individual layouts are named {{Incode|*Paper_Space}}, {{Incode|*Paper_Space0}}, {{Incode|*Paper_Space1}}, and so on.
+* {{Incode|*U...}} (Dynamic Blocks): These are complex blocks used for AutoCAD's dynamic block functionality.
+* {{Incode|*E...}}, {{Incode|*T...}}, etc.: Other prefixes exist for specialized objects like associative arrowheads and tables.
+
+=== BLOCKs and INSERTs ===
+
+==== The BLOCK entity ====
+
+A {{Incode|BLOCK}} is a named collection of geometric entities (lines, arcs, polylines, etc.) that are grouped together to form a single object definition. It can be thought of as a template.
+
+A {{Incode|BLOCK}}:
+* '''Has a name:''' every user-created block has a unique name (e.g., "CHAIR-01", "BOLT-M8"). This name is used to reference the block.
+* '''Has a base point:''' this is the origin point (0,0,0) within the block's own internal coordinate system. When the block is inserted, this base point is aligned with the specified insertion coordinates.
+* '''Is not visible by itself:''' the {{Incode|BLOCK}} definition is stored in a library-like section of the DXF file (the {{Incode|BLOCKS}} section). The geometry within the block does not appear in the final drawing until an instance of it is created.
+
+==== The INSERT entity ====
+
+An {{Incode|INSERT}} entity is what places a copy, or instance, of a {{Incode|BLOCK}}'s geometry into the drawing's model space or paper space. It is a very lightweight entity because it does not contain the geometry itself; it only contains a reference to a {{Incode|BLOCK}} definition and instructions on how to place and transform it.
+
+An {{Incode|INSERT}}:
+* '''References a block by name:''' it specifies which {{Incode|BLOCK}} definition to use (e.g., "I am an instance of block 'CHAIR-01'").
+* '''Has an insertion point:''' this is the (X, Y, Z) coordinate in the drawing where the block's base point should be placed.
+* '''Has transformations:''' each instance can be transformed independently without affecting the original block definition. These transformations include:
+** '''Scale:''' the instance can be scaled differently in the X, Y, and Z directions.
+** '''Rotation:''' the instance can be rotated around its insertion point.
+
+
 {{Userdocnavi{{#translation:}}}}
 [[Category:User Documentation{{#translation:}}]]
 [[Category:Draft{{#translation:}}]]
