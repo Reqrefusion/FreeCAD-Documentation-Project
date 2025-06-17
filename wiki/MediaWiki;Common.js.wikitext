@@ -10,7 +10,7 @@ mw.loader.using('mediawiki.util', function () {
     $(function () {
         var pageTitle = mw.config.get('wgPageName');
         
-        // Eğer sayfa adı çeviri sayfasıysa (örnek: Drawing_View/tr), çık
+
         if (/\/[a-z\-]{2,3}$/.test(pageTitle)) return;
 
         var fileName = pageTitle.replace(/:/g, ';');
@@ -29,6 +29,33 @@ mw.loader.using('mediawiki.util', function () {
         var newLink = document.getElementById('ca-editgithub');
         if (after && newLink) {
             after.parentNode.insertBefore(newLink, after.nextSibling);
+        }
+    });
+});
+
+
+mw.loader.using('mediawiki.util').then(function () {
+    mw.hook('wikipage.content').add(function () {
+        var subtitle = document.getElementById('mw-content-subtitle');
+        if (!subtitle || subtitle.querySelector('.mw-pt-translate-header')) return;
+
+        var lang  = mw.config.get('wgPageContentLanguage') || mw.config.get('wgUserLanguage');
+        var label = mw.message('pt-translate').inLanguage(lang).plain();
+
+        var link = document.createElement('a');
+        link.href = mw.util.getUrl('Special:PageTranslation', { target: mw.config.get('wgPageName') });
+        link.textContent = label;
+
+        var span = document.createElement('span');
+        span.className = 'mw-pt-translate-header';
+        span.style.display = 'block';
+        span.style.textAlign = 'center';
+        span.appendChild(link);
+
+        subtitle.insertBefore(span, subtitle.firstChild);
+
+        if (subtitle.querySelector('.approvedAndLatestMsg, .notLatestMsg')) {
+            span.insertAdjacentHTML('afterend', '<br>');
         }
     });
 });
