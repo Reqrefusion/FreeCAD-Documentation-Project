@@ -56,34 +56,38 @@ Przy omawianiu plików DXF, używanych jest kilka określeń do opisu bloków, k
 
 * '''Anonimowy blok''' (lub '''Blok "Asterisk"'''): To techniczne określenie zdefiniowane przez standard DXF. Odnosi się do każdego bloku, którego nazwa zaczyna się od gwiazdki ({{Incode|*}}). To nadrzędne określenie.
 
-* '''System block''': This term describes the ''purpose'' of most anonymous blocks. They are not typically created by a user directly. Instead, the CAD application (e.g., AutoCAD) generates them automatically to represent complex objects that are composed of simpler geometric entities, such as hatches and dimensions.
+* '''Blok systemowy''': To określenie opisuje ''cel'' większości anonimowych bloków. Zwykle nie są tworzone bezpośrednio przez użytkownika. Zamiast tego, oprogramowanie CAD (np. AutoCAD) generuje je automatycznie do reprezentacji złożonych obiektów składających się z prostszych obiektów geometrycznych, takich jak kreskowania i wymiary.
 
-* '''Hidden block''': This term describes the typical ''behavior'' of anonymous blocks within a CAD program's user interface. Because they are system-generated and not meant for direct user manipulation, they are usually hidden from the list of blocks that a user can insert.
+* '''Ukryty blok''': To określenie opisuje typowe ''zachowanie'' anonimowych bloków w obrębie interfejsu użytkownika programu CAD. Ponieważ są one generowane systemowo i nie są przeznaczone do bezpośredniej manipulacji przez użytkownika, zwykle pozostają ukryte na liście bloków, które użytkownik może wstawić.
 
-Essentially, "anonymous block" is the technical name, "system block" describes its function, and "hidden block" describes its typical user interface behavior. For practical purposes in the context of the FreeCAD DXF importer, they all refer to the same category of blocks.
+Zasadniczo, "blok anonimowy" to określenie techniczne, "blok systemowy" opisuje jego funkcję a "blok ukryty" jego typowe zachowanie w interfejsie użytkownika. Do celów praktycznych w kontekście importera DXF we FreeCAD, wszystkie te określenia odnoszą się do tej samej kategorii bloków.
 
-==== Classes of anonymous blocks ====
+<span id="Classes_of_anonymous_blocks"></span>
+==== Klasy bloków anonimowych ====
 
-Anonymous blocks are further categorized based on the character that follows the initial asterisk. This prefix indicates the block's specific purpose. The most common classes are:
+Bloki anonimowe są dalej kategoryzowane w oparciu o znak po początkowej gwiazdce. Ten przedrostek wskazuje specyficzny cel bloku. Najpopularniejsze klasy to:
 
-* {{Incode|*D...}} (Dimensions): A block representing the graphical components of a dimension entity (lines, arrowheads, etc.).
-* {{Incode|*X...}} (Hatches): A block representing the geometry that makes up a hatch pattern.
-* {{Incode|*P...}} (Paper Space Layouts): A block that contains all the entities that exist on a specific paper space layout. The main model is typically in a block named {{Incode|*Model_Space}}, and individual layouts are named {{Incode|*Paper_Space}}, {{Incode|*Paper_Space0}}, {{Incode|*Paper_Space1}}, and so on.
-* {{Incode|*U...}} (Dynamic Blocks): These are complex blocks used for AutoCAD's dynamic block functionality.
-* {{Incode|*E...}}, {{Incode|*T...}}, etc.: Other prefixes exist for specialized objects like associative arrowheads and tables.
+* {{Incode|*D...}} (Wymiary): Blok reprezentujący graficzne komponenty obiektu wymiaru (linie, groty strzałek itd.).
+* {{Incode|*X...}} (Kreskowania): Blok reprezentujący geometrię, która tworzy wzór kreskowania.
+* {{Incode|*P...}} (Układy przestrzeni kartki papieru): Blok, który zawiera wszystkie obiekty istniejące w określonym układzie kartki papieru. Główny model znajduje się zwykle w bloku o nazwie {{Incode|*Model_Space}} a pojedyncze układy są nazwane {{Incode|*Paper_Space}}, {{Incode|*Paper_Space0}}, {{Incode|*Paper_Space1}} itd.
+* {{Incode|*U...}} (Bloki dynamiczne): Są to złożone bloki używane przez funkcję dynamicznych bloków w AutoCAD.
+* {{Incode|*E...}}, {{Incode|*T...}} itd.: Inne przedrostki istnieją dla specjalizowanych obiektów, takich jak asocjacyjne groty strzałek i tabele.
 
-=== BLOCKs and INSERTs ===
+<span id="BLOCKs_and_INSERTs"></span>
+=== Obiekty BLOCK oraz INSERT ===
 
-==== The BLOCK entity ====
+<span id="The_BLOCK_entity"></span>
+==== Obiekt BLOCK ====
 
-A {{Incode|BLOCK}} is a named collection of geometric entities (lines, arcs, polylines, etc.) that are grouped together to form a single object definition. It can be thought of as a template.
+{{Incode|BLOCK}} to nazwany zbiór obiektów geometrycznych (linii, łuków, polilinii itd.), które są pogrupowane razem aby utworzyć pojedynczą definicję obiektu. Można to traktować jak szablon.
 
-A {{Incode|BLOCK}}:
-* '''Has a name:''' every user-created block has a unique name (e.g., "CHAIR-01", "BOLT-M8"). This name is used to reference the block.
-* '''Has a base point:''' this is the origin point (0,0,0) within the block's own internal coordinate system. When the block is inserted, this base point is aligned with the specified insertion coordinates.
-* '''Is not visible by itself:''' the {{Incode|BLOCK}} definition is stored in a library-like section of the DXF file (the {{Incode|BLOCKS}} section). The geometry within the block does not appear in the final drawing until an instance of it is created.
+{{Incode|BLOCK}}:
+* '''Ma nazwę:''' każdy blok stworzony przez użytkownika ma unikalną nazwę (np. "CHAIR-01", "BOLT-M8"). Ta nazwa jest używana do odnoszenia się do bloku.
+* '''Ma punkt bazowy:''' jest to punkt początkowy (0,0,0) w obrębie własnego wewnętrznego układu współrzędnych bloku. Gdy blok jest wstawiany, ten punkt bazowy jest wyrównywany z podanymi współrzędnymi wstawiania.
+* '''Nie jest widoczny sam z siebie:''' definicja obiektu {{Incode|BLOCK}} jest przechowywana w części pliku DXF przypominającej bibliotekę (sekcja {{Incode|BLOCKS}}). Geometria w obrębie bloku nie pojawia się w finalnym rysunku dopóki nie zostanie utworzona jego instancja.
 
-==== The INSERT entity ====
+<span id="The_INSERT_entity"></span>
+==== Obiekt INSERT ====
 
 An {{Incode|INSERT}} entity is what places a copy, or instance, of a {{Incode|BLOCK}}'s geometry into the drawing's model space or paper space. It is a very lightweight entity because it does not contain the geometry itself; it only contains a reference to a {{Incode|BLOCK}} definition and instructions on how to place and transform it.
 
