@@ -6,30 +6,23 @@ $(".expand-link").click( function() { $(this).parent('li').parent('ul').parent('
 $(".manualtoc").parent().find("img").css({"max-width":$(".manualtoc").parent().width()-300,"height":"auto"});
 $(".fcinfobox").parent().find("img").css({"max-width":$(".fcinfobox").parent().width()-300,"height":"auto"});
 
-mw.loader.using('mediawiki.util', function () {
-    $(function () {
-        var pageTitle = mw.config.get('wgPageName');
-        
+mw.loader.using('mediawiki.util').then(function () {
+    mw.hook('wikipage.content').add(function () {
+        if (mw.config.get('wgNamespaceNumber') !== 0) return;
+        if (document.getElementById('ca-editgithub')) return;
 
-        if (/\/[a-z\-]{2,3}$/.test(pageTitle)) return;
+        var pageName = mw.config.get('wgPageName');
+        if (/\/[a-z\-]{2,3}$/.test(pageName)) return;
 
-        var fileName = pageTitle.replace(/:/g, ';');
+        var fileName  = pageName.replace(/:/g, ';');
         var githubUrl = 'https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/' + fileName + '.wikitext';
 
         var after = document.getElementById('ca-edit') || document.getElementById('ca-viewsource');
 
-        mw.util.addPortletLink(
-            'p-views',
-            githubUrl,
-            'Edit on GitHub',
-            'ca-editgithub',
-            'Edit this page on GitHub'
-        );
+        mw.util.addPortletLink('p-views', githubUrl, 'Edit on GitHub', 'ca-editgithub', 'Edit this page on GitHub');
 
         var newLink = document.getElementById('ca-editgithub');
-        if (after && newLink) {
-            after.parentNode.insertBefore(newLink, after.nextSibling);
-        }
+        if (after && newLink) after.parentNode.insertBefore(newLink, after.nextSibling);
     });
 });
 
