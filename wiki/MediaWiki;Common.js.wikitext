@@ -27,31 +27,44 @@ mw.loader.using('mediawiki.util').then(function () {
 });
 
 
-mw.loader.using('mediawiki.util').then(function(){
-    mw.hook('wikipage.content').add(function(){
-        if(mw.config.get('wgNamespaceNumber')!==0)return;
-        var sub=document.getElementById('mw-content-subtitle');
-        if(!sub||sub.querySelector('.mw-pt-translate-header'))return;
-        var groups=mw.config.get('wgUserGroups')||[];
-        if(!groups.some(function(g){return['translator','translationadmin','sysop'].indexOf(g)!==-1;}))return;
-        var titlePlus=mw.config.get('wgTitle').replace(/ /g,'+');
-        var pageLang=mw.config.get('wgPageContentLanguage')||'en';
-        var href=mw.util.getUrl('Special:Translate',{
-            group:'page-'+titlePlus,
-            action:'page',
-            filter:'',
-            language:pageLang
+mw.loader.using('mediawiki.util').then(function () {
+    mw.hook('wikipage.content').add(function () {
+        if (mw.config.get('wgNamespaceNumber') !== 0) return;
+
+        var sub = document.getElementById('mw-content-subtitle');
+        if (!sub || sub.querySelector('.mw-pt-translate-header')) return;
+
+        var groups = mw.config.get('wgUserGroups') || [];
+        if (!groups.some(function (g) {
+            return ['translator', 'translationadmin', 'sysop'].indexOf(g) !== -1;
+        })) return;
+
+
+        var titlePlus = mw.config.get('wgPageName').replace(/_/g, '+');
+        var pageGroup  = 'page-' + titlePlus;
+
+        var userLang = mw.config.get('wgUserLanguage') || navigator.language || 'en';
+
+        var href = mw.util.getUrl('Special:Translate', {
+            group:   pageGroup,
+            action:  'page',
+            filter:  '!translated',
+            language: userLang
         });
-        var label=mw.message('pt-translate').exists()?mw.message('pt-translate').plain():'Translate this page';
-        var span=document.createElement('span');
-        span.className='mw-pt-translate-header';
-        span.style.display='block';
-        span.style.textAlign='center';
-        span.style.borderBottom='0';
-        span.style.marginBottom='4px';
-        var link=document.createElement('a');
-        link.href=href;
-        link.textContent=label;
+
+        var label = mw.msg('pt-translate');
+        if (!label || /^⧼.+⧽$/.test(label)) label = 'Translate this page';
+
+        var span = document.createElement('span');
+        span.className     = 'mw-pt-translate-header';
+        span.style.display = 'block';
+        span.style.textAlign = 'center';
+        span.style.marginBottom = '4px';
+
+        var link = document.createElement('a');
+        link.href = href;
+        link.textContent = label;
+
         span.appendChild(link);
         sub.prepend(span);
     });
