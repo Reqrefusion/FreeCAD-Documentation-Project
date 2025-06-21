@@ -41,8 +41,10 @@ Si la valeur de <code>module=</code> ou <code>class=</code> n'est pas trouvée s
 
 Toutefois, une raison valable pour déplacer ou renommer le module ou la classe est d'améliorer la structure et la maintenabilité du code d'origine, par exemple, lors de la restructuration d'un atelier entier. Dans ce cas, il existe plusieurs stratégies pour faire migrer les anciens objets vers l'utilisation d'une nouvelle classe. Ceci est fait afin de conserver la compatibilité ascendante, lorsque la rupture pure et simple des anciens documents doit être évitée.
 
+<span id="Old_object_and_new_object"></span>
 == Ancien et nouvel objet ==
 
+<span id="Old_object"></span>
 === Ancien objet ===
 
 Un ancien objet est défini dans un module qui se trouve à la racine de l'atelier.
@@ -88,6 +90,7 @@ Une session de [[Python_console/fr|console Python]] avec les propriétés de bas
 <old_module.OldObject object at 0x7efc3c51c390>
 }}
 
+<span id="New_object"></span>
 === Nouvel objet ===
 
 Considérons maintenant que l'atelier est restructuré, de sorte que les classes ne se trouvent pas seulement dans le répertoire racine, mais plutôt dans un répertoire {{FileName|objects}}. Les ateliers complexes qui comportent de nombreux types d'objets différents devraient être structurés en répertoires comprenant des objets, des interfaces [[Viewprovider/fr|viewproviders]], [[Command/fr|Commandes Gui]], [[Task_panel/fr|Panneau des tâches]], etc.
@@ -119,6 +122,7 @@ Si nous créons un nouvel objet avec ce nouveau module, nous aurons la session d
 <objects.new_module.NewObject object at 0x7efc1cf68c50>
 }}
 
+<span id="Method_1._Migration_by_redirecting_the_class"></span>
 == Méthode 1. Migration en redirigeant la classe ==
 
 Nous allons migrer l'ancien objet en redirigeant l'ancienne classe. La classe originale est supprimée, et le nom de la classe est simplement redirigé pour pointer vers la nouvelle classe.
@@ -151,6 +155,7 @@ Désormais, si le document est enregistré et rouvert, il recherchera automatiqu
 
 S'il n'est pas possible, de manière réaliste, de migrer tous les anciens objets, par exemple parce que l'ancien module a été utilisé dans un atelier pendant de nombreuses années, alors {{FileName|old_module.py}} doit être conservé aussi longtemps qu'il est jugé nécessaire pour donner aux utilisateurs la possibilité de migrer leurs objets.
 
+<span id="Advantages_and_disadvantages"></span>
 === Avantages et inconvénients ===
 
 '''Avantages'''
@@ -165,6 +170,7 @@ S'il n'est pas possible, de manière réaliste, de migrer tous les anciens objet
 * [[File:Edit_Cancel.svg|24px]] Les nouvelles propriétés ou les propriétés renommées ne sont pas gérées, donc l'objet sera chargé mais il peut ne pas montrer le comportement correct de la nouvelle classe.
 * [[File:Edit_Cancel.svg|24px]] L'ancien module peut devoir être conservé indéfiniment pour migrer tous les anciens objets créés dans le passé.
 
+<span id="Method_2._Migration_when_restoring_the_document"></span>
 == Méthode 2. Migration lors de la restauration du document ==
 
 Nous allons migrer l'ancien objet en modifiant l'ancienne classe. La majorité de la classe d'origine est supprimée et à la place la méthode {{incode|onDocumentRestored}} est implémentée. Lorsque cette méthode existe, elle s'exécute lorsque le document tente de restaurer un objet qui utilise la classe. C'est donc l'occasion pour nous d'attribuer une nouvelle classe, de manipuler les informations ou d'imprimer des messages.
@@ -222,6 +228,7 @@ Les anciennes propriétés étaient {{incode|Area}} et {{incode|Length}} ; les n
 
 Étant donné que les classes sont censées gérer le même type d'objet, nous aimerions une migration dans laquelle {{incode|Area}} se transforme en {{incode|GeneralArea}}, et {{incode|Length}} est simplement affecté au nouveau {{incode|Length}}, et il n'y a pas de propriétés en double.
 
+<span id="Advantages_and_disadvantages"></span>
 === Avantages et inconvénients ===
 
 '''Avantages'''
@@ -236,6 +243,7 @@ Les anciennes propriétés étaient {{incode|Area}} et {{incode|Length}} ; les n
 * [[File:Edit_Cancel.svg|24px]] Elle est plus verbeuse que la méthode 1 car nous devons implémenter la méthode {{incode|onDocumentRestored}} pour migrer l'objet.
 * [[File:Edit_Cancel.svg|24px]] Il ajoute toujours les nouvelles propriétés, donc il peut créer des propriétés dupliquées dans le cas où les nouvelles propriétés ont le même nom que les anciennes propriétés. Ceci doit être géré manuellement.
 
+<span id="Method_3._Migration_when_restoring_the_document,_manually_handling_the_properties"></span>
 == Méthode 3. Migration lors de la restauration du document, manipulation manuelle des propriétés ==
 
 Il s'agit d'une extension de la méthode 2. Dans la méthode {{incode|onDocumentRestored}}, nous devons enregistrer les valeurs des propriétés que nous voulons, puis nous pouvons supprimer ces propriétés originales. Ainsi, lorsque la nouvelle classe sera utilisée, elle attribuera les nouvelles propriétés sans risquer de collision de noms avec les anciennes propriétés.
@@ -294,6 +302,7 @@ En supposant que nous avons déjà modifié l'ancien module de cette manière, s
 
 Comme la propriété {{incode|Divisions}} n'existait pas dans l'ancienne classe, rien n'a été fait avec elle. Elle a simplement été créée par la nouvelle classe {{incode|objects.new_module.NewObject}}.
 
+<span id="Advantages_and_disadvantages"></span>
 === Avantages et inconvénients ===
 
 '''Avantages'''
@@ -306,6 +315,7 @@ Comme la propriété {{incode|Divisions}} n'existait pas dans l'ancienne classe,
 
 * [[File:Edit_Cancel.svg|24px]] Cette méthode est très verbeuse par rapport aux précédentes, car nous devons implémenter la méthode {{incode|onDocumentRestored}}, et traiter chacune des propriétés individuellement (enregistrer la valeur, supprimer la propriété, réassigner la valeur). Ceci est problématique si l'objet que nous voulons migrer possède de nombreuses propriétés, ou si leurs valeurs doivent être transformées de manière très spéciale.
 
+<span id="Addendum_A._Creating_the_properties_only_if_they_do_not_already_exist"></span>
 == Addendum A. Créer les propriétés uniquement si elles n'existent pas déjà ==
 
 L'un des inconvénients de la méthode 2 est qu'elle essaiera toujours d'ajouter les nouvelles propriétés. Si les anciennes propriétés ont le même nom que les nouvelles, elles seront dupliquées avec un numéro incrémental, ainsi {{incode|Length}} donnera {{incode|Length1}}, puis {{incode|Length2}}, et ainsi de suite. Cela fait de la méthode 2 une option irréaliste dans la plupart des cas, car la nouvelle classe n'utilisera de toute façon qu'une seule propriété.
@@ -347,6 +357,7 @@ En utilisant cette méthode 2 + A, le résultat est similaire à la méthode 1 e
 
 La méthode 3 n'a pas besoin de cet addendum à la nouvelle classe car les anciennes propriétés sont explicitement supprimées, il n'y aura donc aucun conflit lors de l'installation des nouvelles propriétés. Néanmoins, c'est toujours une bonne pratique que chaque classe ajoute ses propriétés requises seulement si celles-ci n'existent pas déjà. Ceci est utile à la fois dans le cas de la création de nouveaux [[scripted_objects/fr|Objets créés par script]] ou de leur migration.
 
+<span id="Advantages_and_disadvantages"></span>
 === Avantages et inconvénients ===
 
 '''Avantages'''
@@ -357,6 +368,7 @@ La méthode 3 n'a pas besoin de cet addendum à la nouvelle classe car les ancie
 
 * [[File:Edit_Cancel.svg|24px]] Comme la méthode 2, elle ne traite toujours pas les propriétés renommées. Les anciennes propriétés doivent être supprimées manuellement.
 
+<span id="Addendum_B._Migrating_different_versions_of_the_old_object"></span>
 == Addendum B. Migration de différentes versions de l'ancien objet ==
 
 La méthode 3 est la plus complexe car les propriétés sont traitées individuellement. Cependant, dans cette méthode, nous disposons également d'une flexibilité totale dans la manière de manipuler les données, ce qui constitue un avantage si nous voulons effectuer des opérations complexes.
@@ -416,6 +428,7 @@ def _migrate_from_019(obj):
 
 Nous ne sauvegardons pas la valeur {{incode|Version}} car nous définirons un nouveau numéro {{incode|Version}} lors de la migration. Comme le montre l'exemple, nous pouvons implémenter diverses fonctions pour chaque version correspondante de l'objet que nous avons l'intention de migrer. Nous omettons la migration des propriétés du [[viewprovider/fr|viewprovider]] mais elle suit le même schéma.
 
+<span id="Advantages_and_disadvantages"></span>
 === Avantages et inconvénients ===
 
 '''Avantages'''
@@ -427,6 +440,7 @@ Nous ne sauvegardons pas la valeur {{incode|Version}} car nous définirons un no
 
 * [[File:Edit_Cancel.svg|24px]] Cette méthode est très verbeuse car nous devons avoir une idée claire de la façon de traiter chacune des propriétés de chaque "version" que nous voulons migrer. Si notre objet possède de nombreuses versions différentes créées au fil des ans, nous devrons peut-être préparer une longue liste de méthodes pour les faire migrer vers l'objet le plus récent.
 
+<span id="Addendum_B2._Using_internal_class_attributes_instead_of_properties"></span>
 == Addendum B2. Utilisation des attributs internes de la classe au lieu des propriétés ==
 
 Au lieu d'utiliser une [[property/fr|propriété]] de l'objet pour contenir l'information de version, nous pouvons utiliser un attribut de la classe. De cette façon, nous "cachons" l'information sur la version, car les propriétés sont normalement publiques et visibles dans l'[[property_editor/fr|éditeur de propriétés]], alors que les attributs de classe ne peuvent être manipulés qu'à partir de la [[Python_console/fr|console Python]]. Les attributs de classe peuvent être sauvegardés et restaurés comme expliqué dans [[Scripted_objects_saving_attributes/fr|Sauvegarde des attributs des objets scripts]].
@@ -483,6 +497,7 @@ def _migrate_from_018(obj):
 
 Lorsque nous installons la nouvelle classe, celle-ci doit définir la nouvelle valeur de l'attribut version, par exemple, <code>self.ver = "0.20"</code>.
 
+<span id="Addendum_C._Method_3_without_removing_old_properties_that_are_named_the_same"></span>
 == Addendum C. Méthode 3 sans supprimer les anciennes propriétés qui portent le même nom ==
 
 Comme dans l'addendum A, nous pouvons écrire la nouvelle classe pour créer des propriétés uniquement si elles ne sont pas déjà présentes. En utilisant la méthode 3, nous sauvegardons les valeurs des anciennes propriétés, puis nous supprimons les anciennes propriétés. Cependant, si les nouvelles propriétés sont nommées de la même manière que les anciennes, il n'est pas nécessaire de supprimer les anciennes, nous pouvons simplement réutiliser la même propriété, car nous savons que la propriété ne sera pas dupliquée. Si nous utilisons l'addendum B, nous avons également un moyen d'interroger la version.
@@ -515,6 +530,7 @@ Comme nous le voyons dans l'exemple, l'ancienne propriété {{incode|Area}} est 
 
 Cela devrait fonctionner comme la méthode 3, c'est-à-dire que les anciennes propriétés sont supprimées et que seules les nouvelles propriétés restent dans le nouvel objet. La seule différence est que nous omettons de supprimer et de recréer les propriétés qui portent le même nom. Ce processus devrait fonctionner tant que l'ancienne [[property/fr|propriété]] et la nouvelle [[property/fr|propriété]] ont le même type (par exemple, {{incode|App::PropertyLength}} ou {{incode|App::PropertyArea}}), de sorte que l'ancienne propriété peut transmettre sa valeur directement. Cependant, si la nouvelle propriété a un type différent de l'ancienne, l'ancienne propriété doit être supprimée, sinon l'ancienne propriété écrasera complètement la nouvelle, ce qui n'est probablement pas ce que nous voulons car la nouvelle classe s'attendra au nouveau type et non à l'ancien.
 
+<span id="Advantages_and_disadvantages"></span>
 === Avantages et inconvénients ===
 
 '''Avantages'''
@@ -527,6 +543,7 @@ Cela devrait fonctionner comme la méthode 3, c'est-à-dire que les anciennes pr
 * [[File:Edit_Cancel.svg|24px]] Comme la méthode 3, cette méthode est encore très verbeuse car nous devons manipuler les propriétés avec soin.
 * [[File:Edit_Cancel.svg|24px]] Si une nouvelle [[property/fr|propriété]] et une ancienne [[property/fr|propriété]] partagent le même nom, la nouvelle propriété sera écrasée, ce qui peut être un comportement indésirable, surtout si les deux propriétés ont des types différents. Dans ce cas, la suppression de l'ancienne propriété et la migration manuelle de sa valeur sont toujours nécessaires.
 
+<span id="Summary"></span>
 == Résumé ==
 
 Chacune des méthodes a une utilisation recommandée :
@@ -538,6 +555,7 @@ Chacune des méthodes a une utilisation recommandée :
 * Méthode 2. Les propriétés seront dupliquées si la nouvelle classe ne vérifie pas les propriétés existantes (Addendum A).
 * Méthode 3+C. A n'utiliser que lorsque les anciennes propriétés et les nouvelles propriétés sont du même type. Sinon, utilisez la méthode 3 ou 3+B pour supprimer les anciennes propriétés, et traitez-les exactement comme il se doit.
 
+<span id="Links"></span>
 == Liens ==
 
 * [https://forum.freecadweb.org/viewtopic.php?t=42948 Migrer et mettre à jour les anciens objets scriptés]
