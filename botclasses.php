@@ -8,7 +8,8 @@
  *  (c) 2011      Gutza - http://en.wikipedia.org/wiki/User:Gutza
  *  (c) 2012      Sean - http://en.wikipedia.org/wiki/User:SColombo
  *  (c) 2012      Brian - http://en.wikipedia.org/wiki/User:Brian_McNeil
- *  (c) 2020-2024 Bill - http://en.wikipedia.org/wiki/User:wbm1058
+ *  (c) 2012-2018 Pavel Malahov - http://en.wikipedia.org/wiki/User:24pm
+ *  (c) 2020-2025 Bill - http://en.wikipedia.org/wiki/User:wbm1058
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,7 +33,10 @@
  *      Gutza   - [[User:Gutza]]        - Submitted a patch for http->setHTTPcreds(), and http->quiet
  *      Sean    - [[User:SColombo]]     - Wrote the lyricwiki class (now moved to lyricswiki.php)
  *      Brian   - [[User:Brian_McNeil]] - Wrote wikipedia->getfileuploader() and wikipedia->getfilelocation
- *      Bill    - [[User:wbm1058]]      - Wrote wikipedia->categories, wikipedia->getTalkTransclusions, wikipedia->recent_page_edits, and wikipedia->ten_latest_edits
+ *      Pavel	- [[User:24pm]]         - Wrote 10 new functions for class "extended"
+ *      Bill    - [[User:wbm1058]]      - Wrote wikipedia-> categories, getTalkTransclusions, recent_page_edits, ten_latest_edits, oldest_revision, getpagetitle,
+ *                                        and getOldestDeletedRevisionTimestamp
+ *      Furkan  - [[User:Orfur]]        - Adapting the upload function to current PHP versions, Added Pavel Malahov's changes
  **/
 
 /*
@@ -41,6 +45,7 @@
  * I'll try to list them here for reference purpopses:
  *		https://raw.githubusercontent.com/legoktm/harej-bots/master/botclasses.php
  * 		https://en.wikinews.org/wiki/User:NewsieBot/botclasses.php
+ * 		https://raw.githubusercontent.com/teopedia/mediawiki-botclasses/refs/heads/master/botclasses.php
  */
 
 /**
@@ -92,7 +97,6 @@ class http {
 
     function post ($url,$data) {
         //echo 'POST: '.$url."\n";
-
         $time = microtime(1);
         curl_setopt($this->ch,CURLOPT_URL,$url);
         curl_setopt($this->ch,CURLOPT_USERAGENT,$this->useragent);
@@ -258,18 +262,20 @@ class wikipedia {
      * @param $revid The revision id to fetch (optional)
      * @return string|false The wikitext for the page.
      **/
-    function getpage ($page,$revid=null,$detectEditConflict=false) {
+    function getpage ($page,$revid=null,$detectEditConflict=false,&$timestamp=null,&$user=null) {
         $append = '';
         if ($revid!=null) {
             $append = '&rvstartid='.$revid;
         }
-        $x = $this->query('?action=query&format=json&prop=revisions&rvslots=main&titles='.urlencode($page).'&rvlimit=1&rvprop=content|timestamp'.$append);
+        $x = $this->query('?action=query&format=json&prop=revisions&rvslots=main&titles='.urlencode($page).'&rvlimit=1&rvprop=content|timestamp|user'.$append);
         #print_r($x);
         foreach ($x['query']['pages'] as $ret) {
             if (isset($ret['revisions'][0]['slots']['main']['*'])) {
                 if ($detectEditConflict) {
                     $this->ecTimestamp = $ret['revisions'][0]['timestamp'];
                 }
+                $timestamp = $ret['revisions'][0]['timestamp'];
+                $user = $ret['revisions'][0]['user'];
                 return $ret['revisions'][0]['slots']['main']['*'];
             } else {
                 return false;
@@ -321,6 +327,19 @@ class wikipedia {
     }
 
     /**
+     * Returns true if $revid is the oldest revision of $page
+     **/
+    function oldest_revision ($page,$revid) {
+        $x = $this->query('?action=query&format=json&prop=revisions&titles='.urlencode($page).'&rvlimit=2&rvstartid='.$revid.'&rvdir=older');
+        foreach ($x['query']['pages'] as $ret) {
+            if (isset($ret['revisions'][1]['revid'])) {
+                return false;
+            } else
+                return true;
+        }
+    }
+
+    /**
      * Gets the page id for a page.
      * @param $page The wikipedia page to get the id for.
      * @return int The page id of the page.
@@ -329,6 +348,18 @@ class wikipedia {
         $x = $this->query('?action=query&format=json&prop=revisions&titles='.urlencode($page).'&rvlimit=1&rvprop=content');
         foreach ($x['query']['pages'] as $ret) {
             return $ret['pageid'];
+        }
+    }
+
+    /**
+     * Gets the page title for a revision.
+     * @param $revid The revision id to get the title for.
+     * @return The title of the page.
+     **/
+    function getpagetitle ($revid) {
+        $x = $this->query('?action=query&format=json&revids='.$revid);
+        foreach ($x['query']['pages'] as $ret) {
+            return $ret['title'];
         }
     }
 
@@ -401,13 +432,14 @@ class wikipedia {
      * Returns a list of pages that link to $page.
      * @param $page
      * @param $extra (defaults to null)
+     * @param $ns (defaults to null)
      * @return array
      **/
-    function whatlinkshere ($page,$extra=null) {
+    function whatlinkshere ($page,$extra=null,$ns=null) {
         $continue = '&rawcontinue=';
         $pages = array();
         while (true) {
-            $res = $this->query('?action=query&list=backlinks&bltitle='.urlencode($page).'&bllimit=500&format=json'.$continue.$extra);
+            $res = $this->query('?action=query&list=backlinks&bltitle='.urlencode($page).'&blnamespace='.$ns.'&bllimit=500&format=json'.$continue.$extra);
             if (isset($res['error'])) {
                 return false;
             }
@@ -635,6 +667,23 @@ class wikipedia {
                 $continue = '&rawcontinue=&eicontinue='.$ret['query-continue']['embeddedin']['eicontinue'];
             } else {
                 return $pages;
+            }
+        }
+    }
+
+    /**
+     * Returns the timestamp of the oldest deleted revision of $page.
+     * @param $page
+     * @return timestamp
+     **/
+    function getOldestDeletedRevisionTimestamp($page) {
+        $res = $this->query('?action=query&format=json&prop=deletedrevisions&titles='.urlencode($page).'&drvprop=timestamp&drvlimit=1&drvdir=newer');
+        if (isset($res['error'])) {
+            return false;
+        }
+        foreach ($res['query']['pages'] as $x) {
+            if (isset($x['deletedrevisions'][0]['timestamp'])) {
+                return $x['deletedrevisions'][0]['timestamp'];
             }
         }
     }
@@ -1042,6 +1091,7 @@ class wikipedia {
 /**
  * This class extends the wiki class to provide an high level API for the most commons actions.
  * @author Fale
+ * @author Pavel Malahov
  **/
 class extended extends wikipedia
 {
@@ -1088,7 +1138,6 @@ class extended extends wikipedia
     {
         $data = $this->getpage( $page );
         return str_replace( $string, $newstring, $data );
-
     }
 
     /**
@@ -1107,5 +1156,218 @@ class extended extends wikipedia
         } else {
             return NULL;
         }
+    }
+
+    /**
+     * Get a list of all pages
+     * @param $namespace Namespace to query (default=0)
+     * @param $from Start list from the given page name
+     * @param $to End list with the given page name
+     * @return array with all pages if the following format:
+			array (
+			  0 => array (
+				'pageid' => 1,
+				'ns' => 0,
+				'title' => 'Page 1 name',
+			  ),
+			  1 => array (
+				'pageid' => 2,
+				'ns' => 0,
+				'title' => 'Page 2 name',
+			  ),
+			)
+	 * @author Pavel Malahov
+     * more info: http://www.mediawiki.org/wiki/API:Allpages
+     */
+    function allpages($from, $namespace = 0, $limit = 100) {
+		$q = "?action=query&list=allpages&apfrom=$from&apnamespace=$namespace&aplimit=$limit&format=php";
+		//wfDebug("WikiFarm. Bot allpages query  \n\tname: $wikiname  \n\tapi: $api  \n\tquery: $q\n");
+		$arr = $this->query($q);
+		$res = $arr['query']['allpages'];
+		return $res;
+    }
+
+    /**
+     * Get a list of recent changes
+     * @param $namespace Namespace to query (default=0)
+     * @return array with changes:
+			array (
+			  0 =>
+			  array (
+				'type' => 'new',
+				'ns' => 0,
+				'title' => 'Page 1 name',
+				'rcid' => 24,
+				'pageid' => 7,
+				'revid' => 15,
+				'old_revid' => 0,
+				'user' => 'User name or IP',
+		        'minor' => '',
+				'anon' => '',
+				'new' => '',
+				'oldlen' => 0,
+				'newlen' => 53,
+		        'timestamp' => '2012-02-15T04:15:26Z',
+		        'comment' => 'summary for the page',
+			  ),
+			 )
+	 * @author Pavel Malahov
+	 * more info: http://www.mediawiki.org/wiki/API:Recentchanges
+	 */
+    function recentchanges( $request, $user) {
+		$prop = '&rcprop=timestamp|title|ids|sizes|flags|user|comment';
+		$type = '&rctype=edit|new';
+
+		$limit = $request->getInt('limit');			if (empty($limit))	{ $limit = 50; }
+		$limit = "&rclimit=$limit";
+
+		$namespace = $request->getInt('namespace');	if (empty($namespace))	{ $namespace = '0|8'; }
+		$namespace = "&rcnamespace=$namespace";
+
+		$hms = $request->getInt('hidemyself');
+		if ($hms) {$hms = "&rcexcludeuser=". $user->getName();}
+
+		$hide = '';
+		$hide .= $request->getInt('hideminor') ? '!minor|' : '';
+		$hide .= $request->getInt('hidebots') ? '!bot|' : '';
+		$hide .= $request->getInt('hideanons') ? '!anon' : '';
+		$hide_filter =  empty($hide) ? '' : "&rcshow=". $hide;
+
+		$days = $request->getInt('days');			if (empty($days))	{ $days = 7; }
+		$start = "&rcstart=". time();
+		$end = "&rcend=" . mktime(0, 0, 0, date("m"), date("d") - $days, date("Y"));
+		$sort_direction = "&rcdir=older";
+
+		$q = "?action=query&list=recentchanges&format=php". $prop . $type . $limit . $namespace. $start . $end . $sort_direction . $hide_filter;
+		$arr = $this->query($q);
+		$res = $arr['query']['recentchanges'];
+		return $res;
+    }
+
+    /**
+     * Get a list of interwiki
+     * @return array
+     * @author Pavel Malahov
+     */
+    function interwikilist() {
+		$q = "?action=query&meta=siteinfo&siprop=interwikimap&format=php";
+		//wfDebug("WikiFarm. Interwiki list\n\tquery: $q\n");
+		$arr = $this->query($q);
+		$res = $arr['query']['interwikimap'];
+		return $res;
+    }
+
+    /**
+     * Get a list of all users
+     * @return array
+     * @author Pavel Malahov
+	 * more info: https://www.mediawiki.org/wiki/API:Allusers
+     */
+    function allusers() {
+		$q = "?action=query&list=allusers&format=php&aulimit=5000&auprop=blockinfo|groups|editcount|registration";
+		//wfDebug("WikiFarm. Bot all users \n\tquery: $q\n");
+		$arr = $this->query($q);
+		$res = $arr['query']['allusers'];
+		return $res;
+    }
+
+    /**
+     * Get a list of all non-empty categories
+     * @return array
+     * @author Pavel Malahov
+	 * more info: https://www.mediawiki.org/wiki/API:Allcategories
+     */
+    function allcategories() {
+		$q = "?action=query&list=allcategories&aclimit=5000&format=php";
+		//wfDebug("WikiFarm. Bot all categories \n\tquery: $q\n");
+		$arr = $this->query($q);
+		$res = $arr['query']['allcategories'];
+		return $res;
+    }
+
+    /**
+     * Get a list of all templates
+     * @return array
+     * @author Pavel Malahov
+	 * more info: https://www.mediawiki.org/wiki/API:Allpages
+     */
+    function alltemplates() {
+		$q = "?action=query&list=allpages&apnamespace=10&aplimit=500&format=php";
+		//wfDebug("\tWikiFarm. Bot all categories \n\tquery: $q\n");
+		$arr = $this->query($q);
+		$res = $arr['query']['allpages'];
+		return $res;
+    }
+
+    /**
+     * Get wiki general info
+     * @return array
+     * @author Pavel Malahov
+	 * more info: https://www.mediawiki.org/wiki/API:Meta
+     */
+    function siteinfo() {
+		$q = "?action=query&meta=siteinfo&format=php";
+		//wfDebug("\tWikiFarm. Bot site info \n\tquery: $q\n");
+		$arr = $this->query($q);
+		$res = $arr['query']['general'];
+		return $res;
+    }
+
+    /**
+     * Get wiki statistics
+     * @return array
+     * @author Pavel Malahov
+	 * more info: https://www.mediawiki.org/wiki/API:Meta
+     */
+    function sitestatistics() {
+		$q = "?action=query&meta=siteinfo&format=php&siprop=statistics";
+		//wfDebug("\tWikiFarm. Bot site statistics \n\tquery: $q\n");
+		$arr = $this->query($q);
+		$res = $arr['query']['statistics'];
+		return $res;
+    }
+    
+    /**
+     * Get certain statistics value
+     * @param $item Name of an item 
+     * @param $value Parameter if needed
+     * @return value for item
+     * @author Pavel Malahov
+     */
+	function statvalue($item, $value='') {
+		switch ($item) {
+			case 'pages':		/* return number of ...*/
+			case 'articles':
+			case 'edits':
+			case 'images':
+			case 'users':
+			case 'activeusers':
+			case 'admins':
+				$arr = $this->sitestatistics();
+				$res = $arr[$item];				
+				break;
+
+			case 'category':	/* return number of articles in category */
+				$arr = $this->categorymembers($value);
+				$res = count($arr);
+				break;
+		}
+		return $res;		
+	}
+
+    /**
+     * Search for string
+     * @param $str String to search
+     * @return array with search result
+     * @author Pavel Malahov
+     * more info:	https://www.mediawiki.org/wiki/API:Search
+	 *				https://www.mediawiki.org/wiki/API:Opensearch
+     */
+    function search($str, $what='title', $limit=10) {
+		$q = "?action=query&list=search&format=php&srsearch=$str&srlimit=$limit&srwhat=$what";
+		//wfDebug("\tWikiFarm. Bot search \n\tquery: $q\n");
+		$arr = $this->query($q);
+		$res = $arr['query']['search'];
+		return $res;
     }
 }
