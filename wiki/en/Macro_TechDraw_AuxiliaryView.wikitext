@@ -7,8 +7,8 @@
 |Icon=
 |Description=This macro adds an auxiliary view to a TechDraw page
 |Author=FBXL5
-|Version=
-|Date=
+|Version=0.02
+|Date=2025-06-27
 |Download=
 |FCVersion=
 |SeeAlso=
@@ -43,10 +43,13 @@ Drawing auxiliary views manually requires a second base view to access the heigh
 
 ==Usage==
 
+# Make sure to [[Image:TechDraw_ToggleFrame.svg|16px]] [[TechDraw_ToggleFrame|turn frames on]] and vertices are selectable.
 # Select two vertices in the same view.
 # Run this macro.
-# A new AuxiliaryView is created.
-# Optionally add a view arrow and a proper title.
+# A new '''AuxiliaryView''' is created including an "AuxView X" view tag (a simple text field).
+# A view arrow is added to the base view including an "X" direction tag.
+# Drag the auxiliary view in place.
+# Edit the direction tag, and the view tag accordingly.
 
 ==Notes==
 
@@ -93,8 +96,8 @@ I have tried to follow this naming rule:
 __Name__= ""
 __Comment__ = ""
 __Author__ = "FBXL5"
-__Version__ = "00.01"
-__Date__    = "2025-05-06"
+__Version__ = "00.02"
+__Date__    = "2025-06-27"
 __License__ = "LGPL-2.0-or-later as FreeCAD"
 __Web__ = ""
 __Wiki__ = ""
@@ -108,6 +111,20 @@ __Files__ = ""
 
 import math # to use some predefined conversions
 from PySide.QtGui import (QMessageBox)
+
+ARROW = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg" version="1.1"
+  width ="16.8mm"
+  height="2.8mm"
+  viewBox=" 0 -1.4 16.8 2.8">
+    <g id="ArrowHead"
+      style="fill:#000;fill-opacity:1;stroke:#000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;font-size:5.0;text-anchor:middle;font-family:osifont">
+        <path d="m 0.3 0.0 h 16 " />
+        <path d="m 0.3 0.0 l 8.0 1.05 v -2.1 z " />
+    </g>
+</svg>
+"""
 
 def displayMessage(title,message):
     '''
@@ -192,8 +209,6 @@ def getCcwAngle(vertex1,vertex2,view_rotation):
     The direction of the XDirection property is not parallel to the view's
     x direction if the view is rotated! This angle also has to be taken into
     account to calculate the 3D angle'''
-    print('5. Start point: ', vertex1.X, vertex1.Y, vertex1.Z)  # checklist
-    print('6. End point: ', vertex2.X, vertex2.Y, vertex2.Z)  # checklist
     #- Extract position vectors from the points
     vector_start = App.Vector(vertex1.X, vertex1.Y, vertex1.Z)
     vector_end   = App.Vector(vertex2.X, vertex2.Y, vertex2.Z)
@@ -213,6 +228,25 @@ def getCcwAngle(vertex1,vertex2,view_rotation):
     angle_x -= float(view_rotation)
     return angle_x
 
+def symbolAngle(vertex1,vertex2):
+    '''
+    Creates 3D vectors to calculate the 2D angle towards the x direction of the
+    base view
+    '''
+    #- Extract position vectors from the points
+    vector_start = FreeCAD.Vector(vertex1.X, vertex1.Y, vertex1.Z)
+    vector_end   = FreeCAD.Vector(vertex2.X, vertex2.Y, vertex2.Z)
+    #- Calculate the 2D Direction vector from start vertex to end vertex
+    # on the XY plane of the base view/work page (z = 0)
+    direction = vector_end.sub(vector_start)
+    y_direction = FreeCAD.Vector(0, -1, 0)
+    angle_y = math.degrees(direction.getAngle(y_direction))
+    # getAngle() returns positive (absolute) values only (in rad)
+    # -> convert to degrees and check orientation
+    if vertex1.X > vertex2.X:
+        angle_y *= -1  # switches angle orientation
+    return angle_y
+
 def main():
     ''' The main section, no more, no less '''
     # Operations are performed in the active document of the application
@@ -226,20 +260,17 @@ def main():
         vertices = getSelVertexes(2)  # required number of vertices
     else:
         return
-    #
-    print("1. base view: ", base_view.Name)  # checklist
+
     #- Retrieve the page that holds the view
     work_page = getPageOfSelection(active_doc, base_view)
     if not work_page:
         # this should always be true as selected vertices are already checked
         return
-    print("2. work page name: ", work_page.Name)  # checklist
     # At this point the input elements are gathered:
     #  active_doc, work_page, base_view, and vertices
 
     #- Create a new view
     new_view = active_doc.addObject('TechDraw::DrawViewPart', 'AuxView')
-    print('3. new view: ', new_view.Name)  # checklist
     #- Add the new view to the page
     work_page.addView(new_view)
     #- Add a BaseView property to the new view
@@ -248,33 +279,50 @@ def main():
     new_view.BaseView = active_doc.getObject(base_view.Name)
     #- Hand over the source objects
     new_view.Source = new_view.BaseView.Source
-    print('4. new_view.BaseView: ', new_view.BaseView.Name, ', Label:',
-        new_view.BaseView.Label)  # checklist
 
     #- 2D: Calculate the ccw angle between the x axes of base view and new view
     turn_ccw = getCcwAngle(vertices[0],vertices[1],new_view.BaseView.Rotation)
     # Returns a float value representing degrees
-    print('7. 2D angle: ', turn_ccw) # checklist
 
     # 3D: Turn base_view.XDirection around base_view.Direction to get
     #     new_view.XDirection
     #- Create a rotation, angle input in float (for degrees), stored in rad
     around_direction = App.Rotation(new_view.BaseView.Direction, turn_ccw)
-    print('8. Rotation: ', around_direction, around_direction.Angle)  # checklist
     #- Apply rotation to the base_view.XDirection
     new_view.XDirection = around_direction.multVec(new_view.BaseView.XDirection)
-    print('9. XDirection', new_view.XDirection)  # checklist
     #- The cross-product of base view Z and new view X gives new view Z direction
     new_view.Direction = new_view.BaseView.Direction.cross(new_view.XDirection)
-    print('10. Direction', new_view.Direction)  # checklist
 
     # 2D: Take base_view.Rotation into account, it has to be converted
     #     to float since it is stored in deg
     #- Add the rotation of the base view to the angle between the x axes
     new_view.Rotation = turn_ccw + float(new_view.BaseView.Rotation)
-    print('11. new_view.Rotation', new_view.Rotation)  # checklist
     Gui.runCommand('TechDraw_RedrawPage',0)
     # At this point the Auxiliary View is complete
+
+    #- Create an arrow symbol
+    new_symbol = active_doc.addObject('TechDraw::DrawViewSymbol', 'Symbol')
+    new_symbol.Symbol = ARROW
+    new_symbol.Owner = base_view
+    new_symbol.Rotation = symbolAngle(vertices[0],vertices[1])
+    #- Add the new symbol to the page
+    work_page.addView(new_symbol)
+    #- Create a direction tag
+    dir_tag = active_doc.addObject('TechDraw::DrawViewAnnotation', 'DirTag')
+    dir_tag.Text = "X"
+    dir_tag.Owner = new_symbol
+    #- Add the new symbol to the page
+    work_page.addView(dir_tag)
+
+    #- Create a view tag
+    view_tag = active_doc.addObject('TechDraw::DrawViewAnnotation', 'ViewTag')
+    view_tag.Text = "AuxView X"
+    view_tag.Owner = new_view
+    #- Add the new symbol to the page
+    work_page.addView(view_tag)
+
+    FreeCADGui.runCommand("TechDraw_RedrawPage",0)
+    FreeCADGui.runCommand("TechDraw_RedrawPage",0)
 
     return
 
