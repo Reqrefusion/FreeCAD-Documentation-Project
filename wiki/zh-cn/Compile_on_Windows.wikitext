@@ -107,42 +107,42 @@ git clone --recurse-submodules https://github.com/FreeCAD/FreeCAD.git
 
 ===CMake===
 
-首先，使用C Make 配置构建环境：  
+首先，使用 CMake 配置构建环境：  
 # 打开 CMake GUI。
 # 指定 FreeCAD 的源代码目录。  
 # 指定一个构建目录。这个目录可以是源代码文件夹下的 '''build''' 文件夹，因为该路径会被 git 忽略，但不要直接使用源代码文件夹。如果该目录不存在，CMake 会自动创建。  
 # 点击 '''Configure'''。  
-# 在弹出的对话框中，指定要使用的生成器：大多数情况下使用默认选项即可。对于标准的 MS Visual Studio，选择 ''Visual Studio xx 2yyy''，其中 xx 是编译器版本，2yyy 是其发布年份。建议使用默认选项 ''Use default native compilers''。
+# 在弹出的对话框中，指定要使用的生成器：大多数情况下使用默认选项即可。对于标准的 MS Visual Studio，选择 '''Visual Studio xx 2yyy'''，其中 xx 是编译器版本，2yyy 是其发布年份。建议使用默认选项 '''Use default native compilers'''。
 
 '''注意：'''必须指定正确的位数版本。如果使用 64 位的 LibPack，则必须同样选择 x64 编译器。
 
-This will begin the configuration and ''will fail'' because of missing settings. This is normal, you have not yet specified the location of the LibPack. However, there are other failures that might occur that require some further action on your part.
+这将开始配置过程，而且''会失败''，因为缺少相关设置。这是正常现象，因为你尚未指定 LibPack 的位置。不过，也可能会出现其他错误，需要你进一步处理。
 
-If it fails with the message that Visual Studio could not be found, the CMake support in MSVC is not yet installed. To do this:
-# Open the MSVC IDE
-# Use the menu Tools → Get Tools and Features
-# In the ''Workloads'' tab enable ''Desktop development with C++''
-# On the right side you should now see that the component ''Visual C++ tools for CMake'' will be installed.
-# Install it.
+如果配置失败并提示找不到 Visual Studio，则说明尚未安装 MSVC 的 CMake 支持组件。请按以下步骤操作：  
+# 打开 '''MSVC IDE'''
+# 点击菜单中的'''工具 → 获取工具和功能'''
+# 在'''工作负载'''选项卡中勾选'''使用 C++ 的桌面开发'''
+# 此时右侧应显示 '''Visual C++ tools for CMake''' 组件将被安装
+# 安装
 
-If there is no error about Visual Studio or Python, everything is fine, but CMake does not yet know all necessary settings. Therefore now:
-# Search in CMake for the variable '''FREECAD_LIBPACK_DIR''' and specify the location of the LibPack folder you downloaded earlier. Use forward slashes "/". Using backslashes "\" will cause CMake to fail.
-# (''If building FreeCAD 0.19'') Search for the variable '''BUILD_QT5''' and enable this option.
-# Click '''Configure''' again.
-# (''If planning on running directly from the build folder such as for debugging'') Search for and enable the following options:
+若未出现关于 Visual Studio 或 Python 的错误，则一切正常，但 CMake 尚未获取所有必要配置。此时需进行以下操作： 
+# 在 CMake 中搜索变量 '''FREECAD_LIBPACK_DIR'''，并指定之前下载的 LibPack 文件夹路径。注意请使用正斜杠“/”，反斜杠“\”会导致 CMake 失败。
+# （''若编译 FreeCAD 0.19''）搜索变量 '''BUILD_QT5''' 并启用该选项。
+# 再次点击 '''Configure'''。
+# （''若计划直接从构建目录运行程序，例如用于调试''）搜索并启用以下选项：  
 #* '''FREECAD_COPY_DEPEND_DIRS_TO_BUILD'''
 #* '''FREECAD_COPY_LIBPACK_BIN_TO_BUILD'''
 #* '''FREECAD_COPY_PLUGINS_BIN_TO_BUILD'''
-# Click '''Configure''' again.
+# 再次点击 '''Configure'''。
 
-There should now be no errors. If you continue to encounter errors that you cannot diagnose, visit the [https://forum.freecadweb.org/viewforum.php?f=4 Install/Compile forum] on the FreeCAD forum website. If CMake proceeded correctly, click on '''Generate'''.  After this is done you can close CMake and start the compilation of FreeCAD using Visual Studio. However, for the first compilation keep it open in case you want or need to change some options for the build process.
+此时应该不再报错。如果仍遇到无法解决的问题，请访问 FreeCAD 论坛的 [https://forum.freecadweb.org/viewforum.php?f=4 Install/Compile forum]。若 CMake 运行无误，点击 '''Generate'''。完成后即可关闭 CMake，并使用 Visual Studio 开始编译 FreeCAD。不过，首次编译时建议保持 CMake 开启，以便随时调整构建选项。
 
 <span id="Options_for_the_build_process"></span>
 ===构建选项===
 
-The CMake build system gives you control over some aspects of the build process. In particular, you can switch on and off some features or modules using CMake variables.
+CMake 构建系统允许您控制构建过程的某些方面。具体来说，您可以通过 CMake 变量来启用或禁用某些功能和模块。
 
-Here is a description of some of these variables:
+以下是其中部分变量的描述：
 
 {| class="wikitable" style="text-align:left"
 |-
@@ -183,18 +183,18 @@ Here is a description of some of these variables:
 <span id="Building_FreeCAD"></span>
 ==构建 FreeCAD==
 
-Depending on your compiler, the process for building FreeCAD will be slightly different. In the following sections known workflows are described. If you are building with Qt Creator, jump to [[#Building_with_Qt_Creator_.28outdated.29|Building with Qt Creator (outdated)]], otherwise proceed directly:
+根据您使用的编译器不同，构建 FreeCAD 的过程会略有差异。本章节将描述已知的工作流程。如果您使用 Qt Creator 进行构建，请跳转至[[#Building_with_Qt_Creator_.28outdated.29|使用 Qt Creator 构建（已过时）]]，否则请直接继续：
 
 <span id="Building_from_cmd.exe_command_line"></span>
 ===使用 cmd.exe 命令行构建===
 
-If you want build from the command line, CMake output will show you the proper command to run (which depends on the configured release directory). But this command will produce a ''Debug'' build which does not work on Windows and results in a Numpy import error in FreeCAD (which is a known issue but hard to fix). You need to specify the ''--config Release'' option to force a ''Release'' build:
+如果您想要用命令行构建，CMake 的输出会显示相应的命令（具体命令取决于配置的发布目录）。但该命令会生成一个 ''Debug'' 版本，此版本在 Windows 上无法运行，并会导致 FreeCAD 中出现 Numpy 导入错误（这是一个已知问题但难以修复）。您需要指定 ''--config Release'' 选项来强制生成 ''Release'' 版本：
 
 {{Code|code=
 cmake --build E:/release --config Release
 }}
 
-Please note that setting CMake variables like ''CMAKE_BUILD_TYPE'' does not have any effect, only specifying the ''--config'' option as shown above works.
+请注意，设置像 ''CMAKE_BUILD_TYPE'' 这样的 CMake 变量不会产生任何效果，只有按照上述方式指定 ''--config'' 选项才有效。
 
 <div class="mw-collapsible mw-collapsed toccolours">
 
@@ -203,7 +203,8 @@ Please note that setting CMake variables like ''CMAKE_BUILD_TYPE'' does not have
 
 <div class="mw-collapsible-content">
 
-==== Release Build ====
+<span id="Release_Build"></span>
+====构建 Release 版本====
 
 # Start the Visual Studio IDE. This can either be done by pressing the button ''Open Project'' in the CMake GUI or by double-clicking on the file ''FreeCAD.sln'' that you find in your build folder.
 # In the toolbar of the MSVC IDE assure that you use for the first compilation ''Release''.
@@ -217,7 +218,7 @@ If you don't get any errors you are done. '''Congratulations!''' You can exit MS
 '''Important:''' Since Visual Studio 17.4 you cannot use the code optimization that is on by default for the target '''SketcherGui'''. If you do, angle constraints will be misplaced in sketches. To fix this, right-click on this target in the MSVC solution explorer and select the last entry '''Properties''' in the context menu. In the appearing dialog go to C/C++ → Optimization and there disable the setting '''Optimization'''. Finally build the target '''ALL_BUILD''' again.
 
 <span id="Debug_Build"></span>
-====Debug 版本构建====
+====构建 Debug 版本====
 
 As prerequisite for the debug build, you need to do this:
 # Copy the content of the LibPack folder ''bind'' to the ''bin'' folder of the FreeCAD build folder (overwrite the existing files).
@@ -235,8 +236,8 @@ If there were no compilation errors, and if the '''FREECAD_COPY_*''' options men
 
 This will start the debug build of FreeCAD and you can use the  MSVC IDE to debug it.
 
-==== Video Resource ====
-An English language tutorial that begins with configuration in CMake Gui and continues to the `Build` command in Visual Studio 16 2019 is available unlisted on YouTube at [https://youtu.be/s4pHvlDOSZQ Tutorial: Build FreeCAD from source on Windows 10].
+====视频教程====
+YouTube 上有一个英文教程：[https://youtu.be/s4pHvlDOSZQ Tutorial: Build FreeCAD from source on Windows 10]，该教程从 CMake Gui 配置开始讲解，直到至 Visual Studio 16 2019 中的 `Build` 命令操作。
 </div>
 </div>
 <div class="mw-collapsible mw-collapsed toccolours">
@@ -246,7 +247,8 @@ An English language tutorial that begins with configuration in CMake Gui and con
 
 <div class="mw-collapsible-content">
 
-==== Installation and configuration of Qt Creator ====
+<span id="Installation_and_configuration_of_Qt_Creator"></span>
+====Qt Creator 的安装和配置====
 
 * Download and install [https://www.qt.io/offline-installers Qt Creator]
 * Tools → Options → Text Editor → Behavior tab:
@@ -323,15 +325,15 @@ Instead of calling '''compile-FC''' with the option ''install'' you can also use
 <span id="Running_and_installing_FreeCAD"></span>
 ==运行和安装 FreeCAD==
 
-There are 2 methods to run the compiled FreeCAD:
+有 2 种方法来运行编译好的 FreeCAD：
 
-''Method 1'': You execute the FreeCAD.exe that you find in your build folder in the subfolder ''bin''
+''方法 1''：直接执行构建目录的子目录 ''bin'' 中的 FreeCAD.exe。
 
-''Method 2'': You build the target ''INSTALL''
+''方法 2''：构建 ''INSTALL'' 目标。
 
-Method 2 is the simpler one because it automatically assures that all libraries needed to run the FreeCAD.exe are in the correct folder. The FreeCAD.exe and the libraries will be output in the folder you specified in the CMake variable ''CMAKE_INSTALL_PREFIX''.
+方法 2 更为简单，因为它能自动确保运行 FreeCAD.exe 所需的所有库文件都位于正确文件夹中。FreeCAD.exe 及相关库文件将输出到 CMake 变量 '''CMAKE_INSTALL_PREFIX''' 所指定的文件夹内。
 
-For Method 1 you need to enable the '''FREECAD_COPY_*''' options mentioned in the [[#CMake|CMake Configuration step]] above.
+而对于方法 1，您需要启用上文 [[#CMake|CMake 配置步骤]]中提到的 '''FREECAD_COPY_*''' 相关选项。
 
 <span id="Troubleshooting"></span>
 ===问题排查===
@@ -355,7 +357,8 @@ FreeCAD is very actively developed. Therefore its source code changes almost dai
 <span id="Updating_the_source_code"></span>
 ===更新源代码===
 
-====Using a frontend====
+<span id="Using_a_frontend"></span>
+====使用前端====
 
 When using the [https://en.wikipedia.org/wiki/Comparison_of_Git_GUIs Git frontend] TortoiseGit:
 # Right-click on your FreeCAD source code folder in the Windows file explorer and select '''Pull''' in the context menu.
