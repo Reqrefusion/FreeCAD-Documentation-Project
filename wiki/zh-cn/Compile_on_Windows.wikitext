@@ -1,41 +1,48 @@
 <languages/>
 
 {{Docnav
-|[[License|License]]
-|[[Compile_on_Linux|Compile on Linux]]
+|[[License|许可证]]
+|[[Compile_on_Linux|Linux 编译指南]]
 }}
 
 {{TOCright}}
 
-This page explains step by step '''how to compile FreeCAD 0.19 or newer on Windows''' using Microsoft's MSVC compiler. For information on using MSYS2/MinGW see [[Compile_on_MinGW|Compile on MinGW]]. For other platforms see [[Compiling|Compiling]].
+本页面将逐步讲解'''如何在 Windows 系统上编译 FreeCAD 0.19 或更新版本'''，使用的编译器是微软的 MSVC。若需了解使用 MSYS2/MinGW 进行编译的方法，请参阅[[Compile_on_MinGW|MinGW 编译指南]]。其他平台的编译说明详见[[Compiling|编译指南]]。
 
-== Prerequisites ==
+<span id="Prerequisites"></span>
+==前置条件==
 
-Compiling FreeCAD on Windows requires several tools and libraries.
+在 Windows 上编译 FreeCAD 需要多个工具和库。
 
-===Required===
+<span id="Required"></span>
+===必需依赖===
 
-* A compiler. FreeCAD is tested with Visual Studio (MSVC)—other compilers may work, but instructions for use are not included here. Fore more details, see the section [[#Compiler|Compiler]] below.
+* 编译器。FreeCAD 在 Visual Studio (MSVC) 上测试通过——其他编译器或许也能工作，但本文不包含其使用说明。详情请参阅下文的[[#Compiler|编译器]]章节。
 
-* [http://git-scm.com/ Git] (There are also GUI frontends available for Git, see the next section.)
+* [http://git-scm.com/ Git]（也可以使用 Git 的图形界面前端，请参阅下一节。）
 
-* [https://cmake.org/download/ CMake] version 3.11.x or newer. </br> ''Hint:'' Choosing the option ''Add CMake to the system PATH for all users'' when installing CMake will make CMake accessible from the Windows command prompt, which can be useful.
+* [https://cmake.org/download/ CMake] 3.11.x 或更高版本。</br> ''提示：''安装 CMake 时请选择''为所有用户将 CMake 添加到系统 PATH''选项，这样就可以在 Windows 命令提示符中使用 CMake，会非常方便。
 
-* The [https://github.com/FreeCAD/FreeCAD-LibPack LibPack]. This is a single package containing all of the libraries necessary to compile FreeCAD on Windows. Download the version of the LibPack that corresponds to the version of FreeCAD you want to compile. To compile FreeCAD 0.20 download the [https://github.com/FreeCAD/FreeCAD-LibPack/releases/tag/2.6 LibPack version 2.6], for FreeCAD 0.19 download the [https://github.com/FreeCAD/FreeCAD-LibPack/releases/tag/1.0 LibPack version 1.0]. Extract the LibPack to a convenient location. (If your computer does not recognize the .7z extension, you must install the program [https://www.7-zip.org 7-zip].) </br> '''Note''': It is highly recommended to compile FreeCAD with the compiler version the LibPack is designed for. For example, you might run into problems compiling FreeCAD 0.20 using MSVC&nbsp;2017 because the LibPack is designed to be built with MSVC&nbsp;2019 or newer.</br>To update your LibPack later, see the section [[#Updating_the_LibPack|Updating the LibPack]].
+* [https://github.com/FreeCAD/FreeCAD-LibPack LibPack]。这是一个包含所有必要库的集成包，用于在 Windows 上编译 FreeCAD。请下载与您要编译的 FreeCAD 版本对应的 LibPack。要编译 FreeCAD 0.20，请下载 [https://github.com/FreeCAD/FreeCAD-LibPack/releases/tag/2.6 LibPack 2.6 版本]；要编译 FreeCAD 0.19，请下载 [https://github.com/FreeCAD/FreeCAD-LibPack/releases/tag/1.0 LibPack 1.0 版本]。将 LibPack 解压到方便的位置。（如果您的电脑无法识别 .7z 扩展名，您需要安装 [https://www.7-zip.org 7-zip] 程序。）</br>
+'''注意'''：强烈建议使用 LibPack 设计对应的编译器版本来编译 FreeCAD。例如，如果您使用 MSVC&nbsp;2017 编译 FreeCAD 0.20，可能会遇到问题，因为 LibPack 是为 MSVC&nbsp;2019 或更高版本设计的。</br>
+如需后续更新 LibPack，请参阅[[#Updating_the_LibPack|更新 LibPack]]章节。
 
-===Optional programs===
+<span id="Optional_programs"></span>
+===可选程序===
 
-*  A GUI frontend for Git. There are several frontends available, see [https://git-scm.com/downloads/guis this list]. The main benefit of a frontend is that you don't have to learn the Git commands to get the source code of FreeCAD or to send patches to the GitHub repository of FreeCAD.
+* Git 的图形界面前端。目前有多种前端可供选择，请参阅[https://git-scm.com/downloads/guis 此列表]。使用前端的主要优势在于，您无需学习 Git 命令即可获取 FreeCAD 源代码或向 GitHub 上的 FreeCAD 代码库提交补丁。
 
-In the following we describe source code handling using the [https://tortoisegit.org/ TortoiseGit] frontend. This frontend integrates directly into Windows file explorer and has a large user community to get help in case you have problems.
+下文中我们将使用 [https://tortoisegit.org/ TortoiseGit] 前端来说明源代码管理操作。该前端直接集成到 Windows 文件资源管理器中，并拥有庞大的用户社区，遇到问题时可以方便地获取帮助。
 
-* [http://sourceforge.net/projects/nsis/ NSIS] is used to generate the FreeCAD Windows installer.
+* [http://sourceforge.net/projects/nsis/ NSIS] 用于生成 FreeCAD 的 Windows 安装程序。
 
-===Source code===
+<span id="Source_code"></span>
+===源代码===
 
-Now you can get the source code of FreeCAD:
+现在您可以获取 FreeCAD 的源代码了：
 
-====Using a frontend====
+<span id="Using_a_frontend"></span>
+====使用前端====
 
 When using the [https://git-scm.com/downloads/guis Git frontends]
 
@@ -48,43 +55,47 @@ TortoiseGit:
 
 The latest source code will be downloaded from the FreeCAD Git repository and the folder will be tracked by Git.
 
-====Using the command line====
+<span id="Using_the_command_line"></span>
+====使用命令行====
 
-To create a local tracking branch and download the source code, open a terminal (command prompt) and switch there to the directory you want the source, then type:
+要创建本地跟踪分支并下载源代码，请打开终端（命令提示符），切换到您希望存放源代码的目录，然后输入：
 
 {{Code|code=
 git clone --recurse-submodules https://github.com/FreeCAD/FreeCAD.git
 }}
 
-===Compiler===
+<span id="Compiler"></span>
+===编译器===
 
-The default (recommended) compiler is MS Visual Studio (MSVC). Though it may be possible to use other compilers, for example gcc via Cygwin or MinGW, it is not tested or covered here.
+默认的（推荐的）编译器是 MS Visual Studio (MSVC)。虽然理论上可以使用其他编译器（例如通过 Cygwin 或 MinGW 使用 gcc），但这些编译方式未经测试，本文档也不会对其进行说明。
 
-You can get a free version of MSVC (for individual usage) by downloading the [https://visualstudio.microsoft.com/vs/community/ ''Community'' edition of MS Visual Studio].
+您可以下载 [https://visualstudio.microsoft.com/vs/community/ MS Visual Studio 的 ''Community'' 版]来免费获取 MSVC（供个人使用）。
 
-For those who want to avoid installing the huge MSVC for the mere purpose of having a compiler, see [[CompileOnWindows - Reducing Disk Footprint]].
+若仅需编译器而不想安装庞大的 MSVC，请参阅 [[CompileOnWindows - Reducing Disk Footprint]]。
 
-'''Note:''' Although the ''Community'' edition of MSVC is free, to use the IDE for more than a 30-day trial period you must create a Microsoft account. If you will only compile using the command line, you don't need the IDE and thus no Microsoft account.
+'''注意：'''虽然 MSVC 的 ''Community'' 版是免费的，但如果要使用其 IDE 超过 30 天试用期，则必须注册微软账户。若仅通过命令行编译，则无需使用 IDE，因此也不需要微软账户。
 
-As a free and OpenSource alternative IDE you can use [https://www.kdevelop.org/download KDevelop]. You can use KDevelop to modify and write C++ code but must use the command line to compile.
+如果想要免费开源的替代 IDE，您可以使用 [https://www.kdevelop.org/download KDevelop]。该工具可用于编写和修改 C++ 代码，但编译仍需通过命令行完成。
 
-===Optional system path configuration===
+<span id="Optional_system_path_configuration"></span>
+===可选配置：系统 PATH===
 
-Optionally you can include the paths to some folders to the system PATH variable. This is helpful if you want to access programs in these folders from the command line/powershell or if you want special programs to be found by the compiler or CMake. Besides this, adding folders to the PATH might be necessary if you did not use the corresponding options when installing the program.
+您可以选择将某些文件夹的路径添加到系统 PATH 变量中。这样做的好处是：既可以直接通过命令行/PowerShell 访问这些文件夹中的程序，也能让编译器或 CMake 找到特定的程序。此外，如果在安装程序时没有勾选相关选项，可能也需要手动添加路径到 PATH 变量。
 
-* You can include the folder of your LibPack in your system PATH variable. This is useful if you plan to build multiple configurations/versions of FreeCAD.
-* If you did not use the option to add CMake to the PATH while installing it, add its installation folder to the PATH:<br>''C:\Program Files\CMake\bin''
-* If you did not use the option to add TortoiseGit to the PATH while installing it, add its installation folder to the PATH:<br>''C:\Program Files\TortoiseGit\bin''
+* 可将 LibPack 的文件夹路径添加到系统 PATH 变量中，这在需要编译多个 FreeCAD 配置/版本时非常实用。
+* 若安装 CMake 时未选择添加到 PATH，请手动添加其安装目录：<br>''C:\Program Files\CMake\bin''  
+* 若安装 TortoiseGit 时未选择添加到 PATH，请手动添加其安装目录：<br>''C:\Program Files\TortoiseGit\bin''
 
-To add folder paths to the PATH variable:
-# In the Windows Start menu Right click on ''Computer'' and choose ''Properties''.
-# In the appearing dialog click on ''Advanced system settings''.
-# Another dialog will open. Click there in the tab ''Advanced'' on '''Environment Variables'''.
-# Again another dialog will open. Select then the variable ''Path'' and click on '''Edit'''.
-# And again another dialog will open. Click there on '''New''' and add to path to the folder of Git or the LibPack.
-# Finally press '''OK''' and close all dialogs by pressing '''OK''' as well.
+要将文件夹路径添加到 PATH 环境变量中，请按以下步骤操作：
+# 在 Windows 开始菜单中右键点击'''计算机'''并选择'''属性'''。
+# 在弹出的窗口中点击'''高级系统设置'''。
+# 在新对话框中选择'''高级'''选项卡，点击'''环境变量'''。
+# 在环境变量对话框中选中'''Path'''变量，点击'''编辑'''。
+# 在编辑环境变量对话框中点击'''新建'''，然后添加 Git 或 LibPack 的文件夹路径。
+# 最后点击'''确定'''保存，并依次关闭所有对话框。
 
-== Configuration ==
+<span id="Configuration"></span>
+==配置==
 
 Once you have all of the necessary tools, libraries, and FreeCAD source code, you are ready to begin the configuration and compilation process. This process will proceed in five steps:
 # Run CMake once to examine your system and begin the configuration progress (this will report that it failed).
@@ -125,7 +136,8 @@ If there is no error about Visual Studio or Python, everything is fine, but CMak
 
 There should now be no errors. If you continue to encounter errors that you cannot diagnose, visit the [https://forum.freecadweb.org/viewforum.php?f=4 Install/Compile forum] on the FreeCAD forum website. If CMake proceeded correctly, click on '''Generate'''.  After this is done you can close CMake and start the compilation of FreeCAD using Visual Studio. However, for the first compilation keep it open in case you want or need to change some options for the build process.
 
-=== Options for the build process ===
+<span id="Options_for_the_build_process"></span>
+===构建选项===
 
 The CMake build system gives you control over some aspects of the build process. In particular, you can switch on and off some features or modules using CMake variables.
 
@@ -167,11 +179,13 @@ Here is a description of some of these variables:
 | FREECAD_USE_PYBIND11|| Includes the [https://github.com/pybind/pybind11 PyBind11] library. Necessary to have a build that includes the [[MeshPart_CreateFlatMesh|CreateFlatMesh feature]].</br>'''Note:''' after turning it on you might get a configuration error. Just configure again and the problem should go away. || OFF
 |}
 
-== Building FreeCAD ==
+<span id="Building_FreeCAD"></span>
+==构建 FreeCAD==
 
 Depending on your compiler, the process for building FreeCAD will be slightly different. In the following sections known workflows are described. If you are building with Qt Creator, jump to [[#Building_with_Qt_Creator_.28outdated.29|Building with Qt Creator (outdated)]], otherwise proceed directly:
 
-=== Building from cmd.exe command line ===
+<span id="Building_from_cmd.exe_command_line"></span>
+===使用 cmd.exe 命令行构建===
 
 If you want build from the command line, CMake output will show you the proper command to run (which depends on the configured release directory). But this command will produce a ''Debug'' build which does not work on Windows and results in a Numpy import error in FreeCAD (which is a known issue but hard to fix). You need to specify the ''--config Release'' option to force a ''Release'' build:
 
@@ -183,7 +197,8 @@ Please note that setting CMake variables like ''CMAKE_BUILD_TYPE'' does not have
 
 <div class="mw-collapsible mw-collapsed toccolours">
 
-=== Building with Visual Studio 15 (2017) or newer ===
+<span id="Building_with_Visual_Studio_15_(2017)_or_newer"></span>
+===使用 Visual Studio 15 (2017) 或更新版本构建===
 
 <div class="mw-collapsible-content">
 
@@ -200,7 +215,8 @@ If you don't get any errors you are done. '''Congratulations!''' You can exit MS
 
 '''Important:''' Since Visual Studio 17.4 you cannot use the code optimization that is on by default for the target '''SketcherGui'''. If you do, angle constraints will be misplaced in sketches. To fix this, right-click on this target in the MSVC solution explorer and select the last entry '''Properties''' in the context menu. In the appearing dialog go to C/C++ → Optimization and there disable the setting '''Optimization'''. Finally build the target '''ALL_BUILD''' again.
 
-==== Debug Build ====
+<span id="Debug_Build"></span>
+====Debug 版本构建====
 
 As prerequisite for the debug build, you need to do this:
 # Copy the content of the LibPack folder ''bind'' to the ''bin'' folder of the FreeCAD build folder (overwrite the existing files).
@@ -224,7 +240,8 @@ An English language tutorial that begins with configuration in CMake Gui and con
 </div>
 <div class="mw-collapsible mw-collapsed toccolours">
 
-=== Building with Qt Creator (outdated) ===
+<span id="Building_with_Qt_Creator_(outdated)"></span>
+===使用 Qt Creator 构建（已过时）===
 
 <div class="mw-collapsible-content">
 
@@ -246,7 +263,8 @@ An English language tutorial that begins with configuration in CMake Gui and con
 *** Uncheck: Always build project before deploying it
 *** Uncheck: Always deploy project before running it
 
-====Import project and building====
+<span id="Import_project_and_building"></span>
+====导入项目并构建====
 
 * File → Open File or Project
 * Open '''CMakeLists.txt''' which is in the top level of the source
@@ -266,7 +284,8 @@ The other is run.  Pick whichever you want.
 </div>
 <div class="mw-collapsible mw-collapsed toccolours">
 
-===Command line build===
+<span id="Command_line_build"></span>
+===命令行构建===
 
 <div class="mw-collapsible-content">
 
@@ -300,7 +319,8 @@ Instead of calling '''compile-FC''' with the option ''install'' you can also use
 </div>
 </div>
 
-==Running and installing FreeCAD==
+<span id="Running_and_installing_FreeCAD"></span>
+==运行和安装 FreeCAD==
 
 There are 2 methods to run the compiled FreeCAD:
 
@@ -312,7 +332,8 @@ Method 2 is the simpler one because it automatically assures that all libraries 
 
 For Method 1 you need to enable the '''FREECAD_COPY_*''' options mentioned in the [[#CMake|CMake Configuration step]] above.
 
-===Troubleshooting===
+<span id="Troubleshooting"></span>
+===问题排查===
 
 When running FreeCAD you may encounter missing DLLs when using certain workbenches or features of workbenches. The error message in FreeCAD's console will not tell you what DLL is missing. To find this out you must use an external tool:
 
@@ -323,13 +344,15 @@ os.system(r"~\DependenciesGui.exe")</nowiki>
 '''Note''': Instead of the ~ you must specify the full path to the ''DependenciesGui.exe'' on your system.
 * Now drag in the *.pyd file of the workbench with which you get missing DLLs reported.
 
-==Updating the build==
+<span id="Updating_the_build"></span>
+==更新构建==
 
 FreeCAD is very actively developed. Therefore its source code changes almost daily. New features are added and bugs are fixed. To benefit from these source code changes, you must rebuild your FreeCAD. This is done in two steps:
 # Updating the source code
 # Recompilation
 
-===Updating the source code===
+<span id="Updating_the_source_code"></span>
+===更新源代码===
 
 ====Using a frontend====
 
@@ -339,7 +362,8 @@ When using the [https://en.wikipedia.org/wiki/Comparison_of_Git_GUIs Git fronten
 
 Finally click '''OK'''.
 
-====Using the command line====
+<span id="Using_the_command_line"></span>
+====使用命令行====
 
 Open a terminal (command prompt) and switch there to your source directory. Then type:
 
@@ -349,12 +373,14 @@ git pull https://github.com/FreeCAD/FreeCAD.git main
 
 where ''main'' the the name of the main development branch. If you want to get code from another branch, use its name instead of ''main''.
 
-===Recompilation===
+<span id="Recompilation"></span>
+===重新编译===
 
 # Open the MSVC IDE by double-clicking either on the file ''FreeCAD.sln'' or on the file ''ALL_BUILD.vcxproj'' in your build folder.
 # Continue with step 2 from the section [[#Building_with_Visual_Studio_15_.282017.29_or_newer|Building with Visual Studio 15 2017]].
 
-==Updating the LibPack==
+<span id="Updating_the_LibPack"></span>
+==更新 LibPack==
 
 If a new major version of a third-party dependency like Open Cascade is released, or if a third-party dependency has important bug fixes, a new LibPack is released. You can find the latest version [https://github.com/FreeCAD/FreeCAD-LibPack/releases/ here].
 
@@ -366,15 +392,18 @@ To update your LibPack the following recipe is best practice:
 # In CMake click the button '''Open Project''' and the MSVC IDE will open.
 # In the MSVC IDE build the target ''INSTALL''.
 
-==Tools==
+<span id="Tools"></span>
+==工具==
 
 In order to join the FreeCAD development you should compile and install the following tools:
 
-===Qt Designer plugin===
+<span id="Qt_Designer_plugin"></span>
+===Qt Designer 插件===
 
 FreeCAD uses [https://en.wikipedia.org/wiki/Qt_(software) Qt] as toolkit for its user interface. All dialogs are setup in UI-files that can be edited using the program [https://doc.qt.io/qt-5/qtdesigner-manual.html Qt Designer] that is part of any Qt installation and also included in the LibPack. FreeCAD has its own set of Qt widgets to provide special features like adding a unit to input fields and to set preferences properties.
 
-====Compilation====
+<span id="Compilation"></span>
+====编译====
 
 The plugin cannot be loaded by the Qt Designer if  it was compiled using another Qt version than the one your Qt Designer/Qt Creator is based on. Therefore the plugin must be compiled together with FreeCAD:
 
@@ -383,7 +412,8 @@ The plugin cannot be loaded by the Qt Designer if  it was compiled using another
 
 As result you will get the plugin file '''FreeCAD_widgets.dll'' in the folder</br>''~\src\Tools\plugins\widget\Release''
 
-====Installation====
+<span id="Installation"></span>
+====安装====
 
 To install the plugin, copy the DLL either to:
 * If you use the LibPack: to the folder</br>''~\FreeCADLibs_2_8_x64_VC2019\plugins\designer''
@@ -393,11 +423,13 @@ Finally (re)start Qt Designer and check its menu {{MenuCommand|Help → Plugins}
 
 If you prefer using [https://en.wikipedia.org/wiki/Qt_Creator Qt Creator] instead of Qt Designer, the plugin file must be placed in this folder:</br>''C:\Qt\Qt5.15.2\Tools\QtCreator\bin\plugins\designer''</br>Then (re)start Qt Creator, switch to the mode '''Design''' and then check the menu {{MenuCommand|Tools → Form Editor → About Qt Designer Plugins}}. If the plugin '''FreeCAD_widgets.dll''' is listed as being loaded, you can now design and change FreeCAD's .ui files. If not, you must [[#Compilation|compile]] the DLL by yourself.
 
-===Thumbnail Provider===
+<span id="Thumbnail_Provider"></span>
+===缩略图插件===
 
 FreeCAD has the feature to provide preview thumbnails for *.FCStd files. That means that in the Windows file explorer *.FCStd files are shown with a screenshot of the model it contains. To provide this feature, FreeCAD needs to have the file '''FCStdThumbnail.dll''' installed to Windows.
 
-====Installation====
+<span id="Installation"></span>
+====安装====
 
 The DLL is installed this way:
 # Download [https://forum.freecadweb.org/download/file.php?id=13404 this ZIP file] and extract it.
@@ -407,7 +439,8 @@ The DLL is installed this way:
 
 So check if it works, assure that in FreeCAD the preferences option '''[[Preferences_Editor#Document|Save thumbnail into project file when saving document]]''' is enabled and save a model. Then view in Windows Explorer the folder of the saved model using a symbol view. You should now see a screenshot of the model in the folder view.
 
-====Compilation====
+<span id="Compilation"></span>
+====编译====
 
 To compile the FCStdThumbnail.dll
 # Change to the FreeCAD source folder</br>''~\src\Tools\thumbs\ThumbnailProvider''
@@ -422,7 +455,8 @@ To compile the FCStdThumbnail.dll
 # There is a window called ''Solution Explorer''. Right-click there on '''ALL_BUILD''' and then choose '''Build'''.
 # As result you should now have a '''FCStdThumbnail.dll''' in the folder ''~\src\Tools\thumbs\ThumbnailProvider\release'' that you can install as described above.
 
-== Compiling Open Cascade==
+<span id="Compiling_Open_Cascade"></span>
+==编译 Open Cascade==
 
 The LibPack comes with a version of [https://en.wikipedia.org/wiki/Open_Cascade Open Cascade] that is suitable for general use. However, under some circumstances you may wish to compile against an alternate version of Open Cascade, such as one of their official releases, or a patched fork.
 
@@ -486,7 +520,8 @@ To build FreeCAD using the self-compiled Open Cascade, you must do the following
 * Search there for absolute paths to your LibPack folder and remove them. So e.g. the absolute path</br>''D:/FreeCADLibs_12.5.4_x64_VC17/lib/freetype.lib''</br>becomes just </br>''freetype.lib''</br>
 * Do the same for the file ''OpenCASCADEVisualizationTargets.cmake''
 
-== Compiling Netgen==
+<span id="Compiling_Netgen"></span>
+==编译 Netgen==
 
 The LibPack comes with a version of [https://ngsolve.org Netgen] that will was tested to be build with the Open Cascade version of the LibPack. The problem is that every new release of Netgen changes the API. Also every new release of Open Cascade does the same. Therefore one cannot just easily change the Netgen version.
 
@@ -544,7 +579,8 @@ This assures that he file names of the debug libraries get another name than the
 To build FreeCAD using the self-compiled Netgen, you must do the following:
 * Copy all folders from the CMAKE_INSTALL_PREFIX to your LibPack folder (overwrite the existing files)
 
-== References ==
+<span id="References"></span>
+==参考==
 
 See also
 * [[Compiling_(Speeding_up)|Compiling - Speeding up]]
