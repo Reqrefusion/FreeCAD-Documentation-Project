@@ -28,13 +28,11 @@ Bien que la plupart des conceptions soient constituées de solides, il est souve
 * Si une pièce est mince (longue et fine) et en forme de poutre et a une section transversale régulière de l'un des types de section de poutre pris en charge (rectangulaire, circulaire ou tube), elle doit être analysée à l'aide d'éléments de type poutre (à moins qu'il n'y ait des formes spécifiques de charge, de réponse ou des détails géométriques inévitables qui invalident cette supposition). Fondamentalement, il faut dessiner une ligne centrale (des conseils sur la manière de l'extraire d'une géométrie solide existante peuvent être trouvés dans [https://forum.freecad.org/viewtopic.php?t=81589 ce fil de discussion]. En bref, utilisez [[Draft_Wire/fr|Draft Polyligne]] ou [[Draft_BSpline/fr|Draft B-spline]] avec les supports appropriés d'[[Draft_Workbench/fr#Barre_d'outils_d'aimantation_de_Draft|aimantations]] et de [[Draft_Line/fr|lignes]]) et appliquez [[FEM_ElementGeometry1D/fr|coupe transversale d'un élément 1D]] avec accessoirement une [[FEM_ElementRotation1D/fr|rotation]]. Il n'y a pas de vraie règle indiquant quand le principe de poutre peut être utilisé, mais il est souvent conseillé que les dimensions de la section transversale soient < 1/10 de la longueur de la pièce pour que l'utilisation du principe de poutre soit valide.
 
 [[Image:FEM_beam_model.JPG|600px]]
-
 {{Caption|Pièce mince convenant à l'analyse avec des éléments de poutre - axe central mis en évidence}}
 
 * Si une pièce a des parois minces (comme les pièces en tôle), elle doit être analysée à l'aide d'éléments de coque (sauf si des résultats de contact précis sont nécessaires ou si certaines limites des éléments de coque sont rencontrées). Ce point est très important et souvent négligé. Pour obtenir des résultats précis (en particulier en cas de flexion), il faut quelques éléments (au moins 3 à 5) dans la direction de l'épaisseur. Dans le cas de pièces à parois minces, cela se traduit généralement par de grandes mailles (en particulier lorsque des tétraèdres sont utilisés, car les éléments hexaédriques ne peuvent pas être générés dans FreeCAD) et un coût de calcul élevé - puissance informatique élevée et long temps de résolution. Pour obtenir une géométrie adaptée à l'analyse avec des éléments coques, il faut dessiner une surface médiane de la pièce (des conseils sur la manière de l'extraire d'une géométrie solide existante peuvent être trouvés dans [https://forum.freecad.org/viewtopic.php?t=67505 ce fil de discussion], [https://forum.freecad.org/viewtopic.php?t=71821 celui-ci] et [https://forum.freecad.org/viewtopic.php?t=81834 celui-ci]). En bref, appliquez une [[PartDesign_SubShapeBinder/fr|PartDesign Sous forme liée]] ou une [[Draft_Facebinder/fr|Draft Surface liée]], puis une [[Part_Offset/fr|Part Décalage]] et enfin utilisez la [[PartDesign_SubShapeBinder/fr|PartDesign Sous forme liée]] et [[Part_Extrude/fr|extrudez]] pour étendre les arêtes des surfaces médianes et ainsi combler les écarts entre elles. Appliquez une [[FEM_ElementGeometry2D/fr|épaisseur]] appropriée. Là encore, il n'y a pas de règle unique, mais il est généralement recommandé que l'épaisseur soit < 1/10 d'une dimension globale typique (longueur/largeur) pour que l'utilisation du principe de la coque soit valide.
 
 [[Image:FEM_shell_model.JPG|600px]]
-
 {{Caption|Pièce à paroi mince adaptée à l'analyse avec des éléments de coque - mise en évidence de la surface médiane}}
 
 * Dans certains cas, les analyses 2D sont également possibles et peuvent être activées en définissant la propriété {{PropertyData|Model Space}} du [[FEM_SolverCalculixCcxtools/fr|solveur CalculiX]] :
@@ -63,11 +61,9 @@ Les designs préparés dans les logiciels de CAO sont généralement trop détai
 L'outil [[Part_Defeaturing/fr|Part Supprimer la fonction]] et l'[[Defeaturing_Workbench/fr|extension Defeaturing]] peuvent être utiles pour simplifier les pièces pour les simulations.
 
 [[Image:FEM_bracket_original.PNG|400px]]
-
 {{Caption|Géométrie originale du support}}
 
 [[Image:FEM_bracket_simplified.PNG|400px]]
-
 {{Caption|Géométrie du support simplifiée en utilisant uniquement l'outil Part Supprimer la fonctionnalité}}
 
 Dans le cas des assemblages (plus d'informations à ce sujet dans l'une des sections suivantes), certaines pièces peuvent souvent être exclues des simulations et remplacées par des conditions aux limites comme si elles étaient attachées aux pièces à analyser. Cette approche est valable si les pièces exclues sont significativement plus rigides (en termes de rigidité structurelle, en tenant compte non seulement de l'élasticité du matériau mais aussi de la géométrie de la pièce) que les pièces à analyser auxquelles elles étaient connectées. En effet, les conditions aux limites fixes introduisent de la rigidité (comme si la pièce analysée était attachée à un composant infiniment rigide) et les supports flexibles comme les éléments ressorts ne sont pas disponibles dans l'atelier FEM de FreeCAD lorsque l'on utilise CalculiX (Elmer a un [[FEM_ConstraintSpring/fr|FEM Ressort]]).
@@ -83,7 +79,6 @@ L'utilisation de la symétrie (1/2, 1/4 ou 1/8 du modèle) est recommandée dans
 La force appliquée doit être correctement réduite si le plan de symétrie coupe la région à laquelle la force est appliquée (sans importance lorsque la charge de pression est utilisée).
 
 [[Image:FEM_symmetric_vessel.JPG|400px]]
-
 {{Caption|Modèle de 1/8 d'un récipient sous pression cylindrique avec des conditions limites de symétrie et une charge de pression interne}}
 
 Un autre type de symétrie, moins courant, disponible dans FreeCAD FEM est la symétrie cyclique. Elle peut être définie à l'aide de la [[FEM_ConstraintTie/fr#Symétrie_cyclique|contrainte de liaison]] et permet d'analyser un seul secteur représentatif d'une structure constituée de tels motifs circulaires autour d'un axe. L'hypothèse est que les conditions aux limites et les charges présentent également cette forme de symétrie. Des charges tangentielles peuvent être appliquées et la torsion peut donc être simulée de cette manière. Cependant, une [[FEM_ConstraintCentrif/fr|charge centrifuge]] est généralement utilisé avec la symétrie cyclique. Cette approche peut être utilisée par exemple pour les rotors, les arbres, les turbines, les ventilateurs et les volants d'inertie.
@@ -94,8 +89,19 @@ Un autre type de symétrie, moins courant, disponible dans FreeCAD FEM est la sy
 Le partitionnement est une division de la géométrie en segments plus petits. Dans d'autres logiciels, il est généralement utilisé pour permettre le maillage hexagonal, mais dans FreeCAD, il peut être utile pour d'autres raisons. La principale application du partitionnement est lorsqu'une charge (ou une condition limite) doit être appliquée uniquement à une région sélectionnée de la surface de la pièce. La façon la plus simple d'y parvenir est de créer une esquisse avec un contour approprié sur cette face et d'utiliser l'outil [[Part_BooleanFragments/fr|Part Fragments booléens]] pour diviser la face avec l'esquisse. Une autre raison d'utiliser le partitionnement est lorsque plusieurs matériaux doivent être appliqués à une seule pièce (sans avoir à utiliser plusieurs pièces connectées entre elles). Dans ce cas, le partitionnement peut être effectué à l'aide d'un [[PartDesign_Plane/fr|plan]] et de l'outil Fragments booléens en mode ''Compsolid''. Le partitionnement peut également être utilisé pour créer des régions pour [[FEM_MeshRegion/fr|mailler plus finement]] ou pour contrôler l'algorithme de maillage en le forçant à suivre des arêtes supplémentaires (particulièrement utile pour contrôler la [[FEM_MeshGmshFromShape/fr#Croissance_du_maillage|croissance du maillage Gmsh]]).
 
 [[Image:FEM_partition.JPG|400px]]
-
 {{Caption|Pièce avec une cloison de séparation pour l'application d'une charge ou d'une condition limite}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the case of surface (shell) geometries, the easiest way to make a sketch-based partition is to use the Boolean Fragments tool (like for the partitions on the faces of solids). However, as explained [https://forum.freecad.org/viewtopic.php?t=96029#p820241 here], when mesh group creation is enabled in the [[FEM_Preferences#General|FEM preferences]], it may not work properly and the following approach should be used:
+# Create a face for one side using e.g. the [[Part_MakeFace|Part MakeFace]] tool (e.g. a square plate with a circular hole).
+# Create a face for the other side in an equivalent way (e.g. a circular face filling the hole in the square plate).
+# Apply the [[Part_Builder|Part Builder]] tool with the ''Shell from faces'' mode and disabled ''Refine shape'' checkbox to the previously created faces.
+</div>
+
+[[Image:FEM_shell_partition.JPG|400px]]
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|Square plate with a circular face partition}}
+</div>
 
 <span id="Assembly_geometries"></span>
 == Assemblage de géométries ==
@@ -108,7 +114,6 @@ L'une des principales limitations actuelles de l'atelier FEM est que les maillag
 Il est important de mentionner que si les pièces se touchent exactement, un maillage continu sera créé sur l'objet booléen et aucune contrainte ne sera nécessaire pour la simulation (sauf si Part Composé est utilisé et que les nœuds ne coïncident pas ou que la [[FEM_MeshGmshFromShape/fr#Propriétés|propriété ''Coherence Mesh'' de Gmsh]] est réglée sur {{FALSE}}). S'il y a un petit espace entre les pièces (ou une intersection à l'intérieur d'un Part Composé), le maillage ne sera pas continu et des contraintes comme la [[FEM_ConstraintTie/fr|FEM Contrainte de liaison]] ou la [[FEM_ConstraintContact/fr|FEM Contrainte de contact]] seront nécessaires. L'exécution d'une analyse en fréquence est un bon moyen de révéler si le maillage est continu ou non. Si les pièces ne se touchent pas, les premières formes visualisées des modes avec déformation à l'aide du [[FEM_PostFilterWarp/fr|filtre des déformations]] montreront une séparation et les pièces "s'envoleront".
 
 [[Image:FEM_modal_separation.JPG|400px]]
-
 {{Caption|La forme du premier mode d'une analyse de fréquence visualisée avec le filtre des déformations - deux cubes avec un petit écart initial ont été analysés.}}
 
 Il est souvent conseillé d'utiliser des fragments booléens avec le mode Compsolid et d'y appliquer ensuite un [[Part_CompoundFilter/fr|filtre de composé]], en particulier lors de l'analyse d'assemblages multi-matériaux et de solides encastrés dans d'autres solides sans découpes (comme dans le [[FEM_Shear_of_a_Composite_Block/fr|FEM Tutoriel Cisaillement d'un bloc composite]]). Comme on peut le voir dans l'onglet ''Contenu des formes'' de l'outil [[Part_CheckGeometry/fr|Part Vérifier la géométrie]] (il est important d'utiliser cet outil en cas de doute dans de tels cas), le filtre de composé supprime le composé et ne laisse que le Compsolid constitué de plusieurs solides connectés par leurs faces.
@@ -148,15 +153,12 @@ La sélection des régions internes (faces/volumes) peut s'avérer délicate. El
 Un maillage trop grossier est l'une des sources les plus courantes d'inexactitudes et d'autres problèmes dans les simulations par éléments finis. Il s'agit souvent d'une erreur partielle des paramètres du maillage automatique. Ils génèrent généralement des maillages très grossiers et inadaptés lorsque la taille des éléments n'est pas spécifiée manuellement, mais laissée avec une valeur par défaut. Il faut toujours connaître les dimensions approximatives de la pièce, en particulier la taille du plus petit élément pertinent (l'outil [[Std_Measure/fr|Std Mesurer]] peut être utilisé pour la trouver) et spécifier la taille maximale appropriée de l'élément en fonction de celle-ci. Il existe également un réglage de la taille minimale des éléments qui peut empêcher la création d'éléments trop petits autour de petites caractéristiques géométriques, ce qui peut conduire à des maillages inutilement denses (et parfois même à un plantage ou à un gel de FreeCAD lorsqu'on essaie de générer de tels maillages). D'une manière générale, il est préférable de commencer par un maillage plus grossier (moins long à générer), de voir à quoi il ressemble (une certaine expérience est nécessaire) et de l'affiner si nécessaire. Il est souvent judicieux d'utiliser un maillage dense uniquement autour des zones d'intérêt (endroits présentant des gradients/concentrations de contraintes importants - encoches) et un maillage relativement grossier à l'écart de ces zones. De cette manière, le nombre d'éléments peut être considérablement réduit, ce qui permet de diminuer les temps de résolution. L'amélioration du maillage local est défini à l'aide de [[FEM_MeshRegion/fr|FEM Mailler plus finement]].
 
 [[Image:FEM_default_mesh.PNG|400px]]
-
 {{Caption|Par défaut, maillage trop grossier}}
 
 [[Image:FEM_globally_refined_mesh.PNG|400px]]
-
 {{Caption|Maillage amélioré globalement}}
 
 [[Image:FEM_locally_refined_mesh.PNG|400px]]
-
 {{Caption|Maillage amélioré localement}}
 
 Le choix du type d'élément n'est pas facile et dépend de nombreux facteurs, mais la règle générale est que les éléments hexaédriques et quadrilatéraux sont préférables aux éléments tétraédriques et triangulaires. Cependant, les géométries complexes ne peuvent pas être maillées avec des éléments hexaédriques et FreeCAD ne peut pas les générer correctement (uniquement en utilisant l'algorithme de subdivision du maillage Gmsh, mais ses résultats ne sont pas ceux que l'on attendrait d'un maillage hexagonal). Les maillages quadratiques ou à dominante quadratique peuvent être générés normalement sur les surfaces, voir [https://forum.freecad.org/viewtopic.php?t=20351 ce fil de discussion]). Les éléments hexaédriques peuvent être importés à partir de maillages externes comme [https://gmsh.info Gmsh] et utilisés dans l'atelier FEM comme le montre [https://www.youtube.com/watch?v=vylt24G7qj4&t=932s cette vidéo].
