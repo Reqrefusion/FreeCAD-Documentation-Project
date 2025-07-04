@@ -13,7 +13,7 @@ output_dir = "wiki\File"
 os.makedirs(output_dir, exist_ok=True)
 
 # Base URL for FreeCAD wiki file downloads
-base_url = 'https://wiki.freecadweb.org/Special:FilePath/'
+base_url = 'https://wiki.freecad.org/Special:FilePath/'
 
 # Function to sanitize file names
 def sanitize_name(name):
