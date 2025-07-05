@@ -168,7 +168,7 @@ rm translations/uifiles.ts
 
 Es ist an der Zeit, die {{{incode|.ts}}}-Datei übersetzen zu lassen. Dafür kann man ein Konto auf einer öffentlichen Übersetzungsplattform wie [https://crowdin.com/ Crowdin] oder [https://www.transifex.com/ Transifex] einrichten, oder unser bestehendes [https://crowdin.com/project/freecad-addons FreeCAD-Addons-Konto bei Crowdin] nutzen, das bereits viele Benutzer hat und somit eine größere Chance, die Datei schnell übersetzen zu lassen, von Leuten, die FreeCAD kennen.
 
-Soll die Datei auf dem FreeCAD-Crowdin-Konto untergebracht werden, hilft [https://forum.freecadweb.org/memberlist.php?mode=viewprofile&u=68 Yorik] im [https://forum.freecadweb.org/ FreeCAD-Forum] gerne weiter.
+Soll die Datei auf dem FreeCAD-Crowdin-Konto untergebracht werden, hilft [https://forum.freecad.org/memberlist.php?mode=viewprofile&u=68 Yorik] im [https://forum.freecad.org/ FreeCAD-Forum] gerne weiter.
 
 {{Emphasis|Hinweis:}} Einige Plattformen wie Crowdin können sich in GitHub integrieren und den gesamten Prozess von Punkt 2, 3 und 4 automatisch durchführen. Dafür kann das FreeCAD-Crowdin-Konto nicht verwendet werden; Man muss sein eigenes Konto einrichten.
 
@@ -231,9 +231,13 @@ https://github.com/yorikvanhavre/BIM_Workbench/blob/master/utils/updateTranslati
 
 In den obigen Beispielen wurden zwei separate Funktionen verwendet: {{incode|translate()}} und {{incode|QT_TRANSLATE_NOOP}}. Vielleicht stößt man auch auf {{incode|tr()}} und {{incode|QT_TR_NOOP}}, die automatisch das Argument "context" basierend auf dem Ort, von wo sie aufgerufen werden, bereitstellen. Diese beiden Paare von Funktionen unterscheiden sich grundlegend. 
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 {{incode|translate()}} and {{incode|tr()}} accomplish two separate tasks: at runtime they perform the actual translation from the string passed into them to the final translated string. This is true whether they are provided a literal string, or a variable, or a constant: the lookup is dynamic and real-time during the run of the code. However, they provide an additional non-runtime function: they are recognized by the {{incode|pylupdate}} utility. If (and only if) they contain a string literal, that literal is extracted by the utility. ONLY string literals are extracted by {{incode|pylupdate}} -- if a variable is passed it is ignored by the {{incode|pylupdate}} utility. Qt will attempt to provide a translation at runtime, but this will only work if some other piece of code called one of the translation functions with the literal string that needs to be translated, so that {{incode|pylupdate}} can extract it. Note that the code with the string literal need not actually ever execute, it must simply exist as a line of code in a file somewhere: {{incode|pylupdate}} performs no analysis or code execution, it is simply performing a string search and extraction.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 In contrast, {{incode|QT_TRANSLATE_NOOP}} and {{incode|QT_TR_NOOP}} do nothing at all at runtime: they are literal "no-ops", and are completely ignored by running code. Their only use is to mark a literal string for extraction by {{incode|pylupdate}}: it never makes sense to place a variable within a call to one of these functions, it will have no effect. They are used in circumstances where {{incode|translate()}} or {{incode|tr()}} will be called with a variable containing the text to translate. For example, any code that is used to create a Command or a Property will use a NOOP-type function around the command menu text or tooltip, or the property docstring: at runtime when FreeCAD displays these items to the user it calls {{incode|translate()}}: the literal strings must have been extracted by {{incode|pylupdate}} at the point of creation, for example:
+</div>
 
 {{Code|code=
 def GetResources(self):
@@ -244,7 +248,9 @@ def GetResources(self):
     }
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 In this usage, at runtime the dictionary returned by this function is literally:
+</div>
 
 {{Code|code=
 { 
@@ -255,7 +261,9 @@ In this usage, at runtime the dictionary returned by this function is literally:
 }
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 There is no reference to any type of translation information. When FreeCAD actually displays this information to the user, the pseudo-code is:
+</div>
 
 {{Code|code=
 for command in commands:
@@ -263,27 +271,33 @@ for command in commands:
     menu_text = translate(resources['MenuText'])
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 In this case, {{incode|lupdate}} cannot extract any string from the call to {{incode|translate()}} because it refers to a variable. So {{incode|lupdate}} ignores that call, but at runtime Qt searches for the string that's passed to it. As long as someplace in the code there is a call to one of the translation functions with a matching literal string (in this case, in the {{incode|GetResources()}} function), this translation call will succeed.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 To verify that the expected strings are being extracted, you can manually run the {{incode|pylupdate}} command:
+</div>
 
 {{Code|code=
 pylupdate myfile.py -ts outfile.ts
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The file {{incode|outfile.ts}} will contain the set of strings that are uploaded to CrowdIn for translation.
+</div>
 
 <span id="Important_references"></span>
 == Wichtige Verweise ==
 
-* Warum und wie man {{incode|openCommand()}} Funktionen übersetzen sollte ([https://forum.freecadweb.org/viewtopic.php?f=10&t=55869 forum thread])
+* Warum und wie man {{incode|openCommand()}} Funktionen übersetzen sollte ([https://forum.freecad.org/viewtopic.php?f=10&t=55869 forum thread])
 
 <span id="Related_Pages"></span>
 ==Verwandte Seiten==
 
 * [[External_workbenches/de|Externe Arbeitsbereiche]]
 * [[Localisation/de|Lokalisierung]]
-* Eigene Anfragen nach weitere Informationen können hier gestellt werden:[https://forum.freecadweb.org/viewtopic.php?f=10&t=36413 Translating external workbenches] (engl.).
+* Eigene Anfragen nach weitere Informationen können hier gestellt werden:[https://forum.freecad.org/viewtopic.php?f=10&t=36413 Translating external workbenches] (engl.).
 
 
 {{Userdocnavi{{#translation:}}}}
