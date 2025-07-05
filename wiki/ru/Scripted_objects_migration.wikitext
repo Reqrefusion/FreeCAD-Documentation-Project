@@ -1,8 +1,12 @@
 <languages/>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Introduction ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 [[Scripted_objects|Scripted objects]] are rebuilt every time a [[File_Format_FCStd|FCStd document]] is opened. To do this the document keeps a reference to the module and Python class that were used to create the object, along with its properties.
+</div>
 
 {{Code|lang=xml|code=
 <Document SchemaVersion="4" ProgramVersion="0.19R20959 (Git)" FileVersion="1">
@@ -28,7 +32,9 @@
 </Document>
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Particularly focus on this part:
+</div>
 {{Code|lang=xml|code=
                 ...
                 <Property name="Proxy" type="App::PropertyPythonObject" status="1">
@@ -37,15 +43,25 @@ Particularly focus on this part:
                 ...
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 If the value of <code>module=</code> or <code>class=</code> is not found on the installed system, the object will fail to load correctly. This means that once an object is created using a particular class, the module should no longer be moved or renamed because if this is done, previously saved objects will break.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 However, a valid reason for moving or renaming the module or class is to improve the structure and maintainability of the original code, for example, when restructuring an entire workbench. In this case there are various strategies to migrate old objects to using a new class. This is done in order to retain backwards compatibility, when outright breaking of old documents must be avoided.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Old object and new object ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Old object ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 An old object is defined in a module which is at the root of the workbench.
+</div>
 {{Code|code=
 # old_module.py
 class OldObject:
@@ -61,7 +77,9 @@ class OldObject:
         pass
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 An object can be created using this class, and it can be saved to {{FileName|my_document.FCstd}}. If no particular [[viewprovider|viewprovider]] is assigned to the new object, its proxy class is simply set to a value different from {{incode|None}}, in this case, to {{incode|1}}.
+</div>
 {{Code|code=
 import FreeCAD as App
 import old_module
@@ -79,7 +97,9 @@ doc.recompute()
 doc.save()
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 [[Python_console|Python console]] session with the basic properties omitted.
+</div>
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -88,9 +108,13 @@ doc.save()
 <old_module.OldObject object at 0x7efc3c51c390>
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === New object ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Now we consider that the workbench is restructured, so that classes aren't just at the root directory, but instead are inside an {{FileName|objects}} directory. Complex workbenches that have many different types of objects should be structured in directories including objects, [[Viewprovider|viewproviders]], [[Command|Gui Commands]], [[task_panel|task panel]] interfaces, etc.
+</div>
 {{Code|code=
 # objects/new_module.py
 class NewObject:
@@ -108,9 +132,13 @@ class NewObject:
         pass
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 This new class will refer to the same type of object, but both the module name as well as the class name have been renamed. Moreover, the properties also have changed; one property has been renamed, and a completely new property has been added.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 If we create a new object with this new module we will have the following console session.
+</div>
 {{Code|code=
 >>> obj2 = App.ActiveDocument.Custom2
 >>> print(obj2.PropertiesList)
@@ -119,9 +147,13 @@ If we create a new object with this new module we will have the following consol
 <objects.new_module.NewObject object at 0x7efc1cf68c50>
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Method 1. Migration by redirecting the class ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 We will migrate the older object by redirecting the old class. The original class is deleted, and the name of the class is simply redirected to point to the new class.
+</div>
 
 {{Code|code=
 # old_module.py
@@ -130,9 +162,13 @@ import objects.new_module as new_module
 OldObject = new_module.NewObject
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Any document that tries to load {{incode|old_module.OldObject}} will be redirected to load {{incode|objects.new_module.NewObject}} instead.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 If we open the document, and inspect the properties of the object in the [[Python_console|Python console]] we will see that the older properties are conserved, but the object has a new Proxy class.
+</div>
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -141,35 +177,57 @@ If we open the document, and inspect the properties of the object in the [[Pytho
 <objects.new_module.NewObject object at 0x7f099700b2b0>
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 However, in this case we don't see the new properties of the new class. The reason is simply that the older object didn't have these properties. When {{incode|old_module.OldObject}} was redirected to {{incode|objects.new_module.NewObject}}, only the proxy class changed, but previous information was retained.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Now, if the document is saved and opened again, it will automatically look for {{incode|objects.new_module.NewObject}}, and it will not require {{incode|old_module.OldObject}} any more. The {{FileName|old_module.py}} file may be removed permanently from the system as long as all older objects have been migrated to the new module. If the old module is removed but an object hasn't been migrated, the [[report_view|report view]] will show a message like this when opening a document containing such object.
+</div>
 
 {{Code|lang=bash|code=
 <class 'ModuleNotFoundError'>: No module named 'old_module'
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 If it is not realistically possible to migrate all older objects, say, because the old module was used in a workbench for many years, then {{FileName|old_module.py}} must be kept as long as it's deemed necessary to give users the opportunity to migrate their objects.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Advantages and disadvantages ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Advantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_OK.svg|24px]] This is the simplest method that just requires redirecting an old class to a new class.
 * [[File:Edit_OK.svg|24px]] Old properties are conserved as long as the new class doesn't override them.
 * [[File:Edit_OK.svg|24px]] This is good if the old class and the new class have the same properties (handle the same type of data) but only their module or class name is different.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Disadvantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_Cancel.svg|24px]] The new class keeps the old properties of the object, which is not always desired.
 * [[File:Edit_Cancel.svg|24px]] New properties or renamed properties aren't handled, so the object will load but it may not show the correct behavior of the new class.
 * [[File:Edit_Cancel.svg|24px]] The old module may have to be kept indefinitely to migrate all old objects created in the past.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Method 2. Migration when restoring the document ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 We will migrate the older object by modifying the old class. The majority of the original class is deleted, and instead the {{incode|onDocumentRestored}} method is implemented. When this method exists, it will run when the document tries to restore an object that uses the class, so this is the opportunity that we have to assign a new class, manipulate the information, or print messages.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 In this case, we assume that we have also defined a new [[viewprovider|viewprovider]] in the module {{FileName|viewp/new_view.py}}. If we don't want to migrate this class, we may omit everything after the {{incode|App.GuiUp}} check.
+</div>
 {{Code|code=
 # old_module.py
 import FreeCAD as App
@@ -187,7 +245,9 @@ class OldObject:
             _wrn("New viewprovider class used\n")
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 A more complex example checks first that the proxy class is of the type that we are looking for, and only proceeds with the migration if it's the right type.
+</div>
 {{Code|code=
 class OldObject:
     def onDocumentRestored(self, obj):
@@ -207,9 +267,13 @@ class OldObject:
             _wrn("New viewprovider class used\n")
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Assuming that we already changed the old module in this way, if we open a document with an old object, we will see the messages mentioning the use of the new classes.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Inspecting the object from the [[Python_console|Python console]] we will see that the older properties are conserved, and in addition, new properties were added together with the new Proxy class.
+</div>
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -218,29 +282,49 @@ Inspecting the object from the [[Python_console|Python console]] we will see tha
 <objects.new_module.NewObject object at 0x7fecb0ebd7b8>
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The old properties were {{incode|Area}} and {{incode|Length}}; the new properties are {{incode|Divisions}}, {{incode|GeneralArea}}, and {{incode|Length}}. The migrated object retains the original two properties, and gains three new properties. However, since the new {{incode|Length}} has the same name as the older property, the new property is renamed with an incremental number. Presumably this is not what we want. We can improve the situation by following the addendum 2.1 below.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Given that the classes are meant to handle the same type of object, we would like a migration in which {{incode|Area}} transforms into {{incode|GeneralArea}}, and {{incode|Length}} is simply assigned to the new {{incode|Length}}, and there are no duplicate properties.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Advantages and disadvantages ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Advantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_OK.svg|24px]] This method allows us to check that the class that we are migrating is the right class, instead of simply redirecting to a newer class.
 * [[File:Edit_OK.svg|24px]] Similar to method 1, old properties are kept as long as the new class doesn't override them.
 * [[File:Edit_OK.svg|24px]] Unlike method 1, new properties are always added, however if they have the same name, they will be renamed.
 * [[File:Edit_OK.svg|24px]] The migration is not immediate, we can still manipulate the information, or print messages while the object loads.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Disadvantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_Cancel.svg|24px]] It is more verbose than method 1 because we need to implement the {{incode|onDocumentRestored}} method to migrate the object.
 * [[File:Edit_Cancel.svg|24px]] It always adds the new properties, so it may create duplicated properties in case the new properties have the same name as the old properties. This has to be handled manually.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Method 3. Migration when restoring the document, manually handling the properties ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 This is an extension of method 2. In the {{incode|onDocumentRestored}} method we need to save the values of the properties that we want, and then we can remove these original properties. This is done so that when the new class is used, it will assign the new properties without risking name collisions with the older properties.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Like in method 2, if we want we can also add the piece of code that checks that the Proxy class is the right one. In this example once more we assume that we are using a custom [[Viewprovider|viewprovider]], with at least one custom property.
+</div>
 {{Code|code=
 # old_module.py
 import FreeCAD as App
@@ -275,15 +359,21 @@ class OldObject:
             _wrn("New viewprovider class used; view properties migrated\n")
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 We can see that the old values are stored in an auxiliary dictionary, then the old properties are removed, then we add the new class, and finally we assign the previously saved values to the new properties. In this moment we can transform the saved values as necessary for the new class. For example, the {{incode|GeneralArea}} is set to 3 times the old {{incode|Area}}, and the new {{incode|Length}} simply receives the value of the old {{incode|Length}}. As we know how the old and new classes are supposed to behave, we have the liberty of manipulating the data to migrate the object as we want.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 We can only remove properties that were added by [[Python|Python]] classes when we built the [[scripted_objects|scripted object]]. Other attributes belong to the base C++ object and can't be removed.
+</div>
 {{Code|code=
 >>> obj.removeProperty("Visibility")
 False
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Assuming that we already changed the old module in this way, if we open a document with an old object, we will see the messages mentioning the use of the new classes. Inspecting the object from the [[Python_console|Python console]] we see that the older properties are removed, and only the new properties exist.
+</div>
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -292,25 +382,43 @@ Assuming that we already changed the old module in this way, if we open a docume
 <objects.new_module.NewObject object at 0x7efd456c9b00>
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Since in the old class the {{incode|Divisions}} property didn't exist, nothing was done with it. It simply was created by the new {{incode|objects.new_module.NewObject}} class.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Advantages and disadvantages ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Advantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_OK.svg|24px]] Similar to method 2, this method allows us to check that the class that we are migrating is the right class.
 * [[File:Edit_OK.svg|24px]] We have complete control of what to do with the old properties. Typically they will be removed so that there is no name collision with new properties added. Thus we avoid duplicated properties.
 * [[File:Edit_OK.svg|24px]] By saving the older values, we can manipulate the information in the restoring step as we want, and assign the corresponding values to the new properties.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Disadvantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_Cancel.svg|24px]] This method is very verbose compared to the previous ones, because we must implement the {{incode|onDocumentRestored}} method, and handle each of the properties individually (save value, delete property, re-assign value). This is problematic if the object that we want to migrate has many properties, or their values need to be transformed in very special ways.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Addendum A. Creating the properties only if they do not already exist ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 One of the disadvantages of method 2 is that it will always try to add the new properties. If the older properties have the same name as the new properties, they will be duplicated with an incremental number, so {{incode|Length}} will result in {{incode|Length1}}, then {{incode|Length2}}, and so on. This makes method 2 an unrealistic option in most cases, because the new class will only use one property anyway.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 To improve this method, the new class can also be modified to only add the properties if they don't already exist by the same name.
+</div>
 {{Code|code=
 # objects/new_module.py
 class NewObject:
@@ -332,7 +440,9 @@ class NewObject:
         pass
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 In this case, since {{incode|Length}} already exists, it won't be added again; {{incode|GeneralArea}} and {{incode|Divisions}} don't exist, so these will be added. And just like before, {{incode|Area}} will be retained because it is not explicitly removed, although possibly it is no longer used in the new class.
+</div>
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.PropertiesList)
@@ -341,27 +451,49 @@ In this case, since {{incode|Length}} already exists, it won't be added again; {
 <objects.new_module.NewObject object at 0x7f036bd4c6a0>
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The same can be done for the class of the [[viewprovider|viewprovider]].
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 By using this method 2 + A, the result is similar to method 1 in that the object will retain all previous properties, but in addition it will gain the new properties provided by the new class.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Method 3 does not need this addendum to the new class because the older properties are explicitly removed, so there won't be any conflicts when installing the new properties. Nevertheless, it is still a good practice that every class adds its required properties only if these don't already exist. This is helpful both in the case of creating new [[scripted_objects|scripted objects]] or in migrating them.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Advantages and disadvantages ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Advantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_OK.svg|24px]] The object will retain all previous properties, but in addition it will gain new properties without repetition.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Disadvantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_Cancel.svg|24px]] Like method 2, it still doesn't deal with renamed properties. The old properties should be manually removed.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Addendum B. Migrating different versions of the old object ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Method 3 is the most complex method because the properties are handled individually. However, in this method we also have full flexibility in how we manipulate the data, and this is an advantage if we want to do complex operations.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 If from the beginning we create a property that holds the version number of our object, we can use this number in the future to perform specific migration from that version to any other. We set the property to be read-only, so that we cannot overwrite it in the [[property_editor|property editor]], although it is still accessible from the [[Python_console|Python console]].
+</div>
 {{Code|code=
 # old_module.py
 class OldObject:
@@ -380,7 +512,9 @@ class OldObject:
         pass
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Then, when we want to migrate the object, we implement the {{incode|onDocumentRestored}} method, and test for this version.
+</div>
 {{Code|code=
 # old_module.py
 import FreeCAD as App
@@ -414,22 +548,38 @@ def _migrate_from_019(obj):
     ...
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 We don't save the {{incode|Version}} value as we will set a new {{incode|Version}} number when doing the migration. As shown in the example, we can implement various functions for each corresponding version of the object that we intend to migrate. We omit the migration of the [[viewprovider|viewprovider]] properties but it follows the same pattern.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Advantages and disadvantages ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Advantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_OK.svg|24px]] We have complete control of what to do with the old properties, and how to perform the migration.
 * [[File:Edit_OK.svg|24px]] We can implement a particular method to migrate a particular version of the old object.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Disadvantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_Cancel.svg|24px]] This method is very verbose because we must have a clear idea on how to handle each of the properties of each "version" that we want to migrate. If our object has many different versions created over the years, we may have to prepare a long list of methods to migrate them to the newest object.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Addendum B2. Using internal class attributes instead of properties ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Instead of using a [[property|property]] of the object to hold the version information, we can use an attribute of the class. In this way we "hide" the version information, because properties are normally public, and visible in the [[property_editor|property editor]], while class attributes can only be manipulated from the [[Python_console|Python console]]. Class attributes can be saved and restored as explained in [[Scripted_objects_saving_attributes|Scripted objects saving attributes]].
+</div>
 {{Code|code=
 # old_module.py
 class OldObject:
@@ -447,14 +597,18 @@ class OldObject:
         pass
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 This attribute is inspected by looking at the {{incode|Proxy}} attribute.
+</div>
 {{Code|code=
 >>> obj = App.ActiveDocument.Custom
 >>> print(obj.Proxy.ver)
 0.18
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Then the file is modified to migrate the object.
+</div>
 {{Code|code=
 # old_module.py
 import FreeCAD as App
@@ -481,11 +635,17 @@ def _migrate_from_018(obj):
     _wrn("New proxy class used; properties migrated\n")
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 When we install the new class, this new class should set the new value of the version attribute, for example, <code>self.ver = "0.20"</code>.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Addendum C. Method 3 without removing old properties that are named the same ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Like in Addendum A, we can write the new class to create properties only if they aren't already present. Using method 3, we save the values of the older properties, and subsequently delete the older properties. However, if the new properties are named the same as the older ones, we don't need to delete the older ones, we can just reuse the same property, as we know the property won't be duplicated. If we are using Addendum B, we have a way to query the version as well.
+</div>
 
 {{Code|code=
 # old_module.py
@@ -511,37 +671,61 @@ def _migrate_from_018(obj):
     _wrn("New proxy class used; properties migrated\n")
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 As we see in the example, the old {{incode|Area}} property is deleted and migrated to the new {{incode|GeneralArea}} property as usual. We do not need to delete {{incode|Length}} nor {{incode|Version}} because in the new class they are still used with the same name, and they won't be created again (addendum A). As we don't want to modify {{incode|Length}}, this property is not touched at all; it is migrated to the new class silently. However, we do update {{incode|Version}} to the new value. We omit the migration of the [[viewprovider|viewprovider]] properties but it follows the same pattern.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 This should work like method 3, meaning that the old properties are removed and only the new properties remain in the new object. The only difference is that we omit removing and recreating the properties that are named the same. This process should work as long as the old [[property|property]] and the new [[property|property]] have the same type (for example, {{incode|App::PropertyLength}} or {{incode|App::PropertyArea}}), so the old property can pass its value directly. However, if the new property has a different type than the old property, then the old property should be removed, otherwise the old property will completely overwrite the new property, which is probably not what we want because the new class will be expecting the new type and not the old type.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Advantages and disadvantages ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Advantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_OK.svg|24px]] Like method 3, this method allows us complete control of the migration of the old information.
 * [[File:Edit_OK.svg|24px]] We avoid writing code that removes and recreates properties that are named the same.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 '''Disadvantages'''
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[File:Edit_Cancel.svg|24px]] Like method 3, this method is still very verbose because we have to handle the properties carefully.
 * [[File:Edit_Cancel.svg|24px]] If a new [[property|property]] and an old [[property|property]] share the same name, the new property will be overwritten, which may be undesired behavior, especially if the two properties have different types. In this case, removing the old property, and migrating its value manually is still necessary.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Summary ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Each of the methods has a recommended use:
 * Method 1. The module is moved or renamed but the properties are the same. Simple redirection of classes because the properties don't need to be modified at all.
 * Method 2+A. Simple migration scenarios. Display a message when the object is migrated from one class to another. The properties are of the same type and don't need to be modified at all.
 * Method 3, 3+A, or 3+B. Complex migration scenarios. Full control of the properties, deleting the old properties, and adding new properties. An identifier to know the version of the object is useful to choose the right function to perform the migration (Addendum B or B2).
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Preferably avoid the following:
 * Method 2. The properties will be duplicated if the new class doesn't check for existing properties (Addendum A).
 * Method 3+C. Use only when the old properties and the new properties are of the same type. Otherwise use method 3 or 3+B to remove older properties, and handle them exactly as needed.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Links ==
+</div>
 
-* [https://forum.freecadweb.org/viewtopic.php?t=42948 Migrating and upgrading old scripted objects]
-* [https://forum.freecadweb.org/viewtopic.php?f=18&t=46218 Migrate old scripted objects]
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [https://forum.freecad.org/viewtopic.php?t=42948 Migrating and upgrading old scripted objects]
+* [https://forum.freecad.org/viewtopic.php?f=18&t=46218 Migrate old scripted objects]
+</div>
 
 {{Powerdocnavi{{#translation:}}}}
 [[Category:Developer Documentation{{#translation:}}]]
