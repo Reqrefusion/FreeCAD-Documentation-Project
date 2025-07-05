@@ -1,0 +1,178 @@
+<languages/>
+{{TOCright}}
+
+<span id="Overview"></span>
+==Visão geral==
+
+O formato de arquivo '''FreeCAD Standard''' ({{FileName|.FCStd}}) é o principal formato de arquivo do FreeCAD. É um formato composto, que suporta a compactação e a incorporação de diferentes tipos de dados.
+
+<span id="Internals_of_.FCStd_files"></span>
+== Parte interna dos arquivos .FCStd ==
+
+FCStd é um [[#Estrutura típica|arquivo zip padrão que contém um ou mais a quivos em uma estrutura específica]].  Dessa forma, é possível descompactar um arquivo {{FileName|.FCStd}} usando uma ferramenta de descompactação zip comum, mas é preciso ter cuidado ao compactar o conteúdo de um arquivo {{FileName|.FCStd}}.  O FreeCAD contém um "Utilitário de Projeto" para reempacotar arquivos {{FileName|.FCStd}}; seu uso é descrito em [[#Alterar a origem do arquivo .FCStd|Alterar a origem do arquivo .FCStd]] abaixo.
+
+===Document.xml===
+
+Este é o arquivo principal {{FileName|.xml}} que descreve todos os objetos em um documento do FreeCAD, ou seja, apenas a definição geométrica e paramétrica dos objetos, não sua representação visual. Se o FreeCAD for executado no modo console (sem a GUI), apenas esse {{FileName|Document.xml}} será usado.
+
+<span id="Example_Document.xml"></span>
+==== Exemplo de Documento.xml====
+
+{{Code|lang=xml|code=
+ <?xml version='1.0' encoding='utf-8'?>
+ <!--
+ FreeCAD Document, see http://free-cad.sourceforge.net for more informations...
+ -->
+ <Document SchemaVersion="4">
+    <Properties Count="9">
+       <Property name="Comment" type="App::PropertyString">
+          <String value=""/>
+       </Property>
+       <Property name="Company" type="App::PropertyString">
+          <String value=""/>
+       </Property>
+       <Property name="CreatedBy" type="App::PropertyString">
+          <String value=""/>
+       </Property>
+       <Property name="CreationDate" type="App::PropertyString">
+          <String value="Fri Jan 29 15:14:38 2010 "/>
+       </Property>
+       <Property name="FileName" type="App::PropertyString">
+          <String value="/tmp/test.FCStd"/>
+       </Property>
+       <Property name="Id" type="App::PropertyString">
+          <String value="201b746f-a1ed-4297-bf3d-65d5ec11abe0"/>
+       </Property>
+       <Property name="Label" type="App::PropertyString">
+          <String value="names"/>
+       </Property>
+       <Property name="LastModifiedBy" type="App::PropertyString">
+          <String value=""/>
+       </Property>
+       <Property name="LastModifiedDate" type="App::PropertyString">
+          <String value="Fri Jan 29 15:15:21 2010 "/>
+       </Property>
+    </Properties>
+    <Objects Count="2">
+       <Object type="Mesh::Cube" name="Cube" />
+       <Object type="Part::Box" name="Box" />
+    </Objects>
+    <ObjectData Count="2">
+       <Object name="Cube">
+          <Properties Count="7">
+             <Property name="Height" type="App::PropertyFloatConstraint">
+                <Float value="10"/>
+             </Property>
+             <Property name="Label" type="App::PropertyString">
+                <String value="Cube"/>
+             </Property>
+             <Property name="Length" type="App::PropertyFloatConstraint">
+                <Float value="10"/>
+             </Property>
+             <Property name="Mesh" type="Mesh::PropertyMeshKernel">
+                <Mesh file="MeshKernel.bms"/>
+             </Property>
+             <Property name="Placement" type="App::PropertyPlacement">
+                <PropertyPlacement Px="0" Py="0" Pz="0" Q0="0" Q1="0" Q2="0" Q3="1"/>
+             </Property>
+             <Property name="Pos" type="App::PropertyPlacementLink">
+                <Link value=""/>
+             </Property>
+             <Property name="Width" type="App::PropertyFloatConstraint">
+                <Float value="10"/>
+             </Property>
+          </Properties>
+       </Object>
+       <Object name="Box">
+          <Properties Count="7">
+             <Property name="Height" type="App::PropertyLength">
+                <Float value="10"/>
+             </Property>
+             <Property name="Label" type="App::PropertyString">
+                <String value="Box2"/>
+             </Property>
+             <Property name="Length" type="App::PropertyLength">
+                <Float value="10"/>
+             </Property>
+             <Property name="Placement" type="App::PropertyPlacement">
+                <PropertyPlacement Px="0" Py="0" Pz="0" Q0="0" Q1="0" Q2="0" Q3="1"/>
+             </Property>
+             <Property name="Pos" type="App::PropertyPlacementLink">
+                <Link value=""/>
+             </Property>
+             <Property name="Shape" type="Part::PropertyPartShape">
+                <Part file="PartShape.brp2"/>
+             </Property>
+             <Property name="Width" type="App::PropertyLength">
+                <Float value="10"/>
+             </Property>
+          </Properties>
+       </Object>
+    </ObjectData>
+ </Document>
+}}
+
+===GuiDocument.xml===
+
+Essa é a contraparte da GUI (Interface gráfica do usuário) do arquivo {{FileName|Document.xml}}. Para cada objeto descrito em {{FileName|Document.xml}}, há um objeto correspondente em {{FileName|GuiDocument.xml}}, que descreve a representação visual desse objeto (cor, largura da linha etc.).
+
+===Thumbnails/thumbnail.png===
+
+Esta é uma imagem em miniatura de 128x128 pixels do documento, que é uma captura de tela da visualização 3D no momento do salvamento. As miniaturas são geradas somente se a opção correspondente estiver ativada nas preferências do FreeCAD.
+
+===*.brep===
+
+Essas são as formas [[wikipedia:Boundary representation|B-rep]] de todos os objetos que têm uma forma de peça no {{FileName|Document.xml}}. Cada objeto, mesmo que seja paramétrico, tem sua forma armazenada como um arquivo {{FileName|.brep}} individual, de modo que possa ser acessado por componentes sem a necessidade de recalcular a forma.
+
+===*.svg===
+
+Esses são os arquivos svg de modelo usados nas páginas do [[TechDraw_Workbench/pt-br|TechDraw]].
+
+<span id="Typical_structure"></span>
+===Estrutura típica===
+
+Estrutura de um arquivo {{FileName|.FCStd}} típico. A extensão pode ser alterada para {{FileName|.zip}} para explorá-lo como um diretório normal. Os arquivos {{FileName|Document.xml}} e {{FileName|GuiDocument.xml}} estão na raiz do arquivo, juntamente com qualquer número de arquivos {{FileName|.brp}} (BREP). Um subdiretório pode conter a miniatura e outro os modelos SVG usados pelo [[TechDraw_Workbench/pt-br|TechDraw]].
+
+<!--DO NOT remove the <pre> </pre> tags. These are used to display the text exactly like this.-->
+<pre>
+File.FCStd (File.zip)
+  |
+  |--thumbnails/
+  |  |
+  |  :--Thumbnail.png
+  |
+  :--Document.xml
+  :--GuiDocument.xml
+  :--Shape1.brp
+  :--Shape2.brp
+  :--MyPage.svg
+  :--etc.
+</pre>
+
+<span id="Embedding_other_files"></span>
+== Incorporação de outros arquivos ==
+
+Para incorporar outros tipos de arquivo em um arquivo FCStd, primeiro crie um [[Scripted_objects/pt-br|Objetos com Script]] no [[Python_console/pt-br|console Python]] e dê a ele uma propriedade {{incode|App::PropertyFileIncluded}}.
+
+Em seguida, no [[Property_editor/pt-br|editor de propriedades]], você pode ir até a propriedade adicionada e escolher um arquivo no computador. Depois que o arquivo FCStd for salvo, o arquivo atribuído à propriedade {{PropertyData|PropertyFileIncluded}} será compactado dentro do {{incode|.FCStd}}. Quando o documento for restaurado, o mesmo arquivo será restaurado com a propriedade {{PropertyData|PropertyFileIncluded}}.
+
+{{Code|code=
+custom_obj = App.ActiveDocument.addObject("App::FeaturePython", "CustomObject")
+custom_obj.addProperty("App::PropertyFileIncluded", "AttachedFile")
+}}
+
+<div class="mw-translate-fuzzy">
+Consulte o tópico do fórum, [https://forum.freecadweb.org/viewtopic.php?t=38201 PDF inside the project].
+</div>
+
+<span id="Change_the_source_of_the_file_.FCStd"></span>
+==Alterar a origem do arquivo .FCStd==
+
+* Consulte [[Std_ProjectUtil/pt-br|Std ProjectUtil]].
+
+
+{{Userdocnavi{{#translation:}}}}
+[[Category:Developer{{#translation:}}]]
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:File_Formats{{#translation:}}]]
+{{clear}}
