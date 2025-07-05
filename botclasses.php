@@ -2,14 +2,14 @@
 /**
  * botclasses.php - Bot classes for interacting with mediawiki.
  *
- *  (c) 2008-2012 Chris G - http://en.wikipedia.org/wiki/User:Chris_G
- *  (c) 2009-2010 Fale - http://en.wikipedia.org/wiki/User:Fale
- *  (c) 2010      Kaldari - http://en.wikipedia.org/wiki/User:Kaldari
- *  (c) 2011      Gutza - http://en.wikipedia.org/wiki/User:Gutza
- *  (c) 2012      Sean - http://en.wikipedia.org/wiki/User:SColombo
- *  (c) 2012      Brian - http://en.wikipedia.org/wiki/User:Brian_McNeil
- *  (c) 2012-2018 Pavel Malahov - http://en.wikipedia.org/wiki/User:24pm
- *  (c) 2020-2025 Bill - http://en.wikipedia.org/wiki/User:wbm1058
+ *  (c) 2008-2012 Chris G - https://en.wikipedia.org/wiki/User:Chris_G
+ *  (c) 2009-2010 Fale - https://en.wikipedia.org/wiki/User:Fale
+ *  (c) 2010      Kaldari - https://en.wikipedia.org/wiki/User:Kaldari
+ *  (c) 2011      Gutza - https://en.wikipedia.org/wiki/User:Gutza
+ *  (c) 2012      Sean - https://en.wikipedia.org/wiki/User:SColombo
+ *  (c) 2012      Brian - https://en.wikipedia.org/wiki/User:Brian_McNeil
+ *  (c) 2012-2018 Pavel Malahov - https://en.wikipedia.org/wiki/User:24pm
+ *  (c) 2020-2025 Bill - https://en.wikipedia.org/wiki/User:wbm1058
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -571,7 +571,7 @@ class wikipedia {
 
     /**
      * Check if we're allowed to edit $page.
-     * See http://en.wikipedia.org/wiki/Template:Bots
+     * See https://en.wikipedia.org/wiki/Template:Bots
      * for more info.
      * @param $page MediaWikiPage The page we want to edit.
      * @param $user string The bot's username.
