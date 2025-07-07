@@ -1,5 +1,6 @@
 <languages/>
 
+<div class="mw-translate-fuzzy">
 {{TutorialInfo/it
 |Topic= Analisi di struttura in cemento armato con FEM
 |Level= Intermedio
@@ -8,6 +9,7 @@
 |FCVersion= 0.19 o superiore
 |Files=
 }}
+</div>
 
 <span id="Background"></span>
 == Introduzione ==
@@ -16,7 +18,9 @@ L'[[FEM_Workbench/it|Ambiente FEM]] è in grado di stimare il livello di rinforz
 
 [[Image:Femconcrete_Wall_3D_rx_PSS.png|700px]]
 
+<div class="mw-translate-fuzzy">
 Questo è ottenuto con il metodo descritto in [http://heronjournal.nl/53-4/3.pdf "Computation of reinforcement for solid concrete", P.C.J. Hoogenboom and A. de Boer, HERON Vol. 53 (2008) No. 4]. In sostanza, si tratta di una routine di post-elaborazione per CalculiX, che calcola le principali sollecitazioni di trazione nel cemento da un'analisi elastica e le utilizza per determinare il minimo rinforzo nelle tre direzioni coordinate necessarie per evitare fratture. Nell'analisi, si presume che il materiale di cemento non possa portare tensioni di trazione, mentre l'acciaio viene utilizzato alla sua capacità massima (cioè massima resa).
+</div>
 
 Il rinforzo richiesto è espresso in termini di un coefficiente di rinforzo. Questo è il rapporto tra acciaio e superficie di cemento. Ad esempio, un coefficiente di rinforzo di 0,01 nella direzione x (rx=0.01) significa che l'area totale trasversale delle barre di rinforzo in esecuzione nella direzione x dovrebbe essere l'1% dell'area trasversale di cemento che stanno attraversando. Un'ipotetica sezione trasversale di 1mx1m dovrebbe contenere in tal caso l'acciaio di 0,01 m2, che potrebbe essere raggiunto utilizzando 90 barre di rinforzo di 12mm di diametro ciascuna (area dell'acciaio = 90*PI*(0.012)2/4=0.0102 m^2). Se il coefficiente di rinforzo richiesto su questa sezione trasversale di cemento è uniforme allora le barre potrebbero essere posizionate in una griglia equidistanza 9x10 con una distanza centro-centro di circa 10cm. Questo è comunque un valore pratico per cui viene lasciato spazio sufficiente di passaggio tra le barre e il cemento e garantire una copertura di alta qualità. I valori molto più elevati porterebbero ad una griglia di rinforzo molto densa con potenziali problemi di qualità, mentre i valori molto più bassi potrebbero portare a grandi crepe di tensione nella sezione trasversale tra le barre. Un range tipico della pratica è da 0.002 a 0,02 (= 0.2% a 2%). Ulteriori indicazioni possono essere trovate nei manuali di progettazione.
 
@@ -32,164 +36,284 @@ Anche se la procedura FEM per il cemento armato non chiede requisiti aggiuntivi 
 <span id="Material_Parameters"></span>
 == Parametri del materiale ==
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 FEM Workbench has a special material object for reinforced materials, which combines a matrix material (e.g. concrete) and a reinforcement material (e.g. steel). For the analysis of reinforced concrete with FEM, the following parameters need to be specified, as a minimum:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 for concrete:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * Young’s modulus (used in the CalculiX analysis to calculate elastic deformations and stresses)
 * Poisson ratio (same)
 * uniaxial compressive strength (used during post-processing in FEM to calculate the Mohr-Coulomb stress as an indicator for crushing or shear failure in concrete)
 * friction angle (same)
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 for steel:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * yield strength (used during post-processing in FEM to calculate reinforcement ratios)
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Please note that three types of analysis are performed:
 # An elastic analysis using CalculiX (only utilizing the elastic parameters for concrete)
 # A post-processing step to analyze the required reinforcement (only utilizing the yield strength of steel)
 # Calculation of the Mohr-Coulomb stress (only using the strength parameters of concrete, i.e. uniaxial compressive strength and friction angle). The Mohr-Coulomb stress can be reviewed in the VTK pipeline.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Application ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 In the remainder of this article, a few practical cases will be analyzed to discuss the application of the method.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Simply supported beam with uniform load ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 A 4.0x0.1x0.3m concrete beam is loaded by self-weight and a 100kN (25kN/m) distributed load.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The material parameters are as follows:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 for concrete:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * Young’s modulus = 32 GPa (as per CalculiX default for concrete)
 * Poisson ratio = 0.17 (as per CalculiX default for concrete)
 * uniaxial compressive strength = 30 MPa (concrete type C30/37)
 * friction angle = 30 degrees
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 for steel:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * yield strength = 500 MPa
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The specific weight of the concrete is taken as 24kN/m^3
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The required reinforcement in the x direction is very high (5.4%) and exceeds the typical maximum percentages allowed by code to prevent brittle failure. The high shear stresses at the supports also lead to a requirement of high reinforcement:
+</div>
 
 [[Image:Pre_Stressed_Beam_2_Weight_Load_RR_x_0.054.jpg|700px]]
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The Mohr-Coulomb plot shows that the beam is indeed prone to crushing on the compression side (Mohr-Coulomb stress > 0.0), as would be expected with a very high reinforcement percentage:
+</div>
 
 [[Image:Pre_Stressed_Beam_2_Weight_Load_MC.jpg|700px]]
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Both the reinforcement ratio and Mohr-Coulomb stress indicate that we have an issue and that we need to rethink our conceptual design. Potential solutions are to increase the beam dimensions or use pre-stressed concrete. Further details can be found in the following post:
+</div>
 
-https://forum.freecadweb.org/viewtopic.php?f=18&t=28821&start=10#p235003
+https://forum.freecad.org/viewtopic.php?f=18&t=28821&start=10#p235003
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Beam with mid-span support ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 A 8.0x0.2x0.4m concrete beam is loaded by self-weight and a 160kN (20kN/m) distributed load.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The material parameters are as follows:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 for concrete:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * Young’s modulus = 32 GPa (as per CalculiX default for concrete)
 * Poisson ratio = 0.17 (as per CalculiX default for concrete)
 * uniaxial compressive strength = 25 MPa (concrete type B25)
 * friction angle = 30 degrees
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 for steel:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * yield strength = 286 MPa (reduced from 500 MPa to account for a safety factor of 1.75)
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The specific weight of the concrete is taken as 24 kN/m^3
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The ParaView plot of the exported VTK file shows that the reinforcement requirement is largest at the top of the beam near the central support. Here the highest bending moment occurs. The maximum reinforcement ratio of 0.02 is at the high end of the practical range quoted earlier:
+</div>
 
 [[Image:Beam_with_Central_Support_rx_full.png|700px]]
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The required area of steel at the central support can be obtained with a ParaView integration filter applied to the mid-section of the beam:
+</div>
 
 [[Image:CoG_Reinforcement.png|700px]]
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The panel at the bottom of this picture shows that the total required steel area at this cross section is 389.6 mm^2. As one reinforcement bar of diameter 12mm has a cross-sectional area of 113mm^2, it means that 4 bars would be required, giving a cross-sectional area of 452  mm^2. These would need to be placed near the top of the beam while maintaining sufficient concrete cover. The theoretical center of gravity for the reinforcement can be found by integration:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 CoG_y = Integrate (rx * y dy dz) / Integrate (rx dy dz)
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 CoG_z = Integrate (rx * z dy dz) / Integrate (rx dy dz)
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 These integrals can also be determined with ParaView and give for the present case (see bottom panels in the above picture):
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 CoG_y = 38961 / 389.6 = 100.0 mm
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 CoG_z = 134917 / 389.6 = 346.3 mm
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 which is, as expected, center-width and near the top.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The reinforcement requirement found above agrees well with that obtained using traditional methods:
+</div>
 
-https://forum.freecadweb.org/viewtopic.php?f=18&t=28821&start=20#p235063
+https://forum.freecad.org/viewtopic.php?f=18&t=28821&start=20#p235063
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Finally, a Mohr-Coulomb stress check should be performed to check the potential crushing of the concrete. For this check, the characteristic compressive strength of concrete (25MPa) should be divided by an appropriate material factor (>1.0).
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Shear wall with uniform load ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 A 4.0x2.0x0.15m wall is supported by two 0.5m wide columns. The wall is loaded by self-weight and a 1.0MN distributed load at the top.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The material parameters are as follows:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 for concrete:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * Young’s modulus = 32 GPa (as per CalculiX default for concrete)
 * Poisson ratio = 0.17 (as per CalculiX default for concrete)
 * uniaxial compressive strength = 20 MPa
 * friction angle = 30 degrees
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 for steel:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * yield strength = 286 MPa
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The specific weight of the concrete is taken as 24 kN/m^3
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The horizontal reinforcement ratio peaks at 0.014 (1.4%) near the bottom center section of the wall and the vertical reinforcement ratio is at a maximum 0.008 (0.8%) near the corners of the wall with the columns, where the shear stresses are highest:
+</div>
 
 [[Image:Wall_3D.jpg|1000px]]
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The above picture shows possible zones of constant reinforcement ratio for the design of reinforcement. Although a minimum reinforcement percentage of 0.2% is chosen, it will be hard to achieve such a low value in practice, given that the spacing should not exceed a practical limit (say 300mm). Even with a light reinforcement grid of 10mm bars (cross-sectional area = 78mm^2), the reinforcement ratio would then be 2 * 78 / (150 * 300) = 0.0035 (0.35%). (Note: factor 2 stems from the fact that the grid will be placed at both faces of the wall). If we add one more bar to the grid (halving the distance) the reinforcement ratio would double to 0.7% and one more would give approximately 1%. So most of the reinforcement requirement could be achieved by starting with a grid of d=10mm at 300x300mm spacing and adding bars in horizontal or vertical direction, as required. This would cover all but the requirement at the bottom of the wall, where we could add 3 bars d=12mm, giving a horizontal reinforcement ratio of 3 * 113mm^2 / (150mm * 150mm) = 0.015 (1.5%). Here it is assumed that the height of the bottom zone is 150mm. Alternatively, we could choose 2 bars of 16mm diameter, achieving the same reinforcement ratio for a zone of 180mm height.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Finally, a review of the Mohr-Coulomb stress shows that no concrete crushing is expected in the wall.
+</div>
 
-https://forum.freecadweb.org/viewtopic.php?f=18&t=28821&start=10#p234673
+https://forum.freecad.org/viewtopic.php?f=18&t=28821&start=10#p234673
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Deep beam with opening ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The FIB Practitioners' Guide to Finite Element Modelling of Reinforced Concrete Structures contains a design example of a deep concrete beam with an opening. The example is used in that report to demonstrate the "Strut-and-Tie" method. Here the results will be compared to those obtained with the FreeCAD FEM Workbench.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The beam dimensions are 11.0x4.0x0.6m and it is loaded at the top by a distributed load of 120kN/m and a load of 5000kN introduced by a 1m wide column. The factored compressive strength of the concrete is 0.75 x 0.6 x fc = 0.45 * 35 = 15.8MPa and the factored yield strength of the reinforcement steel is 315MPa.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The reinforcement ratios and principal concrete stresses (compression only) derived with FreeCAD are shown below:
+</div>
 
 [[Image:FIB Deep Concrete Beam 1.png|1000px]]
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The required horizontal reinforcement (below in red) is determined by integration of the horizontal reinforcement ratio over the vertical cuts of interest (below in black). This is done using a Paraview integration filter.
+</div>
 
 [[Image:FIB Reinforcement(2).jpg|700px]]
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The insert to the above figure shows a comparison of reinforcement requirements (in mm^2 of steel) determined with FreeCAD to those in the FIB report.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The following shows how the integration over lines of interest works in Paraview:
+</div>
 
 [[Image:FIB Reinforcement ry.jpg|700px]]
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Finally, a plot of compressive and tensile principal stresses to demonstrate how stresses flow through the beam.
+</div>
 
 [[Image:FIB Beam Stresses and Cables.jpg|700px]]
 
-The tensile stress pattern suggests an alternative design concept using pre-stressing cables (superimposed in white). This concept is further elaborated in the following post: https://forum.freecadweb.org/viewtopic.php?f=18&t=33049
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The tensile stress pattern suggests an alternative design concept using pre-stressing cables (superimposed in white). This concept is further elaborated in the following post: https://forum.freecad.org/viewtopic.php?f=18&t=33049
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 ==Related==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * [[FEM_Concrete|FEM Concrete]]
+</div>
 
 
 {{FEM Tools navi{{#translation:}}}}
