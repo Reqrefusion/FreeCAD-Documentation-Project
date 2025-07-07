@@ -22,7 +22,9 @@
 Per un'analisi degli elementi finiti, la geometria deve essere discretizzata in [[FEM_Mesh/it|Mesh FEM]]. Questo comando utilizza gmsh (che deve essere installato sul sistema) per il calcolo della mesh.
 </div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Depending on your operating system and your installation package, Gmsh might be bundled with FreeCAD or not. For further information see [[FEM_Install#FEM_mesh_generator|FEM Install]].
+</div>
 
 <span id="Usage"></span>
 ==Utilizzo== 
@@ -35,12 +37,19 @@ Depending on your operating system and your installation package, Gmsh might be 
 # Chiudere l'attività. Ora nel contenitore delle analisi attivo si dovrebbe vedere un nuovo oggetto FEMMeshGMSH.
 </div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 After the mesh has been created, you can change its properties using the [[Property_editor|property editor]]. After you change a property, you must reopen the Gmsh dialog again and click the {{Button|Apply}} button (you can leave the dialog open while changing properties).
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The {{Button|Gmsh version}} button allows you to check the details about the currently linked Gmsh binary.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Properties ==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * {{PropertyData|Algorithm2D}}: The algorithm to create 2D meshes. The different algorithms are [https://gmsh.info/doc/texinfo/gmsh.html#Choosing-the-right-unstructured-algorithm explained here]. For Delaunay, see [https://en.wikipedia.org/wiki/Delaunay_triangulation Delaunay triangulation].
 * {{PropertyData|Algorithm3D}}: The algorithm to create 3D meshes. The different algorithms are [https://gmsh.info/doc/texinfo/gmsh.html#Choosing-the-right-unstructured-algorithm explained here].
 * {{PropertyData|Characteristic Length Max}}: The maximal size of the mesh elements. If set to ''0.0'', the size will be set automatically. This property can also be changed in the Gmsh dialog in the field '''Max element size'''.
@@ -75,44 +84,73 @@ The {{Button|Gmsh version}} button allows you to check the details about the cur
 ** All Quadrangles; creates quadrilateral elements by subdivision
 ** All Hexahedra; creates hexahedral elements by subdivision
 ** Barycentric; creates triangular elements by barycentric subdivision
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 ==Notes==
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 === Nonpositive Jacobians ===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 When you get a meshing error about nonpositive Jacobians, you can try out the following strategies:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * Set {{PropertyData|Second Order Linear}} to ''true'' but keep {{PropertyData|Element Order}} at ''2nd''.
 * Set {{PropertyData|Element Order}} to ''1st''.
 * Use a smaller element size by reducing the {{PropertyData|Characteristic Length Max}}.
 * If solver ccxtools is used and the run button is used (not the task panel) the nodes of nonpositive jacobian elements will be green.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 ===Mesh Growth===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 At edges and small geometric entities, the mesh has to be smaller than in areas without edges. So the mesh element size grows away from the edges. The growing strategy of Gmsh is to grow between edges of different sizes. So the growing fails when an area has the same sized edges like for example this tube:
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 [[Image:FEM_Gmsh-MeshGrowth-failing.png|400px]]
 {{Caption|Failing mesh growing because the cylindrical area is surrounded by the same edges}}
+</div>
 
-To enable a sensible mesh growing, you must in this case add an edge to the area. In the example, this would be a circle in the middle of the cylinder. The circle is added as part of a [[Part_BooleanFragments|BooleanFragments]] compound (to form a CompSolid), see [https://forum.freecadweb.org/download/file.php?id=146255 the project file] of the example.
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To enable a sensible mesh growing, you must in this case add an edge to the area. In the example, this would be a circle in the middle of the cylinder. The circle is added as part of a [[Part_BooleanFragments|BooleanFragments]] compound (to form a CompSolid), see [https://forum.freecad.org/download/file.php?id=146255 the project file] of the example.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 [[Image:FEM_Gmsh-MeshGrowth-success.png|400px]]
 {{Caption|Sensible mesh growing due to the additional edge in the middle of the cylindrical area}}
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 ===Element Recombination===
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Elements can be recombined in two ways, on the surface of objects so that triangles will be recombined into quadrangles if possible and in the volume of objects so that tetrahedra will be recombined into prisms, hexahedra or pyramids if possible. Thinking about the geometry, it becomes clear that the recombination result depends strongly on the geometry of the body and that recombining a 3D body only at the surface will mostly lead to strange results.
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 To illustrate this, look at the image below. A cuboid body is meshed using the standard settings (tetrahedra, 2nd order mesh). This is the subimage at the upper left. The image at the upper right shows the result, when additionally the elements are recombined only at the surface of the body. The result is bad because the changed surface elements don't fit to the unchanged volume elements. So {{PropertyData|Recombine All}} alone usually only makes sense for 2D meshes. </br>When we use now also {{PropertyData|Recombine 3D All}}, the result is better, see the lower left subimage. However, the result doesn't show a great difference compared to the mesh without recombinations. Since our body is a cuboid, it is therefore sensible to use a recombination algorithm that tries to create cuboids as well. And this result is shown in the subimage at the lower right.
+</div>
 
-The ''Simple'' recombination algorithm will leave some triangles in the mesh in case the recombining leads to badly shaped quads. In such cases use a ''full-quad'' recombination algorithm, which will automatically perform a coarser mesh followed by the recombination, smoothing and subdividing. See [https://forum.freecadweb.org/viewtopic.php?f=18&t=20351#p520392 forum topic]
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The ''Simple'' recombination algorithm will leave some triangles in the mesh in case the recombining leads to badly shaped quads. In such cases use a ''full-quad'' recombination algorithm, which will automatically perform a coarser mesh followed by the recombination, smoothing and subdividing. See [https://forum.freecad.org/viewtopic.php?f=18&t=20351#p520392 forum topic]
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 [[Image:FEM_Gmsh-Recombination.png|600px]]
 {{Caption|Effect of mesh element recombination.<br>
 Upper left: standard mesh.<br>
 Upper right: recombination only at the surface using the '''Simple''' algorithm.<br>
 Lower left: recombination at the surface and in the volume using the '''Simple''' algorithm.<br>
 Lower right: recombination at the surface and in the volume using the '''Simple full-quad''' algorithm}}
+</div>
 
 
 <div class="mw-translate-fuzzy">
