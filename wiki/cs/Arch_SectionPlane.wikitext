@@ -2,10 +2,10 @@
 
 {{Docnav
 |[[Arch_Grid|Grid]]
-|[[BIM_TDPage|TDPage]]
+|[[BIM_DrawingView|DrawingView]]
 |[[BIM_Workbench|BIM]]
 |IconL=Arch_Grid.svg
-|IconR=BIM_TDPage.svg
+|IconR=BIM_DrawingView.svg
 |IconC=Workbench_BIM.svg
 }}
 
@@ -22,6 +22,8 @@ This page has been updated for that version.}}
 <div class="mw-translate-fuzzy">
 Tento nástroj umístí do aktuálního dokumentu pomůcku Rovina řezu, která definuje rovinu řezu nebo pohledu. Tato pomůcka může být přemístěna a přeorientována pomocí posunování a otáčení tak, abyste získali 2D pohled, který chcete získat. Objekt Rovina řezu bere ohled pouze na objekty, které byly vybrány v době jeho vytvoření. Objekty mohou být později přidávány do nebo odebírány z objektu Rovina řezu pomocí nástrojů [[Arch Add|Přidat]] a [[Arch Remove|Odebrat]].
 </div>
+
+The Section Plane object will only consider a certain set of objects. Objects that are selected when you create a Section Plane will be added to that set automatically. Other objects can later be added or removed from a SectionPlane object with the [[Arch_Add|Arch Add component]] and [[Arch_Remove|Arch Remove component]] tools, or by double-clicking the Section Plane in the tree view.
 
 <div class="mw-translate-fuzzy">
 Po vytvoření objekt Rovina řezu také vkládá [[Drawing View|pohled]] sama sebe do aktivní [[Drawing Workbench|Vykreslovací stránky]] nebo vytváří novou stránku, pokud žádná neexistuje. Můžete také přidat pohled Roviny řezu přímo do dokumentu použitím nástroje [[Draft Shape2DView|2D kreslení]] s vybranou rovinou řezu.
@@ -41,10 +43,23 @@ Po vytvoření objekt Rovina řezu také vkládá [[Drawing View|pohled]] sama s
 # Stiskněte tlačítko {{KEY|[[Image:Std Recompute.png|16px]] '''Přepočítat'''}} pro aktualizaci pohledu
 </div>
 
+==Typical drawing workflow==
+
+[[Image:BIM_2d_drawing_commands.png]]
+
+The typical workflow to create a 2D drawing involves the following steps, also reflected in the buttons' order in the toolbar:
+
+# Create a [[Image:Arch_SectionPlane.svg|16px]] [[Arch_SectionPlane|Section Plane]], and place it correctly in the model. As described [[#Usage|before]].
+# Create a drawing view with the [[Image:BIM_DrawingView.svg|16px]] [[BIM_DrawingView|2D Drawing]] tool. A drawing view is simply a BuildingPart that has been modified to be recognized as a 2D drawing (and stripped of some attributes like level, height, etc). Using a BuildingPart has a few advantages: It defines a working plane, you can move it and it will also move its contents, and it has a "title" that shows in the viewport. But fundamentally, the drawing view is just a container for the components of your 2D drawing. If the Section Plane is selected before initiating the 2D Drawing command, both the section view and section cut objects mentioned in the next step are created automatically.
+# Create a [[Image:BIM_Shape2DView.svg|16px]] [[BIM_Shape2DView|Section view]] and if needed, a [[Image:BIM_Shape2DCut.svg|16px]] [[BIM_Shape2DCut|Section cut]] from your Section Plane. Both tools produce a [[Draft_Shape2DView|Shape2DView]], but the first one in "solid" mode, which shows projected lines from what is viewed by the Section Plane, and the second one in "cut lines" mode, so it shows only the cut lines (the intersection between the Section Plane and the model). In plans and sections, you will want both, and give the section cut a bit thicker line width, in elevations you will typically only need the section view, as there is nothing to cut. Then, of course, you place both these objects, in the drawing view.
+# Create all needed annotations like dimensions, texts, 2D linework, etc... and add them to the drawing view.
+# Create a [[TechDraw_Workbench|TechDraw]] page using the [[Image:BIM_TDPage.svg|16px]] [[BIM_TDPage|Page]] tool of the BIM Workbench. It will pop up a dialog to let you select an SVG file to use as a template (and remembers the last used template).
+# Once you have your drawing view and your page, select both and press the {{Button|[[Image:BIM_TDView.svg|16px]] [[BIM_TDView|View]]}} button. This will create a TechDraw view on the page, showing the contents of your drawing view.
+
 <span id="Options"></span>
 ==Volby==
 
-* The Section plane object will only consider  a certain set of objects, not all the objects of the document. Objects can be added or removed from a SectionPlane object by using the [[Arch_Add|Arch Add]] and [[Arch_Remove|Arch Remove]] tools, or by double-clicking the Section Plane in the tree view, selecting objects either in the list of in the 3D scene, and pressing the '''add''' or '''remove''' buttons.
+* The Section Plane object will only consider  a certain set of objects, not all the objects of the document. Objects can be added or removed from a SectionPlane object by using the [[Arch_Add|Arch Add]] and [[Arch_Remove|Arch Remove]] tools, or by double-clicking the Section Plane in the tree view, selecting objects either in the list of in the 3D view, and pressing the '''add''' or '''remove''' buttons.
 
 <div class="mw-translate-fuzzy">
 * S vybraným objektem Rovina řezu použijte nástroj [[Draft Shape2DView|2D kreslení]] k vytvoření tvaru reprezentujícího pohled řezu v dokumentu
@@ -58,12 +73,16 @@ Po vytvoření objekt Rovina řezu také vkládá [[Drawing View|pohled]] sama s
 
 [[Image:Arch Section example3.jpg|600px]]
 
-* The Section Plane can also be used to show the entire 3D view cut by an infinite plane. This is only visual, and won't affect the geometry of the objects being cut.
+* The Section Plane can also be used to show the entire 3D view cut by an infinite plane when {{PropertyView|CutView}} is set to {{TRUE}}. This is only visual, and won't affect the geometry of the objects being cut.
 
 [[Image:Arch SectionPlane CutView.jpg|600px]]
 
 <span id="Properties"></span>
 ==Vlastnosti==
+
+===Data===
+
+{{Properties_Title|SectionPlane}}
 
 <div class="mw-translate-fuzzy">
 * {{PropertyView|Rozměr zobrazení}}: Velikost pomůcky Rovina řezu ve 3D pohledu
@@ -71,11 +90,30 @@ Po vytvoření objekt Rovina řezu také vkládá [[Drawing View|pohled]] sama s
 
 [[Image:Arch_SectionPlane_ClipView.png|600px]]
 
-{{Caption|The Arch SectionPlane with the clip view option will behave like a camera, limiting the field of view.}}
+{{Caption|The Arch SectionPlane with the {{PropertyData|Clip}} property set to {{TRUE}} will behave like a camera, limiting the field of view.}}
+
+===View===
+
+{{Properties_Title|SectionPlane}}
+
+* {{PropertyView|ArrowSize}}: The size of the arrow symbol at the corners of the Section Plane in the 3D view. This value also controls the length of the lines indicating the view direction. Doesn't affect the resulting view.
+* {{PropertyView|CutDistance}}: This property is deprecated and has no effect. It was originally intended to create a thick visual slice in the 3D view.
+* {{PropertyView|CutMargin}}: A small offset distance to apply between the Section Plane and the actual real-time cut plane when {{PropertyView|CutView}} is active. This helps prevent graphical artifacts (Z-fighting) on co-planar faces.
+* {{PropertyView|CutView}}: If {{TRUE}}, enables a real-time clipping effect in the 3D view, visually cutting through the model at the plane's location.
+* {{PropertyView|DisplayHeight}}: The height of the Section Plane's visual representation in the 3D view. This dimension is also used to define the boundary of the 2D view when the {{PropertyData|Clip}} data property is set to {{TRUE}}.
+* {{PropertyView|DisplayLength}}: The width of the Section Plane's visual representation in the 3D view. This dimension is also used to define the boundary of the 2D view when the {{PropertyData|Clip}} data property is set to {{TRUE}}.
+* {{PropertyView|FontSize}}: The size of the label text that is displayed in the 3D view.
+* {{PropertyView|FontName}}: The font used for the label text.
+* {{PropertyView|ShowLabel}}: If {{TRUE}}, the object's {{PropertyData|Label}} will be displayed next to the Section Plane in the 3D view.
+* {{PropertyView|Transparency}}: Controls the transparency of the Section Plane's face in the 3D view, from 0 (fully opaque) to 100 (fully invisible).
 
 ==Tweaks==
 
-* Adding manually a property named '''RotateSolidRender''' of type '''App::PropertyAngle''' to the section plane's '''View''' properties (right-click the properties view -> show hidden, right-click again -> add property) allows to rotate the render when using Solid mode. This is useful when a rendered view has for example both Arch and Draft elements, and the rendering of the Arch elements is rotated in relation to the Draft elements.
+* Manually adding a property named '''RotateSolidRender''' of type '''App::PropertyAngle''' to the Section Plane's '''View''' properties (right-click the properties view, select ''Show hidden'' from the context menu, right-click again and select ''Add property'') allows to rotate the render when using Solid mode. This is useful when a rendered view has for example both Arch and Draft elements, and the rendering of the Arch elements is rotated in relation to the Draft elements.
+
+==Alternative workflows==
+
+* The commands [[Draft_Shape2DView|Draft Shape2DView]] and/or [[TechDraw_ArchView|TechDraw ArchView]] can also be used to create a view from a Section Plane. However, it is recommended to use the dedicated BIM workbench tools described here instead.
 
 ==Scripting==
 
