@@ -110,7 +110,7 @@ Another, less common type of symmetry available in FreeCAD FEM is cyclic symmetr
 == Geometry partitioning == <!--T:27-->
 
 <!--T:28-->
-So-called partitioning is a division of the geometry into smaller segments. In other software, it's commonly used to allow hex meshing, but in FreeCAD it can be useful for other reasons too. The main application of partitioning is when a load (or a boundary condition) has to be applied only to a selected region of the part's surface. The easiest way to achieve it is to create a sketch with a proper contour on that face and use the [[Part_BooleanFragments|Part Boolean Fragments]] tool to split the face with the sketch. Another reason for partitioning is when multiple materials have to be applied to a single part (without having to use multiple parts connected with each other). Then, partitioning can be done using a [[PartDesign_Plane|datum plane]] and Boolean Fragments tool with the ''Compsolid'' mode. Partitioning can also be used to create regions for [[FEM_MeshRegion|mesh refinement]] or to control the meshing algorithm by forcing it to follow additional edges (particularly useful to control [[FEM_MeshGmshFromShape#Mesh_Growth|Gmsh's mesh growth]]).
+So-called partitioning is a division of the geometry into smaller segments. In other software, it's commonly used to allow hex meshing, but in FreeCAD it can be useful for other reasons too. The main application of partitioning is when a load (or a boundary condition) has to be applied only to a selected region of the part's surface. The easiest way to achieve it for solid parts is to create a sketch with a proper contour on that face and use the [[Part_BooleanFragments|Part Boolean Fragments]] tool to split the face with the sketch. Another reason for partitioning is when multiple materials have to be applied to a single part (without having to use multiple parts connected with each other). Then, partitioning can be done using a [[PartDesign_Plane|datum plane]] and Boolean Fragments tool with the ''Compsolid'' mode. Partitioning can also be used to create regions for [[FEM_MeshRegion|mesh refinement]] or to control the meshing algorithm by forcing it to follow additional edges (particularly useful to control [[FEM_MeshGmshFromShape#Mesh_Growth|Gmsh's mesh growth]]).
 
 </translate>
 [[Image:FEM_partition.JPG|400px]]
@@ -129,6 +129,25 @@ In the case of surface (shell) geometries, the easiest way to make a sketch-base
 <translate>
 <!--T:65-->
 {{Caption|Square plate with a circular face partition}}
+
+Partitioning only the selected faces of a solid using datum planes instead of sketches without splitting the whole volume is also tricky. One possible approach is to:
+# [[Draft_Downgrade|Downgrade]] the body to faces.
+# Select that one face and datum plane and use the [[Part_SliceApart|Slice apart]] tool.
+# Delete the Exploded Slice container without deleting its contents.
+# Select all faces and slices and [[Draft_Upgrade|Upgrade]] them to Shell.
+# [[Draft_Upgrade|Upgrade]] the Shell to Solid or use the [[Part_MakeSolid|Convert to solid]] tool.
+Another option is to:
+# Create a [[PartDesign_SubShapeBinder|subshapebinder]] of the face to be partitioned.
+# Split the subshapebinder with the [[Part_SliceApart|Slice apart]] tool.
+# Create a new [[PartDesign_Body|Body]] (to avoid cyclic dependency).
+# Create a new subshapebinder from the edges obtained from the intersection of the previous subshapebinder and datum plane.
+# Select the original Body and the new subshapebinder and use the [[Part_BooleanFragments|Boolean fragments]] tool.
+Other ideas can be found in [https://forum.freecad.org/viewtopic.php?t=98528 this forum thread] but they are more case-specific.
+
+</translate>
+[[Image:FEM_split_face_solid.JPG|400px]]
+<translate>
+{{Caption|Cylindrical face of a hole partitioned with a plane to apply 180° load from a pin}}
 
 == Assembly geometries == <!--T:31-->
 
