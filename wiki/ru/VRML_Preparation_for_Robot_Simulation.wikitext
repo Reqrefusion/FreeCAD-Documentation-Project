@@ -1,65 +1,72 @@
 <languages/>
-<div class="mw-translate-fuzzy">
 {{TutorialInfo/ru
-|Topic=Robot Workbench
-|Level=Intermediate
+|Topic=Верстак Робот
+|Level=Средний
 |Time=
 |Author=
 |FCVersion=
 |Files=
 }}
-</div>
 
-{{VeryImportantMessage|The FreeCAD Robot Workbench is unmaintained. Please mention on the FreeCAD forum if you have an interest in maintaining this 
-workbench.}}
+{{VeryImportantMessage|Верстак  Robot в FreeCAD остался без поддержки. Пожалуйста, сообщите на форуме  FreeCAD, если Вы заинтересованы в поддержке этого верстака.}}
 
-==Overview==
+<span id="Overview"></span>
+== Обзор ==
 
-This tutorial explains how to use FreeCAD and the [[Image:Workbench_Robot.svg|24px]] [[Robot Workbench|Robot Simulation Workbench]] to simulate the motions of 6-axis serial robot. '''The tutorial focuses on the creation of the VRML file''' used as visualization. The base of the VRML file is a FreeCAD model. The version of FreeCAD used is 0.11.4252ppa1 on Ubuntu 32bit.
+В этом руководстве рассказывается, как использовать FreeCAD и [[Image:Workbench_Robot.svg|24px]] [[Robot Workbench/ru|Верстак Симуляции Робота]] для моделирования движений 6-осевого серийного робота.  '''Руководство посвящено созданию VRML-файла''', используемого в качестве визуализации. Основой VRML-файла является модель FreeCAD. Используемая версия FreeCAD - 0.11.4252ppa1 на Ubuntu 32bit.
 
-== Open a file or create one with FreeCAD ==
-The tutorial is based on a STEP-file of a Stäubli TX40 (TX40-HB.stp). You can download the file from [https://secure.staubli.com/Intranet_Applications/Robotics/Group/RobDoc.nsf/ea05b3f4b301f597c1256d5f005665e8/bc3707ec036c9f6bc12576c700327958/$FILE/page.html Stäubli]. However, though I still didn't have time to check this, the method should also apply to a model completely made in FreeCAD.
-After opening the file, you should obtain this:
+== Открытиеытие файла или создание файла с помощью FreeCAD ==
+Руководство основано на STEP-файле робора Stäubli TX40 (TX40-HB.stp). Вы можете скачать этот файл с сайта [https://secure.staubli.com/Intranet_Applications/Robotics/Group/RobDoc.nsf/ea05b3f4b301f597c1256d5f005665e8/bc3707ec036c9f6bc12576c700327958/$FILE/page.html Stäubli]. Однако, хотя у меня не было времени проверить это, метод должен быть применим и к модели, полностью сделанной в FreeCAD.
+После открытия файла ты должен получить следующее:
 
 [[File:staeubli_step_import.png|1024px]]
 
-Notice, that on import, the robot is made of 8 shapes, directly on the root of the document tree. The structure of the exported VRML file may change if groups are used. The shapes are ordered from the base to the tool. The last shape contains the axes of rotations of all robot axes. The correlation shape name – part name is given by (as for now (March 2011) FreeCAD doesn't import the names included in STEP files):
+Обрати внимание, что при импорте робот состоит из 8 фигур, расположенных непосредственно в корне дерева документа. Структура экспортируемого VRML-файла может измениться, если используются группы. Элементы расположены в порядке от основания к инструменту. Последний элемент содержит оси вращения всех осей робота. Имя корреляции фигуры - задаётся именем детали (на данный момент (март 2011) FreeCAD не импортирует имена, включённые в STEP-файлы):
 
 {| class="wikitable"
 |-
-! FreeCAD name
-! STEP name
+! FreeCAD имя
+! STEP имя английский
+! STEP имя русский
 |-
 | TX40_HB 
-|HORIZONTAL BASE CABLE OUTLET
+| HORIZONTAL BASE CABLE OUTLET
+| ГОРИЗОНТАЛЬНОЕ ОСНОВАНИЕ КАБЕЛЬНЫЙ ВЫВОД
 |-
 | TX40_HB001
 | SHOULDER
+| ПЛЕЧО
 |-
 | TX40_HB002
 | ARM
+| РУКА
 |-
 | TX40_HB003
 | ELBOW
+| ЛОКОТЬ
 |-
 | TX40_HB004
 | FOREARM
+| ПРЕДПЛЕЧЬЕ
 |-
 | TX40_HB005
 | WRIST
+| ЗАПЯСТЬЕ
 |-
 | TX40_HB006
 | TOOL FLANGE
+| ФЛАНЕЦ ИНСТРУМЕНТА
 |-
 | TX40_HB007
 | ?
+| ?
 |}
 
-For this import, change the “Display Mode” of each shape, TX40_HB007 excepted, from “Flat Lines” to “Shaded” for the VRML export to look good. I also changed the colors to [245, 196, 0] and [204, 204, 204] to better correspond to Stäubli's yellow. Hide TX40_HB007 because it contains the axes of all joints and cannot be taken apart.
+Для этого импорта измени "Стиль представления" каждой фигуры, за исключением TX40_HB007, с "Плоские линии" на "Только грани", чтобы экспорт VRML выглядел хорошо. Я также изменил цвета на [245, 196, 0] и [204, 204, 204], чтобы они лучше соответствовали жёлтому цвету Stäubli. Скройте TX40_HB007, потому что он содержит оси всех сочленений и не может быть отсоединён.
 
-== Measure geometric characteristics ==
-In order to build the Denavit-Hartenberg table (see [[Robot_6-Axis|Robot 6-Axis]]) and prepare the vrml file, you need to get characteristics of the robot. For now, the measurement tool of FreeCAD is not ready, you can use the axes included in TX40_HB007 (the co-ordinates are indicated on the bottom left when you point an object with the mouse) or you have to use the Python console to get some information about the geometry. Note that the DH-table is only required if you need to use the inverse kinematics, i.e.  get the Cartesian coordinates or drive the robot with Cartesian coordinates.
-The DH-table for this robot is the following (mm, deg and deg/s):
+== Определение геометрических характеристик ==
+Для того чтобы построить таблицу Денавита-Хартенберга (смотри [[Robot_6-Axis/ru|Робот 6-Осевой]]) и подготовить vrml-файл, необходимо получить характеристики робота. На данный момент инструмент измерения в FreeCAD не готов, вы можете использовать оси, входящие в TX40_HB007 (координаты указываются слева внизу при наведении на объект мышью) или использовать консоль Python для получения некоторой информации о геометрии. Обратите внимание, что DH-таблица нужна только в том случае, если вам нужно использовать обратную кинематику, то есть получить декартовы координаты или управлять роботом с помощью декартовых координат.
+DH-таблица для этого робота выглядит следующим образом (мм, град и град/с):
 
 {| class="wikitable"
 |-
@@ -68,9 +75,9 @@ The DH-table for this robot is the following (mm, deg and deg/s):
 ! θ
 ! r
 ! α
-! θmin
-! θmax
-! Axis velocity
+! θмин
+! θмакс
+! Скорость вращения оси
 |-
 | 1
 | 320
