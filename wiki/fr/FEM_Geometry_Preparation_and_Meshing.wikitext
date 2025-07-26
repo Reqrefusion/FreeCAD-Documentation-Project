@@ -86,7 +86,9 @@ Un autre type de symétrie, moins courant, disponible dans FreeCAD FEM est la sy
 <span id="Geometry_partitioning"></span>
 == Partitionnement de la géométrie ==
 
+<div class="mw-translate-fuzzy">
 Le partitionnement est une division de la géométrie en segments plus petits. Dans d'autres logiciels, il est généralement utilisé pour permettre le maillage hexagonal, mais dans FreeCAD, il peut être utile pour d'autres raisons. La principale application du partitionnement est lorsqu'une charge (ou une condition limite) doit être appliquée uniquement à une région sélectionnée de la surface de la pièce. La façon la plus simple d'y parvenir est de créer une esquisse avec un contour approprié sur cette face et d'utiliser l'outil [[Part_BooleanFragments/fr|Part Fragments booléens]] pour diviser la face avec l'esquisse. Une autre raison d'utiliser le partitionnement est lorsque plusieurs matériaux doivent être appliqués à une seule pièce (sans avoir à utiliser plusieurs pièces connectées entre elles). Dans ce cas, le partitionnement peut être effectué à l'aide d'un [[PartDesign_Plane/fr|plan]] et de l'outil Fragments booléens en mode ''Compsolid''. Le partitionnement peut également être utilisé pour créer des régions pour [[FEM_MeshRegion/fr|mailler plus finement]] ou pour contrôler l'algorithme de maillage en le forçant à suivre des arêtes supplémentaires (particulièrement utile pour contrôler la [[FEM_MeshGmshFromShape/fr#Croissance_du_maillage|croissance du maillage Gmsh]]).
+</div>
 
 [[Image:FEM_partition.JPG|400px]]
 {{Caption|Pièce avec une cloison de séparation pour l'application d'une charge ou d'une condition limite}}
@@ -98,6 +100,27 @@ Dans le cas des géométries surfaciques (coques), la manière la plus simple de
 
 [[Image:FEM_shell_partition.JPG|400px]]
 {{Caption|Plaque carrée avec une partition circulaire}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Partitioning only the selected faces of a solid using datum planes instead of sketches without splitting the whole volume is also tricky. One possible approach is to:
+# [[Draft_Downgrade|Downgrade]] the body to faces.
+# Select that one face and datum plane and use the [[Part_SliceApart|Slice apart]] tool.
+# Delete the Exploded Slice container without deleting its contents.
+# Select all faces and slices and [[Draft_Upgrade|Upgrade]] them to Shell.
+# [[Draft_Upgrade|Upgrade]] the Shell to Solid or use the [[Part_MakeSolid|Convert to solid]] tool.
+Another option is to:
+# Create a [[PartDesign_SubShapeBinder|subshapebinder]] of the face to be partitioned.
+# Split the subshapebinder with the [[Part_SliceApart|Slice apart]] tool.
+# Create a new [[PartDesign_Body|Body]] (to avoid cyclic dependency).
+# Create a new subshapebinder from the edges obtained from the intersection of the previous subshapebinder and datum plane.
+# Select the original Body and the new subshapebinder and use the [[Part_BooleanFragments|Boolean fragments]] tool.
+Other ideas can be found in [https://forum.freecad.org/viewtopic.php?t=98528 this forum thread] but they are more case-specific.
+</div>
+
+[[Image:FEM_split_face_solid.JPG|400px]]
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|Cylindrical face of a hole partitioned with a plane to apply 180° load from a pin}}
+</div>
 
 <span id="Assembly_geometries"></span>
 == Assemblage de géométries ==
