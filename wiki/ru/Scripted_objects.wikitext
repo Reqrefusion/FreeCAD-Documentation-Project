@@ -16,7 +16,7 @@
 
 '''Примечание''': Имеется возможность упаковки Python кода внутрь FreeCAD файла, используя json сериализацию с помощью App::PropertyPythonObject, но этот код в конечном счёте нельзя будет запустить напрямую, поэтому это мало подходит для наших целей.
 
-[[App_FeaturePython/ru|Python Features]] следуют тому же правилу что и все остальные FreeCAD features: они разделены на App и GUI части. App часть, Объект Документ (Document Object), определяет геометрию нашего объекта, тогда как его GUI часть, Объект Визуального Представления (View Provider Object) определяет, как объект будет отображаться на экране. Объект View Provider, как и любая другая FreeCAD feature, доступен только при запуске FreeCAD в его собственном графическом интерфейсе.  Существует несколько свойств и методов, доступных для создания вашего объекта. Свойства должны принадлежать к любому из предопределенных типов свойств, предлагаемых FreeCAD, и отображаться в окне просмотра свойств, чтобы пользователь мог их редактировать. Таким образом, объекты Feature Python полностью параметричны. Вы можете задать свойства как Данных, так и свойства Вида.
+[[App_FeaturePython/ru|Python Features (Функции)]] следуют тому же правилу что и все остальные FreeCAD features: они разделены на App и GUI части. App часть, Объект Документ (Document Object), определяет геометрию нашего объекта, тогда как его GUI часть, Объект Визуального Представления (View Provider Object) определяет, как объект будет отображаться на экране. Объект View Provider, как и любая другая FreeCAD feature, доступен только при запуске FreeCAD в его собственном графическом интерфейсе.  Существует несколько свойств и методов, доступных для создания вашего объекта. Свойства должны принадлежать к любому из предопределённых типов свойств, предлагаемых FreeCAD, и будут отображаться в окне просмотра свойств, чтобы пользователь мог их редактировать. Таким образом, объекты Feature Python полностью параметричны. Вы можете по отдельности задать свойства как Данных (Object), так и свойства Вида (ViewObject).
 
 <span id="Basic_example"></span>
 == Простой пример ==
@@ -162,39 +162,27 @@ makeBox()
 
 Этот пример создаёт несколько исключений трасс стека в окне отчётов. Это поскольку метод  {{incode|onChanged}} класса {{incode|Box}} вызывается каждый раз как свойство добавляется в {{incode|__init__}}. Когда первое было добавлено, параметры Width и Height и потому попытки доступа к ним безуспешны.
 
-<div class="mw-translate-fuzzy">
-Описание {{incode|__getstate__}} и {{incode|__setstate__}} находится в теме форума [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009&start=10#p377892 obj.Proxy.Type is a dict, not a string].
-</div>
+Объяснение {{incode|__getstate__}} и {{incode|__setstate__}}, которые были заменены на {{incode|dumps}} и {{incode|loads}}, находится в теме форума. [https://forum.freecad.org/viewtopic.php?f=18&t=44009&start=10#p377892 obj.Proxy.Type is a dict, not a string (obj.Proxy.Type это словарь, а не строка)].
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{incode|obj.addProperty(...)}} returns {{incode|obj}}, so that the value of the property can be set on the same line:
-</div>
+{{incode|obj.addProperty(...)}} возвращает {{incode|obj}}, так что значение свойства может быть задано в той же строке:
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {{Code|code=
 obj.addProperty("App::PropertyLength", "Length", "Box", "Length of the box").Length = 1.0
 }}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Which is equivalent to:
-</div>
+Что эквивалентно:
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {{Code|code=
 obj.addProperty("App::PropertyLength", "Length", "Box", "Length of the box")
 obj.Length = 1.0
 }}
-</div>
 
 <span id="Other_more_complex_example"></span>
 == Другой более сложный пример ==
 
-<div class="mw-translate-fuzzy">
-Данный пример использует [[Part_Workbench/ru|верстак Part]] для создания октаэдра, затем создает собственное Coin представление с помощью Pivy.
-</div>
+В этом примере используется модуль Part (Деталь) для создания октаэдра, затем создаётся его представление [https://en.wikipedia.org/wiki/Coin3D Coin] с помощью [[Pivy/ru|Pivy]].
 
-Сначала сам Документированный Объект:
+Сначала сам  Объект Документа (Document object):
 
 {{Code|code=
 import FreeCAD, FreeCADGui, Part
@@ -239,7 +227,7 @@ class Octahedron:
      return face
 }}
 
-Теперь , мы обладаем визуальным представлением объекта, ответственного за отображение объекта в 3D сцене:
+Теперь , мы обладаем объектом View Provider, ответственным за отображение этого объекта в 3D сцене:
 
 {{Code|code=
 class ViewProviderOctahedron:
@@ -381,7 +369,7 @@ class ViewProviderOctahedron:
      return None
 }}
 
-Наконец, когда определен наш объект и его визуальный объект, нам просто нужно вызвать их:
+Наконец, как только наш объект и его viewobject определены, нам просто нужно вызвать их (код класса Octahedron и viewprovider может быть скопирован непосредственно в Python консоль FreeCAD):
 
 {{Code|code=
 FreeCAD.newDocument()
@@ -395,11 +383,9 @@ ViewProviderOctahedron(a.ViewObject)
 
 Если вы хотите чтобы ваш объект можно было выбрать, или по крайней мере его часть, щелкнув по нему в окне, вы должны включить его Coin геометрию внутрь узла SoFCSelection. Если ваш объект обладает сложным представлением, с виджетами, аннотациями, и т.д, вам может потребоваться только часть его в SoFCSelection. Всё, что находится в SoFCSelection постоянно сканируется FreeCAD для обнаружения выделения/предварительного отбора, так что имеет смысл попробовать не перегружать его ненужным сканированием.
 
-<div class="mw-translate-fuzzy">
-Как только части графа сцены, которые должны быть выбраны, оказываются внутри узлов SoFCSelection, вам необходимо предоставить два метода для обработки пути выбора. Путь выбора может принимать форму строки, содержащей имена каждого элемента в пути, или массива объектов графа сцены. Вы предоставляете два метода: {{incode|getDetailPath}}, который преобразует путь строки в массив объектов scenegraph (графа сцены), и {{incode|getElementPicked}}, который принимает элемент, по которому щелкнули в графе сцены, и возвращает его строковое имя (примечание, а не его строковый путь).
-</div>
+Как только части scenegraph, которые должны быть выбраны, окажутся внутри узлов SoFCSelection, вам нужно будет предоставить два метода для обработки пути выбора. Путь выделения может иметь форму строки, содержащей имена каждого элемента в пути, или массива объектов scenegraph. Существует два метода: {{incode|getDetailPath}}, который преобразует путь из строки в массив объектов scenegraph, и {{incode|getElementPicked}}, который берёт элемент, на который был сделан щелчок в scenegraph, и возвращает его строковое имя (обратите внимание, не его строковый путь).
 
-Вот вышеприведённый пример с молекулой, адаптированный для выбора элементов молекулы:
+Вот вышеприведённый пример с Молекулой, адаптированный для выбора элементов Молекулы:
 
 {{Code|code=
 class Molecule:
@@ -558,7 +544,7 @@ App.ActiveDocument.recompute()
 }}
 
 <span id="Scenegraph_Structure"></span>
-== Структура графа сцены ==
+== Структура Scenegraph (графа сцены) ==
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 You may have noticed that the examples above construct their scenegraphs in slightly different ways. Some use {{incode|obj.addDisplayMode(node, "modename")}} while others use {{incode|obj.SwitchNode.getChild(x).addChild(y)}}.
