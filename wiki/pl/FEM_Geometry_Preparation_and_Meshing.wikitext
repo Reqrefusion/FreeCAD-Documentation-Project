@@ -86,20 +86,41 @@ Innym, rzadziej stosowanym typem symetrii dostępnym w środowisku pracy MES jes
 <span id="Geometry_partitioning"></span>
 == Partycjonowanie geometrii ==
 
+<div class="mw-translate-fuzzy">
 Tak zwane partycjonowanie to podział geometrii na mniejsze segmenty. W innych programach jest to powszechnie używane aby umożliwić tworzenie siatek złożonych z elementów sześciościennych, ale we FreeCAD może być przydatne z innych powodów. Głównym zastosowaniem partycjonowania są przypadki gdy obciążenie ''(lub warunek brzegowy)'' trzeba przyłożyć tylko do wybranego obszaru na powierzchni części. Najłatwiejszym sposobem aby to osiągnąć jest utworzenie szkicu z odpowiednim konturem na ścianie i użycie narzędzia [[Part_BooleanFragments/pl|Część: Fragmentacja funkcją logiczną]] aby podzielić ścianę przy pomocy szkicu. Innym powodem partycjonowania może być przypadek gdy na jedną część trzeba nałożyć wiele materiałów ''(bez używania wielu części połączonych ze sobą)''. Wtedy partycjonowania można dokonać przy pomocy [[PartDesign_Plane/pl|płaszczyzny odniesienia]] i narzędzia Fragmentacja funkcją logiczną z trybem ''Compsolid'' ''(bryła złożona)''. Partycjonowanie jest też wykorzystywane do tworzenia obszarów dla [[FEM_MeshRegion/pl|zagęszczenia siatki]] lub do kontrolowania algorytmu generowania siatki poprzez zmuszenie go do uwzględnienia dodatkowych krawędzi (jest to szczególnie przydatne do kontroli [[FEM_MeshGmshFromShape/pl#Wzrost_siatki|wzrostu siatki Gmsh]]).
+</div>
 
 [[Image:FEM_partition.JPG|400px]]
 {{Caption|Część ze ścianą podzieloną do zadania obciążenia lub warunku brzegowego}}
 
-<div class="mw-translate-fuzzy">
-W przypadku geometrii powierzchniowych (powłokowych), najłatwiejszym sposobem utworzenia partycji w oparciu o szkic jest użycie narzędzi Fragmentacja funkcją logiczną (jak w przypadku partycji ścian brył). Ale, jak wyjaśniono [https://forum.freecad.org/viewtopic.php?t=96029#p820241 tutaj], jeśli w [[FEM_Preferences/pl#Ogólne|preferencjach MES]] włączone jest tworzenie grup siatki, może to nie zadziałać prawidłowo i powinno się skorzystać z następującego podejścia:
+W przypadku geometrii powierzchniowych (powłokowych), najłatwiejszym sposobem utworzenia partycji w oparciu o szkic jest użycie narzędzia [[Part_BooleanFragments/pl|Fragmentacja funkcją logiczną]] (jak w przypadku partycji ścian brył). Ale, jak wyjaśniono [https://forum.freecad.org/viewtopic.php?t=96029#p820241 tutaj], jeśli w [[FEM_Preferences/pl#Ogólne|preferencjach MES]] włączone jest tworzenie grup siatki, może to nie zadziałać prawidłowo i powinno się skorzystać z następującego podejścia:
 # Utwórz ścianę dla jednej strony przy pomocy np. narzędzia [[Part_MakeFace/pl|Utwórz ścianę z polilinii]] (np. kwadratowa płytka z okrągłym otworem).
 # Utwórz ścianę dla drugiej strony w analogiczny sposób (np. okrągła ścian wypełniająca otwór w kwadratowej płytce).
 # Zastosuj narzędzie [[Part_Builder/pl|Konstruktor kształtu]] z trybem ''Powłoka ze ścian'' i odznaczonym polem ''Udoskonal kształt'' na utworzonych wcześniej ścianach.
-</div>
 
 [[Image:FEM_shell_partition.JPG|400px]]
 {{Caption|Kwadratowa płytka z okrągłą partycją ściany}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Partitioning only the selected faces of a solid using datum planes instead of sketches without splitting the whole volume is also tricky. One possible approach is to:
+# [[Draft_Downgrade|Downgrade]] the body to faces.
+# Select that one face and datum plane and use the [[Part_SliceApart|Slice apart]] tool.
+# Delete the Exploded Slice container without deleting its contents.
+# Select all faces and slices and [[Draft_Upgrade|Upgrade]] them to Shell.
+# [[Draft_Upgrade|Upgrade]] the Shell to Solid or use the [[Part_MakeSolid|Convert to solid]] tool.
+Another option is to:
+# Create a [[PartDesign_SubShapeBinder|subshapebinder]] of the face to be partitioned.
+# Split the subshapebinder with the [[Part_SliceApart|Slice apart]] tool.
+# Create a new [[PartDesign_Body|Body]] (to avoid cyclic dependency).
+# Create a new subshapebinder from the edges obtained from the intersection of the previous subshapebinder and datum plane.
+# Select the original Body and the new subshapebinder and use the [[Part_BooleanFragments|Boolean fragments]] tool.
+Other ideas can be found in [https://forum.freecad.org/viewtopic.php?t=98528 this forum thread] but they are more case-specific.
+</div>
+
+[[Image:FEM_split_face_solid.JPG|400px]]
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|Cylindrical face of a hole partitioned with a plane to apply 180° load from a pin}}
+</div>
 
 <span id="Assembly_geometries"></span>
 == Geometrie złożeń ==
