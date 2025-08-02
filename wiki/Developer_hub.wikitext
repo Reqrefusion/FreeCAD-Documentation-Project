@@ -1,4 +1,155 @@
-<languages/>
+<languages>import cv2
+import numpy as np
+import trimesh
+import os
+
+def create_wall_mesh(p1, p2, height, thickness):
+    """
+    Creates a 3D wall mesh (a thin cuboid) between two points.
+
+    Args:
+        p1 (tuple): The (x, y) coordinates of the start point of the wall.
+        p2 (tuple): The (x, y) coordinates of the end point of the wall.
+        height (float): The height of the wall.
+        thickness (float): The thickness of the wall.
+
+    Returns:
+        trimesh.Trimesh: A mesh object representing the wall.
+    """
+    # Calculate the direction vector and length of the wall
+    direction = np.array([p2[0] - p1[0], p2[1] - p1[1], 0])
+    length = np.linalg.norm(direction[:2])
+    if length == 0:
+        return None
+    direction /= np.linalg.norm(direction)
+
+    # Calculate the perpendicular vector for thickness
+    perp = np.array([-direction[1], direction[0], 0]) * (thickness / 2.0)
+
+    # Define the 8 vertices of the cuboid (wall)
+    # Bottom vertices
+    v0 = np.array([p1[0], p1[1], 0]) - perp
+    v1 = np.array([p2[0], p2[1], 0]) - perp
+    v2 = np.array([p2[0], p2[1], 0]) + perp
+    v3 = np.array([p1[0], p1[1], 0]) + perp
+    # Top vertices
+    v4 = v0 + [0, 0, height]
+    v5 = v1 + [0, 0, height]
+    v6 = v2 + [0, 0, height]
+    v7 = v3 + [0, 0, height]
+
+    vertices = [v0, v1, v2, v3, v4, v5, v6, v7]
+
+    # Define the 12 triangles (2 for each face) of the cuboid
+    faces = [
+        [0, 1, 2], [0, 2, 3],  # Bottom face
+        [4, 6, 5], [4, 7, 6],  # Top face
+        [0, 4, 5], [0, 5, 1],  # Front face
+        [2, 6, 7], [2, 7, 3],  # Back face
+        [1, 5, 6], [1, 6, 2],  # Right face
+        [0, 3, 7], [0, 7, 4]   # Left face
+    ]
+
+    return trimesh.Trimesh(vertices=vertices, faces=faces)
+
+def floorplan_to_3d(image_path, output_filename, wall_height, wall_thickness):
+    """
+    Main function to process a floor plan image and generate a 3D model.
+
+    Args:
+        image_path (str): The path to the input floor plan image.
+        output_filename (str): The path to save the output 3D model (e.g., 'model.obj').
+        wall_height (float): The desired height of the walls in the 3D model.
+        wall_thickness (float): The desired thickness of the walls.
+    """
+    # --- 1. Image Loading and Preprocessing ---
+    if not os.path.exists(image_path):
+        print(f"Error: Image file not found at '{image_path}'")
+        return
+
+    img = cv2.imread(image_path)
+    if img is None:
+        print(f"Error: Could not read image from '{image_path}'")
+        return
+
+    # Convert to grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Invert the image (lines become white, background black)
+    # This is important for thresholding and line detection
+    gray = cv2.bitwise_not(gray)
+
+    # Apply a binary threshold to get a clean black and white image
+    # This helps to remove noise and grid lines
+    _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+
+    # --- 2. Line Detection ---
+    # Use the Probabilistic Hough Line Transform to detect line segments.
+    # Adjust parameters minLineLength and maxLineGap for your specific image.
+    lines = cv2.HoughLinesP(
+        thresh,
+        rho=1,
+        theta=np.pi/180,
+        threshold=50,
+        minLineLength=50,
+        maxLineGap=10
+    )
+
+    if lines is None:
+        print("No lines were detected. Try adjusting the Hough Transform parameters.")
+        return
+
+    print(f"Detected {len(lines)} line segments.")
+
+    # --- 3. 3D Mesh Generation ---
+    all_meshes = []
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+
+        # The image coordinate system has (0,0) at the top-left.
+        # We flip the y-axis to match a standard Cartesian system for the 3D model.
+        img_height = img.shape[0]
+        p1 = (x1, img_height - y1)
+        p2 = (x2, img_height - y2)
+
+        wall_mesh = create_wall_mesh(p1, p2, wall_height, wall_thickness)
+        if wall_mesh:
+            all_meshes.append(wall_mesh)
+
+    if not all_meshes:
+        print("Could not create any wall meshes from the detected lines.")
+        return
+
+    # Combine all individual wall meshes into a single scene
+    combined_mesh = trimesh.util.concatenate(all_meshes)
+
+    # --- 4. Exporting the Model ---
+    try:
+        # Export the combined mesh to the specified file format.
+        # The format is inferred from the filename extension (e.g., .obj, .stl).
+        combined_mesh.export(output_filename)
+        print(f"Successfully exported 3D model to '{output_filename}'")
+    except Exception as e:
+        print(f"An error occurred during export: {e}")
+
+
+# --- Main Execution ---
+if __name__ == '__main__':
+    # --- Configuration ---
+    # Make sure to place the image file in the same directory as the script,
+    # or provide the full path to the image.
+    INPUT_IMAGE_PATH = 'IMG20250728213721.jpg'
+    OUTPUT_MODEL_PATH = 'floorplan_model.obj' # You can also use .stl or .gltf
+
+    # Set the dimensions for the 3D model.
+    # You might need to adjust these based on the scale of your drawing.
+    WALL_HEIGHT = 50.0
+    WALL_THICKNESS = 5.0
+
+    # Run the conversion process
+    floorplan_to_3d(INPUT_IMAGE_PATH, OUTPUT_MODEL_PATH, WALL_HEIGHT, WALL_THICKNESS)
+
+</languages>
 {{TOCright}}
 [[Image:Crystal_Clear_app_tutorials.png|64px]]
 ----
