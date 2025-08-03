@@ -321,6 +321,17 @@ def svgRect(width, height, x, y):
 
 Die SVG-Anweisung ist geteilt, um innerhalb der empfohlenen Python-Zeilenlänge zu bleiben, sie ergibt trotzdem eine einzelne SVG-Zeile.
 
+Mit etwas mehr Python-Erfahrung ergab sich auch eine andere Möglichkeit variablen Inhalt einzufügen: die eingebaute Funktion {{Incode|.format()}} in Verbindung mit benannten {{Incode|{name}|}}, indizierten {{Incode|{0}|}} oder leeren {{Incode|{}|}} Platzhaltern. Namen mit nur einem Buchstaben ändern die Funktion so:
+
+{{Code| |code=
+def svgRect(width, height, x, y):
+    # Generates an svg-instruction to draw a rectangle with the given values
+    svg_line = ("<rect width=\"{W}\" height=\"{H}\" x=\"{X}\" y=\"{Y}\" />")
+    return svg_line.format(W = width, H = height, X = x, Y = y)
+}}
+
+(Die runden Klammern sind optional, so lange wir die Zeichenkette für '''svg_line''' nicht aufteilen müssen)
+
 <span id="svgPath()"></span>
 ===Funktion svgPath()===
 
@@ -338,6 +349,18 @@ def svgPath(x1, y1, x2, y2):
     else:
         svg_line = ("<path d=\"m " + x1 + "," + y1 + " l " + x2 + "," + y2 + "\" />")
     return svg_line
+}}
+
+Die alternative Version mit Platzhaltern und {{Incode|.format()}}:
+
+{{Code| |code=
+def svgPath(x1, y1, x2, y2):
+    # Generates an svg-instruction to draw a path element (line) with the given values
+    if x2 == "v" or x2 == "V" or x2 == "h" or x2 == "H":
+        svg_line = ("<path d=\"m {X},{Y} {C} {D}\" />")
+    else:
+        svg_line = ("<path d=\"m {X},{Y} l {C},{D}\" />")
+    return svg_line.format(X = x1, Y = y1, C = x2, D = y2)
 }}
 
 <span id="svgText()"></span>
@@ -361,6 +384,24 @@ def svgText(x, y, str_value, str_angle="0"):
             + "," + x + "," + y + ")\">" + str_value + "</text>"
             )
     return svg_line
+}}
+
+Die alternative Version mit Platzhaltern und {{Incode|.format()}}:
+
+{{Code| |code=
+def svgText(x, y, str_value, str_angle="0"):
+    """
+    Generates an svg-instruction to place a text element with the given values.
+    Optional str_angle enables vertical and arbitrarily rotated texts
+    """
+    if str_angle == "0":
+        svg_line = ("<text x=\"{X}\" y=\"{Y}\" fill=\"#000\">{SV}</text>")
+    else:
+        svg_line = (
+            "<text x=\"{X}\" y=\"Y\" transform=\"rotate({SA}," +
+            "{X},{Y})\">{SV}</text>"
+            )
+    return svg_line.format(X = x, Y = y, SV = str_value, SA = str_angle)
 }}
 
 <span id="ediText()"></span>
@@ -390,6 +431,30 @@ def ediText(entry_name, x, y, str_value, str_angle="0"):
             + str_value + "</tspan>  </text>"
             )
     return svg_line
+}}
+
+Die alternative Version mit Platzhaltern und {{Incode|.format()}}:
+
+{{Code| |code=
+def ediText(entry_name, x, y, str_value, str_angle="0"):
+    """
+    Generates an svg-instruction to place an editable text element with the given values.
+    Optional str_angle enables vertical and arbitrarily rotated editable texts
+    """
+    if str_angle == "0":
+        svg_line = (
+            "<text freecad:editable=\"{EN}\" x=\"{X}\" y=\"{Y}" +
+            "\" fill=\"#00d\"> <tspan>{SV}</tspan> </text>"
+            )
+    else:
+        svg_line = (
+            "<text freecad:editable=\"{N}\" x=\"{X}\" y=\"{Y}" +
+            "\" fill=\"#00d\" transform=\"rotate({SA},{X},{Y})\"> <tspan>" +
+            "{SV}</tspan> </text>"
+            )
+    return svg_line.format(
+        EN = entry_name, X = x, Y = y, SV = str_value, SA = str_angle
+        )
 }}
 
 <span id="createXxxx_functions"></span>
