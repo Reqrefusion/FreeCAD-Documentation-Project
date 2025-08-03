@@ -116,7 +116,7 @@ Nous devons surveiller le nombre d'espaces utilisés avec les opérations d'écr
 
 Avant que le code ne soit généré, un dossier est nécessaire pour stocker le nouveau fichier modèle, et un nom de fichier doit être défini.
 
-L'utilisateur doit avoir sélectionné un dossier de modèle. Son chemin est alors enregistré dans les préférences de TechDraw. </br>
+L'utilisateur doit avoir sélectionné un dossier de modèle. Son chemin d'accès est alors enregistré dans les préférences de TechDraw.</br>
 Il n'est pas nécessaire de savoir où sont stockées les préférences, car FreeCAD dispose de commandes permettant d'adresser directement les paramètres nécessaires.
 
 {{Code| |code=
@@ -319,6 +319,17 @@ def svgRect(width, height, x, y):
 
 L'instruction svg est divisée pour rester dans la longueur des lignes recommandée par Python, il en résultera néanmoins une seule ligne svg.
 
+Avec plus d'expérience en Python, une autre façon de remplir le contenu des variables est apparue : la fonction intégrée {{Incode|.format()}} en relation avec les paramètres nommés {{Incode|{nom}|}}, indexés {{Incode|{0}|}} ou vides {{Incode|{}|}}. ou des espaces vides {{Incode|{}|}}. Les noms à caractère unique modifient la fonction comme suit :
+
+{{Code| |code=
+def svgRect(width, height, x, y):
+    # Generates an svg-instruction to draw a rectangle with the given values
+    svg_line = ("<rect width=\"{W}\" height=\"{H}\" x=\"{X}\" y=\"{Y}\" />")
+    return svg_line.format(W = width, H = height, X = x, Y = y)
+}}
+
+(Les crochets/parenthèses sont facultatifs tant que nous n'avons pas besoin de diviser la chaîne '''svg_line''')
+
 ==== svgPath() ====
 
 Pour dessiner une ligne, il suffit d'appeler la fonction '''svgPath''' et de fournir les coordonnées du point de départ et du point d'arrivée d'une ligne.
@@ -335,6 +346,18 @@ def svgPath(x1, y1, x2, y2):
     else:
         svg_line = ("<path d=\"m " + x1 + "," + y1 + " l " + x2 + "," + y2 + "\" />")
     return svg_line
+}}
+
+La version alternative avec des espaces réservés et {{Incode|.format()}} :
+
+{{Code| |code=
+def svgPath(x1, y1, x2, y2):
+    # Generates an svg-instruction to draw a path element (line) with the given values
+    if x2 == "v" or x2 == "V" or x2 == "h" or x2 == "H":
+        svg_line = ("<path d=\"m {X},{Y} {C} {D}\" />")
+    else:
+        svg_line = ("<path d=\"m {X},{Y} l {C},{D}\" />")
+    return svg_line.format(X = x1, Y = y1, C = x2, D = y2)
 }}
 
 ==== svgText() ====
@@ -357,6 +380,24 @@ def svgText(x, y, str_value, str_angle="0"):
             + "," + x + "," + y + ")\">" + str_value + "</text>"
             )
     return svg_line
+}}
+
+La version alternative avec des espaces réservés et {{Incode|.format()}} :La version alternative avec des espaces réservés et {{Incode|.format()}} :
+
+{{Code| |code=
+def svgText(x, y, str_value, str_angle="0"):
+    """
+    Generates an svg-instruction to place a text element with the given values.
+    Optional str_angle enables vertical and arbitrarily rotated texts
+    """
+    if str_angle == "0":
+        svg_line = ("<text x=\"{X}\" y=\"{Y}\">{SV}</text>")
+    else:
+        svg_line = (
+            "<text x=\"{X}\" y=\"{Y}\" transform=\"rotate({SA}," +
+            "{X},{Y})\">{SV}</text>"
+            )
+    return svg_line.format(X = x, Y = y, SV = str_value, SA = str_angle)
 }}
 
 ==== ediText() ====
@@ -385,6 +426,30 @@ def ediText(entry_name, x, y, str_value, str_angle="0"):
             + str_value + "</tspan>  </text>"
             )
     return svg_line
+}}
+
+La version alternative avec des espaces réservés et {{Incode|.format()}} :
+
+{{Code| |code=
+def ediText(entry_name, x, y, str_value, str_angle="0"):
+    """
+    Generates an svg-instruction to place an editable text element with the given values.
+    Optional str_angle enables vertical and arbitrarily rotated editable texts
+    """
+    if str_angle == "0":
+        svg_line = (
+            "<text freecad:editable=\"{EN}\" x=\"{X}\" y=\"{Y}" +
+            "\" fill=\"#00d\"> <tspan>{SV}</tspan> </text>"
+            )
+    else:
+        svg_line = (
+            "<text freecad:editable=\"{N}\" x=\"{X}\" y=\"{Y}" +
+            "\" fill=\"#00d\" transform=\"rotate({SA},{X},{Y})\"> <tspan>" +
+            "{SV}</tspan> </text>"
+            )
+    return svg_line.format(
+        EN = entry_name, X = x, Y = y, SV = str_value, SA = str_angle
+        )
 }}
 
 <span id="createXxxx_functions"></span>
