@@ -112,7 +112,7 @@ We need to have an eye on the number of spaces used with the write operations fo
 Before any code is generated a folder is needed to store the new template file, and a file name has to be set.
 
 The user should have selected a template folder. Its path is then stored in the TechDraw preferences. </br>
-It is not necessary to know where the preferences are store, because FreeCAD has commands to address needed parameters directly.
+It is not necessary to know where the preferences are stored, because FreeCAD has commands to address needed parameters directly.
 
 {{Code| |code=
 def pathToTemplate(template_name):
@@ -313,6 +313,17 @@ def svgRect(width, height, x, y):
 
 The svg instruction is split to stay within the recommended Python line length, it will result in a single svg line nevertheless.
 
+With more Python experience another way to fill in variable content emerged: the built-in {{Incode|.format()}} function in connection with named {{Incode|{name}|}}, indexed {{Incode|{0}|}} , or empty  {{Incode|{}|}} placeholders. Single character names would change the function like this:
+
+{{Code| |code=
+def svgRect(width, height, x, y):
+    # Generates an svg-instruction to draw a rectangle with the given values
+    svg_line = ("<rect width=\"{W}\" height=\"{H}\" x=\"{X}\" y=\"{Y}\" />")
+    return svg_line.format(W = width, H = height, X = x, Y = y)
+}}
+
+(The brackets/parentheses are optional as long as we don't need to split the '''svg_line''' string)
+
 ==== svgPath() ====
 
 To draw a line we just need to call the '''svgPath''' function and hand over the coordinates of the start point and the endpoint of a line.
@@ -329,6 +340,18 @@ def svgPath(x1, y1, x2, y2):
     else:
         svg_line = ("<path d=\"m " + x1 + "," + y1 + " l " + x2 + "," + y2 + "\" />")
     return svg_line
+}}
+
+The alternative version with placeholders and {{Incode|.format()}}:
+
+{{Code| |code=
+def svgPath(x1, y1, x2, y2):
+    # Generates an svg-instruction to draw a path element (line) with the given values
+    if x2 == "v" or x2 == "V" or x2 == "h" or x2 == "H":
+        svg_line = ("<path d=\"m {X},{Y} {C} {D}\" />")
+    else:
+        svg_line = ("<path d=\"m {X},{Y} l {C},{D}\" />")
+    return svg_line.format(X = x1, Y = y1, C = x2, D = y2)
 }}
 
 ==== svgText() ====
@@ -351,6 +374,24 @@ def svgText(x, y, str_value, str_angle="0"):
             + "," + x + "," + y + ")\">" + str_value + "</text>"
             )
     return svg_line
+}}
+
+The alternative version with placeholders and {{Incode|.format()}}:
+
+{{Code| |code=
+def svgText(x, y, str_value, str_angle="0"):
+    """
+    Generates an svg-instruction to place a text element with the given values.
+    Optional str_angle enables vertical and arbitrarily rotated texts
+    """
+    if str_angle == "0":
+        svg_line = ("<text x=\"{X}\" y=\"{Y}\">{SV}</text>")
+    else:
+        svg_line = (
+            "<text x=\"{X}\" y=\"{Y}\" transform=\"rotate({SA}," +
+            "{X},{Y})\">{SV}</text>"
+            )
+    return svg_line.format(X = x, Y = y, SV = str_value, SA = str_angle)
 }}
 
 ==== ediText() ====
@@ -379,6 +420,30 @@ def ediText(entry_name, x, y, str_value, str_angle="0"):
             + str_value + "</tspan>  </text>"
             )
     return svg_line
+}}
+
+The alternative version with placeholders and {{Incode|.format()}}:
+
+{{Code| |code=
+def ediText(entry_name, x, y, str_value, str_angle="0"):
+    """
+    Generates an svg-instruction to place an editable text element with the given values.
+    Optional str_angle enables vertical and arbitrarily rotated editable texts
+    """
+    if str_angle == "0":
+        svg_line = (
+            "<text freecad:editable=\"{EN}\" x=\"{X}\" y=\"{Y}" +
+            "\" fill=\"#00d\"> <tspan>{SV}</tspan> </text>"
+            )
+    else:
+        svg_line = (
+            "<text freecad:editable=\"{N}\" x=\"{X}\" y=\"{Y}" +
+            "\" fill=\"#00d\" transform=\"rotate({SA},{X},{Y})\"> <tspan>" +
+            "{SV}</tspan> </text>"
+            )
+    return svg_line.format(
+        EN = entry_name, X = x, Y = y, SV = str_value, SA = str_angle
+        )
 }}
 
 === createXxxx functions ===
