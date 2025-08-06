@@ -60,6 +60,7 @@ The geometry used for FEM has to be valid. Most importantly, there can't be any 
 
 == Geometry simplification == <!--T:16-->
 
+==== Defeaturing ====
 <!--T:17-->
 Designs prepared in CAD software are typically too detailed to be suitable for FEM simulations. In many cases, it's necessary to simplify them first. This step is often overlooked but it's very important because it can be hard to obtain a good mesh when the part is too detailed and even if such a mesh is obtained eventually, it might be very dense, leading to unreasonable solving times. Thus, one should always look at the design and try to simplify it as much as possible, leaving only those geometric features that may have a significant impact on the results (strength/stiffness) and thus can't be ignored. The following features are typically omitted:
 * small fillets and chamfers,
@@ -84,9 +85,11 @@ The [[Part_Defeaturing|Part Defeaturing]] tool and add-on [[Defeaturing_Workbenc
 <!--T:22-->
 {{Caption|Bracket geometry simplified using only the Part Defeaturing tool}}
 
+==== Replacing parts with boundary conditions ====
 <!--T:23-->
 In the case of assemblies (more about them in one of the next sections), often some parts can be excluded from simulations and replaced with boundary conditions if they were attached to parts being analyzed. Such approach is valid if the excluded parts are significantly stiffer (in terms of structural stiffness so considering not only elasticity of the material but also geometry of the part) than the analyzed parts to which they were connected. That's because fixed boundary conditions introduce rigidity (as if the analyzed part was attached to an infinitely stiff component) and flexible supports like spring elements are not available in the FEM workbench of FreeCAD when using CalculiX (Elmer has [[FEM_ConstraintSpring|FEM ConstraintSpring]]).
 
+==== Utilizing planar symmetry ====
 <!--T:24-->
 Geometry simplification for FEM may also mean cutting it in one of the symmetry planes to make use of the planar symmetry assumption in the analysis. This assumption is valid only when all the following aspects of the model exhibit symmetry in a given plane:
 * geometry,
@@ -104,13 +107,22 @@ Applied force should be properly reduced if the symmetry plane cuts the region t
 <!--T:26-->
 {{Caption|Model of 1/8 of a cylindrical pressure vessel with symmetry boundary conditions and internal pressure load}}
 
+==== Utilizing cyclic symmetry ====
 <!--T:55-->
 Another, less common type of symmetry available in FreeCAD FEM is cyclic symmetry. It can be defined using the [[FEM_ConstraintTie#Cyclic_symmetry|tie constraint]] and makes it possible to analyze only a single representative sector of a structure consisting of such circular patterns around an axis. The assumption is that boundary conditions and loads also exhibit this form of symmetry. Tangential loads can be applied and thus torsion can be simulated this way. However, [[FEM_ConstraintCentrif|centrifugal load]] is commonly used with cyclic symmetry. This approach might be used e.g. for rotors, shafts, turbines, fans and flywheels.
 
 == Geometry partitioning == <!--T:27-->
 
+==== Partitioning basics ====
 <!--T:28-->
-So-called partitioning is a division of the geometry into smaller segments. In other software, it's commonly used to allow hex meshing, but in FreeCAD it can be useful for other reasons too. The main application of partitioning is when a load (or a boundary condition) has to be applied only to a selected region of the part's surface. The easiest way to achieve it for solid parts is to create a sketch with a proper contour on that face and use the [[Part_BooleanFragments|Part Boolean Fragments]] tool to split the face with the sketch. Another reason for partitioning is when multiple materials have to be applied to a single part (without having to use multiple parts connected with each other). Then, partitioning can be done using a [[PartDesign_Plane|datum plane]] and Boolean Fragments tool with the ''Compsolid'' mode. Partitioning can also be used to create regions for [[FEM_MeshRegion|mesh refinement]] or to control the meshing algorithm by forcing it to follow additional edges (particularly useful to control [[FEM_MeshGmshFromShape#Mesh_Growth|Gmsh's mesh growth]]).
+So-called partitioning is a division of the geometry into smaller segments. In other software, it's commonly used to allow hex meshing, but in FreeCAD it can be useful for other reasons too:
+* creating subregions for analysis feature assignments,
+* splitting parts into sections made of different materials,
+* creating regions for [[FEM_MeshRegion|mesh refinement]],
+* controlling the meshing algorithm by forcing it to follow additional edges (particularly useful to control [[FEM_MeshGmshFromShape#Mesh_Growth|Gmsh's mesh growth]]).
+
+==== Partitioning faces of solids with sketches ====
+The main application of partitioning is when a load (or a boundary condition) has to be applied only to a selected region of the part's surface. The easiest way to achieve it for solid parts is to create a sketch with a proper contour on that face and use the [[Part_BooleanFragments|Part Boolean Fragments]] tool to split the face with the sketch.
 
 </translate>
 [[Image:FEM_partition.JPG|400px]]
@@ -118,8 +130,12 @@ So-called partitioning is a division of the geometry into smaller segments. In o
 <!--T:30-->
 {{Caption|Part with a face partition for load or boundary condition application}}
 
+==== Partitioning volumes of solids with datum planes ====
+Another reason for partitioning is when multiple materials have to be applied to a single part (without having to use multiple parts connected with each other). Then, partitioning can be done using a [[PartDesign_Plane|datum plane]] and Boolean Fragments tool with the ''Compsolid'' mode.
+
+==== Partitioning surface geometries with sketches ====
 <!--T:64-->
-In the case of surface (shell) geometries, the easiest way to make a sketch-based partition is to use the [[Part_BooleanFragments|Boolean Fragments]] tool (like for the partitions on the faces of solids). However, as explained [https://forum.freecad.org/viewtopic.php?t=96029#p820241 here], when mesh group creation is enabled in the [[FEM_Preferences#General|FEM preferences]], it may not work properly and the following approach should be used:
+In the case of surface (shell) geometries, the easiest way to make a sketch-based partition could be to use the [[Part_BooleanFragments|Boolean Fragments]] tool (like for the partitions on the faces of solids). However, as explained [https://forum.freecad.org/viewtopic.php?t=96029#p820241 here], when mesh group creation is enabled in the [[FEM_Preferences#General|FEM preferences]], it may not work properly and the following approach should be used:
 # Create a face for one side using e.g. the [[Part_MakeFace|Part MakeFace]] tool (e.g. a square plate with a circular hole).
 # Create a face for the other side in an equivalent way (e.g. a circular face filling the hole in the square plate).
 # Apply the [[Part_Builder|Part Builder]] tool with the ''Shell from faces'' mode and disabled ''Refine shape'' checkbox to the previously created faces.
@@ -130,6 +146,7 @@ In the case of surface (shell) geometries, the easiest way to make a sketch-base
 <!--T:65-->
 {{Caption|Square plate with a circular face partition}}
 
+==== Partitioning faces of solids with datum planes ====
 <!--T:66-->
 Partitioning only the selected faces of a solid using datum planes instead of sketches without splitting the whole volume is also tricky. One possible approach is to:
 # [[Draft_Downgrade|Downgrade]] the body to faces.
