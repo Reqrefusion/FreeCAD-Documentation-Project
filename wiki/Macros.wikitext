@@ -1,99 +1,87 @@
-<languages/>
-<translate>
+import FreeCAD as App
+import Part
+from FreeCAD import Base
 
-<!--T:19-->
-{{Docnav
-|[[Scripting_and_macros|Scripting and macros]]
-|[[Scripts|Scripts]]
-}}
+doc = App.newDocument("Channel_Block")
 
-</translate>
-{{TOCright}}
-<translate>
+# 创建基础长方体
+length = 300
+width = 110
+height = 60
+block = Part.makeBox(length, width, height)
+block_obj = doc.addObject("Part::Feature", "Block")
+block_obj.Shape = block
 
-== Introduction == <!--T:16-->
+# 函数：创建半圆柱（向下凹，沿指定轴）
+def create_half_cylinder(radius, length, pos, direction):
+    # 创建半圆旋转体
+    sketch = doc.addObject('Part::Part2DObject', 'Sketch')
+    sketch.Support = None
+    sketch.MapMode = 'FlatFace'
+    
+    # 在草图中画一个矩形（3x3）
+    sketch.addGeometry(Part.LineSegment(App.Vector(0,0,0), App.Vector(radius,0,0)), False)
+    sketch.addGeometry(Part.LineSegment(App.Vector(radius,0,0), App.Vector(radius,radius,0)), False)
+    sketch.addGeometry(Part.LineSegment(App.Vector(radius,radius,0), App.Vector(0,radius,0)), False)
+    sketch.addGeometry(Part.LineSegment(App.Vector(0,radius,0), App.Vector(0,0,0)), False)
+    
+    # 拉伸并旋转成半圆柱
+    # 更简单：直接用旋转
+    wire = Part.Wire([
+        Part.makeLine((0,0,0), (radius,0,0)),
+        Part.makeLine((radius,0,0), (radius,radius,0)),
+        Part.makeLine((radius,radius,0), (0,radius,0)),
+        Part.makeLine((0,radius,0), (0,0,0))
+    ])
+    face = Part.Face(wire)
+    solid = face.revolve(Base.Vector(0,0,0), Base.Vector(*direction), 180)
+    solid.translate(pos)
+    return solid
 
-<!--T:1-->
-[[Macros|Macros]] are a convenient way to reproduce complex actions in FreeCAD. You simply record actions as you do them, then save those actions under a name, and replay them whenever you want. Since macros are in reality a list of [[Python|Python]] commands, you can also edit them, and create very complex scripts.
+# 创建X方向槽（沿X，Y阵列）
+x_slots = []
+for i in range(14):  # Y方向每隔8mm
+    y_pos = i * 8
+    pos = Base.Vector(0, y_pos, height - 3)  # Z=57
+    cyl = Part.makeCylinder(3, 300, pos, Base.Vector(1,0,0))
+    # 用长方体切掉上半部分，保留下半（Z ≤ 57+3）
+    box = Part.makeBox(302, 6, 3, Base.Vector(-1, y_pos-3, height-3))
+    half_cyl = cyl.common(box)  # 交集 → 下半圆柱
+    x_slots.append(half_cyl)
 
-<!--T:17-->
-While Python scripts normally have the {{incode|.py}} extension, FreeCAD macros should have the {{incode|.FCMacro}} extension. A collection of macros written by experienced users is found in the [[Macros_recipes|macros recipes]] page.
+x_slot_union = x_slots[0]
+for s in x_slots[1:]:
+    x_slot_union = x_slot_union.fuse(s)
 
-<!--T:18-->
-See the [[Power_users_hub|Power users hub]] to learn more about the [[Python|Python]] programming language, and about writing macros. In particular, you should start with these pages:
-* [[Introduction_to_Python|Introduction to Python]]
-* [[Python_scripting_tutorial|Python scripting tutorial]]
-* [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]]
+x_slot_obj = doc.addObject("Part::Feature", "X_Slots")
+x_slot_obj.Shape = x_slot_union
 
-== How it works == <!--T:2-->
+# 创建Y方向槽（沿Y，X阵列）
+y_slots = []
+for i in range(16):  # X方向每隔20mm
+    x_pos = i * 20
+    pos = Base.Vector(x_pos, 0, height - 3)
+    cyl = Part.makeCylinder(3, 110, pos, Base.Vector(0,1,0))
+    box = Part.makeBox(6, 112, 3, Base.Vector(x_pos-3, -1, height-3))
+    half_cyl = cyl.common(box)
+    y_slots.append(half_cyl)
 
-<!--T:23-->
-Enable the console output in the menu {{MenuCommand|Edit → Preferences → Python → Macro → Show scripts commands in python console}}. You will see that in FreeCAD, every action you do, such as pressing a button, outputs a Python command. Those commands are what can be recorded in a macro. The main tool for making macros is the macros toolbar: [[Image:Macros_toolbar.jpg]]. On it you have 4 buttons: Record, stop recording, edit and play the current macro.
+y_slot_union = y_slots[0]
+for s in y_slots[1:]:
+    y_slot_union = y_slot_union.fuse(s)
 
-<!--T:3-->
-It is very simple to use: Press the record button, you will be asked to give a name to your macro, then perform some actions. When you are done, click the stop recording button, and your actions will be saved. You can now access the macro dialog with the edit button.
+y_slot_obj = doc.addObject("Part::Feature", "Y_Slots")
+y_slot_obj.Shape = y_slot_union
 
-<!--T:4-->
-[[Image:Macros.png]]
-{{Caption|Macro dialog, listing the macros available in the system}}
+# 合并所有凹槽
+slots_union = x_slot_union.fuse(y_slot_union)
+slots_obj = doc.addObject("Part::Feature", "All_Slots")
+slots_obj.Shape = slots_union
 
-<!--T:5-->
-There you can manage your macros, delete, edit, duplicate, install or create new ones from scratch. If you edit a macro, it will be opened in an editor window where you can make changes to its code.  New macros can be installed using the {{button|Addons...}} button, which links to the [[Std_AddonMgr|Addon Manager]].
+# 从块体中切割
+cut = doc.addObject("Part::Cut", "Final_Block")
+cut.Base = block_obj
+cut.Tool = slots_obj
 
-== Example == <!--T:6-->
-
-<!--T:24-->
-Press the record button, give a name, let's say "cylinder 10x10", then, in the [[Part_Workbench|Part Workbench]], create a cylinder with radius = 10 and height = 10. Then, press the "stop recording" button. In the edit macros dialog, you can see the python code that has been recorded, and, if you want, make alterations to it. To execute your macro, simply press the execute button on the toolbar while your macro is in the editor. You macro is always saved to disk, so any change you make, or any new macro you create, will always be available next time you start FreeCAD.
-
-== Customizing == <!--T:7-->
-
-<!--T:25-->
-Of course it is not practical to load a macro in the editor in order to use it. FreeCAD provides much better ways to use your macro, such as assigning a keyboard shortcut to it or putting an entry in the menu. Once your macro is created, all this can be done via the {{MenuCommand|Tools → Customize}} menu.
-
-<!--T:8-->
-[[Image:Macros config.jpg]]
-
-<!--T:9-->
-This way you can make your macro become a real tool, just like any standard FreeCAD tool. This, added to the power of python scripting within FreeCAD, makes it possible to easily add your own tools to the interface.
-
-<!--T:26-->
-See [[Customize_Toolbars|Customize Toolbars]] for a more detailed description.
-
-== Creating macros without recording == <!--T:10-->
-
-<!--T:27-->
-You can also directly copy/paste python code into a macro, without recording GUI action. Simply create a new macro, edit it, and paste your code. You can then save your macro the same way as you save a FreeCAD document. Next time you start FreeCAD, the macro will appear under the "Installed Macros" item of the Macro menu.
-
-<!--T:28-->
-See [[How_to_install_macros|How to install macros]] for a more detailed description.
-
-== Macro repositories == <!--T:11-->
-
-<!--T:29-->
-There are two main places for macros. The first one is the official peer-reviewed macro repository on [https://github.com/FreeCAD/FreeCAD-macros GitHub]. The second one is the [[Macros_recipes|Macros recipes]] page from which you can pick some useful macros to add to your FreeCAD installation. Macros from both repositories can be installed via the [[Std_AddonMgr|Addon Manager]] directly from FreeCAD.
-
-== Additional information == <!--T:13-->
-
-<!--T:30-->
-* [[Macro_at_Startup|Automatically run macro at startup]]
-* [[Installing_more_workbenches|Installing more workbenches]]
-
-== Tutorials == <!--T:14-->
-
-<!--T:31-->
-You can manually install extensions, however, it is much simpler to just use the [[Std_AddonMgr|Addon Manager]].
-* [[How_to_install_macros|How to install macros]]
-* [[How_to_install_additional_workbenches|How to install additional workbenches]]
-
-
-<!--T:12-->
-{{Docnav
-|[[Scripting_and_macros|Scripting and macros]]
-|[[Scripts|Scripts]]
-}}
-
-</translate>
-{{Powerdocnavi{{#translation:}}}}
-[[Category:Developer Documentation{{#translation:}}]]
-[[Category:Python Code{{#translation:}}]]
-[[Category:Macros{{#translation:}}]]
+doc.recompute()
+App.ActiveDocument.recompute()
