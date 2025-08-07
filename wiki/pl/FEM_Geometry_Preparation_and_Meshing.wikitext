@@ -47,8 +47,33 @@ Należy pamiętać, że elementy belkowe, powłokowe, płaskiego stanu napręże
 
 Geometria używana w analizach MES musi być poprawna. Przede wszystkim, nie mogą występować żadne przenikania. Jest to częsty problem, zwykle występujący gdy złożenia są modelowane bez odpowiednich połączeń między częściami. Narzędzie [[Part_SectionCut/pl|Część: Wycinek z przekroju]] może pomóc w znalezieniu takich przenikań między częściami. Oczywiście narzędzie [[Part_Fuse/pl|Część: Połączenie]] może pomóc je naprawić jeśli są celowe. Inne problemy z geometrią ''(takie jak geometrie typu non-manifold, zbędne krawędzie i ściany itp.)'' również muszą być naprawione przed przystąpieniem do tworzenia siatki. Narzędzie [[Part_CheckGeometry/pl|Część: Sprawdź geometrię]] może być pomocne, ale istotna jest też wizualna ocena. Przy przygotowywaniu symulacji z użyciem elementów bryłowych, w razie wątpliwości czy część faktycznie jest bryłą czy tylko zamkniętą powłoką, wyżej wymienione narzędzia ''(Część: Wycinek z przekroju i zakładka ''Zawartość kształtu'' w wynikach narzędzia Część: Sprawdź geometrię)'' mogą rozwiać te wątpliwości.
 
+<span id="Surface_normals"></span>
+== Kierunki normalne powierzchni ==
+
+W przypadku geometrii powierzchniowych używanych do analiz z elementami powłokowymi i 2D, kierunki normalne powierzchni mogą być istotne. Są stosowane do rozróżnienia dodatniej i ujemnej strony powierzchniowej siatki elementów skończonych i wpływają na cechy analizy, takie jak obciążenia ciśnieniem i kontakt. Ponadto, analizy 2D (płaskiego stanu naprężeń/odkształceń i osiowosymetryczne) z solverem CalculiX wymagają kierunków normalnych zwróconych w dodatnią stronę osi Z. Gdy są one odwrócone, pojawiają się błędy o ujemnych jakobianach.
+
+Aby sprawdzić kierunki normalne, użyj jednego z następujących podejść:
+* włącz Światło podświetlenia w [[Preferences_Editor/pl|Preferencjach]] i ustaw właściwość {{PropertyView|Lighting}} obiektu powierzchniowego na ''One side'' - ujemny kierunek normalny będzie po ciemniejszej stronie,
+* użyj [[Macro_Normal_Vector/pl|makra Normal Vector]],
+* utwórz siatkę dla kształtu powierzchniowego w środowisku pracy MES - siatka będzie pokolorowana tylko od strony dodatniego kierunku normalnego.
+
+Aby odwrócić kierunki normalne, użyj narzędzia [[Part_ReverseShape/pl|Odwróć kształty]].
+
+<span id="Using_surface_meshes_for_FEM"></span>
+== Używanie siatek powierzchniowych w MES ==
+
+[[Mesh_MeshObject/pl|Siatki powierzchniowe]], zwykle importowane z plików STL, OBJ i podobnych formatów lub tworzone w [[Mesh_Workbench/pl|środowisku pracy Siatka]] nie mogą być bezpośrednio używane w środowisku pracy MES. Należy najpierw [[Part_ShapeFromMesh/pl|utwórzyć kształt z siatki]]. Następnie dla tego kształtu w środowisku pracy MES można utworzyć powierzchniową (powłokową / dwuwymiarową) siatkę elementów skończonych. Jeśli potrzebna jest bryłowa (trójwymiarowa) siatka elementów skończonych, po utworzeniu kształtu należy przeprowadzić [[Part_MakeSolid/pl|konwersję do bryły]].
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The biggest issue with shapes created from surface meshes is that all their triangles become the faces of the generated shape. In FEM, this makes the assignment of analysis features (such as loads and boundary conditions) particularly problematic. In the case of planar surfaces, [[Part_RefineShape|refinement]] after conversion to a solid may remove the redundant triangular faces. In practical scenarios, most will remain though and because of that, surface meshes are not recommended for use in FEM. CAD geometries (created in FreeCAD or imported from STEP/IGES files) should be used instead. Sometimes it may even make sense to recreate the geometry based on the surface mesh.
+</div>
+
 <span id="Geometry_simplification"></span>
 == Upraszczanie geometrii ==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Defeaturing ===
+</div>
 
 Projekty przygotowane w programach CAD często są zbyt szczegółowe żeby nadawały się do analiz MES. W wielu przypadkach konieczne jest najpierw ich uproszczenie. Ten krok jest często pomijany a jest bardzo istotny, ponieważ może być trudno uzyskać dobrą siatkę jeśli część jest zbyt szczegółowa a nawet jeśli uda się w końcu uzyskać taką siatkę, to może być bardzo gęsta, prowadząc do przesadnie długiego czasu rozwiązywania. Zatem należy zawsze przyjrzeć się projektowi i postarać się go uprościć tak bardzo jak to możliwe, zostawiając tylko te cechy geometrii, które mogą mieć istotny wpływ na wyniki ''(wytrzymałość / sztywność)'', więc nie można ich pominąć. Następujące cechy zwykle są pomijane:
 * małe zaokrąglenia i sfazowania,
@@ -66,7 +91,15 @@ Narzędzie [[Part_Defeaturing/pl|Część: Usuwanie cech]] i dodatkowe [[Defeatu
 [[Image:FEM_bracket_simplified.PNG|400px]]
 {{Caption|Geometria kątownika uproszczona przy pomocy samego narzędzia Część: Usuwanie cech}}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Replacing parts with boundary conditions ===
+</div>
+
 W przypadku złożeń ''(więcej o nich w jednej z kolejnych sekcji)'', często niektóre części można wykluczyć z symulacji i zastąpić warunkami brzegowymi jeśli były one połączone z częściami podlegającymi analizie. Takie podejście jest prawidłowe jeśli wykluczone części są znacznie sztywniejsze (w rozumieniu sztywności strukturalnej, więc biorąc pod uwagę nie tylko materiał, ale też geometrię części) niż analizowane części, z którymi były połączone. Jest tak dlatego, że warunki brzegowe blokady przemieszczeń wprowadzają sztywność (jakby analizowana część była połączona z nieskończenie sztywnym komponentem) a podpory sprężyste, takie jak elementy typu sprężyna, nie są dostępne w środowisku pracy MES programu FreeCAD w przypadku korzystania z solvera CalculiX (Elmer ma zaimplementowane [[FEM_ConstraintSpring/pl|sprężyny]]).
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Utilizing planar symmetry ===
+</div>
 
 Upraszczanie geometrii do analiz MES może też oznaczać jej cięcie w jednej z płaszczyzn symetrii aby skorzystać z założenia symetrii planarnej w symulacji. Jest ono prawidłowe tylko gdy wszystkie poniższe aspekty modelu wykazują symetrię w danej płaszczyźnie:
 * geometria,
@@ -81,25 +114,60 @@ Przyłożoną siłę należy odpowiednio zredukować jeśli płaszczyzna symetri
 [[Image:FEM_symmetric_vessel.JPG|400px]]
 {{Caption|Model 1/8 zbiornika cylindrycznego z warunkami brzegowymi symetrii i ciśnieniem wewnętrznym}}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Utilizing cyclic symmetry ===
+</div>
+
 Innym, rzadziej stosowanym typem symetrii dostępnym w środowisku pracy MES jest symetria cykliczna. Można ją zdefiniować przy pomocy [[FEM_ConstraintTie/pl#Symetria_cykliczna|więzu tie]] i umożliwia analizowanie reprezentatywnego sektora konstrukcji składającej się z takiego szyku kołowego wokół osi. Zakłada się, że warunki brzegowe i obciążenia również wykazują ten typ symetrii. Można zadawać obciążenia styczne, więc da się w ten sposób symulować skręcanie. Jednak z symetrią cykliczną często używane jest [[FEM_ConstraintCentrif/pl|obciążenie siłą odśrodkową]]. To podejście można stosować m.in. dla wirników, wałów, turbin, wiatraków czy kół zamachowych.
 
 <span id="Geometry_partitioning"></span>
 == Partycjonowanie geometrii ==
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Partitioning basics ===
+</div>
+
+<div class="mw-translate-fuzzy">
 Tak zwane partycjonowanie to podział geometrii na mniejsze segmenty. W innych programach jest to powszechnie używane aby umożliwić tworzenie siatek złożonych z elementów sześciościennych, ale we FreeCAD może być przydatne z innych powodów. Głównym zastosowaniem partycjonowania są przypadki gdy obciążenie ''(lub warunek brzegowy)'' trzeba przyłożyć tylko do wybranego obszaru na powierzchni części. Najłatwiejszym sposobem aby to osiągnąć dla części bryłowych jest utworzenie szkicu z odpowiednim konturem na ścianie i użycie narzędzia [[Part_BooleanFragments/pl|Część: Fragmentacja funkcją logiczną]] aby podzielić ścianę przy pomocy szkicu. Innym powodem partycjonowania może być przypadek gdy na jedną część trzeba nałożyć wiele materiałów ''(bez używania wielu części połączonych ze sobą)''. Wtedy partycjonowania można dokonać przy pomocy [[PartDesign_Plane/pl|płaszczyzny odniesienia]] i narzędzia Fragmentacja funkcją logiczną z trybem ''Compsolid'' ''(bryła złożona)''. Partycjonowanie jest też wykorzystywane do tworzenia obszarów dla [[FEM_MeshRegion/pl|zagęszczenia siatki]] lub do kontrolowania algorytmu generowania siatki poprzez zmuszenie go do uwzględnienia dodatkowych krawędzi (jest to szczególnie przydatne do kontroli [[FEM_MeshGmshFromShape/pl#Wzrost_siatki|wzrostu siatki Gmsh]]).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Partitioning faces of solids with sketches ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The main application of partitioning is when a load (or a boundary condition) has to be applied only to a selected region of the part's surface. The easiest way to achieve it for solid parts is to create a sketch with a proper contour on that face and use the [[Part_BooleanFragments|Part Boolean Fragments]] tool to split the face with the sketch.
+</div>
 
 [[Image:FEM_partition.JPG|400px]]
 {{Caption|Część ze ścianą podzieloną do zadania obciążenia lub warunku brzegowego}}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Partitioning volumes of solids with datum planes ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Another reason for partitioning is when multiple materials have to be applied to a single part (without having to use multiple parts connected with each other). Then, partitioning can be done using a [[PartDesign_Plane|datum plane]] and Boolean Fragments tool with the ''Compsolid'' mode.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Partitioning surface geometries with sketches ===
+</div>
+
+<div class="mw-translate-fuzzy">
 W przypadku geometrii powierzchniowych (powłokowych), najłatwiejszym sposobem utworzenia partycji w oparciu o szkic jest użycie narzędzia [[Part_BooleanFragments/pl|Fragmentacja funkcją logiczną]] (jak w przypadku partycji ścian brył). Ale, jak wyjaśniono [https://forum.freecad.org/viewtopic.php?t=96029#p820241 tutaj], jeśli w [[FEM_Preferences/pl#Ogólne|preferencjach MES]] włączone jest tworzenie grup siatki, może to nie zadziałać prawidłowo i powinno się skorzystać z następującego podejścia:
 # Utwórz ścianę dla jednej strony przy pomocy np. narzędzia [[Part_MakeFace/pl|Utwórz ścianę z polilinii]] (np. kwadratowa płytka z okrągłym otworem).
 # Utwórz ścianę dla drugiej strony w analogiczny sposób (np. okrągła ścian wypełniająca otwór w kwadratowej płytce).
 # Zastosuj narzędzie [[Part_Builder/pl|Konstruktor kształtu]] z trybem ''Powłoka ze ścian'' i odznaczonym polem ''Udoskonal kształt'' na utworzonych wcześniej ścianach.
+</div>
 
 [[Image:FEM_shell_partition.JPG|400px]]
 {{Caption|Kwadratowa płytka z okrągłą partycją ściany}}
 
-<div class="mw-translate-fuzzy">
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Partitioning faces of solids with datum planes ===
+</div>
+
 Partycjonowanie tylko wybranych ścian bryły przy pomocy płaszczyzn konstrukcyjnych zamiast szkiców bez dzielenia całej objętości również jest utrudnione. Jedno z możliwych podejść to:
 # [[Draft_Downgrade/pl|Rozbij kształt]] bryły na ściany.
 # Wybierz ścianę do podziału i płaszczyznę konstrukcyjną i użyj narzędzia [[Part_SliceApart/pl|Rozetnij]].
@@ -113,7 +181,6 @@ Inne podejście to:
 # Utwórz nowy łącznik kształtu obiektu podrzędnego z krawędzi uzyskanych z przecięcia poprzedniego łącznika kształtu obiektu podrzędnego płaszczyzną konstrukcyjną.
 # Wybierz oryginalną Zawartość i nowy łącznik kształtu obiektu podrzędnego i użyj narzędzia [[Part_BooleanFragments/pl|Fragmentacja funkcją logiczną]].
 Inne pomysły można znaleźć w [https://forum.freecad.org/viewtopic.php?t=98528 tym wątku na forum], ale są mniej uniwersalne.
-</div>
 
 [[Image:FEM_split_face_solid.JPG|400px]]
 {{Caption|Cylindryczna ściana otworu podzielona płaszczyzną aby zadać obciążenie od sworznia rozłożone na 180°}}
@@ -155,15 +222,23 @@ obejmują:
 Takie błędy są wywołane brakującymi lub nakładającymi się definicjami materiałów w niektórych elementach. [https://forum.freecad.org/viewtopic.php?t=97120&start=50#p829295 Ten post na forum] wymienia źródła, które pokazują to w czytelny sposób a sam wątek, z którego pochodzi ten post, może również być przydatny w przypadku napotkania podobnych błędów.
 
 <span id="Selection_of_interior_entities"></span>
+<div class="mw-translate-fuzzy">
 ==== Wybieranie wewnętrznych obiektów ====
+</div>
 
+<div class="mw-translate-fuzzy">
 Wskazywanie wewnętrznych obszarów ''(ścian / objętości)'' bywa problematyczne. Może być konieczne do zdefiniowania różnych materiałów, obciążeń objętościowych lub warunków brzegowych ''(zwłaszcza w analizach termicznych i elektromagnetycznych)''. Istnieje kilka sposobów:
 * włączenie [[Std_ToggleClipPlane/pl|płaszczyzny tnącej]] na czas dokonywania wskazania i wybranie wewnętrznych ścian,
 * schowanie obiektu boolowskiego, zostawiając pokazaną tylko jedną z części, na których został on zastosowany i wybranie jej,
 * wybranie innego, zewnętrznego obiektu i edycja właściwości ''References'' w zakładce ''Dane'' określonej cechy analizy ''(wymaga ręcznego podania numeru obiektu geometrycznego)''.
+</div>
 
 <span id="Meshing_basics"></span>
 == Podstawy tworzenia siatek ==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Choosing element size ===
+</div>
 
 Zbyt rzadka siatka to jedno z najczęstszych źródeł niedokładności i innych problemów w MES. Często jest to po części wina automatycznych ustawień generatorów siatek - zwykle tworzą bardzo rzadkie, nienadające się do analizy siatki gdy rozmiar elementu nie jest ręcznie podany tylko zostawiony z domyślną wartością. Należy zawsze znać przybliżone rozmiary części, zwłaszcza rozmiar najmniejszej istotnej cechy ''(może w tym pomóc narzędzie [[Std_Measure/pl|Pomiary]])'' i wprowadzać odpowiedni maksymalny rozmiar elementu w oparciu o to. Dostępne jest też ustawienie minimalnego rozmiaru elementu, które zapobiega powstawaniu zbyt drobnych elementów wokół małych cech geometrii, co może prowadzić do niepotrzebnie gęstych siatek ''(a czasem nawet crashy i zawieszania się programu FreeeCAD podczas prób generowania takich siatek)''. Ogólnie rzecz biorąc, lepiej zacząć od rzadszej siatki ''(generowanej szybciej)'', zobaczyć jak wygląda ''(potrzeba pewnego doświadczenia)'' i zagęścić ją w razie potrzeby. Często sens ma użycie gęstej siatki tylko w pobliżu obszarów zainteresowania ''(miejsc z dużymi gradientami / koncentracjami naprężeń - karby)'' i względnie rzadkiej siatki z dala od nich. Dzięki temu liczba elementów jest znacząco redukowana, co prowadzi do krótszego czasu obliczeń. Lokalnego zagęszczenia siatki można dokonać przy pomocy narzędzia [[FEM_MeshRegion/pl|MES: Obszar siatki]].
 
@@ -176,7 +251,15 @@ Zbyt rzadka siatka to jedno z najczęstszych źródeł niedokładności i innych
 [[Image:FEM_locally_refined_mesh.PNG|400px]]
 {{Caption|Lokalnie zagęszczona siatka}}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Choosing element type ===
+</div>
+
 Wybór typu elementów skończonych nie jest łatwy i zależy od wielu czynników, ale ogólną zasadą jest to, że preferowane są elementy sześciościenne i czworokątne w stosunku do czworościennych i trójkątnych. Jednak skomplikowane geometrie nie mogą być dyskretyzowane przy pomocy elementów sześciościennych a FreeCAD nie potrafi ich porządnie generować ''(tylko przy pomocy algorytmu Subdivision generatora Gmsh, ale jego wyniki nie są tym, czego można by oczekiwać od siatki z elementami sześciościennymi)''. Siatki złożone z elementów czworokątnych lub z dominującymi elementami tego typu można normalnie generować na powierzchniach - zobacz [https://forum.freecad.org/viewtopic.php?t=20351 ten wątek na forum]. Elementy sześciościenne można zaimportować z zewnętrznych generatorów takich jak [https://gmsh.info Gmsh]  i wykorzystać w środowisku pracy MES, co pokazano w [https://www.youtube.com/watch?v=vylt24G7qj4&t=932s tym filmiku].
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Choosing element order ===
+</div>
 
 Wybór rzędu elementów ''(pierwszy lub drugi)'' zależy od warunków analizy, ale w większości przypadków preferowane są elementy drugiego rzędu. Jest tak zwłaszcza w przypadku elementów trójkątnych i czworokątnych - ich wersje pierwszego rzędu ''(liniowe)'' nie powinny być normalnie używane - zaleca się korzystanie z nich tylko jak z wypełniaczy w mało istotnych obszarach. Jednak ponieważ FreeCAD nie może porządnie generować elementów sześciościennych to można korzystać z liniowych czworościanów w niektórych przypadkach jeśli siatki są wystarczająco gęste. Dotyczy to zwłaszcza analiz z [[FEM_ConstraintContact/pl|kontaktem]].
 
@@ -218,6 +301,7 @@ Typowe sposoby radzenia sobie z osobliwościami naprężeń to:
 - przemieszczenia ''('''zielona krzywa''')'' zbiegają się szybko,<br>
 - maksymalne naprężenia w karbie takim jak otwór ''('''niebieska krzywa''')'' potrzebują więcej iteracji zagęszczania siatki aby się zbiegać,<br>
 - maksymalne naprężenia w ostrym narożniku z warunkiem brzegowym utwierdzenia ''('''czerwona krzywa''')'' nie zbiegają się w ogóle - występuje osobliwość naprężeń i potrzebne jest małe zaokrąglenie i zamodelowanie połączenia w bardziej realistyczny, podatny sposób aby uniknąć tego zjawiska.<br>}}
+
 
 {{FEM Tools navi{{#translation:}}}}
 {{Userdocnavi{{#translation:}}}}
