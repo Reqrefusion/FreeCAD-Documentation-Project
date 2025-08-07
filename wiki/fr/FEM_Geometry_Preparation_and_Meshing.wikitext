@@ -47,8 +47,30 @@ Il convient de rappeler que les éléments poutre, coque, contrainte/déformatio
 
 La géométrie utilisée pour la simulation par éléments finis doit être valide. Plus important encore, il ne doit pas y avoir d'intersections. Il s'agit d'un problème courant qui survient souvent lorsque des assemblages sont modélisés sans contraintes appropriées entre les pièces. L'outil [[Part_SectionCut/fr|Part Coupe persistante]] peut aider à trouver de telles interférences entre les pièces. Bien entendu, l'outil [[Part_Fuse/fr|Part Union]] peut aider à les résoudre si elles sont intentionnelles. D'autres problèmes liés à la géométrie (tels que les géométries non pliantes, les arêtes ou faces redondantes, etc.) doivent également être résolus avant de procéder au maillage. L'outil [[Part_CheckGeometry/fr|Part Vérifier la géométrie]] peut être utile, mais les contrôles visuels sont également importants. Lors de la préparation d'une simulation utilisant des éléments solides et en cas de doute quant à savoir si la pièce est réellement solide ou s'il s'agit simplement d'une coque fermée, les outils susmentionnés (Part Coupe persistante et l'onglet ''Contenu de la forme'' de Part Vérifier la géométrie) peuvent permettre de clarifier la situation.
 
+<span id="Surface_normals"></span>
+== Normales de surface ==
+
+Dans le cas des géométries de surface utilisées pour les analyses avec des éléments coques et 2D, les directions normales des surfaces peuvent être importantes. Elles sont utilisées pour distinguer les côtés positif et négatif d'un maillage d'éléments finis de surface et affectent les fonctions d'analyse telles que les charges de pression et le contact. De plus, les analyses 2D (contrainte/déformation plane et axisymétrique) avec CalculiX nécessitent que les normales pointent dans la direction Z positive. Si elles sont inversées, des erreurs jacobiennes négatives se produiront.
+
+Pour vérifier les normales, utilisez l'une des approches suivantes :
+* activez le rétroéclairage dans le [[Preferences_Editor/fr|réglage des préférences]] et définissez la propriété {{PropertyView|Lighting}} de l'objet surface sur « One side » (Un côté) : la direction normale négative apparaîtra plus sombre,
+* utilisez la [[Macro_Normal_Vector/fr|macro Normal Vector]],
+* maillez la forme de la surface dans FEM : le maillage ne sera coloré que du côté normal positif.
+
+Pour inverser les normales, utilisez l'outil [[Part_ReverseShape/fr|Part Inverser la forme]].
+
+<span id="Using_surface_meshes_for_FEM"></span>
+== Utilisation de maillages de surface dans l'atelier FEM ==
+
+Les maillages de surface, généralement importés à partir de fichiers STL, OBJ et similaires ou créés dans l'atelier Mesh, ne peuvent pas être utilisés directement dans l'atelier FEM. Il est nécessaire de créer d'abord une forme à partir du maillage. Cette forme peut ensuite être maillée dans l'atelier FEM afin de créer un maillage d'éléments finis de surface (coque / 2D). Si un maillage d'éléments finis solide (3D) est nécessaire, la création de la forme doit être suivie d'une [[Part_MakeSolid/fr|conversion en solide]].
+
+Le principal problème avec les formes créées à partir de maillages de surface est que tous leurs triangles deviennent les faces de la forme générée. Dans l'atelier FEM, cela rend l'attribution des fonctions d'analyse (telles que les charges et les conditions aux limites) particulièrement problématique. Dans le cas de surfaces planes, l'[[Part_RefineShape/fr|affinement]] après conversion en solide peut supprimer les faces triangulaires redondantes. Dans la pratique, la plupart resteront toutefois en place et, pour cette raison, les maillages de surface ne sont pas recommandés pour une utilisation dans l'atelier FEM. Il convient plutôt d'utiliser des géométries de CAO (créées dans FreeCAD ou importées à partir de fichiers STEP/IGES). Il peut parfois même être judicieux de recréer la géométrie à partir du maillage de surface.
+
 <span id="Geometry_simplification"></span>
 == Simplification de la géométrie ==
+
+<span id="Defeaturing"></span>
+=== Simplification ===
 
 Les designs préparés dans les logiciels de CAO sont généralement trop détaillés pour être adaptées aux simulations par éléments finis. Dans de nombreux cas, il est nécessaire de les simplifier au préalable. Cette étape est souvent négligée, mais elle est très importante car il peut être difficile d'obtenir un bon maillage lorsque la pièce est trop détaillée et même si un tel maillage est finalement obtenu, il peut être très dense, ce qui entraîne des temps de résolution déraisonnables. Il faut donc toujours examiner la conception et essayer de la simplifier autant que possible, en ne laissant que les caractéristiques géométriques qui peuvent avoir un impact significatif sur les résultats (résistance/rigidité) et qui ne peuvent donc pas être ignorées. Les caractéristiques suivantes sont généralement omises
 * les petits congés et chanfreins,
@@ -66,7 +88,13 @@ L'outil [[Part_Defeaturing/fr|Part Supprimer la fonction]] et l'[[Defeaturing_Wo
 [[Image:FEM_bracket_simplified.PNG|400px]]
 {{Caption|Géométrie du support simplifiée en utilisant uniquement l'outil Part Supprimer la fonctionnalité}}
 
+<span id="Replacing_parts_with_boundary_conditions"></span>
+=== Remplacer des pièces par des conditions aux limites ===
+
 Dans le cas des assemblages (plus d'informations à ce sujet dans l'une des sections suivantes), certaines pièces peuvent souvent être exclues des simulations et remplacées par des conditions aux limites comme si elles étaient attachées aux pièces à analyser. Cette approche est valable si les pièces exclues sont significativement plus rigides (en termes de rigidité structurelle, en tenant compte non seulement de l'élasticité du matériau mais aussi de la géométrie de la pièce) que les pièces à analyser auxquelles elles étaient connectées. En effet, les conditions aux limites fixes introduisent de la rigidité (comme si la pièce analysée était attachée à un composant infiniment rigide) et les supports flexibles comme les éléments ressorts ne sont pas disponibles dans l'atelier FEM de FreeCAD lorsque l'on utilise CalculiX (Elmer a un [[FEM_ConstraintSpring/fr|FEM Ressort]]).
+
+<span id="Utilizing_planar_symmetry"></span>
+=== Utiliser la symétrie selon un plan ===
 
 La simplification de la géométrie pour la simulation par éléments finis peut également impliquer de la couper dans l'un des plans de symétrie afin d'utiliser l'hypothèse de symétrie plane dans l'analyse. Cette hypothèse n'est valable que lorsque tous les aspects suivants du modèle présentent une symétrie dans un plan donné :
 * géométrie,
@@ -81,23 +109,49 @@ La force appliquée doit être correctement réduite si le plan de symétrie cou
 [[Image:FEM_symmetric_vessel.JPG|400px]]
 {{Caption|Modèle de 1/8 d'un récipient sous pression cylindrique avec des conditions limites de symétrie et une charge de pression interne}}
 
+<span id="Utilizing_cyclic_symmetry"></span>
+=== Utiliser la symétrie cyclique ===
+
 Un autre type de symétrie, moins courant, disponible dans FreeCAD FEM est la symétrie cyclique. Elle peut être définie à l'aide de la [[FEM_ConstraintTie/fr#Symétrie_cyclique|contrainte de liaison]] et permet d'analyser un seul secteur représentatif d'une structure constituée de tels motifs circulaires autour d'un axe. L'hypothèse est que les conditions aux limites et les charges présentent également cette forme de symétrie. Des charges tangentielles peuvent être appliquées et la torsion peut donc être simulée de cette manière. Cependant, une [[FEM_ConstraintCentrif/fr|charge centrifuge]] est généralement utilisé avec la symétrie cyclique. Cette approche peut être utilisée par exemple pour les rotors, les arbres, les turbines, les ventilateurs et les volants d'inertie.
 
 <span id="Geometry_partitioning"></span>
 == Partitionnement de la géométrie ==
 
-Le partitionnement consiste à diviser la géométrie en segments plus petits. Dans d'autres logiciels, il est couramment utilisé pour permettre le maillage hexagonal, mais dans FreeCAD, il peut également être utile pour d'autres raisons. Le partitionnement est principalement utilisé lorsqu'une charge (ou une condition limite) doit être appliquée uniquement à une région sélectionnée de la surface de la pièce. La manière la plus simple d'y parvenir pour les pièces solides est de créer une esquisse avec un contour approprié sur cette face et d'utiliser l'outil [[Part_BooleanFragments/fr|Part Fragments booléens]] pour diviser la face avec l'esquisse. Une autre raison de partitionner est lorsque plusieurs matériaux doivent être appliqués à une seule pièce (sans avoir à utiliser plusieurs pièces reliées entre elles). Dans ce cas, le partitionnement peut être effectué à l'aide d'un [[PartDesign_Plane/fr|plan de référence]] et de l'outil Fragments booléens avec le mode « Compsolid ». Le partitionnement peut également être utilisé pour créer des régions pour [[FEM_MeshRegion/fr|mailler plus finement]] ou pour contrôler l'algorithme de maillage en le forçant à suivre des arêtes supplémentaires (particulièrement utile pour contrôler la [[FEM_MeshGmshFromShape/fr#Croissance_du_maillage|croissance du maillage Gmsh]]).
+<span id="Partitioning_basics"></span>
+=== Principes de base du partitionnement ===
+
+Ce qu'on appelle le partitionnement est une division de la géométrie en segments plus petits. Dans d'autres logiciels, il est couramment utilisé pour permettre le maillage hexagonal, mais dans FreeCAD, il peut également être utile pour d'autres raisons :
+* créer des sous-régions pour l'attribution de fonctions d'analyse,
+* diviser des pièces en sections composées de différents matériaux,
+* créer des régions pour l'[[FEM_MeshRegion/fr|affinement du maillage]],
+* contrôler l'algorithme de maillage en le forçant à suivre des arêtes supplémentaires (particulièrement utile pour contrôler la [[FEM_MeshGmshFromShape/fr#Croissance_du_maillage|croissance du maillage Gmsh]]).
+
+<span id="Partitioning_faces_of_solids_with_sketches"></span>
+=== Partitionner des faces de solides à l'aide d'esquisses ===
+
+Le partitionnement est principalement utilisé lorsqu'une charge (ou une condition limite) doit être appliquée uniquement à une région sélectionnée de la surface de la pièce. La manière la plus simple d'y parvenir pour les pièces solides consiste à créer une esquisse avec un contour approprié sur cette face et à utiliser l'outil [[Part_BooleanFragments/fr|Part Fragments booléens]] pour fractionner la face avec l'esquisse.
 
 [[Image:FEM_partition.JPG|400px]]
 {{Caption|Pièce avec une cloison de séparation pour l'application d'une charge ou d'une condition limite}}
 
-Dans le cas des géométries surfaciques (coques), la manière la plus simple de réaliser une partition basée sur une esquisse est d'utiliser l'outil [[Part_BooleanFragments/fr|fragments booléens]] (comme pour les partitions sur les faces des solides). Cependant, comme expliqué [https://forum.freecad.org/viewtopic.php?t=96029#p820241 ici], lorsque la création de groupes de mailles est activée dans les [[FEM_Preferences/fr#Général|préférences de FEM]], cela peut ne pas fonctionner correctement et l'approche suivante doit être utilisée :
+<span id="Partitioning_volumes_of_solids_with_datum_planes"></span>
+=== Partitionner des volumes solides à l'aide de plans de référence ===
+
+Une autre raison justifiant le partitionnement est lorsque plusieurs matériaux doivent être appliqués à une seule pièce (sans avoir à utiliser plusieurs pièces reliées entre elles). Dans ce cas, le partitionnement peut être effectué à l'aide d'un [[PartDesign_Plane/fr|plan de référence]] et de l'outil [[Part_BooleanFragments/fr|Part Fragments booléens]] en mode « Compsolid ».
+
+<span id="Partitioning_surface_geometries_with_sketches"></span>
+=== Partitionner des géométries de surface à l'aide d'esquisses ===
+
+Dans le cas des géométries surfaciques (coques), la manière la plus simple de réaliser une partition basée sur une esquisse consiste à utiliser l'outil [[Part_BooleanFragments/fr|fragments booléens]] (comme pour les partitions sur les faces des solides). Cependant, comme expliqué [https://forum.freecad.org/viewtopic.php?t=96029#p820241 ici], lorsque la création de groupes de mailles est activée dans les [[FEM_Preferences/fr#Général|préférences de FEM]], cela peut ne pas fonctionner correctement et l'approche suivante doit être utilisée :
 # Créer une face pour un côté en utilisant par exemple l'outil [[Part_MakeFace/fr|Part Créer une face]] (par exemple une plaque carrée avec un trou circulaire).
 # Créer une face pour l'autre côté de manière équivalente (par exemple, une face circulaire remplissant le trou dans la plaque carrée).
 # Appliquer l'outil [[Part_Builder/fr|Part Générateur de formes]] avec le mode ''Coque à partir de faces'' et la case à cocher ''Affiner la forme'' désactivée aux faces précédemment créées.
 
 [[Image:FEM_shell_partition.JPG|400px]]
 {{Caption|Plaque carrée avec une partition circulaire}}
+
+<span id="Partitioning_faces_of_solids_with_datum_planes"></span>
+=== Partitionner des faces de solides à l'aide de plans de référence ===
 
 Il est également difficile de partitionner uniquement les faces sélectionnées d'un solide à l'aide de plans de référence plutôt que d'esquisses sans diviser l'ensemble du volume. Une approche possible consiste à :
 # [[Draft_Downgrade/fr|Draft Désagréger]] le corps en faces.
@@ -153,15 +207,19 @@ incluent :
 Ces erreurs sont dues à l'absence ou au chevauchement de définitions de matériaux dans certains éléments. [https://forum.freecad.org/viewtopic.php?t=97120&start=50#p829295 Ce message du forum] énumère des références qui le montrent clairement et l'ensemble du fil de discussion peut également s'avérer utile en cas de problèmes similaires.
 
 <span id="Selection_of_interior_entities"></span>
-==== Sélection des entités intérieures ====
+=== Sélection des entités intérieures ===
 
-La sélection des régions internes (faces/volumes) peut s'avérer délicate. Elle peut être nécessaire pour l'application de différents matériaux, charges ou conditions aux limites (en particulier dans les analyses thermiques et électromagnétiques). Plusieurs méthodes sont possibles :
+La sélection des régions internes (par ex. faces/volumes) peut s'avérer délicate. Elle peut être nécessaire pour l'application de différents matériaux, charges ou conditions aux limites (en particulier dans les analyses thermiques et électromagnétiques). Plusieurs méthodes sont possibles :
 * activer [[Std_ToggleClipPlane/fr|plan de coupe]] pour la sélection et le choix des faces internes,
 * masquer l'objet booléen, ne montrer qu'une des parties auxquelles il a été appliqué et la sélectionner,
+* [[Std_ToggleTransparency/fr|Activer la transparence]] et utiliser la [[Selection_view/fr|fenêtre de sélection]] avec l'option « Liste des objets sélectionnés » cochée, comme décrit [https://forum.freecad.org/viewtopic.php?t=96984#p826693 ici],
 * sélectionner un autre objet externe et éditer la propriété ''References'' dans l'onglet ''Données'' d'un élément d'analyse donné (nécessite la spécification manuelle du numéro de l'objet géométrique).
 
 <span id="Meshing_basics"></span>
 == Les bases du maillage ==
+
+<span id="Choosing_element_size"></span>
+=== Choisir la taille des éléments ===
 
 Un maillage trop grossier est l'une des sources les plus courantes d'inexactitudes et d'autres problèmes dans les simulations par éléments finis. Il s'agit souvent d'une erreur partielle des paramètres du maillage automatique. Ils génèrent généralement des maillages très grossiers et inadaptés lorsque la taille des éléments n'est pas spécifiée manuellement, mais laissée avec une valeur par défaut. Il faut toujours connaître les dimensions approximatives de la pièce, en particulier la taille du plus petit élément pertinent (l'outil [[Std_Measure/fr|Std Mesurer]] peut être utilisé pour la trouver) et spécifier la taille maximale appropriée de l'élément en fonction de celle-ci. Il existe également un réglage de la taille minimale des éléments qui peut empêcher la création d'éléments trop petits autour de petites caractéristiques géométriques, ce qui peut conduire à des maillages inutilement denses (et parfois même à un plantage ou à un gel de FreeCAD lorsqu'on essaie de générer de tels maillages). D'une manière générale, il est préférable de commencer par un maillage plus grossier (moins long à générer), de voir à quoi il ressemble (une certaine expérience est nécessaire) et de l'affiner si nécessaire. Il est souvent judicieux d'utiliser un maillage dense uniquement autour des zones d'intérêt (endroits présentant des gradients/concentrations de contraintes importants - encoches) et un maillage relativement grossier à l'écart de ces zones. De cette manière, le nombre d'éléments peut être considérablement réduit, ce qui permet de diminuer les temps de résolution. L'amélioration du maillage local est défini à l'aide de [[FEM_MeshRegion/fr|FEM Mailler plus finement]].
 
@@ -174,7 +232,13 @@ Un maillage trop grossier est l'une des sources les plus courantes d'inexactitud
 [[Image:FEM_locally_refined_mesh.PNG|400px]]
 {{Caption|Maillage amélioré localement}}
 
+<span id="Choosing_element_type"></span>
+=== Choisir le type d'élément ===
+
 Le choix du type d'élément n'est pas facile et dépend de nombreux facteurs, mais la règle générale est que les éléments hexaédriques et quadrilatéraux sont préférables aux éléments tétraédriques et triangulaires. Cependant, les géométries complexes ne peuvent pas être maillées avec des éléments hexaédriques et FreeCAD ne peut pas les générer correctement (uniquement en utilisant l'algorithme de subdivision du maillage Gmsh, mais ses résultats ne sont pas ceux que l'on attendrait d'un maillage hexagonal). Les maillages quadratiques ou à dominante quadratique peuvent être générés normalement sur les surfaces, voir [https://forum.freecad.org/viewtopic.php?t=20351 ce fil de discussion]). Les éléments hexaédriques peuvent être importés à partir de maillages externes comme [https://gmsh.info Gmsh] et utilisés dans l'atelier FEM comme le montre [https://www.youtube.com/watch?v=vylt24G7qj4&t=932s cette vidéo].
+
+<span id="Choosing_element_order"></span>
+=== Choisir l'ordre des éléments ===
 
 Le choix de l'ordre des éléments (premier ou second) dépend des conditions d'analyse, mais dans la plupart des cas, les éléments de second ordre sont préférables. Ceci est particulièrement vrai pour les éléments triangulaires et tétraédriques, leurs versions de premier ordre (linéaires) ne sont normalement pas recommandées pour un usage régulier et ne devraient être utilisées que comme éléments de remplissage dans des régions de faible importance. Cependant, comme FreeCAD ne peut pas générer correctement d'éléments hexaédriques, les tétraèdres linéaires peuvent être utilisés dans certains cas, si les maillages sont suffisamment denses. En particulier lors d'analyses avec une [[FEM_ConstraintContact/fr|contrainte de contact]].
 
@@ -216,6 +280,7 @@ Les moyens typiques de traiter les singularités de contrainte sont les suivants
 - le déplacement ('''courbe verte''') converge rapidement,<br>
 - la contrainte maximale au niveau d'une entaille comme un trou ('''courbe bleue''') nécessite davantage d'itérations de raffinement du maillage pour converger, <br>
 - tandis que la contrainte maximale au niveau d'un angle aigu avec une condition limite fixe ('''courbe rouge''') ne converge pas du tout. Une singularité de contrainte se produit et un petit congé devrait être ajouté et la connexion devrait être modélisée de manière plus réaliste et plus flexible pour éviter ce comportement.<br>}}
+
 
 {{FEM Tools navi{{#translation:}}}}
 {{Userdocnavi{{#translation:}}}}
