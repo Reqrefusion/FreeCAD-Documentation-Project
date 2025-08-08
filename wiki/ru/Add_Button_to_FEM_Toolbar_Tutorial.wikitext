@@ -1,0 +1,145 @@
+<languages/>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{TutorialInfo
+|Topic=FEM
+|Level=Advanced
+|Time=60 min
+|Author=[[User:JohnWang|JohnWang]]
+|FCVersion=0.19
+|Files=
+}}
+</div>
+
+<span id="Introduction"></span>
+== Введение ==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The FEM workbench has toolbars and menus. This tutorial shows how to add a test button to a toolbar. It also shows how to add a menu item to a menu.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The task can be split into four parts:
+* '''Create a new icon file'''.
+* '''Register the new icon file'''. Modification needed to {{incode|src/Mod/Fem/Gui/Resources/Fem.qrc}}
+* '''Create a new command class'''. Modification needed to {{incode|src/Mod/Fem/femcommands/commands.py}}
+* '''Add new command to workbench'''. Modification needed to {{incode|src/Mod/Fem/Gui/Workbench.cpp}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Create a new icon file ==
+</div> 
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+For the button, we need an icon file. You can use any of your favorite tools to create it, but it must be in the SVG format. Here we will use the {{FileName|FEM_testButton.svg}} file as an example.
+</div> 
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+It must be placed in: {{incode|src/Mod/Fem/Gui/Resources/icons/}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Register the new icon file ==
+</div> 
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The new SVG icon file has to be registered for the GUI button by inserting it in {{incode|src/Mod/Fem/Gui/Resources/Fem.qrc}}:
+</div>
+
+{{code|code=
+     <file>icons/FEM_testButton.svg</file>
+}} 
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Create a new command class ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+A new command class has to be added to the {{incode|src/Mod/Fem/femcommands/commands.py}} module.
+</div> 
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Just copy/paste an existing command, then adjust the icon, menu text and tool-tip in {{incode|__init__(self)}}:
+</div>
+
+{{code|code=
+class _testButton(CommandManager):
+    "The FEM_testButton command definition"
+
+    def __init__(self):
+        super(_testButton, self).__init__()
+        self.menuetext = "test Button"
+        self.tooltip = "This is a test button"
+        self.is_active = "always"
+        #self.do_activated = "add_obj_on_gui_selobj_noset_edit"
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Don't forget to register the command at the bottom of the module file with the {{incode|addCommand(...)}} method:
+</div>
+
+{{code|code=
+FreeCADGui.addCommand(
+    "FEM_testButton",
+    _testButton()
+)
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Note''': Please see this [https://forum.freecad.org/viewtopic.php?f=18&t=46693&start=10#p402004 discussion thread] in the forum if icons are involved.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Add new command to workbench ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+We will add the new command to both the '''solve''' toolbar and the '''solve''' menu.
+</div> 
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Search for the following code snippet in {{incode|/Gui/Workbench.cpp}} and add the new command:
+</div>
+
+{{code|code= 
+     Gui::ToolBarItem* solve = new Gui::ToolBarItem(root);
+     solve->setCommand("Solve");
+     *solve << "FEM_SolverCalculixCxxtools"
+            << "FEM_SolverCalculiX"
+            << "FEM_SolverElmer"
++           << "FEM_testButton"
+            << "Separator"
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To add the command to the '''solve''' menu of the FEM workbench, search for the following code snippet in {{incode|Workbench.cpp}}:
+</div>
+
+{{code|code= 
+    Gui::MenuItem* solve = new Gui::MenuItem;
+    root->insertItem(item, solve);
+    solve->setCommand("&Solve");
+    *solve << "FEM_SolverCalculixCxxtools"
+           << "FEM_SolverCalculiX"
+           << "FEM_SolverElmer"
+           << "FEM_SolverZ88"
++          << "FEM_testButton"
+           << "Separator"
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Result''': You should have just successfully added a test button to a FEM workbench toolbar and menu. Now, you can [[Compiling|compile FreeCAD]] and test your new button.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Related ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* [[Extend_FEM_Module|Extend FEM Module]]
+* [[Onboarding_FEM_Devs|Onboarding FEM Devs]]
+</div>
+
+
+[[Category:FEM{{#translation:}}]]
+[[Category:Developer Documentation{{#translation:}}]]
