@@ -10,7 +10,7 @@
 <span id="Introduction"></span>
 == 简介 ==
 
-本页面将展示将新的工作台添加至 FreeCAD 界面的方法。[[Workbenches/zh-cn|工作台]] 是容纳 FreeCAD 命令的容器。您可以使用 Python 或 C++ 编写工作台，亦可二者兼用，以同时利用 C++ 的速度与 Python 的灵活性。无论您使用何种语言编写工作台，工作台都将基于两个 Python 文件运行。工作台可能是 FreeCAD 发行版自带的（“内部工作台”），也可能是来自于在线仓库或 [[Std_AddonMgr/zh-cn|附加组件管理器]]（“外部工作台”）。内部工作台可能是使用 Python、C++ 或二者结合编写的，外部工作台必须基于 Python.
+本页面将展示将新的工作台添加至 FreeCAD 界面的方法。[[Workbenches/zh-cn|工作台]] 是容纳 FreeCAD 命令的容器，可以使用 Python 或 C++ 编写，亦可二者并用，以兼顾 C++ 的速度与 Python 的灵活性。无论使用何种语言编写，工作台都将基于两个 Python 文件运行。工作台可能是 FreeCAD 发行版自带的（“内部工作台”），也可能是来自于在线仓库或 [[Std_AddonMgr/zh-cn|插件管理器]]（“外部工作台”）。内部工作台可能是使用 Python、C++ 或二者结合编写的，外部工作台必须基于 Python.
 
 <span id="The_workbench_structure"></span>
 == 工作台的结构 ==
@@ -166,45 +166,34 @@ Gui.addWorkbench(MyWorkbench())
 
 您可以为自己的 Python 工作台添加一个“首选项”页面，这一页面会在 Qt 资源系统中查找一个具有特定名称的首选项图标。如果您的图标不在资源系统中，或者名称不正确，该图标就不会显示在首选项页面上。
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Adding your workbench icon:
-* the preferences icon needs to be named "preferences-" + "modulename" + ".svg" (all lowercase)
-* make a qrc file containing all icon names
-* in the main *.py directory, run pyside-rcc -o myResources.py myqrc.qrc
-* in InitGui.py, add import myResource(.py)
-* update your repository(git) with myResources.py and myqrc.qrc
-</div>
+添加工作台图标：
+* 首选项图标的名称格式必须为：“preferences-”+ 模块名称 + “.svg”，全部小写
+* 创建一个 qrc 文件，其中列出所有图标的名称
+* 在主 *.py 目录下，运行 pyside-rcc -o myResources.py myqrc.qrc
+* 在 InitGui.py 中，添加 import myResource(.py)
+* 将 myResources.py 和 myqrc.qrc 更新到代码仓库（git）中
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-You'll need to redo the steps if you add/change icons.
-</div> 
+如果添加或更改了图标，必须重复以上步骤。 
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-@kbwbe has created a nice script to compile resources for the A2Plus workbench. See below.
-</div> 
+@kbwbe 为 A2Plus 工作台编写了一个优秀的脚本，用于编译资源。见下。 
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Adding your preference page(s):
-* You need to compile the Qt designer plugin that allows you to add preference settings with [[Compile_on_Linux#Qt_designer_plugin|Qt Designer]]
-* Create a blank widget in Qt Designer (no buttons or anything)
-* Design your preference page, any setting that must be saved (preferences) must be one of the Gui::Pref* widgets that were added by the plugin)
-* In any of those, make sure you fill the PrefName (the name of your preference value) and PrefPath (ex: Mod/MyWorkbenchName), which will save your value under BaseApp/Preferences/Mod/MyWorkbenchName
-* Save the ui file in your workbench, make sure it's handled by cmake
-* In your workbench, for ex. inside the InitGui file, inside the Initialize method (but any other place works too), add: FreeCADGui.addPreferencePage("/path/to/myUiFile.ui","MyGroup"), "MyGroup" being one of the preferences groups on the left. FreeCAD will automatically look for a "preferences-mygroup.svg" file in its known locations (which you can extend with FreeCADGui.addIconPath())
-* Make sure the addPreferencePage() method is called only once, otherwise your pref page will be added several times
-</div>
+添加首选项页面：
+* 需要先编译 Qt Designer 插件，该插件可以让你通过 [[Compile_on_Linux/zh-cn#Qt_designer_plugin|Qt Designer]] 添加首选项设置
+* 在 Qt Designer 中创建一个空白的 widget（不包含按钮或其他控件）
+* 设计你的首选项页面，任何需要保存的设置（preferences），都必须使用插件中提供的 Gui::Pref* 类型控件
+* 在这些控件中，一定要填写 PrefName（首选项的值名称）和 PrefPath（例如 Mod/MyWorkbenchName），如此，首选项的值将会保存在 BaseApp/Preferences/Mod/MyWorkbenchName 路径下
+* 将 .ui 文件保存在你的工作台目录下，确保 CMake 可处理该文件
+* 在工作台代码的某一处，例如在 InitGui 文件的 Initialize 方法中（其他地方也可以），添加：FreeCADGui.addPreferencePage("/path/to/myUiFile.ui", "MyGroup")
+其中“MyGroup”是左侧的首选项分组之一。FreeCAD 会自动在已知位置查找名为 preferences-mygroup.svg 的图标文件（可通过 FreeCADGui.addIconPath() 来扩展查找路径）
+* 确保 addPreferencePage() 方法只被调用一次，否则首选项页面会被重复添加
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-====Distribution====
-</div>
+<span id="Distribution"></span>
+====发行====
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-To distribute your Python workbench, you may either simply host the files in some location and instruct your users to download them and place them in their Mod directory manually, or you may host them in an online git repository (GitHub, GitLab, Framagit, and Debian Salsa are currently supported locations) and configure them for the [[Std_AddonMgr|Addon Manager]] to install. Instructions for inclusion on FreeCAD's official Addons list can be found on the [https://github.com/FreeCAD/FreeCAD-addons/blob/master/README.md FreeCAD Addons GitHub repository]. To use the Addon Manager, a [[Package_Metadata|package.xml metadata file]] should be included, which instructs the Addon Manager how to find your workbench's icon, and allows display of a description, version number, etc. It can also be used to specify other workbenches or Python packages that your Workbench either depends on, is blocked by, or is intended to replace.
-</div>
+要分发您的 Python 工作台，可以直接把文件放到某个地方，然后让用户下载并手动放入他们的 Mod 目录；亦可将代码托管在在线的 git 仓库（目前支持 GitHub、GitLab、Framagit 和 Debian Salsa），并配置好让 [[Std_AddonMgr/zh-cn|插件管理器]] 自动安装。
+关于如何将工作台加入 FreeCAD 官方插件列表的说明，请参见 [https://github.com/FreeCAD/FreeCAD-addons/blob/master/README.md FreeCAD Addons GitHub 仓库]。使用插件管理器时，应包含一个 [[Package_Metadata|package.xml 元数据文件]]，该文件告诉插件管理器如何找到工作台图标，并显示描述、版本号等信息。它还可以用来指定该工作台依赖的其他工作台或 Python 包，阻止的包，或者需要替代的包。
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-For a quick guide on how to create a basic package.xml file and add a workbench to the [[Std_AddonMgr|Addon Manager]] see: [[Add_Workbench_to_Addon_Manager|Add Workbench to Addon Manager]].
-</div>
+关于如何快速创建基本的 package.xml 文件并将工作台添加到[[Std_AddonMgr|插件管理器]]，请见： [[Add_Workbench_to_Addon_Manager/zh-cn|添加工作台到插件管理器]]。
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 Optionally, you can include a separate metadata file describing your Python dependencies. This may be either a file called metadata.txt describing your workbench's external dependencies (on either other Addons, Workbenches, or Python modules), or a [https://pip.pypa.io/en/latest/reference/requirements-file-format/ requirements.txt] describing your Python dependencies. Note that if using a requirements.txt file, only the names of the specified packages are used for dependency resolution: pip command options, include options and version information are not supported by the Addon Manager. Users may manually run the requirements file using pip if those features are required.
@@ -437,9 +426,8 @@ os.system(
 os.remove(qrc_filename)
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Related ==
-</div>
+<span id="Related"></span>
+== 相关链接 ==
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 * [[Translating_an_external_workbench|Translating an external workbench]]
