@@ -13,7 +13,7 @@
 本页面将展示将新的工作台添加至 FreeCAD 界面的方法。[[Workbenches/zh-cn|工作台]] 是容纳 FreeCAD 命令的容器。您可以使用 Python 或 C++ 编写工作台，亦可二者兼用，以同时利用 C++ 的速度与 Python 的灵活性。无论您使用何种语言编写工作台，工作台都将基于两个 Python 文件运行。工作台可能是 FreeCAD 发行版自带的（“内部工作台”），也可能是来自于在线仓库或 [[Std_AddonMgr/zh-cn|附加组件管理器]]（“外部工作台”）。内部工作台可能是使用 Python、C++ 或二者结合编写的，外部工作台必须基于 Python.
 
 <span id="The_workbench_structure"></span>
-工作台的结构
+== 工作台的结构 ==
 
 创建一个任意名称的文件夹，其中应包含一个 {{incode|Init.py}} 文件，可有一个 {{incode|InitGui.py}} 文件。将这个文件夹放置于用户 Mod 文件夹。当 FreeCAD 启动时会执行 {{incode|Init.py}} 文件，如果 FreeCAD 是以 GUI 模式启动的，则在执行 {{incode|Init.py}} 之后会立即执行 {{incode|InitGui.py}} 文件。如此，FreeCAD 即可在启动时找到您的工作台，并在界面上加载。
 
@@ -37,17 +37,12 @@ Mod 文件夹通常有如下结构：
 
 * 通常在 InitGui.py 文件中定义一个工作台。工作台包括其名称、图标及一系列 FreeCAD 命令（详下）。本文件也定义 FreeCAD 加载时需要执行的功能（为保证软件启动速度，越少越好）、工作台加载时需要执行的功能（也会是您的主要工作内容）以及取消选中该工作台时需要执行的功能（例如清理功能）。
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The structure and file content for a workbench described here is the classic way of creating a new workbench. One can use a slight variation in the structure of files when making a new Python workbench, that alternative way is best described as a "namespaced workbench", opening up the possibility to use pip to install the workbench. Both structures work, so it is more a question of preference when creating a new workbench. The style and structure for workbenches presented here are available in the global namespace of FreeCAD, whereas for the alternative style and structure the workbench resides in a dedicated namespace. For further readings on the topic see [[#Related|Related]].
-</div>
+此处描述的文件结构及内容是创建新工作台的一般方法。当创建 Python 工作台时，也可以对文件结构作些许改动，如此创建的工作台可称为“命名空间工作台”，可使用 pip 安装。这两种结构都是有效的，因此如何选择取决于您的偏好。使用一般方法创建的工作台是在全局命名空间中的，而“命名空间工作台”有专属的命名空间。详见[[#相关|相关]]部分。
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== C++ workbench structure ===
-</div>
+<span id="C++_workbench_structure"></span>
+=== C++ 工作台的结构 ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-If you are going to code your workbench in python, you don't need to take special care, and can simply place your other python files together with your Init.py and InitGui.py files. When working with C++, however, you should take greater care, and start with respecting one fundamental rule of FreeCAD: The separation of your workbench between an App part (that can run in console mode, without any GUI element), and a Gui part, which will only be loaded when FreeCAD runs with its full GUI environment. So when developing a C++ workbench, you will actually most likely create two modules, an App and a Gui. These two modules must of course be callable from python. Any FreeCAD module (App or Gui) consists, at the very least, of a module init file. This is a typical AppMyModuleGui.cpp file:
-</div>
+如果您用 Python 编写工作台，只需将您的 Init.py 和 InitGui.py 和其它 Python 文件放在一起即可。当使用 C++ 编写工作台时，您则需要小心行事。首先，需要遵循 FreeCAD 的一条基本原则：将 App 部分和 Gui 部分分离（App 部分可以独立运行在命令行模式下，而 Gui 部分只有在 FreeCAD 的 GUI 模式下才会载入。因此，在使用 C++ 编写工作台时，您很可能会创建 App 和 Gui 两个模块，Python 需要调用这两个模块。一个 FreeCAD 模块（App 模块或 Gui 模块）一定会包括一个模块初始化文件。典型的 AppMyModuleGui.cpp 文件如下：
 
 {{Code|code=
 extern "C" {
@@ -83,9 +78,8 @@ extern "C" {
 }
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== The Init.py file ===
-</div>
+<span id="The_Init.py_file"></span>
+=== Init.py 文件 ===
 
 {{code|code=
 """FreeCAD init script of XXX module"""
@@ -118,9 +112,7 @@ FreeCAD.addExportType("My own format (*.own)", "exportOwn")
 print("I am executing some stuff here when FreeCAD starts!")
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-You can choose any license you like for your workbench, but be aware that if you wish to see your workbench integrated into and distributed with the FreeCAD source code at some point, it needs to be LGPL2+ like the example above. See [[License|License]].
-</div>
+您的工作台可以使用任一种许可证，但注意，如果您想要将工作台整合入 FreeCAD 源码并随之一起发行，如上例所示，您需要使用 LGPL2+ 许可证。详见 [[Licence/zh-cn|许可证]]。
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 The {{incode|FreeCAD.addImportType()}} and {{incode|addEXportType()}} functions allow you to give the name and extension of a file type, and a Python module responsible for its import. In the example above, an {{incode|importOwn.py}} module will handle {{incode|.own}} files. See [[Code_snippets|Code snippets]] for more examples.
