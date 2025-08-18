@@ -63,3 +63,65 @@ mw.loader.using('mediawiki.util').then(function () {
         sub.prepend(span);
     });
 });
+
+//Pop-up header cleaner
+(function () {
+  var BLOCKED = ['introduction','introduced in 1.0','description','overview','contents','summary','background'];
+  function uniq(a){var s=Object.create(null),r=[];for(var i=0;i<a.length;i++){var k=a[i].toLowerCase().trim();if(k&&!s[k]){s[k]=1;r.push(k);}}return r;}
+  BLOCKED = uniq(BLOCKED);
+  function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+  var inlineOpen='(?:<(?:b|strong|i|em|span|small|mark|u)[^>]*>\\s*)*';
+  var reBlocked=new RegExp('^\\s*'+inlineOpen+'(?:'+BLOCKED.map(escRe).join('|')+')\\s*[:：\\-–—]?\\s*','i');
+
+  function stripEqLines(root){
+    var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null);
+    var del=[];
+    while(w.nextNode()){
+      var t=w.currentNode;
+      if(/^\s*=+.*=+\s*$/.test(t.nodeValue)){t.nodeValue='';var p=t.parentNode;if(p&&!p.textContent.trim())del.push(p);}
+    }
+    for(var i=0;i<del.length;i++){var n=del[i];if(n.parentNode)n.parentNode.removeChild(n);}
+  }
+
+  function stripBlockedPrefixes(root){
+    var nodes=[root].concat([].slice.call(root.querySelectorAll('p,li,div')));
+    for(var i=0;i<nodes.length;i++){
+      var el=nodes[i], html=el.innerHTML;
+      if(!html)continue;
+      var replaced=html.replace(reBlocked,'');
+      if(replaced!==html)el.innerHTML=replaced;
+    }
+  }
+
+  function scrub(el){if(!el)return;stripEqLines(el);stripBlockedPrefixes(el);}
+  function scrubSoon(el){scrub(el);setTimeout(function(){scrub(el);},0);setTimeout(function(){scrub(el);},80);}
+
+  var seen=new WeakSet();
+  function watchExtract(el){
+    if(!el||seen.has(el))return;
+    seen.add(el);
+    scrubSoon(el);
+    new MutationObserver(function(){scrubSoon(el);}).observe(el,{childList:true,subtree:true,characterData:true});
+  }
+
+  function findAndWatch(node){
+    if(node.nodeType!==1)return;
+    if(node.matches&&node.matches('.mwe-popups-extract'))watchExtract(node);
+    var q=node.querySelectorAll?node.querySelectorAll('.mwe-popups-extract'):[];
+    for(var i=0;i<q.length;i++)watchExtract(q[i]);
+  }
+
+  var docObs=new MutationObserver(function(muts){
+    for(var i=0;i<muts.length;i++){
+      var m=muts[i];
+      if(m.type==='childList'){
+        for(var j=0;j<m.addedNodes.length;j++)findAndWatch(m.addedNodes[j]);
+      }else if(m.type==='characterData'){
+        var el=m.target.parentElement&&m.target.parentElement.closest&&m.target.parentElement.closest('.mwe-popups-extract');
+        if(el)scrubSoon(el);
+      }
+    }
+  });
+  docObs.observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+  findAndWatch(document.body);
+})();
