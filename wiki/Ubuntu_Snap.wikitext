@@ -1,42 +1,204 @@
-===== import cadquery as cq =====
+<languages/>
+{{TOCright}}
+<translate>
 
-===== # === BASE === =====
+== Introduction == <!--T:1-->
 
-===== # Base rectangular 100 x 60 x 5 =====
+<!--T:2-->
+An [[Ubuntu_Snap|Ubuntu Snap]] package, or just [[Ubuntu_Snap|Snap]] is a distribution format similar to [[AppImage|AppImage]] in that it is intended to be a "universal installable package" to deploy software on Linux systems. Snaps were introduced by Ubuntu but they are intended to run on all Linux distributions as long as the Snap daemon, or {{incode|snapd}}, is available on the target system.
 
-===== pieza = cq.Workplane("XY").box(100, 60, 5) =====
+<!--T:3-->
+A Snap package has two main characteristics:
+* Programs are sandboxed so they do not interfere with the rest of the operating system.
+* Programs are updated automatically in the background in order to get the newest version of the application.
 
-===== # === CUERPO TRONCO PIRAMIDAL === =====
+<!--T:4-->
+For other ways of installing the software, see [[Installing_on_Linux|Installing on Linux]].
 
-===== # Se levanta desde la base con altura 50 mm =====
+== Installation == <!--T:5-->
 
-===== top = ( =====
+<!--T:6-->
+The use of Snaps is experimental. The current Snaps are generated and hosted by volunteers.
 
-=====     cq.Workplane("XY") =====
+<!--T:7-->
+On all systems where Snaps are to be installed, the Snap daemon must be installed first. The package is normally called {{incode|snapd}}.
 
-=====     .workplane(offset=5)              # altura base =====
+=== Debian/Ubuntu === <!--T:13-->
 
-=====     .rect(60, 40)                     # base inferior =====
+<!--T:8-->
+For Debian/Ubuntu and similar systems which use the APT manager the daemon is installed as follows:
 
-=====     .workplane(offset=50)             # altura total =====
+</translate>
+{{Code|lang=bash|code=
+sudo apt install snapd
+}}
+<translate>
 
-=====     .rect(30, 20)                     # cara superior más pequeña =====
+<!--T:9-->
+To install the stable version of the Snap use:
 
-=====     .loft(combine=True) =====
+</translate>
+{{Code|lang=bash|code=
+sudo snap install freecad
+}}
+<translate>
 
-===== ) =====
+<!--T:10-->
+To install the development version of the Snap use:
 
-===== pieza = pieza.union(top) =====
+</translate>
+{{Code|lang=bash|code=
+sudo snap install --edge freecad
+}}
+<translate>
 
-===== # (Opcional) Aquí podrías agregar los cortes según los detalles de tu plano =====
+=== Manjaro === <!--T:14-->
 
-===== # === EXPORTAR A STEP === =====
+<!--T:15-->
+To install the stable version of the Snap use:
 
-===== cq.exporters.export(pieza, "pieza_modelada.step") =====
+</translate>
+{{Code|lang=bash|code=
+snap install freecad
+}} 
+<translate>
 
-===== # === EXPORTAR A IGES === =====
+<!--T:16-->
+To install the development version of the Snap use:
 
-===== cq.exporters.export(pieza, "pieza_modelada.iges") =====
+</translate>
+{{Code|lang=bash|code=
+snap install --edge freecad
+}}
+<translate>
+
+== Notes == <!--T:17-->
+
+==== What FC version am I running ==== <!--T:33-->
+
+<!--T:18-->
+To figure out which development version is installed type the following in the Command-line interface:
+
+</translate>
+{{Code|lang=bash|code=
+snap info freecad
+}}
+<translate>
+
+==== Changing between different Snaps ==== <!--T:34-->
+
+<!--T:35-->
+Starting from the tail end of the v0.20 release cycle, the FreeCAD snap maintainers added the ability to test experimental FreeCAD builds. Snaps allow for this by easily toggling between different snaps (terminology is '[https://snapcraft.io/docs/channels channels or tracks]'). For example:
+
+<!--T:36-->
+Testing the Topological Naming ('toponaming') branch (created at the start of the v0.21/v1.0 release cycle):
+
+</translate>
+{{code|lang=bash|code=
+snap refresh freecad --channel=latest/edge/toponaming
+}}
+<translate>
+
+<!--T:37-->
+Using the {{incode|refresh}} command will switch and update the snap channel you're switching to:
+
+</translate>
+{{code|lang=bash|code=
+snap refresh freecad --channel=latest/edge/toponaming
+}}
+<translate>
+
+<!--T:38-->
+Toggling back to the nightly 'edge' channel:
+
+</translate>
+{{code|lang=bash|code=
+snap refresh freecad --channel=latest/edge
+}}
+<translate>
+
+== Advanced == <!--T:19-->
+
+<!--T:20-->
+The following commands are geared towards users that are familiar with {{incode|git}} and have a locally cloned repository of the upstream FreeCAD repository.
+
+</translate>
+{{Code|lang=bash|code=
+git clone https://github.com/FreeCAD/FreeCAD
+cd FreeCAD/
+}}
+<translate>
+
+<!--T:21-->
+To find out the latest upstream revision number (also known as 'HEAD'):
+
+</translate>
+{{Code|lang=bash|code=
+git pull upstream master  # first make sure we have the most up-to-date commits
+git rev-list --count HEAD # 'HEAD' refers to the current commit you are viewing (tip of the master branch)
+}}
+<translate>
+
+<!--T:22-->
+To translate the current snap development version in to a revision number (make sure you're within your cloned FreeCAD repository as mentioned above):
+
+</translate>
+{{Code|lang=bash|code=
+snap info freecad <nowiki>|</nowiki>\
+grep -e '^\s\+latest/edge' <nowiki>|</nowiki>\
+awk -F ' ' '{ print $2 }' <nowiki>|</nowiki>\
+xargs -I{} git rev-list --count {}
+}}
+<translate>
+
+<!--T:25-->
+'''Note:''' the above bash script 1 liner assumes user has 'edge' (nightly) installed
+
+<!--T:23-->
+The difference between HEAD and the snap edge revision numbers indicates the amount of revisions trailing behind upstream the snap development (edge) is.
+
+<!--T:26-->
+Taking it a step further, if you want a short summary of the commits between the current snap edge and HEAD:
+
+</translate>
+{{Code|lang=bash|code=
+snap info freecad <nowiki>|</nowiki>\
+grep -e '^\s\+latest/edge' <nowiki>|</nowiki>\
+awk -F ' ' '{ print $2 }' <nowiki>|</nowiki>\
+xargs -I{} git log --oneline --ancestry-path {}..HEAD
+}}
+<translate>
+
+<!--T:27-->
+'''Note:''' The output will indicate what commits '''are not''' in the current 'edge' (but will be on the next nightly update).
+
+== Links == <!--T:11-->
+
+<!--T:12-->
+More information about the current efforts to deal with Snaps:
+* [https://forum.freecad.org/viewtopic.php?f=4&t=46044 0.19 Snap Preview needs "testers"], older Snap by {{Emphasis|vejmarie}}. (deprecated)
+* [https://forum.freecad.org/viewtopic.php?f=42&t=46853 Discussion: State of the snap (Snap Packaging)], newer version of the Snap by {{Emphasis|ppd}}. (deprecated)
+
+=== Repositories === <!--T:28-->
+
+<!--T:29-->
+* https://github.com/FreeCAD/FreeCAD-snap
+* https://snapcraft.io/freecad
+
+=== Maintainer(s) === <!--T:30-->
+
+<!--T:31-->
+* ppd ([https://forum.freecad.org/memberlist.php?mode=viewprofile&u=24042 forum], [https://github.com/ppd github])
+* luzpaz ([https://forum.freecad.org/memberlist.php?mode=viewprofile&u=12229 forum], [https://github.com/luzpaz github])
+
+== Related == <!--T:32-->
+
+<!--T:24-->
+* [[AppImage|AppImage]] - another self-contained 'binary' like format to run FreeCAD
+* [[Flatpak|Flatpak]] packages
+
+
+</translate>
 [[Category:Packaging{{#translation:}}]]
 [[Category:Developer Documentation{{#translation:}}]]
 [[Category:Testing{{#translation:}}]]
