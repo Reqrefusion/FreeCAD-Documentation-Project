@@ -92,15 +92,15 @@ Se si è ulteriormente interessati, dare un'occhiata a [https://pomax.github.io/
 
 [https://www.youtube.com/watch?v=bE1MrrqBAl8 Questo video] elenca all'inizio i problemi pratici delle curve di Bézier. Ad esempio, l'aggiunta o la modifica di un punto di controllo modifica l'intera curva. Questi problemi possono essere risolti unendo diverse curve di Bézier. Il risultato è una cosiddetta spline, in particolare una B-spline (spline di base). Il video spiega anche che l'unione di curve di Bézier quadratiche forma una B-spline quadratica uniforme e che l'unione di curve di Bézier cubiche forma una B-spline cubica uniforme.
 
-From the videos we can collect useful "rules" for B-splines:
-* The first and last control point is the end/start point of the spline.
-* Like for Bézier curves, splines always begin tangentially to the line between the startpoint and the first control point (and end tangentially to the line between the last control point and the endpoint).
-* A union of <math>S</math> Bézier curves with the degree <math>D</math> has <math>S+D</math> control points.
-** Since one is in most cases working with cubic B-splines we can then state that <math>N</math> control points lead to <math>N-3</math> Bézier segments and in turn <math>N-4</math> segment junction points.
-* A B-spline with the degree <math>D</math> offers at every point a continuous <math>D-1</math> order derivative.
-** For a cubic B-spline this means that the curvature (second order derivative) does not change when traveling from one segment to the next one. This is a very useful feature as we will later see.
+Dai video possiamo raccogliere utili "regole" per le B-spline:
+* Il primo e l'ultimo punto di controllo sono il punto finale/iniziale della spline.
+* Come per le curve di Bézier, le spline iniziano sempre tangenzialmente alla linea tra il punto iniziale e il primo punto di controllo (e terminano tangenzialmente alla linea tra l'ultimo punto di controllo e il punto finale).
+* Una unione di <math>S</math> Curve di Bézier con il grado<math>D</math> ha <math>S+D</math> punti di controllo.
+** Poiché nella maggior parte dei casi si lavora con B-spline cubiche, possiamo affermare che <math>N</math> punti di controllo portano a <math>N-3</math> segmenti di Bézier e a loro volta <math>N-4</math> punti di giunzione dei segmenti.
+* Una B-spline di grado <math>D</math> offre in ogni punto una derivata continua di ordine <math>D-1</math>.
+** Per una B-spline cubica questo significa che la curvatura (derivata del secondo ordine) non cambia quando si passa da un segmento all'altro. Questa è una caratteristica molto utile, come vedremo più avanti.
 
-If you are interested in more details about B-Spline properties, have a look at [https://www.youtube.com/watch?v=xXJylM2S72s this video].
+Se si è interessati a maggiori dettagli sulle proprietà B-Spline, vedere [https://www.youtube.com/watch?v=xXJylM2S72s questo video].
 
 <span id="Basis"></span>
 ==== Basi ====
@@ -131,31 +131,33 @@ Per capire come <math>p_{i}</math> siano le coordinate dei punti di controllo B-
 
 Come ottenuto sopra, le B-spline sono create da <math>N_{i,n}</math> polinomi a tratti con continuità fino a una certa derivata tra i pezzi. Gli estremi dell'intervallo di definizione del pezzo sono chiamati nodi. Per una spline definita su <math>k</math> pezzi, ci sono <math>k+1</math> nodi dati dal cosiddetto ''vettore dei nodi'':</br><math>\{t_0, t_1, t_2,\dots, t_k\}</math> mentre <math> t_0 < t_1 < t_2 < \dots < t_k</math>
 
-The knot vector comprises the knots of the <math>N_{i,n}</math> basis functions that define the B-spline, see [https://www.youtube.com/watch?v=ni5NNPCVvDY this video]. The basis functions of a B-spline can be calculated using the knot vector and a creation algorithm, see [https://www.youtube.com/watch?v=hrsO45AHtbs this video].
+Il vettore dei nodi comprende i nodi delle funzioni di base <math>N_{i,n}</math> che definiscono la B-spline, vedere [https://www.youtube.com/watch?v=ni5NNPCVvDY questo video]. Le funzioni di base di una B-spline possono essere calcolate utilizzando il vettore dei nodi e un algoritmo di creazione, vedere [https://www.youtube.com/watch?v=hrsO45AHtbs questo video].
 
-The derivative until which continuity exists is given by the multiplicity <math>m</math>. Therefore we can specify a vector with the multiplicity for every knot: <math>\{m_0, m_1,\dots, m_k\}</math>. A knot on a spline with degree ''d'' and the multiplicity ''m'' tells that the curve left and right to the knot has at least an equal ''n'' order derivative (called ''C''<sup>''n''</sup> continuity) whereas <math>n=d-m</math>.
+La derivata fino alla quale esiste continuità è data dalla molteplicità <math>m</math>. Pertanto, possiamo specificare un vettore con molteplicità per ogni nodo: <math>\{m_0, m_1,\dots, m_k\}</math>. Un nodo su una spline con grado ''d'' e molteplicità ''m'' indica che la curva a sinistra e a destra del nodo ha una derivata di ordine almeno pari a ''n'' (chiamata continuità ''C''<sup>''n''</sup>), mentre <math>n=d-m</math>.
 
-=== Non-uniform B-splines ===
+<span id="Non-uniform_B-splines"></span>
+=== B-spline Non-uniformi ===
 
-The derivation of B-splines from Bézier curves have the mathematical consequence that in B-splines every polynomial piece has the same length. Such B-splines are called ''uniform''. The more general case is that they can but must not have the same length. Such ''non-uniform'' splines have the advantage that one can control how close the splines cross its control point.
+La derivazione delle B-spline dalle curve di Bézier ha la conseguenza matematica che nelle B-spline ogni segmento polinomiale ha la stessa lunghezza. Tali B-spline sono chiamate "uniformi". Il caso più generale è che possono, ma non devono, avere la stessa lunghezza. Tali spline "non uniformi" hanno il vantaggio di poter controllare la distanza a cui le spline attraversano il loro punto di controllo.
 
-Mathematically this is achieved by defining the different <math>N_{i,n}</math> pieces at different intervals. If for example a B-spline is defined for the interval [0, 1], it is uniform if all its e.g. 5 pieces are also defined in this interval. If now <math>N_{1,4}</math> is only defined in the interval [0, 0.6] (outside the interval it is set to zero), it is shorter and thus the spline becomes non-uniform.
+Matematicamente, questo si ottiene definendo i diversi tratti <math>N_{i,n}</math> a intervalli diversi. Se, ad esempio, una B-spline è definita per l'intervallo [0, 1], è uniforme se tutti i suoi 5 tratti, ad esempio, sono definiti anche in questo intervallo. Se ora <math>N_{1,4}</math> è definito solo nell'intervallo [0, 0,6] (al di fuori dell'intervallo è impostato a zero), è più corto e quindi la spline diventa non uniforme.
 
-As described above the parameters of the knots are described by the knot vector. So the knot vector stores the definition intervals. When now one piece gets another interval, also the knot vector changes, see [https://www.youtube.com/watch?v=w-l5R70y6u0 this video] for a visualization.
+Come descritto sopra, i parametri dei nodi sono descritti dal vettore dei nodi. Quindi il vettore dei nodi memorizza gli intervalli di definizione. Quando un pezzo ha un altro intervallo, anche il vettore dei nodi cambia; vedere [https://www.youtube.com/watch?v=w-l5R70y6u0 questo video] per una rappresentazione.
 
-=== Rational B-splines ===
+<span id="Rational_B-splines"></span>
+=== B-spline Razionali ===
 
-A further generalization can be made for B-splines by introducing weights for the control points. This way it can be controlled "how important" a control point is.
+Un'ulteriore generalizzazione può essere fatta per le B-spline introducendo pesi per i punti di controllo. In questo modo è possibile controllare "quanto è importante" un punto di controllo.
 
-The equation for such a spline is
+L'equazione per tale spline è
 
 :<math>
 c(n, t)=\cfrac{\sum_{i=0}^{n}d_{i}N_{i, n}(t)\cdot w_i}{\sum_{i=0}^{n}N_{i, n}(t)\cdot w_i}
 </math>
 
-Notice that the function is no longer a polynomial, but a rational function, and these splines are called rational B-splines. Observe that when all <math>w_i</math> are equal, the equation reduces to a regular non-rational B-spline. So non-rational B-splines are a subset of rational B-splines.
+Si noti che la funzione non è più un polinomio, ma una funzione razionale, e queste spline sono chiamate B-spline razionali. Si osservi che quando tutti i <math>w_i</math> sono uguali, l'equazione si riduce a una B-spline non razionale regolare. Quindi le B-spline non razionali sono un sottoinsieme delle B-spline razionali.
 
-Non-uniform and rational B-splines are often called '''[https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline NURBS]''' and are widely used in geometric modeling.
+Le B-spline razionali e non uniformi sono spesso chiamate '''[https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline NURBS]''' e sono ampiamente utilizzate nella modellazione geometrica.
 
 <span id="B-splines_in_FreeCAD"></span>
 == B-spline in FreeCAD ==
@@ -165,17 +167,17 @@ FreeCAD consente di creare B-spline uniformi o non uniformi di qualsiasi grado i
 <span id="Creation"></span>
 === Creazione ===
 
-To create B-splines, go into a sketch and use the toolbar button {{Button|[[File:Sketcher_CreateBSpline.svg|16px]] [[Sketcher_CreateBSpline|Create B-spline]]}}. Then left-click to set a control point, move the mouse left-click to set the next control point and so on. Finally right-click to finish the definition and create the B-spline.
+Per creare B-spline, accedere ad uno schizzo e usare il pulsante della barra degli strumenti {{Button|[[File:Sketcher_CreateBSpline.svg|16px]] [[Sketcher_CreateBSpline|B-spline]]}}. Quindi fare clic con il pulsante sinistro del mouse per impostare un punto di controllo, spostare il mouse e fare clic con il pulsante sinistro del mouse per impostare il punto di controllo successivo e così via. Infine, fare clic con il pulsante destro del mouse per completare la definizione e creare la B-spline.
 
-By default uniform cubic splines are created, except there are not enough control points to do this. So when you create a B-spline with only 2 control points, you get of course a spline that is single linear Bézier curve, for 3 control points you get a quadratic Bézier curve, first with 5 control points you get a cubic B-spline consisting of 2 Bézier segments. {{Version|0.20}} You can also use press D while making creating a B-spline to set it's degree (it will still fall to a lower degree if less points are provided).
+Per impostazione predefinita vengono create spline cubiche uniformi, ma non ci sono abbastanza punti di controllo per farlo. Quindi, quando si crea una B-spline con solo 2 punti di controllo, si ottiene ovviamente una spline che è una singola curva di Bézier lineare, con 3 punti di controllo si ottiene una curva di Bézier quadratica, e con 5 punti di controllo si ottiene una B-spline cubica composta da 2 segmenti di Bézier. È anche possibile premere D durante la creazione di una B-spline per impostarne il grado (verrà comunque abbassato se si forniscono meno punti), {{Version/it|0.20}}.
 
-To create periodic B-splines (B-splines that form a closed curve), use the toolbar button {{Button|[[File:Sketcher_CreatePeriodicBSpline.svg|16px]] [[Sketcher_CreatePeriodicBSpline|Periodic B-spline]]}}. It is not necessary to set the last control point onto the first one because the B-spline will automatically be closed:
+Per creare B-spline periodiche (B-spline che formano una curva chiusa), utilizzare il pulsante della barra degli strumenti {{Button|[[File:Sketcher_CreatePeriodicBSpline.svg|16px]] [[Sketcher_CreatePeriodicBSpline|B-spline periodica dai punti di controllo]]}}. Non è necessario impostare l'ultimo punto di controllo sul primo perché la B-spline verrà chiusa automaticamente:
 
 [[File:Sketcher_Periodic-B-spline-creation.gif]]
 
-B-splines can also be generated out of existing sketch segments. To do this, select the elements and press the the toolbar button {{Button|[[File:Sketcher_BSplineConvertToNURBS.svg|24px]] [[Sketcher_BSplineConvertToNURBS|Convert Geometry to B-spline]]}}.
+È possibile generare B-spline anche a partire da segmenti di schizzo esistenti. Per farlo, selezionare gli elementi e premere il pulsante della barra degli strumenti {{Button|[[File:Sketcher_BSplineConvertToNURBS.svg|24px]] [[Sketcher_BSplineConvertToNURBS/it|Converti la geometria in B-spline]]}}.
 
-While creating a B-spline, its degree can be specified by pressing the {{KEY|D}} key. With this, the default to create a cubic B-spline if possible, can be overridden. {{Version|0.20}}
+Durante la creazione di una B-spline, è possibile specificarne il grado premendo il tasto {{KEY|D}}. In questo modo se possibile, l'impostazione predefinita, che prevede la creazione di una B-spline cubica, può essere ignorata, {{Version/it|0.20}}.
 
 === Changing the Degree ===
 
