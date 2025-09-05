@@ -1,87 +1,67 @@
+# -*- coding: utf-8 -*-
+"""
+Genera una manguera flexible enrollada (tubo hueco sobre hélice) y la exporta en STEP.
+Probado en FreeCAD 0.20+ (GUI o modo consola).
+
+Parámetros editables:
+- hose_inner_diameter_mm, hose_outer_diameter_mm
+- helix_center_radius_mm (radio del enrollado al centro del tubo)
+- turns (vueltas), pitch_mm_per_turn (paso por vuelta)
+- lefthand (True = hélice izquierda), is_frenet (True = mantén sección perpendicular al camino)
+"""
+
 import FreeCAD as App
 import Part
-from FreeCAD import Base
+import os
 
-doc = App.newDocument("Channel_Block")
+# ========= PARÁMETROS =========
+hose_inner_diameter_mm = 20.0
+hose_outer_diameter_mm = 24.0
+helix_center_radius_mm = 140.0
+turns = 10
+pitch_mm_per_turn = 50.0
+lefthand = False
+is_frenet = True
 
-# 创建基础长方体
-length = 300
-width = 110
-height = 60
-block = Part.makeBox(length, width, height)
-block_obj = doc.addObject("Part::Feature", "Block")
-block_obj.Shape = block
+# Ruta de exportación (cámbiala si quieres)
+out_dir = App.getUserAppDataDir() if hasattr(App, "getUserAppDataDir") else os.getcwd()
+out_path = os.path.join(out_dir, "manguera_enrollada.step")
+# ==============================
 
-# 函数：创建半圆柱（向下凹，沿指定轴）
-def create_half_cylinder(radius, length, pos, direction):
-    # 创建半圆旋转体
-    sketch = doc.addObject('Part::Part2DObject', 'Sketch')
-    sketch.Support = None
-    sketch.MapMode = 'FlatFace'
-    
-    # 在草图中画一个矩形（3x3）
-    sketch.addGeometry(Part.LineSegment(App.Vector(0,0,0), App.Vector(radius,0,0)), False)
-    sketch.addGeometry(Part.LineSegment(App.Vector(radius,0,0), App.Vector(radius,radius,0)), False)
-    sketch.addGeometry(Part.LineSegment(App.Vector(radius,radius,0), App.Vector(0,radius,0)), False)
-    sketch.addGeometry(Part.LineSegment(App.Vector(0,radius,0), App.Vector(0,0,0)), False)
-    
-    # 拉伸并旋转成半圆柱
-    # 更简单：直接用旋转
-    wire = Part.Wire([
-        Part.makeLine((0,0,0), (radius,0,0)),
-        Part.makeLine((radius,0,0), (radius,radius,0)),
-        Part.makeLine((radius,radius,0), (0,radius,0)),
-        Part.makeLine((0,radius,0), (0,0,0))
-    ])
-    face = Part.Face(wire)
-    solid = face.revolve(Base.Vector(0,0,0), Base.Vector(*direction), 180)
-    solid.translate(pos)
-    return solid
+Ri = hose_inner_diameter_mm / 2.0
+Ro = hose_outer_diameter_mm / 2.0
+height = turns * pitch_mm_per_turn
 
-# 创建X方向槽（沿X，Y阵列）
-x_slots = []
-for i in range(14):  # Y方向每隔8mm
-    y_pos = i * 8
-    pos = Base.Vector(0, y_pos, height - 3)  # Z=57
-    cyl = Part.makeCylinder(3, 300, pos, Base.Vector(1,0,0))
-    # 用长方体切掉上半部分，保留下半（Z ≤ 57+3）
-    box = Part.makeBox(302, 6, 3, Base.Vector(-1, y_pos-3, height-3))
-    half_cyl = cyl.common(box)  # 交集 → 下半圆柱
-    x_slots.append(half_cyl)
+doc = App.newDocument("HoseHelixSTEP")
 
-x_slot_union = x_slots[0]
-for s in x_slots[1:]:
-    x_slot_union = x_slot_union.fuse(s)
+# 1) Crear la hélice (trayectoria)
+# Part.makeHelix(pitch, height, radius, angle=0, lefthand=False)
+helix = Part.makeHelix(pitch_mm_per_turn, height, helix_center_radius_mm, 0.0, lefthand)
 
-x_slot_obj = doc.addObject("Part::Feature", "X_Slots")
-x_slot_obj.Shape = x_slot_union
+# 2) Crear las secciones circular exterior e interior (como caras para obtener sólidos)
+# Ubicamos los círculos en el origen; el barrido con Frenet ajusta orientación automáticamente
+circle_outer = Part.Circle(App.Vector(0,0,0), App.Vector(0,0,1), Ro)
+wire_outer = Part.Wire([circle_outer.toShape()])
+face_outer = Part.Face(wire_outer)  # disco
 
-# 创建Y方向槽（沿Y，X阵列）
-y_slots = []
-for i in range(16):  # X方向每隔20mm
-    x_pos = i * 20
-    pos = Base.Vector(x_pos, 0, height - 3)
-    cyl = Part.makeCylinder(3, 110, pos, Base.Vector(0,1,0))
-    box = Part.makeBox(6, 112, 3, Base.Vector(x_pos-3, -1, height-3))
-    half_cyl = cyl.common(box)
-    y_slots.append(half_cyl)
+circle_inner = Part.Circle(App.Vector(0,0,0), App.Vector(0,0,1), Ri)
+wire_inner = Part.Wire([circle_inner.toShape()])
+face_inner = Part.Face(wire_inner)  # disco
 
-y_slot_union = y_slots[0]
-for s in y_slots[1:]:
-    y_slot_union = y_slot_union.fuse(s)
+# 3) Barrer (sweep) las secciones sobre la hélice
+# Face.makePipe(path) crea un sólido "varilla" a lo largo de la trayectoria
+outer_solid = face_outer.makePipe(helix, isFrenet=is_frenet)
+inner_solid = face_inner.makePipe(helix, isFrenet=is_frenet)
 
-y_slot_obj = doc.addObject("Part::Feature", "Y_Slots")
-y_slot_obj.Shape = y_slot_union
+# 4) Hacer el tubo hueco: outer - inner
+tube_solid = outer_solid.cut(inner_solid)
 
-# 合并所有凹槽
-slots_union = x_slot_union.fuse(y_slot_union)
-slots_obj = doc.addObject("Part::Feature", "All_Slots")
-slots_obj.Shape = slots_union
-
-# 从块体中切割
-cut = doc.addObject("Part::Cut", "Final_Block")
-cut.Base = block_obj
-cut.Tool = slots_obj
-
+# 5) Agregar al documento y recomputar
+obj = doc.addObject("Part::Feature", "CoiledHose")
+obj.Shape = tube_solid
 doc.recompute()
-App.ActiveDocument.recompute()
+
+# 6) Exportar a STEP
+Part.export([obj], out_path)
+
+print("Exportado STEP a:", out_path)
