@@ -1,67 +1,99 @@
-# -*- coding: utf-8 -*-
-"""
-Genera una manguera flexible enrollada (tubo hueco sobre hélice) y la exporta en STEP.
-Probado en FreeCAD 0.20+ (GUI o modo consola).
+<languages/>
+<translate>
 
-Parámetros editables:
-- hose_inner_diameter_mm, hose_outer_diameter_mm
-- helix_center_radius_mm (radio del enrollado al centro del tubo)
-- turns (vueltas), pitch_mm_per_turn (paso por vuelta)
-- lefthand (True = hélice izquierda), is_frenet (True = mantén sección perpendicular al camino)
-"""
+<!--T:19-->
+{{Docnav
+|[[Scripting_and_macros|Scripting and macros]]
+|[[Scripts|Scripts]]
+}}
 
-import FreeCAD as App
-import Part
-import os
+</translate>
+{{TOCright}}
+<translate>
 
-# ========= PARÁMETROS =========
-hose_inner_diameter_mm = 20.0
-hose_outer_diameter_mm = 24.0
-helix_center_radius_mm = 140.0
-turns = 10
-pitch_mm_per_turn = 50.0
-lefthand = False
-is_frenet = True
+== Introduction == <!--T:16-->
 
-# Ruta de exportación (cámbiala si quieres)
-out_dir = App.getUserAppDataDir() if hasattr(App, "getUserAppDataDir") else os.getcwd()
-out_path = os.path.join(out_dir, "manguera_enrollada.step")
-# ==============================
+<!--T:1-->
+[[Macros|Macros]] are a convenient way to reproduce complex actions in FreeCAD. You simply record actions as you do them, then save those actions under a name, and replay them whenever you want. Since macros are in reality a list of [[Python|Python]] commands, you can also edit them, and create very complex scripts.
 
-Ri = hose_inner_diameter_mm / 2.0
-Ro = hose_outer_diameter_mm / 2.0
-height = turns * pitch_mm_per_turn
+<!--T:17-->
+While Python scripts normally have the {{incode|.py}} extension, FreeCAD macros should have the {{incode|.FCMacro}} extension. A collection of macros written by experienced users is found in the [[Macros_recipes|macros recipes]] page.
 
-doc = App.newDocument("HoseHelixSTEP")
+<!--T:18-->
+See the [[Power_users_hub|Power users hub]] to learn more about the [[Python|Python]] programming language, and about writing macros. In particular, you should start with these pages:
+* [[Introduction_to_Python|Introduction to Python]]
+* [[Python_scripting_tutorial|Python scripting tutorial]]
+* [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]]
 
-# 1) Crear la hélice (trayectoria)
-# Part.makeHelix(pitch, height, radius, angle=0, lefthand=False)
-helix = Part.makeHelix(pitch_mm_per_turn, height, helix_center_radius_mm, 0.0, lefthand)
+== How it works == <!--T:2-->
 
-# 2) Crear las secciones circular exterior e interior (como caras para obtener sólidos)
-# Ubicamos los círculos en el origen; el barrido con Frenet ajusta orientación automáticamente
-circle_outer = Part.Circle(App.Vector(0,0,0), App.Vector(0,0,1), Ro)
-wire_outer = Part.Wire([circle_outer.toShape()])
-face_outer = Part.Face(wire_outer)  # disco
+<!--T:23-->
+Enable the console output in the menu {{MenuCommand|Edit → Preferences → Python → Macro → Show scripts commands in python console}}. You will see that in FreeCAD, every action you do, such as pressing a button, outputs a Python command. Those commands are what can be recorded in a macro. The main tool for making macros is the macros toolbar: [[Image:Macros_toolbar.jpg]]. On it you have 4 buttons: Record, stop recording, edit and play the current macro.
 
-circle_inner = Part.Circle(App.Vector(0,0,0), App.Vector(0,0,1), Ri)
-wire_inner = Part.Wire([circle_inner.toShape()])
-face_inner = Part.Face(wire_inner)  # disco
+<!--T:3-->
+It is very simple to use: Press the record button, you will be asked to give a name to your macro, then perform some actions. When you are done, click the stop recording button, and your actions will be saved. You can now access the macro dialog with the edit button.
 
-# 3) Barrer (sweep) las secciones sobre la hélice
-# Face.makePipe(path) crea un sólido "varilla" a lo largo de la trayectoria
-outer_solid = face_outer.makePipe(helix, isFrenet=is_frenet)
-inner_solid = face_inner.makePipe(helix, isFrenet=is_frenet)
+<!--T:4-->
+[[Image:Macros.png]]
+{{Caption|Macro dialog, listing the macros available in the system}}
 
-# 4) Hacer el tubo hueco: outer - inner
-tube_solid = outer_solid.cut(inner_solid)
+<!--T:5-->
+There you can manage your macros, delete, edit, duplicate, install or create new ones from scratch. If you edit a macro, it will be opened in an editor window where you can make changes to its code.  New macros can be installed using the {{button|Addons...}} button, which links to the [[Std_AddonMgr|Addon Manager]].
 
-# 5) Agregar al documento y recomputar
-obj = doc.addObject("Part::Feature", "CoiledHose")
-obj.Shape = tube_solid
-doc.recompute()
+== Example == <!--T:6-->
 
-# 6) Exportar a STEP
-Part.export([obj], out_path)
+<!--T:24-->
+Press the record button, give a name, let's say "cylinder 10x10", then, in the [[Part_Workbench|Part Workbench]], create a cylinder with radius = 10 and height = 10. Then, press the "stop recording" button. In the edit macros dialog, you can see the python code that has been recorded, and, if you want, make alterations to it. To execute your macro, simply press the execute button on the toolbar while your macro is in the editor. You macro is always saved to disk, so any change you make, or any new macro you create, will always be available next time you start FreeCAD.
 
-print("Exportado STEP a:", out_path)
+== Customizing == <!--T:7-->
+
+<!--T:25-->
+Of course it is not practical to load a macro in the editor in order to use it. FreeCAD provides much better ways to use your macro, such as assigning a keyboard shortcut to it or putting an entry in the menu. Once your macro is created, all this can be done via the {{MenuCommand|Tools → Customize}} menu.
+
+<!--T:8-->
+[[Image:Macros config.jpg]]
+
+<!--T:9-->
+This way you can make your macro become a real tool, just like any standard FreeCAD tool. This, added to the power of python scripting within FreeCAD, makes it possible to easily add your own tools to the interface.
+
+<!--T:26-->
+See [[Customize_Toolbars|Customize Toolbars]] for a more detailed description.
+
+== Creating macros without recording == <!--T:10-->
+
+<!--T:27-->
+You can also directly copy/paste python code into a macro, without recording GUI action. Simply create a new macro, edit it, and paste your code. You can then save your macro the same way as you save a FreeCAD document. Next time you start FreeCAD, the macro will appear under the "Installed Macros" item of the Macro menu.
+
+<!--T:28-->
+See [[How_to_install_macros|How to install macros]] for a more detailed description.
+
+== Macro repositories == <!--T:11-->
+
+<!--T:29-->
+There are two main places for macros. The first one is the official peer-reviewed macro repository on [https://github.com/FreeCAD/FreeCAD-macros GitHub]. The second one is the [[Macros_recipes|Macros recipes]] page from which you can pick some useful macros to add to your FreeCAD installation. Macros from both repositories can be installed via the [[Std_AddonMgr|Addon Manager]] directly from FreeCAD.
+
+== Additional information == <!--T:13-->
+
+<!--T:30-->
+* [[Macro_at_Startup|Automatically run macro at startup]]
+* [[Installing_more_workbenches|Installing more workbenches]]
+
+== Tutorials == <!--T:14-->
+
+<!--T:31-->
+You can manually install extensions, however, it is much simpler to just use the [[Std_AddonMgr|Addon Manager]].
+* [[How_to_install_macros|How to install macros]]
+* [[How_to_install_additional_workbenches|How to install additional workbenches]]
+
+
+<!--T:12-->
+{{Docnav
+|[[Scripting_and_macros|Scripting and macros]]
+|[[Scripts|Scripts]]
+}}
+
+</translate>
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+[[Category:Macros{{#translation:}}]]
