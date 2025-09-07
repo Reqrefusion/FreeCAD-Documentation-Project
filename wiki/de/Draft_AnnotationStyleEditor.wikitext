@@ -24,9 +24,7 @@
 Das Werkzeug {{Button|[[Image:Draft_AnnotationStyleEditor.svg|24px]] [[Draft_AnnotationStyleEditor/de|BeschriftungsstilEditor]]}}ermöglicht Stile festzulegen, die die visuellen Eigenschaften von Beschriftungsobjekten beeinflussen, die durch die Befehle [[Draft_Text/de|Draft Text]], [[Draft_Dimension/de|Draft Maß]] und [[Draft Label/de|Draft Hinweis]] erstellt werden.
 
 [[File:Draft_AnnotationStyleEditor_Dialog.png]]
-<div class="mw-translate-fuzzy">
-{{Caption|Das Dialogfenster Anmerkungsstil-Editor}}
-</div>
+{{Caption|Das Dialogfenster Beschriftungsstil-Editor (Layout der Version 1.1)}}
 
 <span id="Usage"></span>
 ==Anwendung==
@@ -59,11 +57,6 @@ Siehe auch: [https://freecad.github.io/SourceDoc/ Autogenerierte API-Dokumentati
 
 Die Beschriftungsstile werden als geordnete Wörterbücher im {{incode|Meta}}-Attribut des Dokuments gespeichert. Dieses Attribut wird vom Beschriftungsstil-Editor gelesen, wenn er geöffnet wird.
 
-{{Code|code=
->>> print(App.ActiveDocument.Meta["Draft_Style_Text red"])
-{"ArrowSize": 2.0, "ArrowType": 0, "Decimals": 2, "DimOvershoot": 4.0, "ExtLines": 0.0, "ExtOvershoot": 4.0, "FontName": "DejaVu Sans", "FontSize": 10.0, "LineColor": 255, "LineSpacing": 1.0, "LineWidth": 2, "ScaleMultiplier": 1.0, "ShowLine": true, "ShowUnit": false, "TextColor": 4278190335, "TextSpacing": 3.0, "UnitOverride": ""}
-}}
-
 Jeder Stil, der im Editor angezeigt wird, wird intern mit dem Stilnamen und vorangestelltem {{incode|Draft_Style_}} gespeichert; dies verhindert Namenskonflikte mit anderen Schlüsseln, die in {{incode|Meta}} gespeichert sein können, die beliebige Informationen enthalten können.
 
 Du könntest jeden neuen Stil festlegen, durch hinzufügen der notwendigen Informationen zu einem Schlüssel, der mit {{incode|Draft_Style_}} beginnt. Der entsprechende Wert dieses Schlüssels muss ein serialisiertes Wörterbuch das mit {{incode|json}} verwendet.
@@ -72,8 +65,8 @@ Du könntest jeden neuen Stil festlegen, durch hinzufügen der notwendigen Infor
 import json
 
 meta = App.ActiveDocument.Meta
-props = {"ArrowSize": 7.0, "LineWidth": 6}
-meta["Draft_Style_Thick_lines"] = json.dumps(props)
+props = {"ArrowSizeStart": 7.0, "ArrowSizeEnd": 7.0, "LineWidth": 6}
+meta["Draft_Style_Thick lines"] = json.dumps(props)
 App.ActiveDocument.Meta = meta
 }}
 
@@ -85,7 +78,13 @@ Auf ähnliche Weise kann jedes serialisierte Wörterbuch für die Bearbeitung en
 import json
 
 meta = App.ActiveDocument.Meta
-new_dict = json.loads(meta["Draft_Style_Thick_lines"])
+props = json.loads(meta["Draft_Style_Text red"])
+}}
+
+Where {{Incode|props}} may have this value:
+
+{{Code|code=
+{"ArrowSizeStart": 2.0, "ArrowSizeEnd": 2.0, "ArrowTypeStart": 0, "ArrowTypeEnd": 0, "Decimals": 2, "DimOvershoot": 4.0, "ExtLines": 0.0, "ExtOvershoot": 4.0, "FontName": "DejaVu Sans", "FontSize": 10.0, "LineColor": 255, "LineSpacing": 1.0, "LineWidth": 2, "ScaleMultiplier": 1.0, "ShowLine": True, "ShowUnit": False, "TextColor": 4278190335, "TextSpacing": 3.0, "UnitOverride": ""}
 }}
 
 Die Eigenschaften müssen folgenden Typen entsprechen:
@@ -103,7 +102,8 @@ Fließkommazahlen (müssen mit einem Punkt als Dezimaltrennzeichen angegeben wer
 
 {{Code|code=
 props = {
-    "ArrowSize": 2.0,
+    "ArrowSizeStart": 2.0,
+    "ArrowSizeEnd": 2.0,
     "DimOvershoot": 4.0,
     "ExtLines": 0.0,
     "ExtOvershoot": 4.0
@@ -118,7 +118,8 @@ Integer (Ganzzahlen):
 
 {{Code|code=
 props = {
-    "ArrowType": 0,
+    "ArrowTypeStart": 0,
+    "ArrowTypeEnd": 0,
     "Decimals": 2,
     "LineColor": 255,
     "LineWidth": 2,
@@ -126,14 +127,16 @@ props = {
 }
 }}
 
+<div class="mw-translate-fuzzy">
 Die Werte für {{Incode|TextColor}} und {{Incode|LineColor}} entsprechen einer 32-Bit-Ganzzahl, aus der die einzelnen RGBA-Werte entnommen werden können. {{Incode|ArrowType}} ist der Index einer Aufzählung.
+</div>
 
 Boolesche Werte:
 
 {{Code|code=
 props = {
-    "ShowLine": true
-    "ShowUnit": false,
+    "ShowLine": True,
+    "ShowUnit": False
 }
 }}
 
