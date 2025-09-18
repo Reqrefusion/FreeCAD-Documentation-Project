@@ -128,6 +128,55 @@ Configuration:
 <!--T:26-->
 This method is ideal for automated tasks and continuous integration (CI) scripts. Common uses include executing the entire test suite with {{incode|FreeCADCmd -t 0}} or running tests for a specific module, such as {{incode|FreeCADCmd -t TestArch}} (all BIM workbench tests) or {{incode|FreeCADCmd -t TestArch.TestWall}} (only BIM worckbench's wall tests).
 
+==== Executing Python code directly ====
+
+FreeCAD's command-line executables can also function as specialized Python interpreters, allowing for the direct execution of Python code. This provides a convenient and powerful alternative to embedding FreeCAD within an external Python script.
+
+'''Executing an Inline Script'''
+
+You can pass a string of Python code directly as a single argument. This is useful for very short, single-purpose commands. Note that the command-line argument must not be a path to an existing file for this to work.
+
+*   '''Headless Mode''': Using {{incode|FreeCADCmd}} executes the code and then immediately exits. This is ideal for scripting.
+{{Code|lang=bash|code=
+$ FreeCADCmd "import Part; print(Part.makeBox(10,5,15).Volume)"
+}}
+*   '''Interactive Mode''': Using {{incode|FreeCAD -c}} executes the code and then opens an interactive Python console session. This is useful for quick tests where you may want to inspect the state afterwards.
+{{Code|lang=bash|code=
+$ FreeCAD -c "import Part; my_box = Part.makeBox(10,5,15)"
+}}
+
+'''Executing a Script File'''
+
+A more powerful method is to use FreeCAD to directly execute a Python script file. This is the recommended approach for any non-trivial headless task.
+
+{{Code|lang=bash|code=
+$ FreeCADCmd /path/to/my_script.py
+}}
+
+When a script is run this way, the FreeCAD environment is already configured. The key advantage is that the script '''does not''' need the {{incode|sys.path.append()}} boilerplate code. The FreeCAD modules are immediately available for import.
+
+For example, a file named {{incode|create_box.py}} could contain:
+{{Code|lang=python|code=
+import Part
+# The FreeCAD module is already available, but it can be imported explicitly
+import FreeCAD
+
+# Create a new document and add a box to it
+doc = FreeCAD.newDocument()
+box_obj = doc.addObject("Part::Box", "MyBox")
+doc.recompute()
+
+# Export the part to a STEP file
+Part.export([box_obj], "my_box_model.step")
+
+print("Box created and exported successfully to my_box_model.step")
+}}
+Running this script from the terminal is as simple as:
+{{Code|lang=bash|code=
+$ FreeCADCmd create_box.py
+Box created and exported successfully to my_box_model.step
+}}
+
 == Examples == <!--T:7-->
 
 === Searching FreeCAD modules === <!--T:8-->
