@@ -4,10 +4,165 @@
 <span id="Introduction"></span>
 == Введение ==
 
+<div class="mw-translate-fuzzy">
 На этой вики-странице будут описаны различные аспекты запуска FreeCAD в консоли без включения GUI (графического интерфейса пользователя) или так называемого «безголового» запуска.
+</div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-== Scenegraph Representation ==
+=== Via the FreeCAD Python Console ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This is an interactive mode where FreeCAD starts directly in a Python Console. This console is a fully functional Python environment with all of FreeCAD's Python modules, such as {{incode|Part}}, {{incode|BIM}}, and {{incode|Draft}}, accessible through their public API. The core {{incode|FreeCAD}} module is built-in, so it does not need to be imported explicitly during the console session. Other modules can be imported during the session (e.g. {{incode|import Part}}), as needed.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This mode can be launched from the command line using either {{incode|FreeCAD -c}} or {{incode|FreeCADCmd}}. It offers the same functionality as the Python Console found within the full FreeCAD application, with the notable exception that the command-line version does not support autocompletion.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+It is best used for quickly testing Python code that accesses the FreeCAD API or for debugging small scripts that can be easily pasted into the console.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Via Python script ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In this mode, FreeCAD is used as a standard Python library. This allows you to import its full Python API into any external Python script or application, treating it as a native module.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To enable this, the Python interpreter must be able to locate the FreeCAD library file, which is named {{incode|FreeCAD.so}} on Linux and macOS or {{incode|FreeCAD.pyd}} on other platforms. This is done by appending its directory to Python's search paths at the very beginning of your script. Once the path is set, the rest of the script can access the FreeCAD API like any other Python module.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Below is a simple example that creates a box and prints its volume and area:
+</div>
+
+{{Code|code=
+# Set the path to your FreeCAD installation
+# Example for Linux:
+# FREECADPATH = '/usr/lib/freecad/lib'
+# Example for macOS:
+# FREECADPATH = '/Applications/FreeCAD.app/Contents/Resources/lib'
+# Example for Windows:
+FREECADPATH = 'C:\\Program Files\\FreeCAD\\bin'
+import sys
+sys.path.append(FREECADPATH)
+
+# The rest of the script can now import and use the FreeCAD API
+import FreeCAD
+import Part
+
+# Create a simple geometric shape
+my_box = Part.makeBox(10, 20, 30)
+
+# Access its properties
+print(f"The volume of the box is: {my_box.Volume}")
+print(f"The area of the box is: {my_box.Area}")
+}}
+
+To run the example script, save the code into a file (e.g., {{incode|run_box.py}}) and execute it from your system's terminal with the Python interpreter:
+{{Code|lang=bash|code=
+$ python run_box.py
+The volume of the box is: 6000.0
+The area of the box is: 2200.0
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This is a very powerful feature that unlocks the full capabilities of FreeCAD for automation and integration tasks. For example, one could write a script that leverages both the FreeCAD and Blender APIs to programmatically import objects from a {{incode|.FCStd}} file directly into a Blender scene.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Note that this mode is intended for using the FreeCAD API without a GUI. While some GUI-related modules can be imported, API usage that directly accesses or manipulates GUI components is very limited and generally not supported in a headless context.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+See [[Embedding_FreeCAD|Embedding FreeCAD]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Via shell script ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You can also execute FreeCAD headlessly from a shell script by calling {{incode|FreeCAD -c}} or {{incode|FreeCADCmd}} followed by the necessary arguments.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+A full list of available command-line arguments can be displayed by using the {{incode|--help}} flag. Here is an example of the help output for FreeCAD 1.0.2:
+</div>
+
+{{Code|lang=bash|code=
+$ FreeCAD -c --help
+FreeCAD
+
+For a detailed description see https://wiki.freecad.org/Start_up_and_Configuration
+
+Usage: FreeCAD [options] File1 File2 ...
+
+Allowed options:
+
+Generic options:
+  -v [ --version ]          Prints version string
+  --verbose                 Prints verbose version string
+  -h [ --help ]             Prints help message
+  -c [ --console ]          Starts in console mode
+  --response-file arg       Can be specified with '@name', too
+  --dump-config             Dumps configuration
+  --get-config arg          Prints the value of the requested configuration key
+  --set-config arg          Sets the value of a configuration key
+  --keep-deprecated-paths   If set then config files are kept on the old 
+                            location
+
+Configuration:
+  -l [ --write-log ]        Writes FreeCAD.log to the user directory.
+  --log-file arg            Unlike --write-log this allows logging to an 
+                            arbitrary file
+  -u [ --user-cfg ] arg     User config file to load/save user settings
+  -s [ --system-cfg ] arg   System config file to load/save system settings
+  -t [ --run-test ] arg     Run a given test case (use 0 (zero) to run all 
+                            tests). If no argument is provided then return list
+                            of all available tests.
+  -r [ --run-open ] arg     Run a given test case (use 0 (zero) to run all 
+                            tests). If no argument is provided then return list
+                            of all available tests.  Keeps UI open after 
+                            test(s) complete.
+  -M [ --module-path ] arg  Additional module paths
+  -E [ --macro-path ] arg   Additional macro paths
+  -P [ --python-path ] arg  Additional python paths
+  --disable-addon arg       Disable a given addon.
+  --single-instance         Allow to run a single instance of the application
+  --safe-mode               Force enable safe mode
+  --pass arg                Ignores the following arguments and pass them 
+                            through to be used by a script
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This method is ideal for automated tasks and continuous integration (CI) scripts. Common uses include executing the entire test suite with {{incode|FreeCADCmd -t 0}} or running tests for a specific module, such as {{incode|FreeCADCmd -t TestArch}} (all BIM workbench tests) or {{incode|FreeCADCmd -t TestArch.TestWall}} (only BIM worckbench's wall tests).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Examples ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Searching FreeCAD modules ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+# Open the terminal and type:
+#:{{incode|$ /path/to/FreeCAD -c}}
+#::or
+#:{{incode|$ /path/to/FreeCADCmd}}
+# A python shell will start with a prompt. Type {{incode|help()}}.
+# A help text is displayed.
+# Type {{incode|modules freecad}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Scenegraph representation ===
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -31,24 +186,6 @@ view = Gui.subgraphFromObject(obj)
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 See: [https://forum.freecad.org/viewtopic.php?f=10&t=55794&p=481586#p481586 forum thread].
-</div>
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Examples ==
-</div>
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Searching FreeCAD Modules ===
-</div>
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-# Open the terminal and type:
-#:{{incode|$ /path/to/FreeCAD -c}}
-#::or
-#:{{incode|$ /path/to/FreeCADCmd}}
-# A python shell will start with a prompt. Type {{incode|help()}}.
-# A help text is displayed.
-# Type {{incode|modules freecad}}.
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
