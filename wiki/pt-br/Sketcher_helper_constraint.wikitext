@@ -1,0 +1,38 @@
+<languages/>
+
+<span id="Overview"></span>
+==Visão geral==
+
+[[Image:Sketcher_helper_constraint_example1.png|thumb|500px|Example of a helper constraint (Constraint5 - point on circle) for a tangent constraint (Constraint6; in tangent-via-point mode). Only one helper constraint is used in this case, since the point of tangency is the endpoint of ellipse's major diameter, which inherently lies on the ellipse.]]
+
+A helper constraint is a regular constraint that is needed as a part of a more complex constraint, and is exposed in the user interface to assist dealing with redundancy. For example, for the [[Sketcher ConstrainSnellsLaw|refraction constraint]], the two lines that represent rays of light need to be connected ([[Sketcher ConstrainCoincident|coincident constraint]]), and the joint must lie on the interface ([[Sketcher_ConstrainPointOnObject|point-on-object constraint]]). 
+
+Helper constraints are added automatically when they are needed. The decision for if they are needed is currently made by evaluating the helper constraint error for the current state of the geometry (this may change in future versions). If the error is small enough, the constraint is considered to be unnecessary, and is not added. In some cases, this logic can lead to errors (the constraint can be satisfied by accident, which can easily happen when Sketcher [[Sketcher_Grid|grid snap]] is on). 
+
+If this happens (a helper constraint is missing, and the required conditions is not satisfied otherwise), the complex constraint will be broken. It will do something, but the actual behavior is undefined. Such a broken constraint can be repaired by adding the missing helper constraint manually.
+
+Helper constraints are currently required for:
+* [[Sketcher_ConstrainTangent|Tangent/collinear constraint]] (in tangent-via-point mode two point-on-object constraints are needed)
+* [[Sketcher_ConstrainPerpendicular|Perpendicular constraint]] (in perpendicular-via-point mode two point-on-object constraints are needed)
+* [[Sketcher_ConstrainAngle|Angle dimension]] (in angle-via-point mode two point-on-object constraints are needed)
+* [[Sketcher_ConstrainSnellsLaw|Refraction constraint]] (coincident constraint and point-on-object constraint are needed)
+
+==Scripting==
+
+When constraints requiring helpers are added from Python, no helper constraints are automatically added. One can replicate the automatic decision-making of the UI commands in a script by testing the following functions, specifically added for the purpose and used in the UI routines:
+
+{{Code|code=
+Sketch.isPointOnCurve(icurve,x,y)
+}}
+
+{{Incode|isPointOnCurve}} tests if a virtual point, given by sketch coordinates {{Incode|x,y}} (float values), happens to satisfy a virtual point-on-object constraint - i.e. lies on curve specified by curve index {{Incode|icurve}}. Returns True if the point is on curve, and False if it doesn't.
+
+{{Code|code=
+Sketch.calculateConstraintError(iconstr)
+}}
+
+{{Incode|calculateConstraintError}} evaluates an error function of a constraint specified by its index {{Incode|iconstr}} in the sketch. If there is only one error function in the constraint, the return value is the signed return value of the error function. If there is more than one error function associated with the constraint (i.e. the constraint removes more than one degree of freedom), the return value is the RMS of all the error functions (always positive).
+
+
+{{Sketcher_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
