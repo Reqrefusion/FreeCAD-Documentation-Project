@@ -58,26 +58,32 @@ One should remember that beam, shell, plane stress/strain and axisymmetric eleme
 <!--T:15-->
 The geometry used for FEM has to be valid. Most importantly, there can't be any intersections. It's a common issue often occurring when assemblies are modeled without proper constraints between the parts. The [[Part_SectionCut|Part SectionCut]] tool can help find such interferences between parts. Of course, [[Part_Fuse|Part Fuse]] may help resolve them if they are intentional. Other issues with the geometry (such as non-manifold geometries, redundant edges or faces and so on) also have to be fixed before proceeding to meshing. The [[Part_CheckGeometry|Part CheckGeometry]] tool can be helpful but visual checks are also important. When preparing a simulation using solid elements and in doubt whether the part is really solid or just a closed shell, the aforementioned tools (Part SectionCut and ''Shape Content'' tab of the Part CheckGeometry tool output) may clarify this.
 
-== Surface normals ==
+== Surface normals == <!--T:68-->
 
-In the case of surface geometries used for analyses with shell and 2D elements, the normal directions of the surfaces might be important. They are used to distinguish positive and negative side of a surface finite element mesh and affect analysis features such as pressure loads and contact. Moreover, 2D analyses (plane stress/strain and axisymmetric) with CalculiX require the normals to point in the positive Z direction. If they are inverted, negative jacobian errors will occur.
+<!--T:69-->
+In case of surface geometries used for analyses with shell and 2D elements, the normal directions of the surfaces might be important. They are used to distinguish the positive and negative side of a surface finite element mesh and affect analysis features such as pressure loads and contact. Moreover, 2D analyses (plane stress/strain and axisymmetric) with CalculiX require the normals to point in the positive Z direction. If they are inverted, negative jacobian errors will occur.
 
+<!--T:70-->
 To check the normals, use one of the following approaches:
 * enable Backlight in the [[Preferences_Editor|Preferences]] and set the {{PropertyView|Lighting}} property of the surface object to ''One side'' - the negative normal direction will appear darker,
 * use the [[Macro_Normal_Vector|Normal Vector macro]],
 * mesh the surface shape in FEM - the mesh will be colored only on the positive normal side.
 
+<!--T:71-->
 To invert the normals, use the [[Part_ReverseShape|Reverse shapes]] tool.
 
-== Using surface meshes for FEM ==
+== Using surface meshes for FEM == <!--T:72-->
 
+<!--T:73-->
 [[Mesh_MeshObject|Surface meshes]], typically imported from STL, OBJ and similar files or created in the [[Mesh_Workbench|Mesh Workbench]], can't be used directly for FEM. It is necessary to [[Part_ShapeFromMesh|create a shape from mesh]] first. Then this shape can be meshed in the FEM workbench to create a surface (shell / 2D) finite element mesh. If a solid (3D) finite element mesh is needed, shape creation has to be followed by [[Part_MakeSolid|conversion to a solid]].
 
+<!--T:74-->
 The biggest issue with shapes created from surface meshes is that all their triangles become the faces of the generated shape. In FEM, this makes the assignment of analysis features (such as loads and boundary conditions) particularly problematic. In the case of planar surfaces, [[Part_RefineShape|refinement]] after conversion to a solid may remove the redundant triangular faces. In practical scenarios, most will remain though and because of that, surface meshes are not recommended for use in FEM. CAD geometries (created in FreeCAD or imported from STEP/IGES files) should be used instead. Sometimes it may even make sense to recreate the geometry based on the surface mesh.
 
 == Geometry simplification == <!--T:16-->
 
-==== Defeaturing ====
+=== Defeaturing === <!--T:75-->
+
 <!--T:17-->
 Designs prepared in CAD software are typically too detailed to be suitable for FEM simulations. In many cases, it's necessary to simplify them first. This step is often overlooked but it's very important because it can be hard to obtain a good mesh when the part is too detailed and even if such a mesh is obtained eventually, it might be very dense, leading to unreasonable solving times. Thus, one should always look at the design and try to simplify it as much as possible, leaving only those geometric features that may have a significant impact on the results (strength/stiffness) and thus can't be ignored. The following features are typically omitted:
 * small fillets and chamfers,
@@ -102,11 +108,13 @@ The [[Part_Defeaturing|Part Defeaturing]] tool and add-on [[Defeaturing_Workbenc
 <!--T:22-->
 {{Caption|Bracket geometry simplified using only the Part Defeaturing tool}}
 
-==== Replacing parts with boundary conditions ====
+=== Replacing parts with boundary conditions === <!--T:76-->
+
 <!--T:23-->
 In the case of assemblies (more about them in one of the next sections), often some parts can be excluded from simulations and replaced with boundary conditions if they were attached to parts being analyzed. Such approach is valid if the excluded parts are significantly stiffer (in terms of structural stiffness so considering not only elasticity of the material but also geometry of the part) than the analyzed parts to which they were connected. That's because fixed boundary conditions introduce rigidity (as if the analyzed part was attached to an infinitely stiff component) and flexible supports like spring elements are not available in the FEM workbench of FreeCAD when using CalculiX (Elmer has [[FEM_ConstraintSpring|FEM ConstraintSpring]]).
 
-==== Utilizing planar symmetry ====
+=== Utilizing planar symmetry === <!--T:77-->
+
 <!--T:24-->
 Geometry simplification for FEM may also mean cutting it in one of the symmetry planes to make use of the planar symmetry assumption in the analysis. This assumption is valid only when all the following aspects of the model exhibit symmetry in a given plane:
 * geometry,
@@ -124,13 +132,15 @@ Applied force should be properly reduced if the symmetry plane cuts the region t
 <!--T:26-->
 {{Caption|Model of 1/8 of a cylindrical pressure vessel with symmetry boundary conditions and internal pressure load}}
 
-==== Utilizing cyclic symmetry ====
+=== Utilizing cyclic symmetry === <!--T:78-->
+
 <!--T:55-->
 Another, less common type of symmetry available in FreeCAD FEM is cyclic symmetry. It can be defined using the [[FEM_ConstraintTie#Cyclic_symmetry|tie constraint]] and makes it possible to analyze only a single representative sector of a structure consisting of such circular patterns around an axis. The assumption is that boundary conditions and loads also exhibit this form of symmetry. Tangential loads can be applied and thus torsion can be simulated this way. However, [[FEM_ConstraintCentrif|centrifugal load]] is commonly used with cyclic symmetry. This approach might be used e.g. for rotors, shafts, turbines, fans and flywheels.
 
 == Geometry partitioning == <!--T:27-->
 
-==== Partitioning basics ====
+=== Partitioning basics === <!--T:79-->
+
 <!--T:28-->
 So-called partitioning is a division of the geometry into smaller segments. In other software, it's commonly used to allow hex meshing, but in FreeCAD it can be useful for other reasons too:
 * creating subregions for analysis feature assignments,
@@ -138,7 +148,9 @@ So-called partitioning is a division of the geometry into smaller segments. In o
 * creating regions for [[FEM_MeshRegion|mesh refinement]],
 * controlling the meshing algorithm by forcing it to follow additional edges (particularly useful to control [[FEM_MeshGmshFromShape#Mesh_Growth|Gmsh's mesh growth]]).
 
-==== Partitioning faces of solids with sketches ====
+=== Partitioning faces of solids with sketches === <!--T:80-->
+
+<!--T:81-->
 The main application of partitioning is when a load (or a boundary condition) has to be applied only to a selected region of the part's surface. The easiest way to achieve it for solid parts is to create a sketch with a proper contour on that face and use the [[Part_BooleanFragments|Part Boolean Fragments]] tool to split the face with the sketch.
 
 </translate>
@@ -147,10 +159,13 @@ The main application of partitioning is when a load (or a boundary condition) ha
 <!--T:30-->
 {{Caption|Part with a face partition for load or boundary condition application}}
 
-==== Partitioning volumes of solids with datum planes ====
-Another reason for partitioning is when multiple materials have to be applied to a single part (without having to use multiple parts connected with each other). Then, partitioning can be done using a [[PartDesign_Plane|datum plane]] and Boolean Fragments tool with the ''Compsolid'' mode.
+=== Partitioning volumes of solids with datum planes === <!--T:82-->
 
-==== Partitioning surface geometries with sketches ====
+<!--T:83-->
+Another reason for partitioning is when multiple materials have to be applied to a single part (without having to use multiple parts connected with each other). Then, partitioning can be done using a [[PartDesign_Plane|datum plane]] and [[Part_BooleanFragments|Part Boolean Fragments]] tool with the ''Compsolid'' mode.
+
+=== Partitioning surface geometries with sketches === <!--T:84-->
+
 <!--T:64-->
 In the case of surface (shell) geometries, the easiest way to make a sketch-based partition could be to use the [[Part_BooleanFragments|Boolean Fragments]] tool (like for the partitions on the faces of solids). However, as explained [https://forum.freecad.org/viewtopic.php?t=96029#p820241 here], when mesh group creation is enabled in the [[FEM_Preferences#General|FEM preferences]], it may not work properly and the following approach should be used:
 # Create a face for one side using e.g. the [[Part_MakeFace|Part MakeFace]] tool (e.g. a square plate with a circular hole).
@@ -163,7 +178,8 @@ In the case of surface (shell) geometries, the easiest way to make a sketch-base
 <!--T:65-->
 {{Caption|Square plate with a circular face partition}}
 
-==== Partitioning faces of solids with datum planes ====
+=== Partitioning faces of solids with datum planes === <!--T:85-->
+
 <!--T:66-->
 Partitioning only the selected faces of a solid using datum planes instead of sketches without splitting the whole volume is also tricky. One possible approach is to:
 # [[Draft_Downgrade|Downgrade]] the body to faces.
@@ -233,7 +249,7 @@ include:
 <!--T:62-->
 Such errors are caused by missing or overlapping material definitions in some elements. [https://forum.freecad.org/viewtopic.php?t=97120&start=50#p829295 This forum post] lists references that show it in a clear way and the whole thread can be helpful in the case of similar issues as well.
 
-==== Selection of interior entities ==== <!--T:63-->
+=== Selection of interior entities === <!--T:63-->
 
 <!--T:35-->
 Selection of internal regions (e.g. faces/volumes) can be tricky. It might be needed for the application of different materials, body loads or boundary conditions (especially in thermal and electromagnetic analyses). Several ways are possible:
@@ -244,7 +260,8 @@ Selection of internal regions (e.g. faces/volumes) can be tricky. It might be ne
 
 == Meshing basics == <!--T:36-->
 
-==== Choosing element size ====
+=== Choosing element size === <!--T:86-->
+
 <!--T:37-->
 Too coarse mesh is one of the most common sources of inaccuracies and other issues in FEM. It's often a partial fault of automatic mesher settings - they typically generate very coarse, unsuitable meshes when the element size is not manually specified but left with a default value. One should always know the approximate dimensions of the part, especially the size of the smallest relevant feature ([[Std_Measure|Std Measure]] tool can be used to find it) and specify the proper maximum element size based on that. There is also a minimum element size setting that can prevent the creation of too tiny elements around small geometric features which may lead to unnecessarily dense meshes (and sometimes even FreeCAD crashing or freezing when trying to generate such meshes). Generally speaking, it's better to start with a coarser mesh (taking less time to generate), see what it looks like (some experience is necessary) and refine it if necessary. It often makes sense to use dense mesh only around the areas of interest (locations with large stress gradients/concentrations - notches) and relatively coarse mesh away from them. This way, the number of elements can be significantly reduced, leading to shorter solving times. Local mesh refinement is defined using [[FEM_MeshRegion|FEM MeshRegion]].
 
@@ -266,11 +283,13 @@ Too coarse mesh is one of the most common sources of inaccuracies and other issu
 <!--T:43-->
 {{Caption|Locally refined mesh}}
 
-==== Choosing element type ====
+=== Choosing element type === <!--T:87-->
+
 <!--T:44-->
 The choice of element type is not easy and depends on many factors but the general rule is that hexahedral and quadrilateral elements are preferable over tetrahedral and triangular ones. However, complex geometries can't be meshed with hexahedral elements and FreeCAD can't generate them properly (only using the Subdivision algorithm of the Gmsh mesher but its results are not what one would expect from a hex mesh). Quad or quad-dominated meshes can be generated normally on surfaces - see [https://forum.freecad.org/viewtopic.php?t=20351 this forum thread]). Hexahedral elements can be imported from external meshers like [https://gmsh.info Gmsh] and used in the FEM workbench as shown in [https://www.youtube.com/watch?v=vylt24G7qj4&t=932s this video].
 
-==== Choosing element order ====
+=== Choosing element order === <!--T:88-->
+
 <!--T:45-->
 The choice of element order (first or second) depends on the analysis conditions but in most cases, second-order elements are preferred. This is particularly the case with triangular and tetrahedral elements - their first-order (linear) versions are normally not recommended for regular usage and they should be used only as filler elements in regions of low importance. However, since FreeCAD can't properly generate hexahedral elements, linear tetrahedrons can be used in some cases, if the meshes are dense enough. Especially when performing analyses with [[FEM_ConstraintContact|contact]].
 
@@ -317,6 +336,7 @@ Typical ways of dealing with stress singularities are:
 - displacement ('''green curve''') converges quickly,<br>
 - maximum stress at a notch like a hole ('''blue curve''') needs more iterations of mesh refinement to converge,<br>
 - maximum stress at a sharp corner with a fixed boundary condition ('''red curve''') doesn't converge at all. Stress singularity occurs and a small fillet would have to be added and the connection would have to be modeled in more realistic, flexible way to avoid this behavior.<br>}}
+
 
 </translate>
 {{FEM Tools navi{{#translation:}}}}
