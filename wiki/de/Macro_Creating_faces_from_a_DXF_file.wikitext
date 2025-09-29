@@ -1,0 +1,60 @@
+<languages/>
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Macro
+|Name=Macro Creating faces from a DXF file
+|Icon=Macro_Creating_faces_from_a_DXF_file.png
+|Description=This macro create face from a DXF file, the "Layer" are recognized separate and trained in groups.
+|Author=shoogen
+|Version=01.00
+|Date=2014-10-29
+|FCVersion=All
+|Download=[https://wiki.freecad.org/images/0/03/Macro_Creating_faces_from_a_DXF_file.png ToolBar Icon]
+}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Description==
+This macro create face from a DXF file, the "Layer" are recognized separate and trained in groups.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+There must be groups in the file.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Uses==
+Launch the macro all objects are analyzed and transformed into faces.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Note: an unclosed object return an error
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Script==
+</div>
+
+ToolBar Icon [[Image:Macro_Creating_faces_from_a_DXF_file.png]]
+
+'''Macro_Creating_faces_from_a_DXF_file.FCMacro'''
+
+{{MacroCode|code=
+import FreeCAD,Part,OpenSCAD2Dgeom
+doc = App.ActiveDocument
+for group in doc.findObjects('App::DocumentObjectGroup'):
+    try:
+        edges=sum((obj.Shape.Edges for obj in group.Group \
+                if hasattr(obj,'Shape')),[])
+        face = OpenSCAD2Dgeom.edgestofaces(edges)
+        faceobj = doc.addObject('Part::Feature','face_%s' % group.Name)
+        faceobj.Label = 'face_%s' % group.Label
+        faceobj.Shape = face
+    except Part.OCCError: # Exception: # 
+        FreeCAD.Console.PrintError('Error in Group %s (%s)' % (group.Name,group.Label)+"\n")
+}}
+
+==Verknüpfung==
+Diskussion im FreeCAD-Forum:  [https://forum.freecad.org/viewtopic.php?f=3&t=8144 Creating faces from a DXF file]
+
+Hier ein Beispiel [https://forum.freecad.org/viewtopic.php?f=3&t=8280&p=67863#p67840 Generate 3D solid from intersection of three imported 2D]
+{{clear}}
