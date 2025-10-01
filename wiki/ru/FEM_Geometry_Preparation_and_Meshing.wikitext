@@ -72,7 +72,42 @@ The geometry used for FEM has to be valid. Most importantly, there can't be any 
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
+== Surface normals ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In case of surface geometries used for analyses with shell and 2D elements, the normal directions of the surfaces might be important. They are used to distinguish the positive and negative side of a surface finite element mesh and affect analysis features such as pressure loads and contact. Moreover, 2D analyses (plane stress/strain and axisymmetric) with CalculiX require the normals to point in the positive Z direction. If they are inverted, negative jacobian errors will occur.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To check the normals, use one of the following approaches:
+* enable Backlight in the [[Preferences_Editor|Preferences]] and set the {{PropertyView|Lighting}} property of the surface object to ''One side'' - the negative normal direction will appear darker,
+* use the [[Macro_Normal_Vector|Normal Vector macro]],
+* mesh the surface shape in FEM - the mesh will be colored only on the positive normal side.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To invert the normals, use the [[Part_ReverseShape|Reverse shapes]] tool.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Using surface meshes for FEM ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[Mesh_MeshObject|Surface meshes]], typically imported from STL, OBJ and similar files or created in the [[Mesh_Workbench|Mesh Workbench]], can't be used directly for FEM. It is necessary to [[Part_ShapeFromMesh|create a shape from mesh]] first. Then this shape can be meshed in the FEM workbench to create a surface (shell / 2D) finite element mesh. If a solid (3D) finite element mesh is needed, shape creation has to be followed by [[Part_MakeSolid|conversion to a solid]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The biggest issue with shapes created from surface meshes is that all their triangles become the faces of the generated shape. In FEM, this makes the assignment of analysis features (such as loads and boundary conditions) particularly problematic. In the case of planar surfaces, [[Part_RefineShape|refinement]] after conversion to a solid may remove the redundant triangular faces. In practical scenarios, most will remain though and because of that, surface meshes are not recommended for use in FEM. CAD geometries (created in FreeCAD or imported from STEP/IGES files) should be used instead. Sometimes it may even make sense to recreate the geometry based on the surface mesh.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
 == Geometry simplification ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Defeaturing ===
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -100,7 +135,15 @@ The [[Part_Defeaturing|Part Defeaturing]] tool and add-on [[Defeaturing_Workbenc
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
+=== Replacing parts with boundary conditions ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
 In the case of assemblies (more about them in one of the next sections), often some parts can be excluded from simulations and replaced with boundary conditions if they were attached to parts being analyzed. Such approach is valid if the excluded parts are significantly stiffer (in terms of structural stiffness so considering not only elasticity of the material but also geometry of the part) than the analyzed parts to which they were connected. That's because fixed boundary conditions introduce rigidity (as if the analyzed part was attached to an infinitely stiff component) and flexible supports like spring elements are not available in the FEM workbench of FreeCAD when using CalculiX (Elmer has [[FEM_ConstraintSpring|FEM ConstraintSpring]]).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Utilizing planar symmetry ===
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -121,6 +164,10 @@ Applied force should be properly reduced if the symmetry plane cuts the region t
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
+=== Utilizing cyclic symmetry ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Another, less common type of symmetry available in FreeCAD FEM is cyclic symmetry. It can be defined using the [[FEM_ConstraintTie#Cyclic_symmetry|tie constraint]] and makes it possible to analyze only a single representative sector of a structure consisting of such circular patterns around an axis. The assumption is that boundary conditions and loads also exhibit this form of symmetry. Tangential loads can be applied and thus torsion can be simulated this way. However, [[FEM_ConstraintCentrif|centrifugal load]] is commonly used with cyclic symmetry. This approach might be used e.g. for rotors, shafts, turbines, fans and flywheels.
 </div>
 
@@ -129,7 +176,23 @@ Another, less common type of symmetry available in FreeCAD FEM is cyclic symmetr
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-So-called partitioning is a division of the geometry into smaller segments. In other software, it's commonly used to allow hex meshing, but in FreeCAD it can be useful for other reasons too. The main application of partitioning is when a load (or a boundary condition) has to be applied only to a selected region of the part's surface. The easiest way to achieve it for solid parts is to create a sketch with a proper contour on that face and use the [[Part_BooleanFragments|Part Boolean Fragments]] tool to split the face with the sketch. Another reason for partitioning is when multiple materials have to be applied to a single part (without having to use multiple parts connected with each other). Then, partitioning can be done using a [[PartDesign_Plane|datum plane]] and Boolean Fragments tool with the ''Compsolid'' mode. Partitioning can also be used to create regions for [[FEM_MeshRegion|mesh refinement]] or to control the meshing algorithm by forcing it to follow additional edges (particularly useful to control [[FEM_MeshGmshFromShape#Mesh_Growth|Gmsh's mesh growth]]).
+=== Partitioning basics ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+So-called partitioning is a division of the geometry into smaller segments. In other software, it's commonly used to allow hex meshing, but in FreeCAD it can be useful for other reasons too:
+* creating subregions for analysis feature assignments,
+* splitting parts into sections made of different materials,
+* creating regions for [[FEM_MeshRegion|mesh refinement]],
+* controlling the meshing algorithm by forcing it to follow additional edges (particularly useful to control [[FEM_MeshGmshFromShape#Mesh_Growth|Gmsh's mesh growth]]).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Partitioning faces of solids with sketches ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The main application of partitioning is when a load (or a boundary condition) has to be applied only to a selected region of the part's surface. The easiest way to achieve it for solid parts is to create a sketch with a proper contour on that face and use the [[Part_BooleanFragments|Part Boolean Fragments]] tool to split the face with the sketch.
 </div>
 
 [[Image:FEM_partition.JPG|400px]]
@@ -138,7 +201,19 @@ So-called partitioning is a division of the geometry into smaller segments. In o
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-In the case of surface (shell) geometries, the easiest way to make a sketch-based partition is to use the [[Part_BooleanFragments|Boolean Fragments]] tool (like for the partitions on the faces of solids). However, as explained [https://forum.freecad.org/viewtopic.php?t=96029#p820241 here], when mesh group creation is enabled in the [[FEM_Preferences#General|FEM preferences]], it may not work properly and the following approach should be used:
+=== Partitioning volumes of solids with datum planes ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Another reason for partitioning is when multiple materials have to be applied to a single part (without having to use multiple parts connected with each other). Then, partitioning can be done using a [[PartDesign_Plane|datum plane]] and [[Part_BooleanFragments|Part Boolean Fragments]] tool with the ''Compsolid'' mode.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Partitioning surface geometries with sketches ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the case of surface (shell) geometries, the easiest way to make a sketch-based partition could be to use the [[Part_BooleanFragments|Boolean Fragments]] tool (like for the partitions on the faces of solids). However, as explained [https://forum.freecad.org/viewtopic.php?t=96029#p820241 here], when mesh group creation is enabled in the [[FEM_Preferences#General|FEM preferences]], it may not work properly and the following approach should be used:
 # Create a face for one side using e.g. the [[Part_MakeFace|Part MakeFace]] tool (e.g. a square plate with a circular hole).
 # Create a face for the other side in an equivalent way (e.g. a circular face filling the hole in the square plate).
 # Apply the [[Part_Builder|Part Builder]] tool with the ''Shell from faces'' mode and disabled ''Refine shape'' checkbox to the previously created faces.
@@ -147,6 +222,10 @@ In the case of surface (shell) geometries, the easiest way to make a sketch-base
 [[Image:FEM_shell_partition.JPG|400px]]
 <div lang="en" dir="ltr" class="mw-content-ltr">
 {{Caption|Square plate with a circular face partition}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Partitioning faces of solids with datum planes ===
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -222,18 +301,23 @@ Such errors are caused by missing or overlapping material definitions in some el
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-==== Selection of interior entities ====
+=== Selection of interior entities ===
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-Selection of internal regions (faces/volumes) can be tricky. It might be needed for the application of different materials, body loads or boundary conditions (especially in thermal and electromagnetic analyses). Several ways are possible:
+Selection of internal regions (e.g. faces/volumes) can be tricky. It might be needed for the application of different materials, body loads or boundary conditions (especially in thermal and electromagnetic analyses). Several ways are possible:
 * enabling [[Std_ToggleClipPlane|clipping plane]] for the time of selection and picking internal faces,
 * hiding the boolean object, showing only one of the parts it was applied to and selecting it,
+* [[Std_ToggleTransparency|enabling transparency]] and using the [[Selection_view|Selection view]] with the ''Picked object list'' option checked as described [https://forum.freecad.org/viewtopic.php?t=96984#p826693 here],
 * selecting another, external object and editing the ''References'' property on the ''Data'' tab of a given analysis feature (requires manual specification of the geometric object's number).
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 == Meshing basics ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Choosing element size ===
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -256,7 +340,15 @@ Too coarse mesh is one of the most common sources of inaccuracies and other issu
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
+=== Choosing element type ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
 The choice of element type is not easy and depends on many factors but the general rule is that hexahedral and quadrilateral elements are preferable over tetrahedral and triangular ones. However, complex geometries can't be meshed with hexahedral elements and FreeCAD can't generate them properly (only using the Subdivision algorithm of the Gmsh mesher but its results are not what one would expect from a hex mesh). Quad or quad-dominated meshes can be generated normally on surfaces - see [https://forum.freecad.org/viewtopic.php?t=20351 this forum thread]). Hexahedral elements can be imported from external meshers like [https://gmsh.info Gmsh] and used in the FEM workbench as shown in [https://www.youtube.com/watch?v=vylt24G7qj4&t=932s this video].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Choosing element order ===
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -313,6 +405,7 @@ Typical ways of dealing with stress singularities are:
 - maximum stress at a notch like a hole ('''blue curve''') needs more iterations of mesh refinement to converge,<br>
 - maximum stress at a sharp corner with a fixed boundary condition ('''red curve''') doesn't converge at all. Stress singularity occurs and a small fillet would have to be added and the connection would have to be modeled in more realistic, flexible way to avoid this behavior.<br>}}
 </div>
+
 
 {{FEM Tools navi{{#translation:}}}}
 {{Userdocnavi{{#translation:}}}}
