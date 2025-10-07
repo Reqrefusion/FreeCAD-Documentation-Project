@@ -109,28 +109,32 @@ SELECT 'Total Usable Area', SUM(Area) FROM document WHERE IfcType = 'Space'
 # Click {{Button|[[Image:Document-save.svg|16px]] Save}}. You now have a two-statement report. Click the main {{Button|OK}} button at the bottom of the Task Panel to execute it. The associated spreadsheet will open automatically with the formatted results.
 
 === Step 4: Using Pipelining for Advanced Queries ===
-Pipelining allows you to chain queries together, where the output of one becomes the input for the next. This is useful for complex hierarchical selections.
 
-For example, to find all doors located on the "Ground Floor", we must first find all objects on that floor, and ''then'' filter that list for doors.
+Pipelining allows you to chain queries together, where the output of one becomes the input for the next. This is essential for complex hierarchical selections, such as when using the {{incode|CHILDREN()}} function. Since it is not recursive, it only finds direct descendants.
+
+For example, to find all doors located on the "Ground Floor," you must perform a multi-step query, because doors are children of walls, which are in turn children of the floor.
 
 # Create a new report.
-# '''Statement 1: Find the Floor's Contents'''
-#* Add a statement with the description {{incode|Ground Floor Objects}}.
-#* Use this query to select all the child objects of the floor object:
-{{Code|lang=sql|code=
-SELECT * FROM CHILDREN(SELECT * FROM document WHERE Label = 'Ground Floor')
+# '''Statement 1: Find the 'Ground Floor' Object'''
+#* Add a statement with the description {{incode|Find Ground Floor}}.
+#* This query selects the starting point of our search.{{Code|lang=sql|code=
+SELECT * FROM document WHERE Label = 'Ground Floor'
 }}
-# '''Statement 2: Filter for Doors'''
-#* Add a second statement with the description {{incode|Doors on Ground Floor}}.
-#* In the editor for this statement, under '''Display Options''', check the '''Use as Pipeline Step''' checkbox. This is the key step that links this query to the previous one.
-#* Use this query to filter the incoming objects for doors:
-{{Code|lang=sql|code=
-SELECT Label, Width, Height FROM document WHERE IfcType = 'Door'
+# '''Statement 2: Find the Walls on that Floor'''
+#* Add a second statement with the description {{incode|Find Walls on Floor}}.
+#* In the editor, check the {{CheckBox|Use as Pipeline Step}} checkbox. This tells the statement to run on the results of the previous one (the floor object).
+#* Use this query to find all direct children of the floor and keep only the walls:{{Code|lang=sql|code=
+SELECT * FROM CHILDREN(SELECT * FROM document) WHERE IfcType = 'Wall'
 }}
+# '''Statement 3: Find the Doors in those Walls'''
+#* Add a third statement with the description {{incode|Find Doors in Walls}}.
+#* Check the {{CheckBox|Use as Pipeline Step}} checkbox again. This now links it to the output of Statement 2 (the list of walls).
+#* Use this query to find the children of the walls and keep only the doors:{{Code|lang=sql|code=
+SELECT Label, Width, Height FROM CHILDREN(SELECT * FROM document) WHERE IfcType = 'Door'
+}}
+# Click {{Button|OK}}. The report will execute the full three-step pipeline.
 
-Note: In a pipeline, {{incode|FROM document}} is a placeholder; the engine uses the data from the previous step as the actual source.
-
-# Click {{Button|OK}}. The report will execute the two-step pipeline, and the spreadsheet will show only the doors found on the ground floor.
+'''Understanding the Result:''' The final spreadsheet will only show the results of the last statement in the pipeline (the list of doors). The first two statements act as intermediate filters whose results are passed in memory but not printed to the spreadsheet, giving you a clean and precise final report.```
 
 === Step 5: Using Presets and Templates ===
 * '''Report Templates''' load a full, multi-statement report. In the '''Report Statements Overview''', select a template like "Room and Area Schedule" from the dropdown to instantly load the configuration from Steps 2 & 3. You can save your own reports as new templates for reuse.
@@ -381,36 +385,52 @@ For more complex, multi-step selections, you can use this function to execute a 
 This is the programmatic equivalent of using the '''"Use as Pipeline Step"''' checkbox in the UI.
 
 '''Example: Find all doors on the "Ground Floor"'''
-This requires a multi-step process: first find the floor, then find its direct children (like walls), and finally find the children of those objects (the doors).
+This is a classic hierarchical problem that requires multiple steps. The goal is to find the "grandchildren" (doors) of a "grandparent" (the floor). Since the {{incode|CHILDREN()}} function is not recursive, we must chain multiple steps in a pipeline.
+
+# First, we find the {{incode|'Ground Floor'}} object.
+# Second, we find its direct children (the walls, spaces, etc.).
+# Third, we find the children of ''those'' objects (which will include the doors and windows hosted by the walls).
+# Finally, we filter that last group to keep only the doors.
 {{Code|lang=python|code=
 import FreeCAD
 import Arch
 import ArchSql
 
-# Step 1: Define the pipeline statements as ReportStatement objects.
+# Step 1: Define the pipeline statements.
 # The ReportStatement class must be imported from the ArchSql module.
 
-# Statement 1: Find the parent floor
+# Statement 1: Find the parent 'Ground Floor' object.
+# Output of this step: [Ground_Floor_Object]
 stmt1 = ArchSql.ReportStatement(
     query_string="SELECT * FROM document WHERE Label = 'Ground Floor'"
 )
 
-# Statement 2: Find all direct children of the floor.
-# Note that is_pipelined=True links this to the output of stmt1.
+# Statement 2: Find the direct children of the floor (walls, spaces, etc.).
+# is_pipelined=True tells this to run on the output of stmt1.
+# Output of this step: [Wall_Object_1, Wall_Object_2, Space_Object_1, ...]
 stmt2 = ArchSql.ReportStatement(
     query_string="SELECT * FROM CHILDREN(SELECT * FROM document)",
     is_pipelined=True
 )
 
-# Statement 3: Find the children of the walls (the doors) and filter them.
+# Statement 3: Find the children of the objects from the previous step.
+# This finds the doors and windows hosted by the walls.
+# Output of this step: [Door_Object, Window_Object_1, ...]
 stmt3 = ArchSql.ReportStatement(
-    query_string="SELECT * FROM CHILDREN(SELECT * FROM document) WHERE IfcType = 'Door'",
+    query_string="SELECT * FROM CHILDREN(SELECT * FROM document)",
     is_pipelined=True
 )
 
-# Step 2: Execute the pipeline.
-# The function takes a list of the statement objects.
-pipeline_statements = [stmt1, stmt2, stmt3]
+# Statement 4: Filter the final list to keep only the doors.
+# This runs on the output of stmt3.
+# Final Output: [Door_Object]
+stmt4 = ArchSql.ReportStatement(
+    query_string="SELECT * FROM document WHERE IfcType = 'Door'",
+    is_pipelined=True
+)
+
+# Step 2: Execute the full pipeline.
+pipeline_statements = [stmt1, stmt2, stmt3, stmt4]
 doors_on_floor = Arch.selectObjectsFromPipeline(pipeline_statements)
 
 # The result is the final list of door objects.
