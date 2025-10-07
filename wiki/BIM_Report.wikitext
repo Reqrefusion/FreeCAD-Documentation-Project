@@ -68,12 +68,73 @@ This section appears at the bottom of the Task Panel when you select a statement
 * Below the editor, a '''Live Validation''' status label gives you immediate feedback, indicating if your syntax is valid and showing a live count of matching objects.
 * The {{Button|[[Image:Std_ToggleVisibility.svg|16px]] Show Preview}} button will run the current query on-demand and display the full data results in a temporary table, allowing you to test your query without closing the editor.
 * The {{Button|[[Image:Help-browser.svg|16px]] Help}} button opens a dialog with a "cheatsheet" of all supported SQL clauses and functions.
-* The '''Display Options''' group contains checkboxes for controlling the final formatting in the spreadsheet, such as adding an empty row after the results or printing them in bold.
+* The '''Display Options''' group contains checkboxes for controlling the final formatting in the spreadsheet:
+** {{CheckBox|Use as Pipeline Step}}: When checked, this statement will use the results of the previous statement as its data source instead of querying the entire document. This is the key control for enabling pipeline workflows.
+** {{CheckBox|Use Description as Section Header}}: When checked, the statement's description (e.g., "Room List") will be written as a merged, centered header row in the spreadsheet before its data results.
+** {{CheckBox|TRUE|Include Column Names}}: This option, enabled by default, includes the column headers (e.g., {{incode|Label}}, {{incode|Area}}) in the spreadsheet output for this statement.
+** {{CheckBox|Add Empty Row After}}: When checked, a blank row will be inserted after this statement's results, providing visual separation in a multi-section report.
+** {{CheckBox|Print Results in Bold}}: Renders the data cells for this statement's results in a bold font for emphasis.
 * The '''Query Presets''' dropdown allows you to load and save individual, commonly used SQL queries.
 
 ==Workflow==
 
-TBD
+This small tutorial guides you through creating a complete room schedule, from a simple list to a multi-part report with calculated totals.
+
+=== Step 1: Creating a New Report ===
+# Click the {{Button|[[Image:BIM_Report.svg|16px]] [[BIM_Report|Report]]}} button in the BIM workbench toolbar.
+# FreeCAD will create a '''Report object''' and a '''ReportResult spreadsheet''' in the Tree view and automatically open the Task Panel.
+
+=== Step 2: Creating a Simple Statement ===
+First, let's create a simple list of all spaces and their areas.
+# In the '''Report Statements Overview''', click the {{Button|[[Image:List-add.svg|16px]] Add Statement}} button. A new, empty statement will appear in the list.
+# With the new statement selected, click the {{Button|[[Image:Edit-edit.svg|16px]] Edit Selected}} button. The '''Statement Editor''' will appear at the bottom of the Task Panel.
+# In the '''Description''' field, type {{incode|Room List}}.
+# In the '''SQL Query''' editor, enter the following query. This selects the name and area of all objects that are {{incode|Space}}s and sorts them alphabetically.
+{{Code|lang=sql|code=
+SELECT Label, Area FROM document WHERE IfcType = 'Space' ORDER BY Label ASC
+}}
+
+# Click the {{Button|[[Image:Document-save.svg|16px]] Save}} button in the editor to commit your changes to the statement.
+
+=== Step 3: Creating a Multi-Section Report ===
+Now, let's add a second statement to calculate the total area.
+# In the overview, click {{Button|[[Image:List-add.svg|16px]] Add Statement}} again to create a second statement.
+# With this new statement selected, click {{Button|[[Image:Edit-edit.svg|16px]] Edit Selected}}.
+# Set the '''Description''' to {{incode|Total Area}}.
+# In the '''SQL Query''' editor, enter this aggregation query:
+{{Code|lang=sql|code=
+SELECT 'Total Usable Area', SUM(Area) FROM document WHERE IfcType = 'Space'
+}}
+# Under '''Display Options''', uncheck '''Include Column Names''' (since our first column is a custom label) and check '''Print Results in Bold''' for emphasis.
+# Click {{Button|[[Image:Document-save.svg|16px]] Save}}. You now have a two-statement report. Click the main {{Button|OK}} button at the bottom of the Task Panel to execute it. The associated spreadsheet will open automatically with the formatted results.
+
+=== Step 4: Using Pipelining for Advanced Queries ===
+Pipelining allows you to chain queries together, where the output of one becomes the input for the next. This is useful for complex hierarchical selections.
+
+For example, to find all doors located on the "Ground Floor", we must first find all objects on that floor, and ''then'' filter that list for doors.
+
+# Create a new report.
+# '''Statement 1: Find the Floor's Contents'''
+#* Add a statement with the description {{incode|Ground Floor Objects}}.
+#* Use this query to select all the child objects of the floor object:
+{{Code|lang=sql|code=
+SELECT * FROM CHILDREN(SELECT * FROM document WHERE Label = 'Ground Floor')
+}}
+# '''Statement 2: Filter for Doors'''
+#* Add a second statement with the description {{incode|Doors on Ground Floor}}.
+#* In the editor for this statement, under '''Display Options''', check the '''Use as Pipeline Step''' checkbox. This is the key step that links this query to the previous one.
+#* Use this query to filter the incoming objects for doors:
+{{Code|lang=sql|code=
+SELECT Label, Width, Height FROM document WHERE IfcType = 'Door'
+}}
+
+Note: In a pipeline, {{incode|FROM document}} is a placeholder; the engine uses the data from the previous step as the actual source.
+
+# Click {{Button|OK}}. The report will execute the two-step pipeline, and the spreadsheet will show only the doors found on the ground floor.
+
+=== Step 5: Using Presets and Templates ===
+* '''Report Templates''' load a full, multi-statement report. In the '''Report Statements Overview''', select a template like "Room and Area Schedule" from the dropdown to instantly load the configuration from Steps 2 & 3. You can save your own reports as new templates for reuse.
+* '''Query Presets''' load a single query into the editor. In the '''Statement Editor''', select a preset like "All Walls" from the dropdown to populate the SQL editor. You can save your own frequently used queries by clicking the {{Button|Save...}} button.
 
 {{Docnav
 |[[Arch_Schedule|Schedule]]
