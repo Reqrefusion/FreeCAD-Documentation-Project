@@ -170,7 +170,7 @@ The dialect includes a library of built-in functions for data manipulation and a
 ! Description
 |-
 | '''Aggregate'''
-| {{incode|COUNT(property OR *)}}
+| {{incode|COUNT(property<nowiki>|</nowiki>*)}}
 | Counts the number of objects. {{incode|COUNT(*)}} counts all rows; {{incode|COUNT(property)}} counts rows where the specified property is not {{incode|NULL}}.
 |-
 |
@@ -191,7 +191,7 @@ The dialect includes a library of built-in functions for data manipulation and a
 |-
 |
 | {{incode|CHILDREN(subquery)}}
-| A function used in the {{incode|FROM}} clause. Returns all children of objects found by the subquery, resolving both containment ({{incode|.Group}}) and hosting ({{incode|.Hosts}}) relationships.
+| A function used in the {{incode|FROM}} clause. Returns all children of objects found by the subquery, resolving both containment ({{incode|.Group}}) and hosting ({{incode|.Hosts}}) relationships. This function is '''not recursive'''. To find grandchildren or deeper descendants, chain multiple {{incode|CHILDREN()}} steps together using a pipeline.
 |-
 | '''Utility'''
 | {{incode|TYPE(*)}}
@@ -233,7 +233,7 @@ You can access any property of an object, including nested data structures.
 ! Description
 |-
 | '''Comparison'''
-| {{incode|=}}, {{incode|!=}}, {{incode|>}}, {{incode|<}}, {{incode|>=}}, {{incode|<=}}
+| {{incode|{{:=}}}}, {{incode|!{{:=}}}}, {{incode|>}}, {{incode|<}}, {{incode|>{{:=}}}}, {{incode|<{{:=}}}}
 | Standard comparison operators.
 |-
 |
@@ -257,8 +257,167 @@ You can access any property of an object, including nested data structures.
 | Perform calculations on numerical properties. Obeys standard operator precedence; use {{incode|()}} to override.
 |}
 
-=== Literals and Quotes ===
-Both single quotes ({{incode|'}}) and double quotes ({{incode|"}}) can be used for text literals (strings). For example, {{incode|WHERE Label = 'Wall'}} and {{incode|WHERE Label = "Wall"}} are equivalent.
+=== General Syntax ===
+
+* '''Literals and Quotes''': Both single quotes ({{incode|'}}) and double quotes ({{incode|"}}) can be used for text literals (strings). For example, {{incode|WHERE Label {{:=}} 'Wall'}} and {{incode|WHERE Label {{:=}} "Wall"}} are equivalent.
+* '''Comments''': The parser ignores both single-line comments, which start with {{incode|--}}, and multi-line comments, which are enclosed in {{incode|/* ... */}}.
+* '''Internationalization''': The parser correctly handles non-ASCII (Unicode) characters in property names (e.g., Fläche).
+
+==  Sample Queries ==
+
+This section provides a collection of practical queries that you can use directly or modify for your reports.
+
+=== Basic Selections ===
+
+'''Select all structural elements (Columns and Beams):'''
+{{Code|lang=sql|code=
+SELECT Label, IfcType 
+FROM document 
+WHERE IfcType IN ('Column', 'Beam') 
+ORDER BY IfcType, Label
+}}
+
+'''Select all walls with "Exterior" in their name:'''
+{{Code|lang=sql|code=
+SELECT Label, Length, Height 
+FROM document 
+WHERE IfcType = 'Wall' AND Label LIKE '%Exterior%'
+}}
+
+=== Data Aggregation & Summaries ===
+
+'''Count all BIM objects, grouped by their type:'''
+{{Code|lang=sql|code=
+SELECT IfcType, COUNT(*) 
+FROM document 
+WHERE IfcType IS NOT NULL 
+GROUP BY IfcType 
+ORDER BY IfcType ASC
+}}
+
+'''Get a full quantity takeoff for all walls:'''
+This query calculates the total number of walls, their combined length, and the minimum and maximum wall heights.
+{{Code|lang=sql|code=
+SELECT 
+    COUNT(*) AS "Total Count", 
+    SUM(Length) AS "Total Length (mm)", 
+    MIN(Height) AS "Min Height (mm)", 
+    MAX(Height) AS "Max Height (mm)" 
+FROM document 
+WHERE IfcType = 'Wall'
+}}
+
+=== Hierarchical Queries ===
+
+'''List all objects located directly on the "Ground Floor":'''
+This uses the {{incode|CHILDREN()}} function to query the contents of a specific container object.
+{{Code|lang=sql|code=
+SELECT Label, IfcType 
+FROM CHILDREN(SELECT * FROM document WHERE Label = 'Ground Floor') 
+ORDER BY IfcType
+}}
+
+'''List all doors and the specific wall they are hosted in:'''
+This uses the {{incode|PARENT()}} function to find the host of each door.
+{{Code|lang=sql|code=
+SELECT 
+    Label AS "Door_Name", 
+    PARENT(*).Label AS "Host_Wall_Name" 
+FROM document 
+WHERE IfcType = 'Door' 
+ORDER BY "Host_Wall_Name"
+}}
+
+'''Find all windows on the "Ground Floor" (by checking the grandparent):'''
+This query finds windows, checks their parent (the wall), and then checks that wall's parent (the floor).
+{{Code|lang=sql|code=
+SELECT Label 
+FROM document 
+WHERE IfcType = 'Window' AND PARENT(*).PARENT(*).Label = 'Ground Floor'
+}}
+
+=== Advanced Queries ===
+
+'''Generate a complete room and area schedule:'''
+This query produces a formatted list of all spaces, grouped by the floor they belong to, with their area converted to square meters.
+{{Code|lang=sql|code=
+SELECT 
+    PARENT(*).Label AS "Floor", 
+    Label AS "Room Name", 
+    CONVERT(Area, 'm^2') AS "Area (m²)" 
+FROM document 
+WHERE IfcType = 'Space' 
+ORDER BY "Floor", "Room Name"
+}}
+
+== Scripting API ==
+
+The BIM Report engine is fully accessible through Python, allowing you to integrate its advanced query capabilities into your own scripts and automations.
+
+=== Arch.selectObjects(query_string) ===
+
+This is the primary function for executing a single, straightforward SQL query. It takes a query string as input and returns a list of the FreeCAD DocumentObjects that match the query. If the query is invalid or finds no objects, it returns an empty list and prints an error to the console.
+
+'''Example: Get all Wall objects with "Exterior" in their name'''
+{{Code|lang=python|code=
+import FreeCAD
+import Arch
+
+# This query selects all Wall objects whose Label contains the substring "Exterior"
+query = "SELECT * FROM document WHERE IfcType = 'Wall' AND Label LIKE '%Exterior%'"
+
+exterior_walls = Arch.selectObjects(query)
+
+# The result is a list of FreeCAD objects
+FreeCAD.Console.PrintMessage(f"Found {len(exterior_walls)} exterior walls.\n")
+for wall in exterior_walls:
+    FreeCAD.Console.PrintMessage(f"- {wall.Label} (Length: {wall.Length})\n")
+}}
+
+=== Arch.selectObjectsFromPipeline(statements) ===
+
+For more complex, multi-step selections, you can use this function to execute a pipeline. It takes a list of {{incode|ArchSql.ReportStatement}} objects and returns the final list of FreeCAD DocumentObjects that result from the full pipeline.
+
+This is the programmatic equivalent of using the '''"Use as Pipeline Step"''' checkbox in the UI.
+
+'''Example: Find all doors on the "Ground Floor"'''
+This requires a multi-step process: first find the floor, then find its direct children (like walls), and finally find the children of those objects (the doors).
+{{Code|lang=python|code=
+import FreeCAD
+import Arch
+import ArchSql
+
+# Step 1: Define the pipeline statements as ReportStatement objects.
+# The ReportStatement class must be imported from the ArchSql module.
+
+# Statement 1: Find the parent floor
+stmt1 = ArchSql.ReportStatement(
+    query_string="SELECT * FROM document WHERE Label = 'Ground Floor'"
+)
+
+# Statement 2: Find all direct children of the floor.
+# Note that is_pipelined=True links this to the output of stmt1.
+stmt2 = ArchSql.ReportStatement(
+    query_string="SELECT * FROM CHILDREN(SELECT * FROM document)",
+    is_pipelined=True
+)
+
+# Statement 3: Find the children of the walls (the doors) and filter them.
+stmt3 = ArchSql.ReportStatement(
+    query_string="SELECT * FROM CHILDREN(SELECT * FROM document) WHERE IfcType = 'Door'",
+    is_pipelined=True
+)
+
+# Step 2: Execute the pipeline.
+# The function takes a list of the statement objects.
+pipeline_statements = [stmt1, stmt2, stmt3]
+doors_on_floor = Arch.selectObjectsFromPipeline(pipeline_statements)
+
+# The result is the final list of door objects.
+FreeCAD.Console.PrintMessage(f"Found {len(doors_on_floor)} doors on the ground floor.\n")
+for door in doors_on_floor:
+    FreeCAD.Console.PrintMessage(f"- {door.Label}\n")
+}}
 
 {{Docnav
 |[[Arch_Schedule|Schedule]]
