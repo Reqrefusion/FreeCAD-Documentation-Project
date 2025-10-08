@@ -10,7 +10,7 @@
 |IconC=Workbench_BIM.svg
 }}
 
-{{VeryImportantMessage|THIS COMMAND IS EXPERIMENTAL AND NOT PART OF FREECAD. It is a work in progress PR (https://github.com/FreeCAD/FreeCAD/pull/24078) that needs to be reviewed and tested. This is a placeholder to host documentation for testers.}}
+{{VeryImportantMessage|THIS COMMAND IS EXPERIMENTAL AND NOT PART OF FREECAD. It is a '''work in progress PR''' (https://github.com/FreeCAD/FreeCAD/pull/24078) that needs to be reviewed and tested. This page is a placeholder to host documentation for testers.}}
 
 {{GuiCommand
 |Name=BIM Report
@@ -357,6 +357,38 @@ FROM document
 WHERE IfcType = 'Space' 
 ORDER BY "Floor", "Room Name"
 }}
+
+== Usage Notes ==
+
+=== Units ===
+
+When you select a property that has units (a `Quantity`), such as `Length` or `Area`, the BIM Report engine returns the raw numerical value of that property as it is stored internally in the FreeCAD document. FreeCAD's internal units are always based on millimeters ({{incode|mm}}).
+
+This means the default output will be in {{incode|mm}} for length, {{incode|mm²}} for area, and {{incode|mm³}} for volume, regardless of your current unit schema or user preferences. The automatically generated column header will correctly reflect this internal unit.
+
+'''Example: Default Behavior'''
+
+If you run this simple query on a space that is 1 meter by 1 meter:
+{{Code|lang=sql|code=
+SELECT Label, Area FROM document WHERE IfcType = 'Space'
+}}
+
+The resulting spreadsheet will show:
+* '''Header:''' {{incode|Area (mm²)}}
+* '''Value:''' {{incode|1000000.0}}
+
+==== Using {{incode|CONVERT()}} ====
+
+To get the results in the units you desire, you can use the {{incode|CONVERT()}} function, which provides explicit control over the output. To obtain the area in square meters, modify the query as follows:
+{{Code|lang=sql|code=
+SELECT Label, CONVERT(Area, 'm^2') AS "Area (m²)" FROM document WHERE IfcType = 'Space'
+}}
+
+This query now produces the result in the desired unit:
+* '''Header:''' {{incode|Area (m²)}}
+* '''Value:''' {{incode|1.0}}
+
+Using {{incode|CONVERT()}} guarantees that your report's output is unambiguous and that any calculations you perform within the query (e.g., {{incode|SUM(CONVERT(Area, 'm^2'))}}) are mathematically correct.
 
 == Scripting API ==
 
