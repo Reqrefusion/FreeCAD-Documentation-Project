@@ -42,7 +42,55 @@ Here a shape object refers any object with a {{PropertyData|Shape}} property. Ob
 <!--T:12-->
 Point cloud objects are [[App_GeoFeature|App GeoFeature]] objects with the following additional properties. Select the {{MenuCommand|Show hidden}} option from the [[Property_View|Property View]] context menu to display the hidden properties.
 
-===Data=== <!--T:13-->
+=== Data # blender -b -P render_tubefront.py ===
+
+=== import bpy, math ===
+
+=== # import mesh (OBJ/FBX) ===
+
+=== bpy.ops.import_scene.obj(filepath="/path/to/tubefront.obj") ===
+
+=== obj = bpy.context.selected_objects[0] ===
+
+=== # material: raw steel or painted blue ===
+
+=== mat = bpy.data.materials.new("Coat") ===
+
+=== mat.use_nodes = True ===
+
+=== bsdf = mat.node_tree.nodes["Principled BSDF"] ===
+
+=== bsdf.inputs["Base Color"].default_value = (0.06,0.33,0.85,1)  # blue ===
+
+=== bsdf.inputs["Metallic"].default_value = 0.8 ===
+
+=== bsdf.inputs["Roughness"].default_value = 0.25 ===
+
+=== obj.data.materials.append(mat) ===
+
+=== # cameras (iso/top/side) – locked positions ===
+
+=== def add_cam(name, loc, rot): ===
+
+===     c = bpy.data.cameras.new(name); o=bpy.data.objects.new(name,c); bpy.context.scene.collection.objects.link(o) ===
+
+===     o.location = loc; o.rotation_euler = rot; return o ===
+
+=== iso  = add_cam("ISO",  (3,-3,2), (math.radians(60),0,math.radians(45))) ===
+
+=== top  = add_cam("TOP",  (0,0,5),  (math.radians(90),0,0)) ===
+
+=== side = add_cam("SIDE", (5,0,1),  (math.radians(90),0,math.radians(-90))) ===
+
+=== # render three PNGs with fixed naming ===
+
+=== for cam in [iso, top, side]: ===
+
+===     bpy.context.scene.camera = cam ===
+
+===     bpy.context.scene.render.filepath = f"/renders/{cam.name}.png" ===
+
+===     bpy.ops.render.render(write_still=True) ===<!--T:13-->
 
 <!--T:17-->
 {{TitleProperty|Base}}
