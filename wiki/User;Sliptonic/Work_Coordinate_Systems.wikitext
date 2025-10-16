@@ -1,1 +1,107 @@
-== Work Coordinate Systems ==
+FreeCAD’s '''CAM Work Coordinate System (WCS)''' feature allows you to define and manage multiple work offsets within a single Job. Each offset—commonly called a ''fixture''—corresponds to one of the standard CNC work coordinate registers: <code>G54</code> through <code>G59.9</code>.
+
+Multiple WCS fixtures let a single CNC program reference different physical locations on the machine table. This is especially useful for:
+* Running '''multiple copies of the same part''' in one cycle.
+* '''Switching between setups''' (for example, top and bottom machining).
+* Managing '''multiple vises, pallets, or tombstones''' on a single machine.
+
+FreeCAD CAM makes this powerful professional feature accessible directly from the '''Job Setup''' page.  The Current implementation only supports multiple copies of the same part.  
+
+== What is a WCS? ==
+Every CNC controller maintains several coordinate systems.  
+The default is <code>G54</code>, which defines where the machine expects the part origin (usually the stock corner or center) to be located.
+
+By activating a different WCS—say <code>G55</code>—the controller effectively shifts its zero point to a new location. The same G-code operations can then be reused on a second fixture or part without rewriting toolpaths.
+
+'''Example:'''  
+You have two identical vises holding two identical parts.  
+* <code>G54</code> is set to the left vise.  
+* <code>G55</code> is set to the right vise.  
+
+The machine will automatically cut the left part using <code>G54</code>, then switch to <code>G55</code> to cut the right part in the same cycle.
+
+== Enabling and Managing Fixtures ==
+In FreeCAD, WCS fixtures are configured in the '''Job Setup''' dialog.
+
+Each Job can include up to '''ten WCS entries''', representing <code>G54</code> through <code>G59.9</code>.  
+By default, <code>G54</code> is enabled.
+
+To configure fixtures:
+# Open the '''Job Setup''' page.
+# In the '''Fixtures / WCS''' section, check the boxes for the offsets you want to include.
+# For each fixture, set its '''placement''' (offset in X, Y, Z) or link it to a '''Placement object''' in the 3D model to represent its physical location.
+
+== Processing Order and Output Options ==
+The order that operations appear in the tree and the Job workplan dictate the order in which work is done on the part.  This order will never be violated.  However, when multiple fixtures are enabled, multiple valid orders are possible.   FreeCAD provides two key controls for how the system sequences toolpaths and writes G-code when multiple fixtures are used.
+
+=== Order by ===
+Controls the sequence in which operations are processed across tools, fixtures, or operations.
+
+{| class="wikitable"
+! Option !! Description !! Typical Use
+|-
+| '''Tool''' || Minimizes tool changes. Each tool completes all available operations in all fixtures before changing. || Manual tool change setups and minimizing total cycle time.
+|-
+| '''Fixture''' || Completes all operations (including tool changes) for one fixture before moving to the next. || Machines with automatic tool changers or multi-station setups where the operator can safely load/unload parts from one fixture while machining continues in another.
+|-
+| '''Operation''' || Runs the same operation across all fixtures before proceeding to the next. Even if the same tool is reused, the operation sequence is maintained. || When you want to inspect a part between operations or clean manually clear chips.
+|}
+
+=== Split Output ===
+When enabled, FreeCAD writes output to a '''separate G-code file'''.  
+This is useful if you want to:
+* Run each fixture independently.
+* Test or re-run a specific setup without regenerating the entire program.
+* Send partial programs to the machine for staged production.
+
+
+Output splitting is possible even if a single fixture is selected but will have no effect unless 
+
+* Order by is set to Tool and multiple tools are used
+* Order by is set to Operation and the job has multiple operations enabled.
+
+== Example: Two Fixtures, One Job ==
+Imagine a small router table with two vises:
+* The first vise holds part '''A''' at the left of the table (<code>G54</code>).  
+* The second vise holds part '''B''' at the right (<code>G55</code>).  
+
+You create one Job with both fixtures enabled.  
+FreeCAD will automatically generate toolpaths for each fixture and output something like this:
+
+<syntaxhighlight lang="gcode">
+(Tool 1 - 6mm Endmill)
+G54
+... operations for Part A ...
+G55
+... operations for Part B ...
+</syntaxhighlight>
+
+Both parts are machined in a single cycle, using the same toolpaths—just offset in position.
+
+== Why This Matters ==
+; For professionals:
+FreeCAD’s WCS handling mirrors the workflow found in industrial CAM systems like Fusion 360, Mastercam, or Siemens NX. You can manage multi-setup or multi-fixture operations cleanly without duplicating Jobs or models.
+
+; For hobbyists:
+WCS fixtures are the key to scaling up your workflow. Instead of running the same program twice for two parts, you can cut both at once—saving time and improving repeatability. It’s like giving your machine a map of where each part lives on the table.  Fixtures simplify job setup for multiple copies of a part because it is not necessary to duplicate the base object.
+
+== Summary ==
+
+{| class="wikitable"
+! Setting !! Description !! Typical Use Case
+|-
+| '''WCS (G54–G59.9)''' || Defines multiple fixture offsets || Multi-part or multi-setup jobs
+|-
+| '''Order by: Tool''' || Minimizes tool changes || Manual tool change setups
+|-
+| '''Order by: Fixture''' || Completes all ops per fixture || Multi-station or ATC setups
+|-
+| '''Order by: Operation''' || Runs each op across all fixtures || Chip clearing or inspection between ops
+|-
+| '''Split Output''' || Writes one G-code file per fixture || Running or testing fixtures separately
+|}
+
+=== Limitations ===
+
+* The simulators will not visualize the processing of multiple parts in different fixtures.
+* Handling different setups in the same job is not possible at this time
