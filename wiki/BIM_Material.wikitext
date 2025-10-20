@@ -27,7 +27,6 @@ Shows the '''BIM Material''' dialog. The dialog allows to quickly and easily per
 # Create new [[Arch_SetMaterial|material]] or [[Arch MultiMaterial|multimaterial]].
 # Attribute an existing material or multimaterial to selected object(s).
 
-
 </translate>
 [[File:BIM_Material_Manager.png|frame|center|The BIM Material Manager.]]
 <translate>
@@ -45,8 +44,6 @@ Shows the '''BIM Material''' dialog. The dialog allows to quickly and easily per
 When BIM objects with a shape are attributed a material, their [[Arch_Component#Data|{{PropertyData|Material|Link}}]] property is assigned that material (such BIM objects are generally based on [[Arch_Component|Arch Component]] and inherit its properties).
 
 ==Material Manager tools== <!--T:10-->
-
-
 
 <!--T:11-->
 The materials Manager allows you to:
@@ -89,23 +86,23 @@ An Arch Material object will have the following properties
 
 TBD
 
-== The Relationship Between the BIM and Core Material Systems ==
+== The relationship between the BIM and Core material systems ==
 
 Since version 1.0, FreeCAD contains two distinct and parallel systems for managing materials: a legacy, Python-based system primarily used by the BIM workbench, and a modern, C++ based system intended for global use in any workbench.
 
-=== The Core (C++) Material System ===
+=== The Core (C++) material system ===
 
 *   '''Architecture:''' This system is designed around a centralized library model. The primary definition of a material is stored externally in files (e.g., {{incode|.FCMat}} format) located in system-wide or user-specific directories. The [[Material_Workbench|Material Workbench]] documents this system in more detail.
 *   '''Data Linking:''' When a material is assigned to an object (e.g., a {{incode|PartDesign::Body}}), the object does not store a full copy of the material's data. Instead, a hidden property named {{incode|ShapeMaterial}} is added to the object. This property holds a complete material object in memory, and upon saving the document, it serializes either a reference to an external library material using the material's object UUID property, or embeds a full copy of the material's data if it has no external source.
 *   '''Workflow:''' This approach ensures a single source of truth; updates to the central library file will propagate to all documents that link to it. However, it means document portability can be compromised if the corresponding material libraries are not present on another system. The materials themselves are not directly visible as objects within the document's Tree View.
 
-=== The BIM (Python) Material System ===
+=== The BIM (Python) material system ===
 
 *   '''Architecture:''' This system is designed around a document-centric model. A material is a standalone object within the document itself, an instance of {{incode|App::MaterialObjectPython}}.
 *   '''Data Storage:''' The full definition of the material, including its properties like color and description, is stored directly within this object inside the {{incode|.FCStd}} file. These material objects are visible in the Tree View, collected within a "Materials" group. When assigned, an object's {{PropertyData|Material}} property holds a direct link to this in-document material object.
 *   '''Workflow:''' This approach ensures document portability, as all material definitions are embedded. It also provides discoverability, as the materials used in a project are explicitly listed in the Tree View. However, it can result in data duplication and lacks a mechanism for centrally updating materials across multiple projects.
 
-=== The Point of Interaction: A One-Way Import ===
+=== The point of interaction: a one-way import ===
 
 The two systems do not have a deep or persistent integration. Their interaction is limited to a one-way data import initiated from the BIM system.
 
@@ -117,11 +114,11 @@ The two systems do not have a deep or persistent integration. Their interaction 
 
 Once this import process is complete, there is no further link between the newly created Arch/BIM material and the original {{incode|.FCMat}} file. It is a one-time copy of the data at that specific moment. Subsequent changes to the source material in the core library will have no effect on the Arch/BIM materials that were created from it.
 
-=== Physical vs. Appearance Properties ===
+=== Physical vs. appearance Properties ===
 
 The FreeCAD material systems are designed with a distinction between a material's physical characteristics and its visual appearance. However, these properties differ significantly between the core Material system and the legacy BIM system.
 
-==== The Core Material System ====
+==== The Core material system ====
 
 The core, C++-based system provides an extensible framework for defining a wide range of material properties. It is organized into "Models," which are schemas that group related properties.
 
@@ -129,7 +126,7 @@ The core, C++-based system provides an extensible framework for defining a wide 
 *   '''Appearance Properties:''' These define the visual look for rendering. Multiple rendering models are supported, defining properties such as: {{incode|DiffuseColor}}, {{incode|SpecularColor}} {{incode|Shininess}}, {{incode|Transparency}}, Texture image paths and scaling
 *   '''Extensibility:''' The model-based architecture is designed to be extensible. Add-on workbenches or future FreeCAD versions can introduce new models to support additional physical domains or render engines without altering the core framework.
 
-==== The BIM Material System ====
+==== The BIM material system ====
 
 This legacy, Python-based system has a fixed and more limited set of properties, focusing primarily on visual representation and basic metadata for BIM workflows.
 
@@ -139,11 +136,11 @@ This legacy, Python-based system has a fixed and more limited set of properties,
 
 This distinction is critical: the core system is necessary for any engineering analysis (like FEM), while the BIM system is tailored for architectural visualization and IFC compatibility.
 
-=== Coexistence and Interoperability of Material Systems ===
+=== Coexistence and interoperability of material systems ===
 
 While the long-term goal is full migration of the BIM workbench to the core Materials system, a transition period requires understanding how they can coexist on a single object.
 
-==== Can Both Systems Be Assigned to One Object? ====
+==== Can both systems be assigned to one object? ====
 
 It is technically possible to assign a material from both systems to the same object (e.g., an [[Arch_Wall|Arch Wall]]). The two systems use different, non-conflicting properties to store their data:
 
@@ -152,7 +149,7 @@ It is technically possible to assign a material from both systems to the same ob
 
 An object can have both of these properties simultaneously.
 
-==== The "Dual-Assignment" Workflow for Maximum Compatibility ====
+==== The "dual-assignment" workflow for maximum compatibility ====
 
 For users who require both advanced engineering analysis and correct BIM data exchange (specifically IFC export), a "dual-assignment" workflow is currently the only viable approach.
 
@@ -168,6 +165,7 @@ Users who require physical and appearance material properties, and to ensure an 
 
 '''Caveats and Risks:'''
 This workaround introduces a significant risk of '''data desynchronization'''. The two material assignments are completely independent. If you update the name or color of the BIM material, it will not affect the Core material, and vice-versa. Users must manually ensure that the two assigned materials are kept consistent to avoid conflicting information between their internal analyses and their external BIM deliverables. The BIM system's {{incode|MultiMaterial}} object, which has no equivalent in the Core system, must still be used and managed exclusively with BIM materials.
+
 
 <!--T:13-->
 {{Docnav
