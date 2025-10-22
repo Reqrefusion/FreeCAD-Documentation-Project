@@ -18,42 +18,121 @@
 |Workbenches=[[Cables_Workbench|Cables]]
 |Shortcut={{KEY|C}} {{KEY|N}}
 |Version=0.1.0
-|SeeAlso=[[Cables_Cable|Cables Cable]], [[Cables_CableBox|Cables CableBox]]
+|SeeAlso=[[Cables_Cable|Cables Cable]], [[Cables_CableBox|Cables CableBox]], [[Cables_CableTerminal|Cables CableTerminal]], [[Cables_SuppLines|Cables SuppLines]]
 }}
 
 ==Description== <!--T:3-->
 
-<!--T:4-->
-The [[Image:Cables_CableConnector.svg|24px]] [[Cables_CableConnector|Cable Connector]] creates a parametric connector object. The connector is a model of electrically conductive metal block (for simplicity without external insulation). From an electrical point of view, all wires connected to a connector form one electrical node. The connector has default size upon creation, but some parameters, like '''Height''', '''Hole''', '''Hole Diameter''' or '''Number of Holes''' can be changed later. The '''Cable Connector''' belongs to the [[Arch_Component|Arch Component]] class and inherits all of its properties. The '''Cable Connector''' has a parametrically defined number of holes equipped with support points. Each hole has two support points (one point on each side of the hole) which can be used as attachment supports for wires passing through the hole.
+New concept of Cable Connector Preset with CableTerminal and SuppLines as child objects: <span style="color:blue;">introduced in version 0.3.0</span>
 
-<!--T:5-->
-The support points are barely visible by default, but this can be changed by increasing the '''Point Size''' view property.
+<!--T:4-->
+The [[Image:Cables_CableConnector.svg|24px]] [[Cables_CableConnector|Cable Connector]] represents a model of an electrical connector. Its shape can be selected from [[#Data|{{PropertyData|Preset}}]] list upon creation. There are two shape types available: first one fully parametric called 'ParametricTerminal' and second one called 'Fixed'.
+
+The 'ParametricTerminal' type creates a parametric connector object. The connector is a model of electrically conductive metal block (for simplicity without external insulation). From an electrical point of view, all wires connected to a connector form one electrical node. The connector has default size upon creation, but some parameters, like '''Height''', '''Hole Size''', '''Hole Diameter''' or '''Number of Holes''' can be changed during creation after selection 'Customized' preset or later by changing properties. In this mode the single [[Cables_CableTerminal|CableTerminal]] is created, split to segments passing through each connector hole.
+
+The 'Fixed' type creates non parametric connector object with a shape taken from external [https://en.wikipedia.org/wiki/ISO_10303 STEP] file. There are a few predefined STEP connector models shipped together with Cables Workbench. In addition, the user can create his own connector library, this is described in [[#Cable Connector Presets|Cable Connector Presets]]. In this mode the certain number of [[Cables_CableTerminal|CableTerminal]]s are created with predefined size and position corresponding to connector pins. Additionally one or more [[Cables_SuppLines|SuppLines]] objects can be created forming the basis for the cable entering the connector.
+
+The '''Cable Connector''' belongs to the [[Arch_Component|Arch Component]] class and inherits all of its properties.
 
 <!--T:6-->
-'''Cable Connector''' object can be colored by attaching desired [[Arch_SetMaterial|Material]] to the '''Material''' property.
+'''Cable Connector''' object can be colored by attaching desired [[Arch_SetMaterial|Material]] to the '''Material''' property. [[Arch_MultiMaterial|MultiMaterial]] is also supported. It can be used to change the original connector colors to those defined in the multimaterial composition. Important: the number of colors in the multimaterial must match the number of original colors of the connector.
 
 </translate>
-[[Image:Cables_CableConnector_Example1.png]]
+[[File:Cables_CableConnector_Example1.png]]
 <translate>
 <!--T:7-->
-{{Caption|Example of the default Cable Connector:<br/>There are support points above and below holes.}}
+{{Caption|Example of the Cable Connector of 'ParametricTerminal' type (TerminalStrip x3):<br/>There is a multisegment [[Cables_CableTerminal|CableTerminal]] visible inside connector body (transparent for better explanation)}}
+
+[[File:Cables_CableConnector_Fixed_Example2.png]]
+{{Caption|Example of the Cable Connector of 'Fixed' type (back side of D-Sub DE-9):<br/>There are nine red [[Cables_CableTerminal|CableTerminal]]s visible above connector body. There is also orange cross of [[Cables_SuppLines|SuppLines]] for cable base attachment}}
 
 ==Usage== <!--T:8-->
 
 <!--T:9-->
-# Select the vertex, point on surface or object in the [[3D_view|3D view]] or select nothing.
+# Select the vertex, point on surface or object in the [[3D_View|3D View]] or select nothing.
 # Create Cable Connector by one of these methods:
 #* Press the {{Button|[[Image:Cables_CableConnector.svg|16px]] [[Cables_CableConnector|Cable Connector]]}} button.
 #* Select the {{MenuCommand|Cables → [[Image:Cables_CableConnector.svg|16px]] Cable Connector}} option from the menu.
-#* Right-click in the [[Tree_view|Tree view]] or the [[3D_view|3D view]] and select the {{MenuCommand|Cables → [[Image:Cables_CableConnector.svg|16px]] Cable Connector}} option from the context menu.
+#* Right-click in the [[Tree_View|Tree View]] or the [[3D_View|3D View]] and select the {{MenuCommand|Cables → [[Image:Cables_CableConnector.svg|16px]] Cable Connector}} option from the context menu.
+#* Use the keyboard shortcut: {{KEY|C}} then {{KEY|N}}.
+# The {{MenuCommand|Cable Connector}} task panel opens. See [[#Options|Options]] for more information.
 
 <!--T:10-->
 Once created the Cable Connector is placed at the position of selected vertex, point or object in the 3D space (or at the point (0,0,0) if nothing was selected).
 
+==Options==
+
+The '''Cable Connector''' preset available in the task panel can be changed. The currently selected preset is immediately visible in the [[3D_View|3D View]].
+
+When the special 'Customized' preset is selected, the task panel shows additional options allowing to change all the properties of a custom parametric '''Cable Connector'''.
+
+===Cable Connector Presets===
+
+Cables Workbench comes with several predefined shapes. However, the user is not limited to using the default set.
+
+An additional CSV file can be created by the user, containing custom Cable Connector Preset definitions. It must be named {{incode|connectorpresets.csv}}, and placed in
+
+{{Code|lang=bash|code=
+$FREECAD_USER_DIR/Cables/
+}}
+
+The {{incode|$FREECAD_USER_DIR}} can be obtained from the [[Python_console|Python console]]:
+
+{{Code|lang=bash|code=
+FreeCAD.getUserAppDataDir()
+}}
+
+The contents of the custom {{incode|connectorpresets.csv}} file must be modeled upon the same rules as the [https://github.com/sargo-devel/Cables/blob/master/freecad/cables/resources/presets/connectorpresets.csv connectorpresets.csv] in the '''Cables Workbench''' source code. The file is self descriptive and can be used as a template for own Presets creation.
+
+The custom {{incode|connectorpresets.csv}} file can be modified without restarting FreeCAD. Any changes made there are immediately visible in the list of Presets when making a new Cable Connector from the GUI.
+
+The {{incode|connectorpresets.csv}} can contain two preset types: [[#ParametricTerminal PresetType|ParametricTerminal PresetType]] and [[#Fixed PresetType|Fixed PresetType]].
+
+====ParametricTerminal PresetType====
+This preset type needs only single line in the {{incode|connectorpresets.csv}} file to fully describe all the parameters of the given connector. No additional files are needed. There are some details about this type in the [[#Description|Description]].
+
+====Fixed PresetType====
+The definition of this type is more complex then the previous one. The line in the {{incode|connectorpresets.csv}} file among other parameters defines names of two additional preset files:
+* STEP file with the shape and colors of the connector. The name of this file has to be put directly (file example: [https://github.com/sargo-devel/Cables/blob/master/freecad/cables/resources/presets/lib/Dummy_Dummy.step Dummy_Dummy.step])<sup>[[#STEP_Source|[1]]]</sup>.
+
+* CSV file with placements of the connector body, parameters for all attached [[Cables_CableTerminal|CableTerminal]]s and [[Cables_SuppLines|SuppLines]]. The name of this file is made from concatenation of ''ConnectorClass'' and ''Name'' fields (file example: [https://github.com/sargo-devel/Cables/blob/master/freecad/cables/resources/presets/lib/Connector_Dummy.csv Connector_Dummy.csv]).
+
+This two additional files (STEP and CSV) have to be placed in the
+
+{{Code|lang=bash|code=$FREECAD_USER_DIR/Cables/lib}}
+
+In fact the software will look for these files in one more place (which should be treated as read only):
+
+{{Code|lang=bash|code=$FREECAD_USER_DIR/Mod/Cables/freecad/cables/resources/presets/lib/}}
+
+so it is possible to define similar connectors with the same STEP definition but different number of Terminals or their placement if needed.
+
+
+<u>Example</u>
+
+As a template and example the {{Value|Connector_Dummy}} preset can be taken:
+
+The preset definition line is in the file [https://github.com/sargo-devel/Cables/blob/master/freecad/cables/resources/presets/connectorpresets.csv connectorpresets.csv]:
+
+{{Code|lang=csv|code=Dummy,Fixed,Connector,Dummy_Dummy.step,3,1}}
+
+Where the fields represent the following:
+
+{{Code|lang=csv|code=Name,Fixed,ConnectorClass,StepFileName,NrOfTerminals,NrOfSuppLines}}
+
+From the above definition it follows that the file {{incode|Dummy_Dummy.step}} and {{incode|Connector_Dummy.csv}} (filename built from ''ConnectorClass_Name.csv'') have to be present in one of the folders mentioned above.
+
+After checking, the {{incode|Dummy_Dummy.step}} and {{incode|Connector_Dummy.csv}} files can be found in {{incode|$FREECAD_USER_DIR/Mod/Cables/freecad/cables/resources/presets/lib/}}.
+
+As a result of definitions from these three files the new '''Cable Connector''' with three '''CableTerminal'''s and single '''SuppLines''' can be created. 
+
+=====STEP Source=====
+Each STEP file from predefined preset has also its source file attached (example: [https://github.com/sargo-devel/Cables/blob/master/freecad/cables/resources/presets/lib/Dummy_Dummy.FCStd Dummy_Dummy.FCStd]). Inside each source file there is information on how to correctly generate a STEP file with colors from the source shape. These source files can be used as a base for creating shapes for new connectors.
+
 ==Notes== <!--T:11-->
 
-<!--T:12-->
-Support points are always visible. The visibility can be improved by increasing the '''Point Size''' view property.
+* The [[Cables_CableTerminal|CableTerminal]] and [[Cables_SuppLines|SuppLines]] objects have reversed relation with their '''Cable Connector''' parent to avoid cyclic dependencies. They are shown as a children in the [[Tree_View|Tree View]] only for visual organization of objects. Undesirable consequence: when the '''Cable Connector''' is copied, all its child CableTerminal and SuppLines objects must always be manually copied with it.
+* [[Cables_SuppLines|SuppLines]] or [[Cables_CableTerminal|CableTerminal]] child objects are created automatically depending on '''Preset''', their shape and placement are controlled by '''Cable Connector'''.
 
 ==Properties== <!--T:13-->
 
@@ -62,13 +141,22 @@ A '''Cable Connector''' object shares the common properties and behaviors of all
 
 ===Data=== <!--T:15-->
 
+{{TitleProperty|Component}}
+
+Some most frequently used properties from the group are described here. The rest is available at [[Arch_Component#Data|Arch Component]]
+
+* {{PropertyData|Base|Link}}: An external shape of any [[Part_Workbench|Shape]]-based base object can be used here. This will replace the default method of shape creaction and an external shape will be used. '''Number Of Terminals''' and '''Number Of Supp Lines''' parameters become visible and can be changed if Base property is not None.
+
 <!--T:16-->
 {{TitleProperty|Cable Connector}}
 
 <!--T:17-->
 * {{PropertyData|Height|Length}}: Specifies the height of the connector. The default height is 5 mm.
 * {{PropertyData|Hole Size|Length}}: Specifies the size of holes in mm<sup>2</sup>. The default hole size is 2 mm<sup>2</sup>.
-* {{PropertyData|Number of Holes|Integer}}: Specifies the number of holes. By default there are 3 holes.
+* {{PropertyData|Number of Holes|Integer}}: Specifies the number of holes. The default value is 3.
+* {{PropertyData|Number Of Supp Lines|Integer}}: (hidden by default) Specifies the number of a [[Cables_SuppLines|SuppLines]] child objects. The default value is 0.
+* {{PropertyData|Number Of Terminals|Integer}}: (hidden by default) Specifies the number of a [[Cables_CableTerminal|CableTerminal]] child objects. The default value is 1.
+* {{PropertyData|Preset|Enumeration}}: Specifies the predefined set of parameters for Cable Connector. The default preset is {{Value|TerminalStrip_2.5mm2_x3}}.
 * {{PropertyData|Thickness|Length}}: Specifies the thickness of the wall between the hole and external surface of connector. The default thickness is 1 mm.
 
 ==Typical workflow== <!--T:18-->
@@ -78,15 +166,12 @@ This workflow shows how to build a connector, a cable box, a cable and how one s
 
 <!--T:20-->
 # Create a '''Cable Box''' and a '''Cable''' attached to it as described in [[Cables_CableBox#Typical workflow| Cable Box Typical workflow]].
-# Select the '''Cable Box''' in a [[Tree_view|Tree view]] and create a '''Cable Connector''' as described in [[#Usage|Usage]].
-# Attach the '''Cable Connector''' to the '''Cable Box''' by setting it as Attachment Support and Object's XY as Map Mode.
-# Move the '''Cable Connector''' to the desired position using Position in Attachment Offset Property.
-# Make sure the '''Sub Wires Fillet Radius''' property of a '''Cable''' is set to 0 mm.
-# Hide the '''Cable Box''' and '''Cable''' shapes in a [[Tree_view|Tree view]] e.g. by pressing {{KEY|SPACE}} key. The cable subwires should be still visible.
-# Attach the end point of longest subwire created in step 1 to the top support point of first '''Cable Connector''' hole.
-# Attach the penultimate point of the same subwire to the bottom support point of first '''Cable Connector''' hole.
-# When the desired shape of the subwire has been built, the '''Sub Wires Fillet Radius''' property of a '''Cable''' can be set e.g. to 4mm.
-# Unhide '''Cable''' and '''Cable Box''' shapes in a [[Tree_view|Tree view]] e.g. by pressing {{KEY|SPACE}} key.
+# Select the '''Cable Box''' in a [[Tree_View|Tree View]] and create a '''Cable Connector''' as described in [[#Usage|Usage]].
+# Move the '''Cable Connector''' to the desired position using e.g. [[Std_TransformManip|TransformManip]] tool.
+# Attach the '''Cable Connector''' to the '''Cable Box''' using [[Cables_AttachInPlace|Attach In Place]] tool.
+# Hide the '''Cable Box''' and '''Cable''' shapes in a [[Tree_View|Tree View]] e.g. by pressing {{KEY|SPACE}} key. The cable subwires should be still visible.
+# Attach the end point of longest subwire created in step 1 to the first '''CableTerminal''' segment by using [[Cables_AttachWireToTerminal|Attach Wire To Terminal]] tool ('''CableTerminal''' is a child object of the '''Cable Connector''').
+# Unhide '''Cable''' and '''Cable Box''' shapes in a [[Tree_View|Tree View]] e.g. by pressing {{KEY|SPACE}} key.
 
 </translate>
 [[Image:Cables_CableConnector_Example2_static.png]]
