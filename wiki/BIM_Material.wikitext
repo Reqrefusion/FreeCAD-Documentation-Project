@@ -24,8 +24,8 @@
 Shows the '''BIM Material''' dialog. The dialog allows to quickly and easily perform material-related operations, with extra focus on efficient working with many objects and many materials.
 
 <!--T:5-->
-# Create new [[Arch_SetMaterial|material]] or [[Arch MultiMaterial|multimaterial]].
-# Attribute an existing material or multimaterial to selected object(s).
+# Create new [[Arch_SetMaterial|material]] or [[Arch MultiMaterial|multi-material]].
+# Attribute an existing material or multi-material to selected object(s).
 
 </translate>
 [[File:BIM_Material_Manager.png]]
@@ -35,14 +35,17 @@ Shows the '''BIM Material''' dialog. The dialog allows to quickly and easily per
 ==Usage== <!--T:7-->
 
 <!--T:8-->
-# (Optionally) select one or more objects
+# Optionally select one or more BIM objects whose [[Arch_Component#Data|{{PropertyData|Material}}]] property you want to change. Objects without this property can also be selected, but will not be changed.
 # Press the {{Button|[[Image:BIM_Material.svg|16px]] [[BIM_Material|Material]]}} button in the toolbar.
-
-<!--T:9-->
-* If there is no existing material in the active document, the Material Manager window is not displayed, and a [[Arch_SetMaterial|new material]] will be created.
-* If there is at least one material or multimaterial in the document, the Material Manager window will open.
-
-When BIM objects with a shape are attributed a material, their [[Arch_Component#Data|{{PropertyData|Material|Link}}]] property is assigned that material (such BIM objects are generally based on [[Arch_Component|Arch Component]] and inherit its properties).
+# One of the following happens:
+#* If there is no material in the active document:
+#*# The Material Manager dialog is not displayed. Instead the [[Arch_SetMaterial|Arch SetMaterial]] tool is started to create a material.
+#*# If object have been selected the created material is assigned to them if possible.
+#* If there is at least one material or multi-material in the active document:
+#*# The Material Manager dialog opens. See [[#Material_Manager_tools|Material Manager tools]].
+#*# Optionally select a material or multi-material from the list.
+#*# Press the {{Button|OK}} button.
+#*# If object have been selected the selected material is assigned to them if possible.
 
 ==Material Manager tools== <!--T:10-->
 
@@ -50,19 +53,19 @@ When BIM objects with a shape are attributed a material, their [[Arch_Component#
 The materials Manager allows you to:
 
 [[File:BIM_Material_Manager_New.png|thumb|The New Material task panel.]]
-[[File:BIM_Material_Manager_New_Multi.png|thumb|The New Multimaterial task panel.]]
+[[File:BIM_Material_Manager_New_Multi.png|thumb|The New Multi-material task panel.]]
 
 <!--T:12-->
-* '''Search materials by name''': Use the search box
-* '''Assign a material to the selected object(s)''': Pressing OK with a material selected will assign it to the selected object(s)
-* '''Create a [[Arch_SetMaterial|material]]''': Press the {{Button|New Material}} button
-* '''Create a [[Arch MultiMaterial|multimaterial]]''': Press the {{Button|New Multi-Material}} button
-* '''Delete a material''': Select a material and right-click a material and choose "Delete"
-* '''Delete unused materials''': Press the {{Button|Delete Unused}} button. All materials that are not used by any object will be removed
-* '''Merge duplicate materials''': Press the {{Button|Merge Duplicates}} button. Merges the materials with exact same names (ex. Concrete and Concrete) or exact same names with a numeric suffix (ex. Concrete and Concrete001) together
-* '''Rename a material''': Right-click a material and choose "Rename"
-* '''Duplicate a material''': Right-click a material and choose "Duplicate". This will create a full, independent copy of the chosen material with same settings
-* '''Merge two materials together''': Right-click a material and choose "Merge To…", then select another material. The first one will be removed, and all objects that were using the first one will be assigned the second one
+* '''Search materials by name''': Use the search box.
+* '''Assign a material to the selected object(s)''': Pressing OK with a material selected will assign it to the selected object(s).
+* '''Create a [[Arch_SetMaterial|material]]''': Press the {{Button|New Material}} button.
+* '''Create a [[Arch_MultiMaterial|multi-material]]''': Press the {{Button|New Multi-Material}} button.
+* '''Delete a material''': Select a material and right-click a material and choose "Delete".
+* '''Delete unused materials''': Press the {{Button|Delete Unused}} button. All materials that are not used by any object will be removed.
+* '''Merge duplicate materials''': Press the {{Button|Merge Duplicates}} button. Merges the materials with exact same names (ex. Concrete and Concrete) or exact same names with a numeric suffix (ex. Concrete and Concrete001) together.
+* '''Rename a material''': Right-click a material and choose "Rename".
+* '''Duplicate a material''': Right-click a material and choose "Duplicate". This will create an independent copy of the material.
+* '''Merge two materials together''': Right-click a material and choose "Merge To…", then select another material. The first one will be removed, and all objects that were using the first one will be assigned the second one.
 
 === New material ===
 
@@ -87,23 +90,23 @@ An Arch Material object will have the following properties
 
 TBD
 
-== The relationship between the BIM and Core material systems ==
+== Relationship between BIM and Core material systems ==
 
 Since version 1.0, FreeCAD contains two distinct and parallel systems for managing materials: a legacy, Python-based system primarily used by the BIM workbench, and a modern, C++ based system intended for global use in any workbench.
 
-=== The Core (C++) material system ===
+=== Core material system ===
 
 * '''Architecture:''' This system is designed around a centralized library model. The primary definition of a material is stored externally in files (e.g., {{incode|.FCMat}} format) located in system-wide or user-specific directories. The [[Material_Workbench|Material Workbench]] documents this system in more detail.
 * '''Data Linking:''' When a material is assigned to an object (e.g., a {{incode|PartDesign::Body}}), the object does not store a full copy of the material's data. Instead, a hidden property named {{incode|ShapeMaterial}} is added to the object. This property holds a complete material object in memory, and upon saving the document, it serializes either a reference to an external library material using the material's object UUID property, or embeds a full copy of the material's data if it has no external source.
 * '''Workflow:''' This approach ensures a single source of truth; updates to the central library file will propagate to all documents that link to it. However, it means document portability can be compromised if the corresponding material libraries are not present on another system. The materials themselves are not directly visible as objects within the document's Tree View.
 
-=== The BIM (Python) material system ===
+=== BIM material system ===
 
 * '''Architecture:''' This system is designed around a document-centric model. A material is a standalone object within the document itself, an instance of {{incode|App::MaterialObjectPython}}.
 * '''Data Storage:''' The full definition of the material, including its properties like color and description, is stored directly within this object inside the {{incode|.FCStd}} file. These material objects are visible in the Tree View, collected within a "Materials" group. When assigned, an object's {{PropertyData|Material}} property holds a direct link to this in-document material object.
 * '''Workflow:''' This approach ensures document portability, as all material definitions are embedded. It also provides discoverability, as the materials used in a project are explicitly listed in the Tree View. However, it can result in data duplication and lacks a mechanism for centrally updating materials across multiple projects.
 
-=== The point of interaction: a one-way import ===
+=== Point of interaction: one-way import ===
 
 The two systems do not have a deep or persistent integration. Their interaction is limited to a one-way data import initiated from the BIM system.
 
@@ -115,11 +118,11 @@ The two systems do not have a deep or persistent integration. Their interaction 
 
 Once this import process is complete, there is no further link between the newly created Arch/BIM material and the original {{incode|.FCMat}} file. It is a one-time copy of the data at that specific moment. Subsequent changes to the source material in the core library will have no effect on the Arch/BIM materials that were created from it.
 
-=== Physical vs. appearance Properties ===
+=== Physical vs. appearance properties ===
 
 The FreeCAD material systems are designed with a distinction between a material's physical characteristics and its visual appearance. However, these properties differ significantly between the core Material system and the legacy BIM system.
 
-==== The Core material system ====
+==== Core material system ====
 
 The core, C++-based system provides an extensible framework for defining a wide range of material properties. It is organized into "Models," which are schemas that group related properties.
 
@@ -127,7 +130,7 @@ The core, C++-based system provides an extensible framework for defining a wide 
 * '''Appearance Properties:''' These define the visual look for rendering. Multiple rendering models are supported, defining properties such as: {{incode|DiffuseColor}}, {{incode|SpecularColor}} {{incode|Shininess}}, {{incode|Transparency}}, Texture image paths and scaling
 * '''Extensibility:''' The model-based architecture is designed to be extensible. Add-on workbenches or future FreeCAD versions can introduce new models to support additional physical domains or render engines without altering the core framework.
 
-==== The BIM material system ====
+==== BIM material system ====
 
 This legacy, Python-based system has a fixed and more limited set of properties, focusing primarily on visual representation and basic metadata for BIM workflows.
 
@@ -150,7 +153,7 @@ It is technically possible to assign a material from both systems to the same ob
 
 An object can have both of these properties simultaneously.
 
-==== The "dual-assignment" workflow for maximum compatibility ====
+==== Dual-assignment workflow for maximum compatibility ====
 
 For users who require both advanced engineering analysis and correct BIM data exchange (specifically IFC export), a "dual-assignment" workflow is currently the only viable approach.
 
