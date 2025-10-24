@@ -42,7 +42,7 @@ While not provided by the Material workbench, these Material-related tools are i
 
 This guide explains the core concepts and workflows for using the Material system in FreeCAD. It covers the different tools, properties, and key technical details for both interactive and scripted use.
 
-=== Main tools: Editor and Selector ===
+=== Material Editor and Material Selector ===
 
 There are two primary interfaces for the material workflow, which serve separate and distinct purposes.
 
@@ -53,63 +53,41 @@ There are two primary interfaces for the material workflow, which serve separate
 * '''Behavior:'''
 ** It is disconnected from your 3D model; selecting an object in your document has no effect on the editor.
 ** '''You cannot assign a material to an object from this window.''' Clicking {{Button|OK}} simply closes the editor.
-** The icons next to materials in the library tree indicate their origin (e.g., the FreeCAD icon for built-in materials, a workbench icon for materials from an add-on).
 
 ==== Material Selector ====
 
 * '''Usage:''' Select one or more objects in the [[3D_View|3D View]] or [[Tree_View|Tree View]], then select the {{MenuCommand|[[Image:Std_SetMaterial.svg|16px]] [[Std_SetMaterial|Material]]}} option from the context menu.
-* '''Purpose:''' This tool is used exclusively to '''assign an existing material to the selected object(s)'''.
+* '''Purpose:''' This tool is used exclusively to '''assign an existing material to the selected objects'''.
 * '''Behavior:'''
 ** It opens a task panel containing a material browser tree.
-** Selecting a material in this tree immediately applies its physical properties to the object(s) you have selected. This is the required step to link a material's physical data to a part.
+** Selecting a material in this tree immediately applies its physical properties to the objects you have selected. This is the required step to link a material's physical data to a part.
 
 === Physical vs. appearance properties ===
 
 A material in FreeCAD is defined by two distinct sets of properties:
 
-* '''Physical Properties:''' These define the engineering characteristics of a material, which are used for calculations and simulations (e.g., in the FEM Workbench). Examples include {{incode|Density}}, {{incode|YoungsModulus}}, and {{incode|PoissonRatio}}.
-* '''Appearance Properties:''' These define the visual look of a material for rendering purposes. Examples include {{PropertyView|Diffuse Color}}, {{PropertyView|Shininess}}, and {{PropertyView|Transparency}}.
+* '''Physical properties:''' These define the engineering characteristics of a material, which are used for calculations and simulations (e.g., in the FEM Workbench). Examples include {{Incode|Density}}, {{Incode|YoungsModulus}}, and {{Incode|PoissonRatio}}.
+* '''Appearance properties:''' These define the visual look of a material for rendering purposes. Examples include {{Incode|DiffuseColor}}, {{Incode|Shininess}}, and {{Incode|Transparency}}.
 
 A material is not required to have both. Some materials might be defined only for analysis (with only physical properties), while others might be defined only for visualization (with only appearance properties).
 
-=== Overriding material appearance ===
+=== Override material appearance ===
 
 An object's final appearance is determined by a hierarchy. The visual properties set in a material can be overridden by local settings on the object itself.
 
-* '''How to Override:''' Select an object and open the Appearance task panel ('''Right-click →''' {{Button|[[Image:Std_SetAppearance.svg|16px]] [[Std_SetAppearance|Appearance]]}} or press {{incode|Ctrl+D}}). Any changes you make here (e.g., setting a custom color via the {{PropertyView|Line Color}} property) will take precedence over the {{incode|DiffuseColor}} property of the assigned material.
-
+* '''How to override:''' Select the {{MenuCommand|[[Image:Std_SetAppearance.svg|16px]] [[Std_SetAppearance|Appearance]]}} option from the object's [[Tree_View|Tree View]] or [[3D_View|3D View]] context menu. Any changes you make here will take precedence over the appearance properties of the assigned material.
 * '''Caveats:''' This can be a source of confusion. If you have assigned a material to an object but its color doesn't change, it is likely because the object has a local appearance override. There is no clear visual indicator in the UI to show that an override is active. To restore the material's appearance, you must use the Appearance task panel to apply the material's visuals.
 
-=== Behind the scenes: hidden properties ===
+=== Properties ===
 
-When you assign a material, FreeCAD links the data to the object and its view provider using hidden properties. You will not see these in the default '''Data''' tab of the Property View.
+When you assign a material, FreeCAD links the data to the object and its view provider using two properties.
 
-* {{PropertyData|Shape Material}}: This is the most important property. It is added to the '''Document Object'''. It holds the link to the full {{incode|Materials::Material}} object, giving access to all its physical and appearance data for calculations and scripting.
-* {{PropertyView|Shape Appearance}}: This property exists on the object's '''View Provider'''. It is a list that controls the final rendering of the object in the 3D view and is what gets modified when you use the Appearance task panel.
-
-=== Accessing material properties ===
-
-==== Disconnect between object and material ====
-
-Physical characteristics like mass are not stored as persistent properties on the object; they are calculated on-demand by other tools (like macros or the FEM Workbench) by reading both the object's geometry ({{Incode|obj.Shape.Volume}}) and its material data ({{PropertyData|Shape Material}}).
-
-==== Using expressions (spreadsheet example) ====
-
-You can access material property values dynamically using expressions, which is particularly powerful in the Spreadsheet Workbench. To ensure you get a usable numerical quantity instead of a text string, you must use the {{incode|PropertyObjects}} dictionary.
-
-* ❌ '''Incorrect Method (Returns Text):''' Using the {{incode|PhysicalProperties}} dictionary returns a string with units, which cannot be used in subsequent formulas.{{Code|lang=text|code=
-=<<MyBody>>.ShapeMaterial.PhysicalProperties[<<Density>>]
-}}''→ Returns "7850 kg/m^3"''
-
-* ✅ '''Correct Method (Returns a Quantity):''' Using the {{incode|PropertyObjects}} dictionary and accessing its {{incode|.Value}} attribute returns a full Quantity object that can be used directly in calculations.{{Code|lang=text|code=
-=<<MyBody>>.ShapeMaterial.PropertyObjects[<<Density>>].Value
-}} ''→ Returns a Quantity object that the spreadsheet can use numerically.''
-
-If this value is in cell {{incode|A1}} of your spreadsheet, you can then write a formula in cell {{incode|A2}} like {{incode|<nowiki>=</nowiki>A1 * 10}}, and it will work correctly.
+* {{PropertyData|Shape Material}}: This is the most important property. It is added to the '''Document Object'''. It holds a link to a full {{Incode|Materials::Material}} object, giving access to all its physical and appearance data for calculations and scripting. This is a [[Property_View#Context_menu|hidden property]].
+* {{PropertyView|Shape Appearance}}: This property exists on the object's '''View Provider'''. It is a list that controls the final rendering of the object in the 3D View and is what gets modified when you use the [[Image:Std_SetAppearance.svg|16px]] [[Std_SetAppearance|Appearance]] task panel.
 
 === Scripting ===
 
-You can get and set material properties using Python scripting. The primary methods are {{incode|.getPhysicalValue()}} and {{incode|.setPhysicalValue()}}.
+You can get and set material properties using Python scripting. The primary methods are {{Incode|.getPhysicalValue()}} and {{Incode|.setPhysicalValue()}}.
 
 {{Code|lang=python|code=
 import FreeCAD
