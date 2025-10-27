@@ -1,19 +1,16 @@
 <languages/>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {{TutorialInfo
-|Topic=Finite Element Analysis
-|Level=Beginner
-|Time=N/A
-|Author=[https://www.freecad.org/wiki/index.php?title=User:NewJoker NewJoker]
-|FCVersion=1.0 or above
-|SeeAlso=[[FEM_Workbench|FEM Workbench]]
+|Topic=Метод конечных элементов
+|Level=Начальный
+|Time=Н/Д
+|Author=[[https://www.freecad.org/wiki/index.php?title=User](https://www.freecad.org/wiki/index.php?title=User):NewJoker NewJoker]
+|FCVersion=1.0 или выше
+|SeeAlso=[[FEM_Workbench|Рабочая среда FEM]]
 }}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Background ==
-</div>
+<span id="Background"></span>
+== Общие сведения ==
 
 Подготовка геометрии и создание сетки являются ключевыми этапами предварительной обработки для симуляций с использованием метода конечных элементов (МКЭ). Хотя доступное программное обеспечение для симуляций, интегрированное с CAD-средой (например, [[FEM_Workbench|Модуль МКЭ]] в FreeCAD), делает заманчивым немедленное выполнение анализов новых конструкций, важно помнить, что МКЭ — это сложный метод, требующий правильно подготовленной геометрии и сетки для получения достоверных и точных результатов. Здесь особенно применимо правило «мусор на входе — мусор на выходе». Существуют и другие важные настройки, от которых сильно зависит точность МКЭ (например, свойства материалов и граничные условия), но первыми шагами и одними из наиболее частых источников проблем являются подготовка геометрии и создание сетки, которые обсуждаются на этой странице.
 
@@ -38,359 +35,267 @@
 [[Image:FEM_shell_model.JPG|600px]]
 {{Caption|Деталь с тонкими стенками, подходящая для анализа с оболочечными элементами — выделена срединная поверхность}}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* in some cases, 2D analyses are also possible and can be enabled by setting the {{PropertyData|Model Space}} property of the [[FEM_SolverCalculixCcxtools|CalculiX solver]]:
-** plane stress - for thin parts that can be simplified to flat surfaces representing the profile for extrusion (thickness is defined in the same way as for shells), are loaded and deform only in-plane and have zero stress in the out-of-plane direction.  Only two degrees of freedom are available - X and Y translation. Surfaces have to lie on the XY-plane in this case. This approach is quite common. For example, a thin plate subjected to tension can be analyzed this way.
-** plane strain - for thick parts that can be simplified to flat surfaces representing the profile for extrusion (thickness is defined in the same way as for shells), are loaded and deform only in-plane and have zero strain in the out-of-plane directions.  Only two degrees of freedom are available - X and Y translation. Surfaces have to lie on the XY-plane in this case. This approach is not so common. For example, a long dam, wall or pipe subjected to uniform pressure at a whole length can be analyzed this way.
-** axisymmetric - for parts that can be simplified to flat surfaces representing the profile of revolution (thickness is irrelevant here) and are loaded uniformly around the whole circumference.  Only two degrees of freedom are available - radial and axial translation. Surfaces have to lie on the XY-plane, on the right of the Y-axis. This approach is very common. For example, some pressure vessels, rubber mounts, bushings, gaskets, flanges and even bolted joints (treating the thread as axisymmetric) can be analyzed this way.
-</div>
+* В некоторых случаях также возможны 2D-анализы, которые можно включить, установив свойство {{PropertyData|Model Space}} решателя [[FEM_SolverCalculixCcxtools|CalculiX]]:
+** Плоское напряжение — для тонких деталей, которые можно упростить до плоских поверхностей, представляющих профиль для выдавливания (толщина задаётся так же, как для оболочек), которые нагружаются и деформируются только в плоскости и имеют нулевое напряжение в направлении, перпендикулярном плоскости. Доступны только две степени свободы — перемещения по X и Y. Поверхности в этом случае должны лежать в плоскости XY. Этот подход довольно распространён. Например, тонкая пластина, подверженная растяжению, может быть проанализирована таким образом.
+** Плоская деформация — для толстых деталей, которые можно упростить до плоских поверхностей, представляющих профиль для выдавливания (толщина задаётся так же, как для оболочек), которые нагружаются и деформируются только в плоскости и имеют нулевую деформацию в направлениях, перпендикулярных плоскости. Доступны только две степени свободы — перемещения по X и Y. Поверхности в этом случае должны лежать в плоскости XY. Этот подход менее распространён. Например, длинная плотина, стена или труба, подверженная равномерному давлению по всей длине, может быть проанализирована таким образом.
+** Осесимметричный — для деталей, которые можно упростить до плоских поверхностей, представляющих профиль вращения (толщина здесь не имеет значения), и которые нагружаются равномерно по всей окружности. Доступны только две степени свободы — радиальное и осевое перемещение. Поверхности должны лежать в плоскости XY, справа от оси Y. Этот подход очень распространён. Например, некоторые сосуды под давлением, резиновые опоры, втулки, прокладки, фланцы и даже болтовые соединения (с учётом резьбы как осесимметричной) могут быть проанализированы таким образом.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-One should remember that beam, shell, plane stress/strain and axisymmetric elements used in CalculiX are not true elements of this kind (they don't use the classic element formulations known from literature and other software) - they are internally expanded to solids. Still, their use is recommended in the aforementioned cases.
-</div>
+Следует помнить, что балочные, оболочечные, плосконапряжённые/плоскодеформированные и осесимметричные элементы, используемые в CalculiX, не являются настоящими элементами такого типа (они не используют классические формулировки элементов, известные из литературы и других программ). Внутренне они преобразуются в объёмные элементы. Тем не менее, их использование рекомендуется в вышеупомянутых случаях.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Geometry validity ==
-</div>
+<span id="Geometry_validity"></span>
+== Корректность геометрии ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The geometry used for FEM has to be valid. Most importantly, there can't be any intersections. It's a common issue often occurring when assemblies are modeled without proper constraints between the parts. The [[Part_SectionCut|Part SectionCut]] tool can help find such interferences between parts. Of course, [[Part_Fuse|Part Fuse]] may help resolve them if they are intentional. Other issues with the geometry (such as non-manifold geometries, redundant edges or faces and so on) also have to be fixed before proceeding to meshing. The [[Part_CheckGeometry|Part CheckGeometry]] tool can be helpful but visual checks are also important. When preparing a simulation using solid elements and in doubt whether the part is really solid or just a closed shell, the aforementioned tools (Part SectionCut and ''Shape Content'' tab of the Part CheckGeometry tool output) may clarify this.
-</div>
+Геометрия, используемая для МКЭ, должна быть корректной. В первую очередь, в ней не должно быть пересечений. Это распространённая проблема, которая часто возникает, когда сборки моделируются без надлежащих ограничений между деталями. Инструмент [[Part_SectionCut|Part SectionCut]] может помочь выявить такие пересечения между деталями. Конечно, [[Part_Fuse|Part Fuse]] может помочь устранить их, если они созданы намеренно. Другие проблемы с геометрией (такие как неразвёртываемые геометрии, избыточные рёбра или грани и т. д.) также должны быть исправлены перед переходом к созданию сетки. Инструмент [[Part_CheckGeometry|Part CheckGeometry]] может быть полезен, но визуальная проверка также важна. При подготовке симуляции с использованием объёмных элементов, если есть сомнения, является ли деталь действительно твёрдым телом или просто замкнутой оболочкой, упомянутые инструменты (Part SectionCut и вкладка ''Shape Content'' в результатах инструмента Part CheckGeometry) могут это прояснить.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Surface normals ==
-</div>
+<span id="Surface_normals"></span>
+== Нормали поверхностей ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-In case of surface geometries used for analyses with shell and 2D elements, the normal directions of the surfaces might be important. They are used to distinguish the positive and negative side of a surface finite element mesh and affect analysis features such as pressure loads and contact. Moreover, 2D analyses (plane stress/strain and axisymmetric) with CalculiX require the normals to point in the positive Z direction. If they are inverted, negative jacobian errors will occur.
-</div>
+В случае поверхностной геометрии, используемой для анализов с оболочечными и 2D-элементами, направление нормалей поверхностей может быть важным. Они используются для определения положительной и отрицательной стороны сетки конечных элементов поверхности и влияют на такие аспекты анализа, как нагрузки от давления и контакт. Кроме того, 2D-анализы (плоское напряжение/деформация и осесимметричные) в CalculiX требуют, чтобы нормали были направлены в положительном направлении оси Z. Если они инвертированы, возникнут ошибки отрицательного якобиана.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-To check the normals, use one of the following approaches:
-* enable Backlight in the [[Preferences_Editor|Preferences]] and set the {{PropertyView|Lighting}} property of the surface object to ''One side'' - the negative normal direction will appear darker,
-* use the [[Macro_Normal_Vector|Normal Vector macro]],
-* mesh the surface shape in FEM - the mesh will be colored only on the positive normal side.
-</div>
+Для проверки нормалей используйте один из следующих подходов:
+* включите подсветку в [[Preferences_Editor|Настройках]] и установите свойство {{PropertyView|Lighting}} объекта поверхности в значение «Одна сторона» — направление отрицательной нормали будет выглядеть темнее,
+* используйте макрос [[Macro_Normal_Vector|Normal Vector]],
+* создайте сетку для поверхностной формы в модуле МКЭ — сетка будет окрашена только на стороне положительной нормали.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-To invert the normals, use the [[Part_ReverseShape|Reverse shapes]] tool.
-</div>
+Для инвертирования нормалей используйте инструмент [[Part_ReverseShape|Инвертировать формы]].
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Using surface meshes for FEM ==
-</div>
+<span id="Using_surface_meshes_for_FEM"></span>
+== Использование поверхностных сеток для МКЭ ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-[[Mesh_MeshObject|Surface meshes]], typically imported from STL, OBJ and similar files or created in the [[Mesh_Workbench|Mesh Workbench]], can't be used directly for FEM. It is necessary to [[Part_ShapeFromMesh|create a shape from mesh]] first. Then this shape can be meshed in the FEM workbench to create a surface (shell / 2D) finite element mesh. If a solid (3D) finite element mesh is needed, shape creation has to be followed by [[Part_MakeSolid|conversion to a solid]].
-</div>
+Поверхностные сетки [[Mesh_MeshObject|MeshObject]], обычно импортируемые из файлов STL, OBJ и подобных или созданные в [[Mesh_Workbench|Модуле работы с сетками]], не могут использоваться напрямую для МКЭ. Сначала необходимо [[Part_ShapeFromMesh|создать форму из сетки]]. Затем эта форма может быть разбита на сетку в модуле МКЭ для создания поверхностной (оболочечной / 2D) сетки конечных элементов. Если требуется объёмная (3D) сетка конечных элементов, после создания формы необходимо выполнить [[Part_MakeSolid|преобразование в твёрдое тело]].
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The biggest issue with shapes created from surface meshes is that all their triangles become the faces of the generated shape. In FEM, this makes the assignment of analysis features (such as loads and boundary conditions) particularly problematic. In the case of planar surfaces, [[Part_RefineShape|refinement]] after conversion to a solid may remove the redundant triangular faces. In practical scenarios, most will remain though and because of that, surface meshes are not recommended for use in FEM. CAD geometries (created in FreeCAD or imported from STEP/IGES files) should be used instead. Sometimes it may even make sense to recreate the geometry based on the surface mesh.
-</div>
+Самая большая проблема с формами, созданными из поверхностных сеток, заключается в том, что все их треугольники становятся гранями полученной формы. В МКЭ это делает назначение характеристик анализа (таких как нагрузки и граничные условия) особенно проблематичным. В случае плоских поверхностей [[Part_RefineShape|очистка]] после преобразования в твёрдое тело может удалить избыточные треугольные грани. Однако в практических сценариях большинство из них всё же останутся, и поэтому использование поверхностных сеток для МКЭ не рекомендуется. Вместо этого следует использовать CAD-геометрии (созданные в FreeCAD или импортированные из файлов STEP/IGES). Иногда даже может иметь смысл воссоздать геометрию на основе поверхностной сетки.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Geometry simplification ==
-</div>
+<span id="Geometry_simplification"></span>
+== Упрощение геометрии ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Defeaturing ===
-</div>
+<span id="Defeaturing"></span>
+=== Удаление мелких деталей ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Designs prepared in CAD software are typically too detailed to be suitable for FEM simulations. In many cases, it's necessary to simplify them first. This step is often overlooked but it's very important because it can be hard to obtain a good mesh when the part is too detailed and even if such a mesh is obtained eventually, it might be very dense, leading to unreasonable solving times. Thus, one should always look at the design and try to simplify it as much as possible, leaving only those geometric features that may have a significant impact on the results (strength/stiffness) and thus can't be ignored. The following features are typically omitted:
-* small fillets and chamfers,
-* small holes,
-* other small details,
-* welds,
-* bolts, threads,
-* decorative elements (logos, engravings).
-</div>
+Конструкции, подготовленные в CAD-программах, обычно слишком детализированы для использования в симуляциях МКЭ. Во многих случаях их необходимо сначала упростить. Этот шаг часто упускается из виду, но он очень важен, поскольку получение качественной сетки может быть затруднительным, если деталь слишком сложная, и даже если такая сетка в итоге будет создана, она может быть очень плотной, что приведёт к неоправданно долгому времени решения. Поэтому всегда следует анализировать конструкцию и стараться максимально её упростить, оставляя только те геометрические особенности, которые могут существенно влиять на результаты (прочность/жёсткость) и, следовательно, не могут быть проигнорированы. Обычно исключаются следующие элементы:
+* мелкие скругления и фаски,
+* небольшие отверстия,
+* другие мелкие детали,
+* сварные швы,
+* болты, резьбы,
+* декоративные элементы (логотипы, гравировки).
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The [[Part_Defeaturing|Part Defeaturing]] tool and add-on [[Defeaturing_Workbench|Defeaturing Workbench]] can be helpful when simplifying parts for simulations.
-</div>
+Инструмент [[Part_Defeaturing|Удаление мелких деталей]] и дополнение [[Defeaturing_Workbench|Модуль упрощения геометрии]] могут быть полезны при упрощении деталей для симуляций.
 
 [[Image:FEM_bracket_original.PNG|400px]]
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Original bracket geometry}}
-</div>
+{{Caption|Исходная геометрия кронштейна}}
 
 [[Image:FEM_bracket_simplified.PNG|400px]]
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Bracket geometry simplified using only the Part Defeaturing tool}}
-</div>
+{{Caption|Геометрия кронштейна, упрощённая с использованием только инструмента удаления мелких деталей}}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Replacing parts with boundary conditions ===
-</div>
+<span id="Replacing_parts_with_boundary_conditions"></span>
+=== Замена деталей граничными условиями ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-In the case of assemblies (more about them in one of the next sections), often some parts can be excluded from simulations and replaced with boundary conditions if they were attached to parts being analyzed. Such approach is valid if the excluded parts are significantly stiffer (in terms of structural stiffness so considering not only elasticity of the material but also geometry of the part) than the analyzed parts to which they were connected. That's because fixed boundary conditions introduce rigidity (as if the analyzed part was attached to an infinitely stiff component) and flexible supports like spring elements are not available in the FEM workbench of FreeCAD when using CalculiX (Elmer has [[FEM_ConstraintSpring|FEM ConstraintSpring]]).
-</div>
+В случае сборок (подробнее о них в одном из следующих разделов) некоторые детали часто можно исключить из симуляций и заменить граничными условиями, если они были прикреплены к анализируемым деталям. Такой подход оправдан, если исключённые детали значительно жёстче (с точки зрения конструктивной жёсткости, учитывающей не только упругость материала, но и геометрию детали), чем анализируемые детали, к которым они были присоединены. Это связано с тем, что фиксированные граничные условия обеспечивают жёсткость (как если бы анализируемая деталь была прикреплена к бесконечно жёсткому компоненту), а гибкие опоры, такие как пружинные элементы, недоступны в модуле МКЭ FreeCAD при использовании CalculiX (в Elmer есть [[FEM_ConstraintSpring|Ограничение пружины]]).
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Utilizing planar symmetry ===
-</div>
+<span id="Utilizing_planar_symmetry"></span>
+=== Использование плоскостной симметрии ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Geometry simplification for FEM may also mean cutting it in one of the symmetry planes to make use of the planar symmetry assumption in the analysis. This assumption is valid only when all the following aspects of the model exhibit symmetry in a given plane:
-* geometry,
-* loads,
-* boundary conditions,
-* response (one has to be careful with frequency/buckling analyses utilizing symmetry - antisymmetric mode shapes won't be obtained).
-The use of symmetry (1/2, 1/4 or 1/8 of the model) is recommended whenever possible since it can highly reduce the computational cost of the analysis. Another advantage is that it eliminates some rigid body motions, making it easier to constrain the part. A symmetry boundary condition should be applied to the faces belonging to the plane of the cut:
-* translation in the direction normal to the symmetry plane should be blocked for solid parts,
-* translation in the direction normal to the symmetry plane and rotations other than around the axis normal to the symmetry plane should be blocked for shell and beam parts.
-Applied force should be properly reduced if the symmetry plane cuts the region to which the force is applied (irrelevant when pressure load is used).
-</div>
+Упрощение геометрии для МКЭ также может включать разрезание её по одной из плоскостей симметрии для использования предположения о плоскостной симметрии в анализе. Это предположение справедливо только в том случае, если все следующие аспекты модели обладают симметрией в заданной плоскости:
+* геометрия,
+* нагрузки,
+* граничные условия,
+* реакция (нужно быть осторожным с частотными/анализами на потерю устойчивости при использовании симметрии — антисимметричные формы мод не будут получены).
+Использование симметрии (1/2, 1/4 или 1/8 модели) рекомендуется, когда это возможно, поскольку это может значительно снизить вычислительные затраты на анализ. Другим преимуществом является устранение некоторых движений твёрдого тела, что упрощает закрепление детали. Условие симметрии должно быть применено к граням, принадлежащим плоскости разреза:
+* перемещение в направлении, нормальном к плоскости симметрии, должно быть заблокировано для объёмных деталей,
+* перемещение в направлении, нормальном к плоскости симметрии, и вращения, кроме как вокруг оси, нормальной к плоскости симметрии, должны быть заблокированы для оболочечных и балочных деталей.
+Приложенная сила должна быть соответствующим образом уменьшена, если плоскость симметрии пересекает область, к которой приложена сила (не имеет значения при использовании нагрузки давлением).
 
 [[Image:FEM_symmetric_vessel.JPG|400px]]
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Model of 1/8 of a cylindrical pressure vessel with symmetry boundary conditions and internal pressure load}}
-</div>
+{{Caption|Модель 1/8 цилиндрического сосуда под давлением с граничными условиями симметрии и внутренней нагрузкой давлением}}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Utilizing cyclic symmetry ===
-</div>
+<span id="Utilizing_cyclic_symmetry"></span>
+=== Использование циклической симметрии ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Another, less common type of symmetry available in FreeCAD FEM is cyclic symmetry. It can be defined using the [[FEM_ConstraintTie#Cyclic_symmetry|tie constraint]] and makes it possible to analyze only a single representative sector of a structure consisting of such circular patterns around an axis. The assumption is that boundary conditions and loads also exhibit this form of symmetry. Tangential loads can be applied and thus torsion can be simulated this way. However, [[FEM_ConstraintCentrif|centrifugal load]] is commonly used with cyclic symmetry. This approach might be used e.g. for rotors, shafts, turbines, fans and flywheels.
-</div>
+Другой, менее распространённый тип симметрии, доступный в FreeCAD FEM, — это циклическая симметрия. Она может быть задана с помощью [[FEM_ConstraintTie#Cyclic_symmetry|ограничения связывания]] и позволяет анализировать только один представительный сектор структуры, состоящей из таких круговых узоров вокруг оси. Предполагается, что граничные условия и нагрузки также обладают этой формой симметрии. Могут быть приложены тангенциальные нагрузки, что позволяет моделировать кручение. Однако чаще всего с циклической симметрией используется [[FEM_ConstraintCentrif|центробежная нагрузка]]. Этот подход может применяться, например, для роторов, валов, турбин, вентиляторов и маховиков.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Geometry partitioning ==
-</div>
+<span id="Geometry_partitioning"></span>
+== Разбиение геометрии ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Partitioning basics ===
-</div>
+<span id="Partitioning_basics"></span>
+=== Основы разбиения ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-So-called partitioning is a division of the geometry into smaller segments. In other software, it's commonly used to allow hex meshing, but in FreeCAD it can be useful for other reasons too:
-* creating subregions for analysis feature assignments,
-* splitting parts into sections made of different materials,
-* creating regions for [[FEM_MeshRegion|mesh refinement]],
-* controlling the meshing algorithm by forcing it to follow additional edges (particularly useful to control [[FEM_MeshGmshFromShape#Mesh_Growth|Gmsh's mesh growth]]).
-</div>
+Так называемое разбиение представляет собой деление геометрии на более мелкие сегменты. В других программах оно обычно используется для создания гексаэдральной сетки, но в FreeCAD оно может быть полезно и по другим причинам:
+* создание подобластей для назначения характеристик анализа,
+* разделение деталей на секции из разных материалов,
+* создание регионов для [[FEM_MeshRegion|уточнения сетки]],
+* управление алгоритмом создания сетки путём принудительного следования дополнительным рёбрам (особенно полезно для контроля [[FEM_MeshGmshFromShape#Mesh_Growth|роста сетки Gmsh]]).
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Partitioning faces of solids with sketches ===
-</div>
+<span id="Partitioning_faces_of_solids_with_sketches"></span>
+=== Разбиение граней твёрдых тел с помощью эскизов ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The main application of partitioning is when a load (or a boundary condition) has to be applied only to a selected region of the part's surface. The easiest way to achieve it for solid parts is to create a sketch with a proper contour on that face and use the [[Part_BooleanFragments|Part Boolean Fragments]] tool to split the face with the sketch.
-</div>
+Основное применение разбиения заключается в случаях, когда нагрузка (или граничное условие) должна быть приложена только к выбранной области поверхности детали. Самый простой способ добиться этого для твёрдых тел — создать эскиз с соответствующим контуром на этой грани и использовать инструмент [[Part_BooleanFragments|Булевы фрагменты]] для разделения грани с помощью эскиза.
 
 [[Image:FEM_partition.JPG|400px]]
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Part with a face partition for load or boundary condition application}}
-</div>
+{{Caption|Деталь с разбиением грани для приложения нагрузки или граничного условия}}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Partitioning volumes of solids with datum planes ===
-</div>
+<span id="Partitioning_volumes_of_solids_with_datum_planes"></span>
+=== Разбиение объёмов твёрдых тел с помощью опорных плоскостей ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Another reason for partitioning is when multiple materials have to be applied to a single part (without having to use multiple parts connected with each other). Then, partitioning can be done using a [[PartDesign_Plane|datum plane]] and [[Part_BooleanFragments|Part Boolean Fragments]] tool with the ''Compsolid'' mode.
-</div>
+Ещё одна причина для разбиения — необходимость применения нескольких материалов к одной детали (без использования нескольких деталей, соединённых друг с другом). В этом случае разбиение можно выполнить с помощью [[PartDesign_Plane|опорной плоскости]] и инструмента [[Part_BooleanFragments|Булевы фрагменты]] в режиме «Комбинированное тело».
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Partitioning surface geometries with sketches ===
-</div>
+<span id="Partitioning_surface_geometries_with_sketches"></span>
+=== Разбиение поверхностных геометрий с помощью эскизов ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-In the case of surface (shell) geometries, the easiest way to make a sketch-based partition could be to use the [[Part_BooleanFragments|Boolean Fragments]] tool (like for the partitions on the faces of solids). However, as explained [https://forum.freecad.org/viewtopic.php?t=96029#p820241 here], when mesh group creation is enabled in the [[FEM_Preferences#General|FEM preferences]], it may not work properly and the following approach should be used:
-# Create a face for one side using e.g. the [[Part_MakeFace|Part MakeFace]] tool (e.g. a square plate with a circular hole).
-# Create a face for the other side in an equivalent way (e.g. a circular face filling the hole in the square plate).
-# Apply the [[Part_Builder|Part Builder]] tool with the ''Shell from faces'' mode and disabled ''Refine shape'' checkbox to the previously created faces.
-</div>
+В случае поверхностных (оболочечных) геометрий самый простой способ создания разбиения на основе эскиза — использовать инструмент [[Part_BooleanFragments|Булевы фрагменты]] (как для разбиения граней твёрдых тел). Однако, как объяснено [https://forum.freecad.org/viewtopic.php?t=96029#p820241 здесь], если в [[FEM_Preferences#General|настройках МКЭ]] включено создание групп сетки, это может работать некорректно, и следует использовать следующий подход:
+1. Создайте грань для одной стороны, например, с помощью инструмента [[Part_MakeFace|Создать грань]] (например, квадратная пластина с круглым отверстием).
+2. Создайте грань для другой стороны аналогичным образом (например, круглая грань, заполняющая отверстие в квадратной пластине).
+3. Примените инструмент [[Part_Builder|Конструктор деталей]] в режиме «Оболочка из граней» с отключённой опцией «Очистить форму» к ранее созданным граням.
 
 [[Image:FEM_shell_partition.JPG|400px]]
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Square plate with a circular face partition}}
-</div>
+{{Caption|Квадратная пластина с разбиением на круглую грань}}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Partitioning faces of solids with datum planes ===
-</div>
+<span id="Partitioning_faces_of_solids_with_datum_planes"></span>
+=== Разбиение граней твёрдых тел с помощью опорных плоскостей ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Partitioning only the selected faces of a solid using datum planes instead of sketches without splitting the whole volume is also tricky. One possible approach is to:
-# [[Draft_Downgrade|Downgrade]] the body to faces.
-# Select that one face and datum plane and use the [[Part_SliceApart|Slice apart]] tool.
-# Delete the Exploded Slice container without deleting its contents.
-# Select all faces and slices and [[Draft_Upgrade|Upgrade]] them to Shell.
-# [[Draft_Upgrade|Upgrade]] the Shell to Solid or use the [[Part_MakeSolid|Convert to solid]] tool.
-Another way is to:
-# Create a [[PartDesign_SubShapeBinder|subshapebinder]] of the face to be partitioned.
-# Split the subshapebinder with the datum plane using the [[Part_SliceApart|Slice apart]] tool.
-# Create a new [[PartDesign_Body|Body]] (to avoid cyclic dependency).
-# Create a new subshapebinder from the edges obtained from the intersection of the previous subshapebinder and datum plane.
-# Select the original Body and the new subshapebinder and use the [[Part_BooleanFragments|Boolean fragments]] tool.
-Other ideas can be found in [https://forum.freecad.org/viewtopic.php?t=98528 this forum thread] but they are more case-specific.
-</div>
+Разбиение только выбранных граней твёрдого тела с использованием опорных плоскостей вместо эскизов без разделения всего объёма также является сложной задачей. Один из возможных подходов:
+1. [[Draft_Downgrade|Разделите]] тело на грани.
+2. Выберите эту грань и опорную плоскость и используйте инструмент [[Part_SliceApart|Разделить на части]].
+3. Удалите контейнер Exploded Slice, не удаляя его содержимое.
+4. Выберите все грани и срезы и [[Draft_Upgrade|Объедините]] их в оболочку.
+5. [[Draft_Upgrade|Объедините]] оболочку в твёрдое тело или используйте инструмент [[Part_MakeSolid|Преобразовать в твёрдое тело]].
+Другой способ:
+1. Создайте [[PartDesign_SubShapeBinder|подобъект]] грани, которую нужно разбить.
+2. Разделите подобъект с помощью опорной плоскости, используя инструмент [[Part_SliceApart|Разделить на части]].
+3. Создайте новое [[PartDesign_Body|Тело]] (чтобы избежать циклической зависимости).
+4. Создайте новый подобъект из рёбер, полученных от пересечения предыдущего подобъекта и опорной плоскости.
+5. Выберите исходное тело и новый подобъект и используйте инструмент [[Part_BooleanFragments|Булевы фрагменты]].
+Другие идеи можно найти в [https://forum.freecad.org/viewtopic.php?t=98528 этой теме форума], но они более специфичны для конкретных случаев.
 
 [[Image:FEM_split_face_solid.JPG|400px]]
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Cylindrical face of a hole partitioned with a plane to apply 180° load from a pin}}
-</div>
+{{Caption|Цилиндрическая грань отверстия, разделённая плоскостью для приложения нагрузки на 180° от штифта}}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Assembly geometries ==
-</div>
+<span id="Assembly_geometries"></span>
+== Геометрии сборок ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-One of the current major limitations of the FEM workbench is that multiple meshes are not supported. In practice, this means that one cannot mesh each part of the assembly individually and then connect the parts with proper constraints for the analysis. Instead, it's necessary to create a single object containing all the parts of the assembly and mesh it. There are several different options here, all relying on [[Part_Workbench#Boolean_toolbar|Part boolean tools]]. The choice depends on the desired effect - whether the individual parts/volumes and their boundaries should be selectable (e.g. for material assignments or definitions of boundary conditions acting on internal faces) or not:
-* [[Part_Fuse|Part Fuse]] - merges the parts, making it impossible to select them individually e.g. for material definitions,
-* [[Part_Compound|Part Compound]] - creates a compound object, making it possible to select individual parts,
-* [[Part_JoinConnect|Part JoinConnect]] - works like Part Fuse, merges the parts, making it impossible to select them individually,
-* [[Part_BooleanFragments|Part BooleanFragments]] - works like Part Compound, making it possible to select individual parts.
-It's important to mention that if the parts are exactly touching, a continuous mesh will be created on the boolean object and no constraints will be needed for the simulation (unless Part Compound is used and nodes aren't coincident or [[FEM_MeshGmshFromShape#Properties|Gmsh's ''Coherence Mesh'' property]] is set to {{FALSE}}). If there's even a small gap (or an intersection within a Part Compound) between the parts, the mesh won't be continuous and constraints like [[FEM_ConstraintTie|tie]] or [[FEM_ConstraintContact|contact]] will be needed. Running a frequency analysis is a good way to reveal if the mesh is continuous or not - if the parts are not connected, the first mode shapes with deformation visualized using [[FEM_PostFilterWarp|Warp filter]] will show separation - the parts will "fly away".
-</div>
+Одним из текущих основных ограничений модуля МКЭ является отсутствие поддержки нескольких сеток. На практике это означает, что нельзя создать сетку для каждой детали сборки отдельно, а затем соединить их с помощью соответствующих ограничений для анализа. Вместо этого необходимо создать единый объект, содержащий все детали сборки, и разбить его на сетку. Здесь есть несколько различных вариантов, все они основаны на [[Part_Workbench#Boolean_toolbar|булевых инструментах модуля Part]]. Выбор зависит от желаемого результата — должны ли отдельные детали/объёмы и их границы быть доступными для выбора (например, для назначения материалов или определения граничных условий, действующих на внутренние грани) или нет:
+* [[Part_Fuse|Part Fuse]] — объединяет детали, делая невозможным их индивидуальный выбор, например, для определения материалов,
+* [[Part_Compound|Part Compound]] — создаёт составной объект, позволяя выбирать отдельные детали,
+* [[Part_JoinConnect|Part JoinConnect]] — работает как Part Fuse, объединяет детали, делая невозможным их индивидуальный выбор,
+* [[Part_BooleanFragments|Part BooleanFragments]] — работает как Part Compound, позволяя выбирать отдельные детали.
+Важно отметить, что если детали точно соприкасаются, на булевом объекте будет создана непрерывная сетка, и для симуляции не потребуются дополнительные ограничения (за исключением случаев, когда используется Part Compound и узлы не совпадают, или свойство [[FEM_MeshGmshFromShape#Properties|«Coherence Mesh» Gmsh]] установлено в {{FALSE}}). Если между деталями есть даже небольшой зазор (или пересечение в случае Part Compound), сетка не будет непрерывной, и потребуются ограничения, такие как [[FEM_ConstraintTie|связывание]] или [[FEM_ConstraintContact|контакт]]. Проведение частотного анализа — хороший способ определить, является ли сетка непрерывной: если детали не соединены, первые формы мод с визуализированной деформацией с помощью [[FEM_PostFilterWarp|фильтра деформации]] покажут разделение — детали будут «разлетаться».
 
 [[Image:FEM_modal_separation.JPG|400px]]
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|The first mode shape of a frequency analysis visualized with the Warp filter - two cubes with a small initial gap were analyzed}}
-</div>
+{{Caption|Первая форма моды частотного анализа, визуализированная с помощью фильтра деформации — анализировались два куба с небольшим начальным зазором}}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-It is often advised to use Boolean fragments with Compsolid mode and then apply a [[Part_CompoundFilter|Compound filter]] to it, particularly when analyzing multi-material assemblies and solids embedded in other solids without cutouts (like in the [[FEM_Shear_of_a_Composite_Block|FEM Shear of a Composite Block]] tutorial). As can be seen in the ''Shape Content'' tab of the [[Part_CheckGeometry|Check geometry]] tool (it is important to use this tool when in doubt in such cases), Compound filter removes the Compound and leaves only the Compsolid consisting of multiple solids connected by their faces.
-</div>
+Часто рекомендуется использовать булевы фрагменты в режиме Compsolid, а затем применять к ним [[Part_CompoundFilter|Фильтр составных объектов]], особенно при анализе сборок из нескольких материалов и твёрдых тел, встроенных в другие твёрдые тела без вырезов (как в руководстве [[FEM_Shear_of_a_Composite_Block|Сдвиг композитного блока в МКЭ]]). Как видно на вкладке «Shape Content» инструмента [[Part_CheckGeometry|Проверка геометрии]] (важно использовать этот инструмент в случае сомнений в таких ситуациях), фильтр составных объектов удаляет составной объект и оставляет только Compsolid, состоящий из нескольких твёрдых тел, соединённых своими гранями.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Workarounds for errors such as:
-</div>
+Обходы ошибок, таких как:
 
 {{Code|lang=text|code=
 ERROR: femelement_table != count_femelements
 Error in get_femelement_sets -- > femelements_count_ok() failed!
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-and:
-</div>
+и:
 
 {{Code|lang=text|code=
 *ERROR in calinput: no material was assigned
 to element …
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-include:
-* leaving the last material without any solid assigned (it will be automatically assigned to all solids that aren't referenced in other material definitions),
-* using Netgen instead of Gmsh to create the mesh,
-* separating the parts a bit and applying tie constraints to connect them in the simulation.
-</div>
+включают:
+* оставление последнего материала без привязки к какому-либо твёрдому телу (он будет автоматически назначен всем твёрдым телам, не указанным в других определениях материалов),
+* использование Netgen вместо Gmsh для создания сетки,
+* небольшое разделение деталей и применение ограничений связывания для их соединения в симуляции.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Such errors are caused by missing or overlapping material definitions in some elements. [https://forum.freecad.org/viewtopic.php?t=97120&start=50#p829295 This forum post] lists references that show it in a clear way and the whole thread can be helpful in the case of similar issues as well.
-</div>
+Такие ошибки вызваны отсутствием или перекрытием определений материалов в некоторых элементах. [https://forum.freecad.org/viewtopic.php?t=97120&start=50#p829295 Эта публикация на форуме] содержит ссылки, которые ясно это демонстрируют, и вся ветка обсуждения может быть полезна при возникновении подобных проблем.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Selection of interior entities ===
-</div>
+<span id="Selection_of_interior_entities"></span>
+=== Выбор внутренних элементов ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Selection of internal regions (e.g. faces/volumes) can be tricky. It might be needed for the application of different materials, body loads or boundary conditions (especially in thermal and electromagnetic analyses). Several ways are possible:
-* enabling [[Std_ToggleClipPlane|clipping plane]] for the time of selection and picking internal faces,
-* hiding the boolean object, showing only one of the parts it was applied to and selecting it,
-* [[Std_ToggleTransparency|enabling transparency]] and using the [[Selection_View|Selection View]] with the ''Picked object list'' option checked as described [https://forum.freecad.org/viewtopic.php?t=96984#p826693 here],
-* selecting another, external object and editing the ''References'' property on the ''Data'' tab of a given analysis feature (requires manual specification of the geometric object's number).
-</div>
+Выбор внутренних регионов (например, граней/объёмов) может быть сложным. Это может потребоваться для применения различных материалов, объёмных нагрузок или граничных условий (особенно в тепловых и электромагнитных анализах). Возможны несколько способов:
+* включение [[Std_ToggleClipPlane|отсекающей плоскости]] на время выбора и указание внутренних граней,
+* скрытие булева объекта, отображение только одной из деталей, к которой он был применён, и выбор её,
+* включение [[Std_ToggleTransparency|прозрачности]] и использование [[Selection_View|Представления выбора]] с включённой опцией «Список выбранных объектов», как описано [https://forum.freecad.org/viewtopic.php?t=96984#p826693 здесь],
+* выбор другого внешнего объекта и редактирование свойства «References» на вкладке «Data» для данной характеристики анализа (требует ручного указания номера геометрического объекта).
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Meshing basics ==
-</div>
+<span id="Meshing_basics"></span>
+== Основы создания сетки ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Choosing element size ===
-</div>
+<span id="Choosing_element_size"></span>
+=== Выбор размера элемента ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Too coarse mesh is one of the most common sources of inaccuracies and other issues in FEM. It's often a partial fault of automatic mesher settings - they typically generate very coarse, unsuitable meshes when the element size is not manually specified but left with a default value. One should always know the approximate dimensions of the part, especially the size of the smallest relevant feature ([[Std_Measure|Std Measure]] tool can be used to find it) and specify the proper maximum element size based on that. There is also a minimum element size setting that can prevent the creation of too tiny elements around small geometric features which may lead to unnecessarily dense meshes (and sometimes even FreeCAD crashing or freezing when trying to generate such meshes). Generally speaking, it's better to start with a coarser mesh (taking less time to generate), see what it looks like (some experience is necessary) and refine it if necessary. It often makes sense to use dense mesh only around the areas of interest (locations with large stress gradients/concentrations - notches) and relatively coarse mesh away from them. This way, the number of elements can be significantly reduced, leading to shorter solving times. Local mesh refinement is defined using [[FEM_MeshRegion|FEM MeshRegion]].
-</div>
+Слишком грубая сетка — одна из наиболее распространённых причин неточностей и других проблем в методе конечных элементов (FEM). Часто это связано с настройками автоматического генератора сетки — по умолчанию он создаёт слишком грубую, неподходящую сетку, если размер элемента не задан вручную и остаётся по умолчанию. Всегда следует знать примерные размеры детали, особенно размер наименьшего важного элемента (для его определения можно использовать инструмент [[Std_Measure|Std Measure]]), и задавать максимальный размер элемента на основе этих данных.Существует также параметр минимального размера элемента, который может предотвратить создание слишком мелких элементов вокруг малых геометрических особенностей. Такие мелкие элементы могут приводить к чрезмерно плотной сетке (а иногда даже к сбоям или зависаниям FreeCAD при попытке сгенерировать подобную сетку). В общем случае лучше начинать с более грубой сетки (её создание занимает меньше времени), посмотреть, как она выглядит (для этого требуется некоторый опыт), и при необходимости уточнить её. Часто имеет смысл использовать плотную сетку только в областях интереса (зонах с большими градиентами или концентрациями напряжений — например, в местах вырезов или надрезов) и относительно грубую сетку на удалении от них. Таким образом, количество элементов можно значительно сократить, что приведёт к уменьшению времени решения задачи. 
+Локальное уточнение сетки определяется с помощью инструмента [[FEM_MeshRegion|FEM MeshRegion]].
 
 [[Image:FEM_default_mesh.PNG|400px]]
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Default, too coarse mesh}}
-</div>
+{{Caption|Сетка по умолчанию, слишком грубая}}
 
 [[Image:FEM_globally_refined_mesh.PNG|400px]]
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Globally refined mesh}}
-</div>
+{{Caption|Глобально уточнённая сетка}}
 
 [[Image:FEM_locally_refined_mesh.PNG|400px]]
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Locally refined mesh}}
-</div>
+{{Caption|Локально уточнённая сетка}}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Choosing element type ===
-</div>
+<span id="Choosing_element_type"></span>
+=== Выбор типа элемента ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The choice of element type is not easy and depends on many factors but the general rule is that hexahedral and quadrilateral elements are preferable over tetrahedral and triangular ones. However, complex geometries can't be meshed with hexahedral elements and FreeCAD can't generate them properly (only using the Subdivision algorithm of the Gmsh mesher but its results are not what one would expect from a hex mesh). Quad or quad-dominated meshes can be generated normally on surfaces - see [https://forum.freecad.org/viewtopic.php?t=20351 this forum thread]). Hexahedral elements can be imported from external meshers like [https://gmsh.info Gmsh] and used in the FEM workbench as shown in [https://www.youtube.com/watch?v=vylt24G7qj4&t=932s this video].
-</div>
+Выбор типа элемента — задача непростая и зависит от множества факторов, однако общее правило заключается в том, что гексагональные и квадратные элементы предпочтительнее тетраэдрических и треугольных. Тем не менее, сложные геометрии невозможно разбить на сетку с гексагональными элементами, и FreeCAD не способен корректно их генерировать (только с использованием алгоритма Subdivision генератора сетки Gmsh, но результаты отличаются от ожидаемых для гексагональной сетки).
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Choosing element order ===
-</div>
+Квадратные или преимущественно квадратные сетки могут быть нормально сгенерированы на поверхностях — см. [[https://forum.freecad.org/viewtopic.php?t=20351](https://forum.freecad.org/viewtopic.php?t=20351) эту тему на форуме]. Гексагональные элементы можно импортировать из внешних генераторов сеток, таких как [[https://gmsh.info](https://gmsh.info) Gmsh], и использовать в рабочей среде FEM, как показано в [[https://www.youtube.com/watch?v=vylt24G7qj4&t=932s](https://www.youtube.com/watch?v=vylt24G7qj4&t=932s) этом видео].
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The choice of element order (first or second) depends on the analysis conditions but in most cases, second-order elements are preferred. This is particularly the case with triangular and tetrahedral elements - their first-order (linear) versions are normally not recommended for regular usage and they should be used only as filler elements in regions of low importance. However, since FreeCAD can't properly generate hexahedral elements, linear tetrahedrons can be used in some cases, if the meshes are dense enough. Especially when performing analyses with [[FEM_ConstraintContact|contact]].
-</div>
+<span id="Choosing_element_order"></span>
+=== Выбор порядка элементов ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Negative Jacobians ==
-</div>
+Выбор порядка элементов (первого или второго) зависит от условий анализа, но в большинстве случаев предпочтение отдаётся элементам второго порядка. Это особенно важно для треугольных и тетраэдрических элементов — их элементы первого порядка (линейные) обычно не рекомендуются для регулярного использования и должны применяться только как заполняющие элементы в областях, не имеющих большого значения. Однако, поскольку FreeCAD не может корректно генерировать гексагональные элементы, в некоторых случаях можно использовать линейные тетраэдры, если сетка достаточно плотная. Особенно это актуально при выполнении анализов с [[FEM_ConstraintContact|контактами]].
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-If the above rules are followed (especially regarding geometry validity, defeaturing and element size selection), the mesh should be generated correctly. However, in some cases, the geometry can't be simplified too much, or the modeling procedure is appropriate but leads to small edges and faces anyway. Then meshing with second-order elements may fail due to negative Jacobians. The reason is that meshers have to follow the CAD model and put the mid-side nodes of second-order elements on the geometry. With more complex shapes, it may lead to elements being stretched so much that they become inverted. Jacobian is one of the most common mesh quality measures. It represents the element's deviation from the ideal shape. It becomes negative when the element turns inside out (becomes inverted) either due to large deformation during the analysis (not considered here) or because of the aforementioned meshing issues. Negative Jacobians in FreeCAD FEM might be reported by Gmsh or by CalculiX. Their locations in the mesh are highlighted when CalculiX analyses are submitted using the [[FEM_SolverRun|Run solver calculations]] button. The following tips can help eliminate them:
-* set the ''Second Order Linear'' property of the [[FEM_MeshGmshFromShape|FEMMeshGmsh]] object to ''true'' - this results in the mid-side nodes of second-order elements being just added in the middle of straight (initially) first-order element edges, without snapping them to the geometry and resolves the issue in most cases,
-* use Netgen instead of Gmsh - Netgen is known to be less prone to negative Jacobian issues but also doesn't report them so the user may find out only when submitting the analysis,
-* further reduce the element size,
-* export the geometry, try meshing it in Gmsh or Netgen (NGSolve) GUI or other standalone mesher (like Salome_Meca) - those tools have additional features that can help get rid of negative Jacobians (for example, Gmsh has so-called "High-order tools"),
-* use first-order elements - should be done only as a last resort since first-order tetrahedrons are known for their inaccuracy.
-</div>
+<span id="Negative_Jacobians"></span>
+== Отрицательные якобианы ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Regardless of those tips, it's important to emphasize once again that negative Jacobians are usually the fault of messy modeling approaches and lack of geometry preparation for analysis (especially common with STEP models downloaded from various websites). Even if the mesh is eventually generated in such cases, the results are likely to be of poor quality (recall the GIGO rule mentioned in the first paragraph). Thus, geometry clean-up and preparation for FEM should always be the priority.
-</div>
+Если соблюдать приведённые выше правила (особенно касающиеся корректности геометрии, упрощения модели и выбора размера элемента), сетка должна генерироваться корректно. Однако в некоторых случаях геометрию невозможно сильно упростить, или же сама процедура моделирования корректна, но всё равно приводит к появлению мелких рёбер и граней. В таких ситуациях генерация сетки с элементами второго порядка может завершиться неудачей из-за отрицательных якобианов.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Mesh convergence studies ==
-</div>
+Причина заключается в том, что генераторы сеток должны следовать форме CAD-модели и размещать узлы середины сторон элементов второго порядка непосредственно на геометрию. Для сложных форм это может привести к чрезмерному растяжению элементов, из-за чего они становятся инвертированными. Якобиан является одной из наиболее распространённых мер качества сетки — он отражает отклонение элемента от его идеальной формы. Он становится отрицательным, когда элемент «выворачивается наизнанку» (инвертируется) — либо вследствие сильной деформации во время анализа (не рассматривается здесь), либо из-за указанных выше проблем при генерации сетки.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Mesh convergence studies are recommended in all serious projects requiring accurate results. The reason is that the results can change a lot, approaching correct values when the mesh is refined. The following approach should be used:
-# After obtaining the first results and noting them (usually maximum von Mises stress, von Mises stress at a given location and maximum displacement), refine the mesh (globally or better locally - with [[FEM_MeshRegion|FEM MeshRegion]]) and rerun the simulation.
-# Check the results and note their new values. If they differ significantly from the initial results, refine the mesh further and rerun the analysis.
-# Repeat the process if the results still change (usually grow) significantly with mesh refinement.
-It usually helps to create a plot with a given result vs mesh density. This way it's easier to notice when the results start to converge. The acceptable difference in results between two runs is usually around a few percent (e.g. below 5%).
-</div>
+Отрицательные якобианы в FreeCAD FEM могут быть обнаружены Gmsh или CalculiX. Их расположение в сетке подсвечивается, когда анализ CalculiX запускается с помощью кнопки [[FEM_SolverRun|Run solver calculations]]. Следующие рекомендации могут помочь устранить проблему:
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-In some cases, it may happen that the maximum stress will be growing indefinitely regardless of how dense the mesh will be. Such a non-physical effect is known as a stress singularity. It may occur due to the following reasons:
-* concentrated forces applied to solid and shell models,
-* boundary conditions applied to points (individual nodes),
-* sharp corners,
-* contact occurring at a corner.
-Typical ways of dealing with stress singularities are:
-* applying loads and boundary conditions to small areas instead of points - see the section about partitioning above,
-* adding small fillets to sharp corners (an exception to the rule of omitting small fillets when simplifying the geometry for FEM),
-* including plasticity in material behavior to enable stress redistribution and limit the stresses to values allowed by the plasticity definition while observing the proper level of yielding (plastic strain),
-* ignoring singularities and reading stresses away from them if possible (based on St. Venant’s Principle).
-</div>
+* установить для свойства ''Second Order Linear'' объекта [[FEM_MeshGmshFromShape|FEMMeshGmsh]] значение ''true'' — в этом случае узлы середины сторон элементов второго порядка просто добавляются в середину прямых (изначально) рёбер элементов первого порядка, без привязки к геометрии, что в большинстве случаев решает проблему;
+* использовать Netgen вместо Gmsh — Netgen менее подвержен проблемам с отрицательными якобианами, однако он не сообщает о них, поэтому пользователь может обнаружить их только при запуске анализа;
+* дополнительно уменьшить размер элемента;
+* экспортировать геометрию и попробовать создать сетку в интерфейсе Gmsh или Netgen (NGSolve) либо в другом отдельном генераторе сеток, таком как Salome_Meca — эти инструменты имеют дополнительные функции для устранения отрицательных якобианов (например, в Gmsh есть так называемые «High-order tools»);
+* использовать элементы первого порядка — этот вариант следует рассматривать только как последнее средство, поскольку тетраэдры первого порядка известны своей низкой точностью.
+
+Независимо от приведённых выше рекомендаций, важно ещё раз подчеркнуть, что отрицательные якобианы обычно являются следствием неаккуратного моделирования и отсутствия подготовки геометрии к анализу (особенно часто это встречается в STEP-моделях, загруженных с различных сайтов). Даже если в таких случаях сетку всё же удаётся сгенерировать, результаты, скорее всего, будут низкого качества (вспомните правило GIGO, упомянутое в первом абзаце). Поэтому очистка и подготовка геометрии к анализу в FEM всегда должны быть приоритетом.
+
+<span id="Mesh_convergence_studies"></span>
+== Исследования сходимости сетки ==
+
+Исследования сходимости сетки рекомендуются для всех серьёзных проектов, требующих высокой точности результатов. Причина заключается в том, что результаты могут значительно изменяться, приближаясь к корректным значениям по мере уточнения сетки. Следует использовать следующий подход:
+
+# После получения первых результатов и их фиксации (обычно это максимальное эквивалентное напряжение по Мизесу, напряжение по Мизесу в заданной точке и максимальное перемещение) уточните сетку (глобально или, предпочтительно, локально — с помощью [[FEM_MeshRegion|FEM MeshRegion]]) и повторно запустите расчёт.
+
+# Проверьте результаты и запишите их новые значения. Если они существенно отличаются от исходных, выполните дальнейшее уточнение сетки и повторите анализ.
+
+# Повторяйте процесс, если результаты всё ещё заметно (обычно увеличиваются) изменяются при уточнении сетки.
+
+Обычно полезно построить график зависимости интересующего результата от плотности сетки. Это позволяет легче определить момент, когда результаты начинают сходиться. Допустимая разница между результатами двух последовательных расчётов обычно составляет несколько процентов (например, менее 5%).
+
+В некоторых случаях может происходить так, что максимальные напряжения будут расти бесконечно, независимо от того, насколько плотной будет сетка. Такой нефизический эффект называется сингулярностью напряжений. Он может возникать по следующим причинам:
+
+* сосредоточенные силы, приложенные к объёмным или оболочечным моделям;
+* граничные условия, заданные в точках (отдельных узлах);
+* острые углы;
+* контакт, происходящий в угловой точке.
+
+Типичные способы устранения сингулярностей напряжений:
+
+* прикладывать нагрузки и граничные условия к небольшим площадям, а не к точкам — см. раздел о разбиении выше;
+* добавлять малые скругления к острым углам (исключение из правила об удалении мелких скруглений при упрощении геометрии для FEM);
+* учитывать пластичность материала, чтобы обеспечить перераспределение напряжений и ограничить их значения уровнями, допустимыми определением пластичности, при этом контролируя степень текучести (пластическую деформацию);
+* игнорировать сингулярности и анализировать напряжения вдали от них, если это возможно (на основе принципа Сен-Венана).
 
 [[Image:FEM_mesh_convergence.PNG|400px]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-{{Caption|Typical mesh convergence plots:<br>
-- displacement ('''green curve''') converges quickly,<br>
-- maximum stress at a notch like a hole ('''blue curve''') needs more iterations of mesh refinement to converge,<br>
-- maximum stress at a sharp corner with a fixed boundary condition ('''red curve''') doesn't converge at all. Stress singularity occurs and a small fillet would have to be added and the connection would have to be modeled in more realistic, flexible way to avoid this behavior.<br>}}
-</div>
+{{Caption|Типичные графики сходимости сетки:<br>
+
+* перемещение ('''зелёная кривая''') сходится быстро,<br>
+* максимальное напряжение в области выреза, например отверстия ('''синяя кривая'''), требует больше итераций уточнения сетки для достижения сходимости,<br>
+* максимальное напряжение в остром углу с жёстким граничным условием ('''красная кривая''') вообще не сходится. Возникает сингулярность напряжений, и для устранения этого эффекта необходимо добавить малое скругление и смоделировать соединение более реалистичным, гибким образом.<br>}}
 
 
 {{FEM_Tools_navi{{#translation:}}}}
