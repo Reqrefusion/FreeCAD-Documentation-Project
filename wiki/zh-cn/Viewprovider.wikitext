@@ -1,0 +1,142 @@
+<languages/>
+
+<span id="Introduction"></span>
+== 简介 ==
+
+[[Viewprovider|视图提供器]]是一些类，用于定义对象在[[tree_view|树状视图]]和[[3D_view|三维视图]]中的显示方式，以及它们如何与某些图形操作（如[[Selection_methods|选择]]）进行交互。
+
+它们是对[[scripted_objects|脚本化对象]]的补充。脚本对象的基类定义了其{{Emphasis|数据}}[[properties|属性]]，而视图提供器则定义了其{{Emphasis|视图}}[[properties|属性]]。这些视图属性并非对象的核心信息，仅表示诸如线宽、线色、面色等非核心的信息。在仅使用终端的会话中，不会加载视图提供器，因为没有界面来操作这些可见属性。
+
+视图属性和数据属性一样，都能从[[property_editor|属性编辑器]]访问。
+
+<span id="Python_view_providers"></span>
+== Python 视图提供器 ==
+
+视图提供器类的名称经常包括 {{incode|ViewProvider}}, 它们被分配给基对象的 {{incode|ViewObject}} 属性。
+
+在这一例子中，我们为视图提供器定义了两个原本不存在的属性，并为它们分配默认值。我们还定义了 {{incode|onChanged}} 方法，该方法会在每次属性变化时运行。我们需要通过名称测试属性，然后调用两个方法之一，以实际执行更新图案或设置其大小的操作。
+{{Code|code=
+# views/view_custom.py
+class ViewProviderCustom:
+    """Viewprovider of the custom object."""
+
+    def __init__(self, vobj):
+        self.Object = vobj.Object
+
+        self._set_properties(vobj)
+        vobj.Proxy = self
+
+    def _set_properties(self, vobj):
+        if not hasattr(vobj, "Pattern"):
+            vobj.addProperty("App::PropertyEnumeration",
+                             "Pattern",
+                             "Custom",
+                             "Defines a hatch pattern for this object.")
+            vobj.Pattern = ["None", "diagonals", "cross", "brick"]
+
+        if not hasattr(vobj, "PatternSize"):
+            vobj.addProperty("App::PropertyFloat",
+                             "PatternSize",
+                             "Custom",
+                             "Defines the size of the hatch pattern.")
+            vobj.PatternSize = 1
+
+    def onChanged(self, vobj, prop):
+        if prop in "Pattern":
+            self._set_pattern(vobj.Pattern)
+        if prop in "PatternSize":
+            self._set_size(vobj.PatternSize)
+
+    def _set_pattern(self, pattern):
+        ...
+
+    def _set_size(self, size):
+        ...
+}}
+
+正常的工作流程是先添加对象代理类，例如 {{incode|CustomObject}}, 然后再添加视图提供器，例如 {{incode|ViewProviderCustom}}. 只有在确认图形界面可用时，才能分配视图提供器，否则 {{incode|ViewObject}} 属性不存在，如果将该元素作为类的输入，会导致错误。
+{{Code|code=
+import FreeCAD as App
+import objects.custom as custom
+import views.view_custom as view_custom
+
+doc = App.newDocument()
+obj = doc.addObject("Part::FeaturePython", "Custom")
+
+custom.CustomObject(obj)
+
+if App.GuiUp:
+    view_custom.ViewProviderCustom(obj.ViewObject)
+}}
+
+<span id="Custom_icons"></span>
+== 自定义图标 ==
+
+通过实现 {{incode|getIcon}} 方法，可以指定在[[combo_view|组合视图]]上方的[[tree_view|树状视图]]中显示的图标。
+
+返回值可以是图标的完整路径。
+{{Code|code=
+import os
+some_path = "/home/user/.FreeCAD/custom_icons"
+
+class ViewProviderCustom:
+    ...
+
+    def getIcon(self):
+        return os.path.join(some_path, "my_icon.svg")
+}}
+
+在编译资源文件中，图标的相对路径。
+{{Code|code=
+import MyModule_rc.py
+
+class ViewProviderCustom:
+    ...
+
+    def getIcon(self):
+        return ":/icons/my_icon.svg"
+}}
+
+一个原始的 [https://en.wikipedia.org/wiki/X_PixMap XPM 图标]，使用 ASCII 字符绘制。
+{{Code|code=
+import MyModule_rc.py
+
+class ViewProviderCustom:
+    ...
+
+    def getIcon(self):
+        return """
+               /* XPM */
+               static char *Some_icon_xpm[] = {
+               /* columns rows colors chars-per-pixel */
+               "16 16 3 1 ",
+               "  c None",
+               ". c #D71414",
+               "+ c #AA1919",
+               /* pixels */
+               "                ",
+               "  +          +  ",
+               " +.+        +.+ ",
+               "  +.+      +.+  ",
+               "   +        +   ",
+               "      ++++      ",
+               "     +....+     ",
+               "     +...++     ",
+               "     +..+++     ",
+               "     +.++.+     ",
+               "      ++++      ",
+               "   +        +   ",
+               "  +.+      +.+  ",
+               " +.+        +.+ ",
+               "  +          +  ",
+               "                "
+               };
+               """
+}}
+
+参见[[Custom_icon_in_tree_view|树状视图中的自定义图标]]中的多个示例。
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{clear}}
