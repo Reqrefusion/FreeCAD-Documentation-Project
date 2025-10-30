@@ -96,124 +96,86 @@ Depuis la version 1.0, FreeCAD contient deux systèmes distincts et parallèles 
 === Système de matériaux Core ===
 
 * '''Architecture :''' ce système est conçu autour d'un modèle de bibliothèque centralisée. La définition principale d'un matériau est stockée en externe dans des fichiers (par exemple, au format {{FileName|.FCMat}}) situés dans des répertoires système ou spécifiques à l'utilisateur. L'[[Material_Workbench/fr|atelier Material]] documente ce système plus en détail.
-* '''Data Linking :''' lorsqu'un matériau est attribué à un objet, celui-ci ne stocke pas une copie complète des données du matériau. À la place, une propriété cachée nommée {{PropertyData|Shape Material}} est ajoutée à l'objet. Cette propriété contient un objet material complet en mémoire et, lors de l'enregistrement du document, elle sérialise soit une référence à un matériau de bibliothèque externe à l'aide de la propriété UUID de l'objet du matériau, soit elle intègre une copie complète des données du matériau s'il n'a pas de source externe.
-* '''Workflow :''' cette approche garantit une source unique de vérité. Les mises à jour du fichier de bibliothèque central se répercutent sur tous les documents qui y sont liés. Cependant, cela signifie que la portabilité des documents peut être compromise si les bibliothèques de matériaux correspondantes ne sont pas présentes sur un autre système. Les matériaux eux-mêmes ne sont pas directement visibles en tant qu'objets dans l'arborescence du document.
+* '''Liaison des données :''' lorsqu'un matériau est attribué à un objet, celui-ci ne stocke pas une copie complète des données du matériau. À la place, une propriété cachée nommée {{PropertyData|Shape Material}} est ajoutée à l'objet. Cette propriété contient un objet material complet en mémoire et, lors de l'enregistrement du document, elle sérialise soit une référence à un matériau de bibliothèque externe à l'aide de la propriété UUID de l'objet du matériau, soit elle intègre une copie complète des données du matériau s'il n'a pas de source externe.
+* '''Flux de travail :''' cette approche garantit une source unique de vérité. Les mises à jour du fichier de bibliothèque central se répercutent sur tous les documents qui y sont liés. Cependant, cela signifie que la portabilité des documents peut être compromise si les bibliothèques de matériaux correspondantes ne sont pas présentes sur un autre système. Les matériaux eux-mêmes ne sont pas directement visibles en tant qu'objets dans l'arborescence du document.
 
 <span id="BIM_material_system"></span>
 === Système de matériaux BIM ===
 
 * '''Architecture :''' ce système est conçu autour d'un modèle centré sur les documents. Un matériau est un objet autonome au sein du document lui-même, une instance de {{Incode|App::MaterialObjectPython}}.
-* '''Data Storage :''' la définition complète du matériau, y compris ses propriétés telles que la couleur et la description, est stockée directement dans cet objet à l'intérieur du fichier {{FileName|.FCStd}}. Ces objets material sont visibles dans l'arborescence, regroupés dans un groupe « Materials ». Lorsqu'elle est attribuée, la propriété {{PropertyData|Material}} d'un objet contient un lien direct vers cet objet material dans le document.
-* '''Workflow :''' cette approche garantit la portabilité des documents, car toutes les définitions des matériaux sont intégrées. Elle facilite également la recherche, car les matériaux utilisés dans un projet sont explicitement répertoriés dans l'arborescence. Cependant, elle peut entraîner une duplication des données et ne dispose pas d'un mécanisme permettant de mettre à jour de manière centralisée les matériaux dans plusieurs projets.
+* '''Stockage des données :''' la définition complète du matériau, y compris ses propriétés telles que la couleur et la description, est stockée directement dans cet objet à l'intérieur du fichier {{FileName|.FCStd}}. Ces objets material sont visibles dans l'arborescence, regroupés dans un groupe « Materials ». Lorsqu'elle est attribuée, la propriété {{PropertyData|Material}} d'un objet contient un lien direct vers cet objet material dans le document.
+* '''Flux de travail :''' cette approche garantit la portabilité des documents, car toutes les définitions des matériaux sont intégrées. Elle facilite également la recherche, car les matériaux utilisés dans un projet sont explicitement répertoriés dans l'arborescence. Cependant, elle peut entraîner une duplication des données et ne dispose pas d'un mécanisme permettant de mettre à jour de manière centralisée les matériaux dans plusieurs projets.
 
 <span id="Point_of_interaction:_one-way_import"></span>
 === Point d'interaction : importation unidirectionnelle ===
 
 Les deux systèmes ne présentent pas d'intégration profonde ou persistante. Leur interaction se limite à une importation de données unidirectionnelle initiée à partir du système BIM.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* '''Mechanism:''' The BIM/Arch material editor UI is capable of scanning the directories that contain the Core system's {{FileName|.FCMat}} library files. It presents these external materials to the user as available templates in the material task panel, when choosing a preset.
-* '''Process:''' When a user selects an {{FileName|.FCMat}} material from this list, the BIM system performs the following actions:
-# It reads the data from the selected {{FileName|.FCMat}} file.
-# It uses this data to populate the fields for a new, native {{Incode|App::MaterialObjectPython}}.
-# This new object is then created within the active document.
-</div>
+* '''Mécanisme :''' l'interface utilisateur de l'éditeur de matériaux BIM/Arch est capable d'analyser les répertoires contenant les fichiers de bibliothèque {{FileName|.FCMat}} du système Core. Elle présente ces matériaux externes à l'utilisateur sous forme de modèles disponibles dans le panneau des tâches de matériaux, lors du choix d'un préréglage.
+* '''Procédure :''' lorsqu'un utilisateur sélectionne un matériau {{FileName|.FCMat}} dans cette liste, le système BIM effectue les actions suivantes :
+# Il lit les données du fichier {{FileName|.FCMat}} sélectionné.
+# Il utilise ces données pour remplir les champs d'un nouvel objet natif {{Incode|App::MaterialObjectPython}}.
+# Ce nouvel objet est ensuite créé dans le document actif.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Once this import process is complete, there is no further link between the newly created Arch/BIM material and the original {{FileName|.FCMat}} file. It is a one-time copy of the data at that specific moment. Subsequent changes to the source material in the Core library will have no effect on the Arch/BIM materials that were created from it.
-</div>
+Une fois ce processus d'importation terminé, il n'y a plus aucun lien entre le matériau Arch/BIM créé et le fichier {{FileName|.FCMat}} d'origine. Il s'agit d'une copie unique des données à ce moment précis. Les modifications ultérieures apportées au matériau source dans la bibliothèque Core n'auront aucun effet sur les matériaux Arch/BIM qui ont été créés à partir de celui-ci.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Physical vs. appearance properties ===
-</div>
+<span id="Physical_vs._appearance_properties"></span>
+=== Propriétés physiques vs propriétés d'apparence ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The FreeCAD material systems are designed with a distinction between a material's physical characteristics and its visual appearance. However, these properties differ significantly between the Core material system and the legacy BIM system.
-</div>
+Les systèmes de matériaux FreeCAD sont conçus en faisant la distinction entre les caractéristiques physiques d'un matériau et son apparence visuelle. Cependant, ces propriétés diffèrent considérablement entre le système de matériaux Core et l'ancien système BIM.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-==== Core material system ====
-</div>
+<span id="Core_material_system"></span>
+==== Système de matériaux Core ====
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The Core, C++-based system provides an extensible framework for defining a wide range of material properties. It is organized into "Models," which are schemas that group related properties.
-</div>
+Le système Core, basé sur C++, fournit un cadre extensible permettant de définir un large éventail de propriétés matérielles. Il est organisé en « modèles », qui sont des schémas regroupant des propriétés connexes.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* '''Physical Properties:''' These define the engineering characteristics required for simulation and analysis. The system supports numerous models, including: Mechanical (e.g., {{Incode|Density}}, {{Incode|YoungsModulus}}, {{Incode|PoissonRatio}}), Thermal, Electromagnetic.
-* '''Appearance Properties:''' These define the visual look for rendering. Multiple rendering models are supported, defining properties such as: {{Incode|DiffuseColor}}, {{Incode|SpecularColor}} {{Incode|Shininess}}, {{Incode|Transparency}}, Texture image paths and scaling.
-* '''Extensibility:''' The model-based architecture is designed to be extensible. Add-on workbenches or future FreeCAD versions can introduce new models to support additional physical domains or render engines without altering the Core framework.
-</div>
+* '''Propriétés physiques :''' elles définissent les caractéristiques techniques requises pour la simulation et l'analyse. Le système prend en charge de nombreux modèles, notamment : mécaniques (par exemple, {{Incode|Density}}, {{Incode|YoungsModulus}}, {{Incode|PoissonRatio}}), thermiques, électromagnétiques.
+* '''Propriétés d'apparence :''' elles définissent l'aspect visuel du rendu. Plusieurs modèles de rendu sont pris en charge, définissant des propriétés telles que : {{Incode|DiffuseColor}}, {{Incode|SpecularColor}} {{Incode|Shininess}}, {{Incode|Transparency}}, les chemins d'accès aux images de texture et la mise à l'échelle.
+* '''Extensibilité :''' l'architecture basée sur des modèles est conçue pour être extensible. Des ateliers complémentaires ou de futures versions de FreeCAD peuvent introduire de nouveaux modèles pour prendre en charge des domaines physiques supplémentaires ou des moteurs de rendu sans modifier le cadre de base.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-==== BIM material system ====
-</div>
+<span id="BIM_material_system"></span>
+==== Système de matériaux BIM ====
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-This legacy, Python-based system has a fixed and more limited set of properties, focusing primarily on visual representation and basic metadata for BIM workflows.
-</div>
+Ce système historique basé sur Python dispose d'un ensemble fixe et plus limité de propriétés, axées principalement sur la représentation visuelle et les métadonnées de base pour les flux de travail de BIM.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* '''Physical Properties:''' This system does not have a formal concept of physical properties for engineering analysis. It does not manage data like density or Young's Modulus.
-* '''Appearance Properties:''' The properties are hard-coded and limited to a basic set necessary for architectural visualization and metadata, consisting of 6 properties: {{PropertyData|Color}}, {{PropertyData|Section Color}}, {{PropertyData|Transparency}} (appearance), {{PropertyData|Description}}, {{PropertyData|Standard Code}}, {{PropertyData|Product URL}} (metadata).
-* '''Extensibility:''' The property set is fixed within the Python code and is not designed to be extended.
-</div>
+* '''Propriétés physiques :''' ce système ne dispose pas d'un concept formel de propriétés physiques pour l'analyse technique. Il ne gère pas les données telles que la densité ou le module d'Young.
+* '''Propriétés d'apparence :''' les propriétés sont codées en dur et limitées à un ensemble de base nécessaire à la visualisation architecturale et aux métadonnées, composé de 6 propriétés : {{PropertyData|Color}}, {{PropertyData|Section Color}}, {{PropertyData|Transparency}} (apparence), {{PropertyData|Description}}, {{PropertyData|Standard Code}}, {{PropertyData|Product URL}} (métadonnées).
+* '''Extensibilité :''' l'ensemble de propriétés est fixe dans le code Python et n'est pas conçu pour être étendu.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-This distinction is critical: the Core system is necessary for any engineering analysis (like FEM), while the BIM system is tailored for architectural visualization and IFC compatibility.
-</div>
+Cette distinction est essentielle : le système Core est nécessaire pour toute analyse technique (comme une analyse par éléments finis), tandis que le système BIM est conçu pour la visualisation architecturale et la compatibilité IFC.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-=== Coexistence and interoperability of material systems ===
-</div>
+<span id="Coexistence_and_interoperability_of_material_systems"></span>
+=== Coexistence et interopérabilité des systèmes matériaux ===
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-While the long-term goal is full migration of the BIM workbench to the Core material system, a transition period requires understanding how they can coexist on a single object.
-</div>
+Bien que l'objectif à long terme soit la migration complète de l'atelier BIM vers le système de matériaux Core, une période de transition nécessite de comprendre comment ils peuvent coexister sur un même objet.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-==== Can both systems be assigned to one object? ====
-</div>
+<span id="Can_both_systems_be_assigned_to_one_object?"></span>
+==== Les deux systèmes peuvent-ils être attribués à un seul objet ? ====
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-It is technically possible to assign a material from both systems to the same object (e.g., an [[Arch_Wall|Arch Wall]]). The two systems use different, non-conflicting properties to store their data:
-</div>
+Il est techniquement possible d'attribuer un matériau provenant des deux systèmes au même objet (par exemple, un [[Arch_Wall/fr|Arch Mur]]). Les deux systèmes utilisent des propriétés différentes et non conflictuelles pour stocker leurs données :
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* '''Core System:''' Uses the hidden {{PropertyData|Shape Material}} property.
-* '''BIM System:''' Uses the visible {{PropertyData|Material}} property.
-</div>
+* '''Système Core :''' utilise la propriété cachée {{PropertyData|Shape Material}}.
+* '''Système BIM :''' utilise la propriété visible {{PropertyData|Material}}.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-An object can have both of these properties simultaneously.
-</div>
+Un objet peut posséder ces deux propriétés simultanément.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-==== Dual-assignment workflow for maximum compatibility ====
-</div>
+<span id="Dual-assignment_workflow_for_maximum_compatibility"></span>
+==== Double affectation des flux de travail pour une compatibilité maximale ====
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-For users who require both advanced engineering analysis and correct BIM data exchange (specifically IFC export), a "dual-assignment" workflow is currently the only viable approach.
-</div>
+Pour les utilisateurs qui ont besoin à la fois d'analyses techniques avancées et d'un échange correct de données BIM (en particulier l'exportation IFC), un flux de travail à « double affectation » est actuellement la seule approche viable.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-'''Why it is necessary:'''
-The tools for different domains are coded to look for different properties.
-* Workbenches like FEM read physical data exclusively from the Core material assigned to the {{PropertyData|Shape Material}} property.
-* The IFC exporter is part of the BIM workbench and reads material information exclusively from the BIM material assigned to the {{PropertyData|Material}} property.
-</div>
+'''Pourquoi est-ce nécessaire ?'''
+Les outils destinés à différents domaines sont programmés pour rechercher différentes propriétés.
+* Les ateliers tels que FEM lisent les données physiques exclusivement à partir du matériau de base attribué à la propriété {{PropertyData|Shape Material}}.
+* L'exportateur IFC fait partie de l'atelier BIM et lit les informations sur les matériaux exclusivement à partir du matériau BIM attribué à la propriété {{PropertyData|Material}}.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-'''Recommended Workflow:'''
-Users who require physical and appearance material properties, and to ensure an object is fully functional across both domains, can perform the following two steps:
-# '''Assign the Core Material:''' Select the {{MenuCommand|[[Image:Std_SetMaterial.svg|16px]] [[Std_SetMaterial|Material]]}} option from the object's [[Tree_View|Tree View]] or [[3D_View|3D View]] context menu to assign the desired material. This makes the object's physical data available for analysis.
-# '''Assign the BIM Material:''' With the same object selected, use the [[Image:BIM_Material.svg|16px]] [[BIM_Material|BIM Material]] tool described on this page to assign a corresponding BIM material. This ensures the object will be exported to IFC with the correct material information.
-</div>
+'''Flux de travail recommandé :'''
+Les utilisateurs qui ont besoin des propriétés physiques et d'appreance des matériaux et qui souhaitent s'assurer qu'un objet est pleinement fonctionnel dans les deux domaines peuvent suivre les deux étapes suivantes :
+# '''Attribuer le matériau Core  :''' sélectionnez l'option {{MenuCommand|[[Image:Std_SetMaterial.svg|16px]] [[Std_SetMaterial/fr|Matériau]]}} dans le menu contextuel de l'objet de l'[[Tree_View/fr|arborescence]] ou de la [[3D_View/fr|vue 3D]] pour attribuer le matériau souhaité. Cela rend les données physiques de l'objet disponibles pour analyse.
+# '''Attribuer le matériau BIM :''' une fois le même objet sélectionné, utilisez l'outil [[Image:BIM_Material.svg|16px]] [[BIM_Material/fr|BIM Matériau]] décrit sur cette page pour attribuer un matériau BIM correspondant. Cela garantit que l'objet sera exporté vers IFC avec les informations correctes sur les matériaux.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-'''Caveats and Risks:'''
-This workaround introduces a significant risk of '''data desynchronization'''. The two material assignments are completely independent. If you update the name or color of the BIM material, it will not affect the Core material, and vice-versa. Users must manually ensure that the two assigned materials are kept consistent to avoid conflicting information between their internal analyses and their external BIM deliverables. The BIM system's multi-material object, which has no equivalent in the Core system, must still be used and managed exclusively with BIM materials.
-</div>
+'''Avertissements et risques :'''
+Cette solution présente un risque important de '''désynchronisation des données'''. Les deux attributions de matériaux sont totalement indépendantes. Si vous mettez à jour le nom ou la couleur du matériau BIM, cela n'aura aucune incidence sur le matériau Core, et vice versa. Les utilisateurs doivent s'assurer manuellement que les deux matériaux attribués restent cohérents afin d'éviter tout conflit d'informations entre leurs analyses internes et leurs livrables BIM externes. L'objet multi-matériaux du système BIM, qui n'a pas d'équivalent dans le système Core, doit toujours être utilisé et géré exclusivement avec des matériaux BIM.
 
 
 {{Docnav/fr
