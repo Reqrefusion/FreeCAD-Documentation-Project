@@ -19,7 +19,7 @@
 |SeeAlso=
 }}
 
-==Description==
+== Description ==
 
 The '''BIM Report''' is a tool for generating schedules and data reports from a FreeCAD model. It uses a SQL-like query language to select, filter, and aggregate data, offering a declarative alternative to other scheduling tools. Ultimately, it enables users to create and automatically populate a [[Spreadsheet_Workbench|spreadsheet]] with data gathered from the model.
 
@@ -28,7 +28,7 @@ You might choose the BIM Report tool when you need to perform:
 * '''Data Aggregation:''' Calculate totals, counts, minimums, or maximums across many objects (e.g., find the total area of all "Space" objects).
 * '''Hierarchical Queries:''' Select objects based on their relationship to other objects (e.g., find all windows hosted in walls on a specific floor).
 
-==Usage==
+== Usage ==
 
 # Open or create a FreeCAD document which contains some objects.
 # Press the {{Button|[[Image:BIM_Report.svg|16px]] [[BIM_Report|Report]]}} button.
@@ -41,11 +41,11 @@ The BIM Report system consists of three main components: the '''Report''' Object
 
 When you create a new report, you will see two new objects in the '''Tree View''': the Report object, which stores all your settings, and its associated ReportResult spreadsheet.
 
-Double-clicking the {{PropertyData|Report}} object opens the '''Task Panel''', which is the primary workspace for editing your report. The panel is divided into two main areas: the ''Report Statements Overview'' and the ''Statement Editor''.
+Double-clicking the {{PropertyData|Report}} object opens the '''Task Panel''', which is the primary workspace for editing your report. The panel is divided into two main areas: the ''Report Statements'' and the ''Statement Editor''.
 
 [[File:BIM_Report_Task_Panel_Overview.png|thumb|The BIM Report Task Panel, showing the Statements Overview section at the top.]]
 
-==== Report Statements Overview ====
+==== Report Statements ====
 
 This section is always visible at the top of the Task Panel and gives you a summary of all the queries (or "statements") that make up your report.
 
@@ -76,17 +76,19 @@ This section appears at the bottom of the Task Panel when you select a statement
 ** {{CheckBox|Print Results in Bold}}: Renders the data cells for this statement's results in a bold font for emphasis.
 * The '''Query Presets''' dropdown allows you to load and save individual, commonly used SQL queries.
 
-==Workflow==
+== Workflow ==
 
 This small tutorial guides you through creating a complete room schedule, from a simple list to a multi-part report with calculated totals.
 
 === Step 1: Creating a New Report ===
+
 # Click the {{Button|[[Image:BIM_Report.svg|16px]] [[BIM_Report|Report]]}} button in the BIM workbench toolbar.
 # FreeCAD will create a '''Report object''' and a '''ReportResult spreadsheet''' in the Tree View and automatically open the Task Panel.
 
 === Step 2: Creating a Simple Statement ===
+
 First, let's create a simple list of all spaces and their areas.
-# In the '''Report Statements Overview''', click the {{Button|[[Image:List-add.svg|16px]] Add Statement}} button. A new, empty statement will appear in the list.
+# In the '''Report Statements''', click the {{Button|[[Image:List-add.svg|16px]] Add Statement}} button. A new, empty statement will appear in the list.
 # With the new statement selected, click the {{Button|[[Image:Edit-edit.svg|16px]] Edit Selected}} button. The '''Statement Editor''' will appear at the bottom of the Task Panel.
 # In the '''Description''' field, type {{incode|Room List}}.
 # In the '''SQL Query''' editor, enter the following query. This selects the name and area of all objects that are {{incode|Space}}s and sorts them alphabetically.{{Code|lang=sql|code=
@@ -95,6 +97,7 @@ SELECT Label, Area FROM document WHERE IfcType = 'Space' ORDER BY Label ASC
 # Click the {{Button|[[Image:Document-save.svg|16px]] Save}} button in the editor to commit your changes to the statement.
 
 === Step 3: Creating a Multi-Section Report ===
+
 Now, let's add a second statement to calculate the total area.
 # In the overview, click {{Button|[[Image:List-add.svg|16px]] Add Statement}} again to create a second statement.
 # With this new statement selected, click {{Button|[[Image:Edit-edit.svg|16px]] Edit Selected}}.
@@ -134,7 +137,8 @@ SELECT Label, Width, Height FROM CHILDREN(SELECT * FROM document) WHERE IfcType 
 '''Understanding the Result:''' The final spreadsheet will only show the results of the last statement in the pipeline (the list of doors). The first two statements act as intermediate filters whose results are passed in memory but not printed to the spreadsheet, giving you a clean and precise final report.```
 
 === Step 5: Using Presets and Templates ===
-* '''Report Templates''' load a full, multi-statement report. In the '''Report Statements Overview''', select a template like "Room and Area Schedule" from the dropdown to instantly load the configuration from Steps 2 & 3. You can save your own reports as new templates for reuse.
+
+* '''Report Templates''' load a full, multi-statement report. In the '''Report Statements''', select a template like "Room and Area Schedule" from the dropdown to instantly load the configuration from Steps 2 & 3. You can save your own reports as new templates for reuse.
 * '''Query Presets''' load a single query into the editor. In the '''Statement Editor''', select a preset like "All Walls" from the dropdown to populate the SQL editor. You can save your own frequently used queries by clicking the {{Button|Save…}} button.
 
 == BIM SQL Dialect Reference ==
@@ -144,6 +148,7 @@ This section provides a detailed reference for the SQL dialect used by the BIM R
 '''Note''': The most up-to-date reference for all clauses and functions can always be found in the UI by clicking the {{Button|[[Image:Help-browser.svg|16px]] Help}} button within the report's Task Panel editor.
 
 === Clauses ===
+
 * {{incode|SELECT}}: Specifies the columns of data to return. Can use {{incode|*}} to select a default identifier for all objects.
 * {{incode|FROM}}: Specifies the data source. In a standalone query, this is always {{incode|document}}. In a pipeline, {{incode|document}} is a placeholder for the data from the previous step. Can also use the {{incode|CHILDREN()}} function.
 * {{incode|WHERE}}: Filters objects based on conditions.
@@ -152,6 +157,7 @@ This section provides a detailed reference for the SQL dialect used by the BIM R
 * {{incode|AS}}: Creates an alias (a custom name) for a column in the {{incode|SELECT}} clause, e.g., {{incode|SELECT Area AS "My Area"}}.
 
 ==== Usage Notes for GROUP BY and ORDER BY ====
+
 The dialect has specific rules for how to use expressions (like functions or arithmetic) in the {{incode|GROUP BY}} and {{incode|ORDER BY}} clauses.
 
 * '''For {{incode|GROUP BY}}:''' When grouping by an expression, you must repeat the entire expression in the {{incode|GROUP BY}} clause. Using an alias from the {{incode|SELECT}} list is not supported.
@@ -387,11 +393,11 @@ This query now produces the result in the desired unit:
 
 Using {{incode|CONVERT()}} guarantees that your report's output is unambiguous and that any calculations you perform within the query (e.g., {{incode|SUM(CONVERT(Area, 'm^2'))}}) are mathematically correct.
 
-==Properties==
+== Properties ==
 
 An Arch Report object exposes the following properties to the user.
 
-===Data===
+=== Data ===
 
 {{TitleProperty|Report}}
 
@@ -516,6 +522,7 @@ BIM Report: 'My Door Schedule' (2 statements)
     GROUP BY
         Tag
 }}
+
 
 {{Docnav
 |[[Arch_Schedule|Schedule]]
