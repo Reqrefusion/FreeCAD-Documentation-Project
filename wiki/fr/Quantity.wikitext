@@ -12,10 +12,10 @@ C'est pour cela que la FreeCAD Quantity framework a été créé. Il comprend le
 <span id="Supported_units"></span>
 === Unités supportées=== 
 
-L'analyseur de FreeCAD prend en charge un tas d'unités et d'unités-systme. Nous utilisons la lettre grecque pour micro '''" µ "''' mais peut être substituée par la lettre '''" u "'''. Une liste complète de toutes les unités prises en charge peut être [[Expressions/fr#Unités|trouvée ici]].
+L'analyseur de FreeCAD prend en charge un tas d'unités et d'unités-systeme. Nous utilisons la lettre grecque pour micro « µ » pour micro, mais accepte également « u » comme remplacement.. Une liste complète de toutes les unités prises en charge peut être trouvée [[Expressions/fr#Unités|ici]].
 
 Vous pouvez trouver plus de détails dans le code :
-* [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/QuantityLexer.c Quantity lexer]  
+* [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/Quantity.cpp#L544 Quantity lexer]   
 * [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/Quantity.cpp#l167 Quantity definitions]
 
 <span id="Internal_representation"></span>
@@ -46,7 +46,7 @@ Puisque l'angle est sans dimension physiquement, mais néanmoins important dans 
 <span id="Units_calculator"></span>
 == Conversion d'unités ==
 
-Souvent, vous avez besoin de convertir des unités d'un système à un autre. Par exemple, vous avez un vieux tableau de paramètres avec des unités filaires. Dans ce cas FreeCAD offre un outil de conversion appelé Units-Calculator qui vous aide à traduire les unités. 
+Vous avez souvent besoin de convertir des valeurs d'un système d'unités à un autre. Par exemple, vous disposez d'anciens tableaux de paramètres avec des unités étranges. Dans ces cas, FreeCAD propose un outil de conversion appelé Units-Calculator qui aide à convertir les unités. 
 
 Sa description est détaillée ici : [[Std_UnitsCalculator/fr|Std Convertisseur d'unités]]
 
@@ -175,11 +175,17 @@ Units.Quantity('1 MPa').getValueAs(Units.Quantity('N/m^2')) # a quantity
 <span id="User_facing_values"></span>
 === Valeurs orientées vers l'usager ===
 
-Normalement, dans un script, vous pouvez utiliser Quantity pour tout genre de calcul et vérification, mais il peut mettre un certain temps pour afficher les informations à l'utilisateur. Vous pouvez utiliser getValueAs() pour forcer une certaine unité, mais normalement l'utilisateur définit son schéma-unité préféré dans les préférences. Ce schéma-unité donne toutes les représentations de la conversions que l'utilisateur veut voir. À l'heure actuelle, il y a 3 schémas mis en place :
-* 1: Interne     (mm/kg/s) 
-* 2: MKS          (m/kg/s)
-* 3: Unités états-uniennes (in/lb) 
-A l'avenir il peut y avoir des schémas supplémentaires faciles à ajouter ...
+Normalement, dans un script, vous pouvez utiliser Quantity pour tout genre de calcul et vérification, mais il peut mettre un certain temps pour afficher les informations à l'utilisateur. Vous pouvez utiliser getValueAs() pour forcer une certaine unité, mais normalement l'utilisateur définit son schéma-unité préféré dans les préférences. Ce schéma-unité donne toutes les représentations de la conversions que l'utilisateur veut voir. Actuellement, les systèmes suivants sont implémentés :
+# Standard (mm, kg, s) 
+# MKS (m, kg, s)
+# Système américain (in, lb) 
+# Système impérial décimal (in, lb)
+# Système européen du bâtiment (cm, m^2, m^3)
+# Construction américaine (ft-in, sqft, cft)
+# Petites pièces métriques et CNC (mm, mm/min)
+# Impérial pour le génie civil (ft, lb, mph)
+# FEM (mm, N, s)
+# Décimal métrique (m, m^2, m^3)
 
 La class Quantity a deux options d'utilisation pour la conversion réelle du schéma :
 
@@ -199,10 +205,7 @@ Units.Quantity('2  m').getUserPreferred() # Tuple: ('2000 mm', 1.0, 'mm')
 
 Ici, vous obtenez deux informations comme un tuple de taille 3. Vous obtenez la chaîne telle qu'elle était avant, plus le facteur de conversion du nombre et la chaîne brute avec uniquement l'unité choisie par le schéma de conversion. Avec cette information, vous pouvez implémenter une interaction utilisateur beaucoup plus riche.
 
-Vous pouvez voir ici le code pour la conversion du schéma :
-* [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/UnitsSchemaInternal.cpp Internal]
-* [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/UnitsSchemaMKS.cpp MKS]
-* [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/UnitsSchemaImperial1.cpp Imperial]
+Le code des schémas unitaires est disponible [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/UnitsSchemasData.h ici].
 
 <span id="Precision"></span>
 === Précision ===
