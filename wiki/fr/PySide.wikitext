@@ -10,42 +10,86 @@
 <span id="Introduction"></span>
 == Introduction ==
 
+<div class="mw-translate-fuzzy">
 La bibliothèque [[PySide/fr|PySide]] donne accès à la boîte à outils d'interface utilisateur graphique (GUI) Qt de [[Python/fr|Python]]. Qt est une collection de bibliothèques C++, mais avec l'aide de PySide, les mêmes composants peuvent être utilisés à partir de [[Python/fr|Python]]. Chaque interface graphique qui peut être créée en C++, peut également être créée et modifiée en Python. Un avantage de l'utilisation de Python est que les interfaces Qt peuvent être développées et testées en direct, car nous n'avons pas besoin de compiler les fichiers source.
+</div>
 
-Lorsque vous [[Installing/fr|installez]] FreeCAD, vous devriez obtenir à la fois Qt et PySide dans le package. Si vous [[Compiling/fr|compilez]] vous-même, vous devez vérifier que ces deux bibliothèques sont installées pour que FreeCAD fonctionne correctement. Bien sûr, PySide ne fonctionnera que si Qt est présent.
+The recommended way to import PySide (of any version) in FreeCAD is:
 
-Dans le passé, FreeCAD utilisait PyQt, une autre liaison Qt pour Python, mais en 2013 ([https://github.com/FreeCAD/FreeCAD/commit/1dc122dc9a commit 1dc122dc9a]) le projet a migré vers PySide car il a une [[License/fr|licence]] plus permissible.
+{{Code|code=
+from PySide import QtCore, QtGui, QtWidgets
+}}
+
+==Qt & PySide versions==
+
+* Version 1.0 of Qt was released in mid 1990’s
+* Version 4.0 of Qt was released in 2005 and the 4.x series was officially retired in 2015
+** The python wrapper for Qt4.x has the name PySide
+* Version 5.0 of Qt was released in 2012 and the 5.x series was officially retired in 2020.
+** The python wrapper for Qt5.x has the name PySide2
+* Version 6.0 of Qt was released in 2020, it is the current version-series
+** The python wrapper for Qt6.x has the name PySide6 
+
+[[File:PySideScreenSnapshot1.jpg]] [[File:PySideScreenSnapshot2.jpg]]
+{{Caption|Exemples créés avec PySide. À gauche: un simple dialogue. À droite: un dialogue plus complexe avec des graphiques.}}
+
+==FreeCAD and PySide==
+
+The original idea behind FreeCAD was to bring Cas.CADE (geometric kernel), Qt (gui toolkit) and Python together to create a free 3D parametric CAD program with a built-in scripting engine. This was in the early 2000’s, i.e. prior to the existence of PySide, thus a different wrapper – PyQt – was used for the first good decade of FreeCAD’s life. PySide came about to solve licensing issues with PyQt, and the switch for FreeCAD to PySide was made in 2013 ([https://github.com/FreeCAD/FreeCAD/commit/1dc122dc9a commit 1dc122dc9a]).
+
+If you would like to know which Qt version your installation uses, the [[Std_About|About dialog]] has version listings where Qt is included.
 
 Pour plus d'informations, consultez :
 *[https://fr.wikipedia.org/wiki/PySide Wikipédia : PySide]
 * [https://wiki.qt.io/Differences_Between_PySide_and_PyQt Différences entre PySide et PyQt]
 
-[[File:PySideScreenSnapshot1.jpg]] [[File:PySideScreenSnapshot2.jpg]]
-{{Caption|Exemples créés avec PySide. À gauche: un simple dialogue. À droite: un dialogue plus complexe avec des graphiques.}}
+<div class="mw-translate-fuzzy">
+Lorsque vous [[Installing/fr|installez]] FreeCAD, vous devriez obtenir à la fois Qt et PySide dans le package. Si vous [[Compiling/fr|compilez]] vous-même, vous devez vérifier que ces deux bibliothèques sont installées pour que FreeCAD fonctionne correctement. Bien sûr, PySide ne fonctionnera que si Qt est présent.
+</div>
 
-<span id="PySide_in_FreeCAD_with_Qt5"></span>
+<span id="Multi_version_compatibility"></span>
+<div class="mw-translate-fuzzy">
 ==PySide dans FreeCAD avec Qt5==
+</div>
 
-FreeCAD a été développé pour être utilisé avec Python 2 et Qt4. Comme ces deux bibliothèques sont devenues obsolètes, FreeCAD est passé à Python 3 et Qt5. Dans la plupart des cas, cette transition s'est faite sans qu'il soit nécessaire de rompre la rétrocompatibilité.
+The main difference between the PySide and subsequent PySide2 and PySide6 libraries is the namespacing. PySide (Qt4) has the main namespaces {{incode|QtGui}} and {{incode|QtCore}}, whereas PySide2 (Qt5) and PySide6 (Qt6) introduced the additional namespace {{incode|QtWidgets}}, where all the widgets are now located, they used to be in QtGui namespace.
 
-Normalement, le module {{incode|PySide}} fournit un support pour Qt4, tandis que {{incode|PySide2}} fournit un support pour Qt5. Cependant, dans FreeCAD, il n'est pas nécessaire d'utiliser directement {{incode|PySide2}} car un module spécial {{incode|PySide}} est inclus pour gérer Qt5.
+FreeCAD’s approach to handle the different versions of Qt/PySide is to call them all PySide, which really should be thought of as PySideX. It does not matter which Qt/PySide version is installed, they are all imported with PySide.
 
+<div class="mw-translate-fuzzy">
 Ce module {{incode|PySide}} est situé dans le répertoire {{incode|Ext/}} d'une installation de FreeCAD compilée pour Qt5.
+</div>
+
 {{Code|code=
 /usr/share/freecad/Ext/PySide
 }}
 
+<div class="mw-translate-fuzzy">
 Ce module importe simplement les classes nécessaires depuis {{incode|PySide2}} et les place dans l'espace de noms {{incode|PySide}}. Cela signifie que dans la plupart des cas, le même code peut être utilisé avec Qt4 et Qt5, tant que nous utilisons l'unique module {{incode|PySide}}.
+</div>
+
 {{Code|code=
 PySide2.QtCore -> PySide.QtCore
 PySide2.QtGui -> PySide.QtGui
+PySide2.QtWidgets -> PySide.QtWidgets
 PySide2.QtSvg -> PySide.QtSvg
 PySide2.QtUiTools -> PySide.QtUiTools
 }}
 
+<div class="mw-translate-fuzzy">
 Le seul aspect inhabituel est que les classes {{incode|PySide2.QtWidgets}} sont placées dans l'espace de noms {{incode|PySide.QtGui}}.
+</div>
+
 {{Code|code=
 PySide2.QtWidgets.QCheckBox -> PySide.QtGui.QCheckBox
+}}
+
+But the current recommended way is to use the modern namespacing.
+
+{{Code|code=
+from PySide import QtCore, QtGui, QtWidgets
+
+my_check_box = QtWidgets.QCheckBox()
 }}
 {{Top}}
 <span id="Examples_of_PySide_use"></span>
@@ -61,12 +105,16 @@ On s'attend à ce que ces exemples soient utiles pour commencer et par la suite 
 {{Top}}
 ==Documentation==
 
+<div class="mw-translate-fuzzy">
 Il existe quelques différences dans la gestion des widgets dans Qt4 (PySide) et Qt5 (PySide2). Le programmeur doit être conscient de ces incompatibilités et consulter la documentation officielle si quelque chose ne semble pas fonctionner comme prévu sur une plateforme donnée. Néanmoins, Qt4 est considéré comme obsolète, donc la plupart des développements devraient cibler Qt5 et Python 3.
+</div>
 
+<div class="mw-translate-fuzzy">
 La documentation PySide fait référence aux classes de style Python; cependant, puisque Qt est à l'origine une bibliothèque C++, les mêmes informations devraient être disponibles dans la référence C++ correspondante.
 * [https://doc.qt.io/qtforpython/modules.html Modules Qt] disponibles sur PySide2 (Qt5).
 * [https://doc.qt.io/qt-5/modules-cpp.html Toutes les classes Qt par module] dans Qt5 pour C++.
 * [https://deptinfo-ensip.univ-poitiers.fr/ENS/pyside-docs/index.html Modules Qt] disponibles auprès de PySide (Qt4).
+</div>
 {{Top}}
 
 {{Docnav/fr
