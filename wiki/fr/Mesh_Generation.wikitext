@@ -3,243 +3,172 @@
 
 Les maillages sont un moyen de modéliser des formes 3D sous la forme d'un ensemble de faces de base, délimitées par des arêtes et des points. En général, il ne s'agit pas de la représentation standard des formes dans les logiciels de CAO 3D, car elle ne permet pas de modéliser des géométries exactes sous la forme de courbes et de surfaces paramétriques (ces représentations sont appelées « représentation par les limites » ou B-rep). Néanmoins, leur simplicité (seuls des points, des segments de ligne et des faces simples sont utilisés pour représenter une forme) a fait des maillages la représentation de choix pour de nombreuses applications telles que le rendu, le découpage pour l'impression 3D, etc. Nous avons délibérément omis de mentionner l'utilisation des maillages pour effectuer des analyses FEM (méthode des éléments finis), car dans ce cas, les maillages ne sont plus utilisés pour leur simplicité, mais pour leur capacité à transporter et à propager des informations à travers les corps.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Most CAD parametric modeling software offer mesh generation and manipulation possibilities, and FreeCAD is no exception. FreeCAD hosts a [[Mesh_Workbench|workbench dedicated to working with meshes]] that offers many useful tools and functionalities, and we will focus on the one that allows generating meshes from FreeCAD shapes: [[File:Mesh_FromPartShape.svg|24px]] [[Mesh_FromPartShape|Mesh FromPartShape]].
-</div>
+La plupart des logiciels de modélisation paramétrique de CAO offrent des possibilités de génération et de manipulation de maillages, et FreeCAD ne fait pas exception. FreeCAD héberge un [[Mesh_Workbench/fr|atelier dédié au travail avec les maillages]] qui offre de nombreux outils et fonctions utiles. Nous nous concentrerons sur celui qui permet de générer des maillages à partir de formes FreeCAD : [[File:Mesh_FromPartShape.svg|24px]] [[Mesh_FromPartShape/fr|Mesh Créer un maillage]].
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The tool allows using four different meshing algorithms, namely: Standard, GMSH, NetGen and Mefisto. We will focus on the first one, as the three others are dedicated to FEM analysis meshes, and are not in-house.
-</div>
+Cet outil permet d'utiliser quatre algorithmes de maillage différents, à savoir : Standard, GMSH, NetGen et Mefisto. Nous nous concentrerons sur le premier, car les trois autres sont dédiés aux maillages d'analyse FEM et ne sont pas développés en interne.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== The standard algorithm ==
-</div>
+<span id="The_standard_algorithm"></span>
+== L'algorithme standard ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The goal of this page is to provide an insight into how meshing works and can be set up from a high-level point of view, without entering into details into the complex operations occurring during the generation of meshes. The standard algorithm stands for the meshing algorithm provided by OCCT, FreeCAD’s geometric modeling kernel. This algorithm generates surface unstructured meshes and basically works in two steps:
-</div>
+L'objectif de cette page est de fournir un aperçu du fonctionnement et de la configuration du maillage d'un point de vue général, sans entrer dans les détails des opérations complexes qui se produisent lors de la génération des maillages. L'algorithme standard correspond à l'algorithme de maillage fourni par OCCT, le noyau de modélisation géométrique de FreeCAD. Cet algorithme génère des maillages de surface non structurés et fonctionne essentiellement en deux étapes :
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-# Edges of the shapes are first discretized, meaning that curves are transformed into polylines (thus closed contours become polygons),
-# Then, surfaces are tessellated, meaning they are covered using geometric shapes, triangles in our case.
-</div>
+# Les arêtes des formes sont d'abord discrétisées, ce qui signifie que les courbes sont transformées en polylignes (les contours fermés deviennent ainsi des polygones).
+# Ensuite, les surfaces sont tessellées, c'est-à-dire qu'elles sont recouvertes de formes géométriques, des triangles dans notre cas.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Generating a mesh from a shape is a complex operation, and implies hidden actions and parameters, which can lead to behaviors that are not trivial to understand, in particular regarding the setting of the 3 parameters we have access to. Let’s have a look at their influence with practical examples to better understand how to define good set-ups, and eventually generate good meshes.
-</div>
+La génération d'un maillage à partir d'une forme est une opération complexe qui implique des actions et des paramètres cachés pouvant entraîner des comportements difficiles à comprendre, notamment en ce qui concerne le réglage des trois paramètres auxquels nous avons accès. Examinons leur influence à l'aide d'exemples pratiques afin de mieux comprendre comment définir de bons réglages et, à terme, générer de bons maillages.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Angular deviation ==
-</div>
+<span id="Angular_deviation"></span>
+== Déviation angulaire ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The '''angular deviation''' is mainly used at the edges discretization step. This parameter helps ensure the smoothness of polylines that represent curves by preventing sharp angles between consecutive line segments. Edge discretization has a great impact on the overall meshing of the shapes, because points (at the transition between line segments) generated at this step will serve as basis nodes for the construction of triangles that will further be used to tessellate faces delimited by the edges.
-</div> 
+La '''déviation angulaire''' est principalement utilisée lors de l'étape de discrétisation des arêtes. Ce paramètre permet d'assurer la fluidité des polylignes qui représentent les courbes en empêchant la formation d'angles aigus entre des segments de ligne consécutifs. La discrétisation des arêtes a un impact important sur le maillage global des formes, car les points (à la transition entre les segments de ligne) générés lors de cette étape serviront de nœuds de base pour la construction des triangles qui seront ensuite utilisés pour tesseller les faces délimitées par les arêtes. 
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-[[File:ParamsOCCT_649p168.png|thumb|alt=Angular deflection and linear deflection as depicted in OCCT documentation|Angular deflection and linear deflection as depicted in OCCT documentation]]
-</div>
+[[File:ParamsOCCT_649p168.png|thumb|alt=Déviation angulaire et déviation linéaire telles que décrites dans la documentation OCCT|Déviation angulaire et déviation linéaire telles que décrites dans la documentation OCCT]]
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-This parameter value is relative to the size of the shape to be meshed: regardless of the shape's size, a high angle value may lead to sharp transitions between consecutive line segments, whereas a low value will ensure smoother transitions.
-</div>
+La valeur de ce paramètre est relative à la taille de la forme à mailler : quelle que soit la taille de la forme, une valeur d'angle élevée peut entraîner des transitions abruptes entre les segments de ligne consécutifs, tandis qu'une valeur faible garantira des transitions plus fluides.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-To illustrate the behavior of the standard algorithm regarding angular deviation, let’s vary this parameter while meshing a simple circular surface. As the surface deviation parameter also plays a role in the process, it has been set to a value high enough to avoid any interference with our demonstration: our circle diameter is 50mm, and so is the surface deviation.
-</div>
+Pour illustrer le comportement de l'algorithme standard en matière de déviation angulaire, modifions ce paramètre tout en maillant une surface circulaire simple. Le paramètre de déviation de surface jouant également un rôle dans le processus, il a été réglé sur une valeur suffisamment élevée pour éviter toute interférence avec notre démonstration : le diamètre de notre cercle est de 50 mm, tout comme la déviation de surface.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {|
-!width="25%"| [[File:Cercle_orig_vignette.png|thumb|none]]
-!width="25%"| [[File:Cercle_50-90_vignette.png|thumb|none]]
-!width="25%"| [[File:Cercle_50-30_vignette.png|thumb|none]]
-!width="25%"| [[File:Cercle_50-5_vignette.png|thumb|none]]
+!width="25%"| [[File:Cercle_orig_vignette.png|thumb|rien]]
+!width="25%"| [[File:Cercle_50-90_vignette.png|thumb|rien]]
+!width="25%"| [[File:Cercle_50-30_vignette.png|thumb|rien]]
+!width="25%"| [[File:Cercle_50-5_vignette.png|thumb|rien]]
 |-
-| [[File:Cercle_detail_vignette.png|thumb|none]]
-| [[File:Cercle_50-90_detail_vignette.png|thumb|none]]
-| [[File:Cercle_50-30_detail_vignette.png|thumb|none]]
-| [[File:Cercle_50-5_detail_vignette.png|thumb|none]]
+| [[File:Cercle_detail_vignette.png|thumb|rien]]
+| [[File:Cercle_50-90_detail_vignette.png|thumb|rien]]
+| [[File:Cercle_50-30_detail_vignette.png|thumb|rien]]
+| [[File:Cercle_50-5_detail_vignette.png|thumb|rien]]
 |-
 |
-'''Top:''' Original BRep circular face (blue) delimited by outer circle (red)
-</div>
+'''En haut :''' face circulaire originale de la B-rep(bleue) délimitée par un cercle extérieur (rouge)
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-'''Bottom:''' Top left detail
+'''En bas :''' détail en haut à gauche
 |
-Surface deviation: 50mm
-</div>
+Écart de surface : 50 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 90°
+Déviation angulaire : 90°
 |
-Surface deviation: 50mm
-</div>
+Déviation de surface : 50 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 30°
+Déviation angulaire : 30°
 |
-Surface deviation: 50mm
-</div>
+Déviation de surface : 50 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 5°
+Déviation angulaire : 5°
 |}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Reducing angular deviation has a significant influence on the aspect of the mesh, limiting sharp angles when representing the face contour. If it allows increasing the fidelity of the mesh relative to the original shape, it does not provide an absolute value for the maximum deviation tolerated between the two.
-</div>
+La réduction de la déviation angulaire a une influence significative sur l'aspect du maillage, limitant les angles vifs lors de la représentation du contour de la face. Si elle permet d'augmenter la fidélité du maillage par rapport à la forme d'origine, elle ne fournit pas de valeur absolue pour la déviation maximale tolérée entre les deux.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Surface deviation ==
-</div>
+<span id="Surface_deviation"></span>
+== Déviation de surface ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-To do so, '''surface deviation''' is a better pick. It allows specifying the maximum deviation the mesh should be present compared to the original shape. Let’s get back to our circular surface to understand its influence.
-</div>
+Pour ce faire, l'option '''déviation de surface''' est plus appropriée. Elle permet de spécifier la déviation maximale que le maillage peut présenter par rapport à la forme d'origine. Revenons à notre surface circulaire pour comprendre son influence.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {|
-!width="25%"| [[File:Cercle_50-90_vignette.png|thumb|none]]
-!width="25%"| [[File:Cercle_10-90_vignette.png|thumb|none]]
-!width="25%"| [[File:Cercle_1-90_vignette.png|thumb|none]]
-!width="25%"| [[File:Cercle_01-90_vignette.png|thumb|none]]
+!width="25%"| [[File:Cercle_50-90_vignette.png|thumb|rien]]
+!width="25%"| [[File:Cercle_10-90_vignette.png|thumb|rien]]
+!width="25%"| [[File:Cercle_1-90_vignette.png|thumb|rien]]
+!width="25%"| [[File:Cercle_01-90_vignette.png|thumb|rien]]
 |-
-| [[File:Cercle_50-90_detail_vignette.png|thumb|none]]
-| [[File:Cercle_10-90_detail_vignette.png|thumb|none]]
-| [[File:Cercle_1-90_detail_vignette.png|thumb|none]]
-| [[File:Cercle_01-90_detail_vignette.png|thumb|none]]
+| [[File:Cercle_50-90_detail_vignette.png|thumb|rien]]
+| [[File:Cercle_10-90_detail_vignette.png|thumb|rien]]
+| [[File:Cercle_1-90_detail_vignette.png|thumb|rien]]
+| [[File:Cercle_01-90_detail_vignette.png|thumb|rien]]
 |-
 |
-Surface deviation: 50mm
-</div>
+Déviation de surface : 50 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 90°
+Déviation angulaire : 90°
 |
-Surface deviation: 10mm
-</div>
+Déviation de surface : 10 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 90°
+Déviation angulaire : 90°
 |
-Surface deviation: 1mm
-</div>
+Déviation de surface : 1 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 90°
+Déviation angulaire : 90°
 |
-Surface deviation: 0.1mm
-</div>
+Déviation de surface : 0.1 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 90°
+Déviation angulaire : 90°
 |}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The influence of surface deviation is clearly visible and easily understandable in our example, given its absolute nature. It is particularly visible close to the edge: high values (50mm - 10mm) have no impact, whereas many triangles are added to ensure the 0,1mm tolerance.
-</div>
+L'influence de la déviation de surface est clairement visible et facilement compréhensible dans notre exemple, étant donné sa nature absolue. Elle est particulièrement visible près du bord : les valeurs élevées (50 mm - 10 mm) n'ont aucun impact, tandis que de nombreux triangles sont ajoutés pour garantir la tolérance de 0,1 mm.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Combined influence of angular and surface deviation ==
-</div>
+<span id="Combined_influence_of_angular_and_surface_deviation"></span>
+== Influence combinée des déviations angulaire et de surface ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Decreasing either angular deviation or surface deviation has a similar impact on the mesh. This redundancy can lead to undesired behavior when bad parameter combinations are used: the following example shows the generation of unnecessary, oddly shaped triangles when both angular and surface deviation are set to low values.
-</div>
+La diminution de la déviation angulaire ou de la déviation de surface a un impact similaire sur le maillage. Cette redondance peut entraîner un comportement indésirable lorsque de mauvaises combinaisons de paramètres sont utilisées : l'exemple suivant montre la génération de triangles inutiles et de forme étrange lorsque la déviation angulaire et la déviation de surface sont toutes deux réglées sur des valeurs faibles.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {|
-!width="25%"| [[File:Cercle_10-30_vignette.png|thumb|none]]
-!width="25%"| [[File:Cercle_3-7_vignette.png|thumb|none]]
-!width="25%"| [[File:Cercle_1-5_vignette.png|thumb|none]]
-!width="25%"| [[File:Cercle_01-1_vignette.png|thumb|none]]
+!width="25%"| [[File:Cercle_10-30_vignette.png|thumb|rien]]
+!width="25%"| [[File:Cercle_3-7_vignette.png|thumb|rien]]
+!width="25%"| [[File:Cercle_1-5_vignette.png|thumb|rien]]
+!width="25%"| [[File:Cercle_01-1_vignette.png|thumb|rien]]
 |-
-| [[File:Cercle_50-90_detail_vignette.png|thumb|none]]
-| [[File:Cercle_10-90_detail_vignette.png|thumb|none]]
-| [[File:Cercle_1-90_detail_vignette.png|thumb|none]]
-| [[File:Cercle_01-90_detail_vignette.png|thumb|none]]
+| [[File:Cercle_50-90_detail_vignette.png|thumb|rien]]
+| [[File:Cercle_10-90_detail_vignette.png|thumb|rien]]
+| [[File:Cercle_1-90_detail_vignette.png|thumb|rien]]
+| [[File:Cercle_01-90_detail_vignette.png|thumb|rien]]
 |-
 |
-Surface deviation: 10mm
-</div>
+Déviation de surface : 10 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 30°
+Déviation angulaire : 30°
 |
-Surface deviation: 3mm
-</div>
+Déviation de surface : 3 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 7°
+Déviation angulaire : 7°
 |
-Surface deviation: 1mm
-</div>
+Déviation de surface : 1 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 5°
+Déviation angulaire : 5°
 |
-Surface deviation: 0.1mm
-</div>
+Déviation de surface : 0.1 mm
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Angular deviation: 1°
+Déviation angulaire : 1°
 |}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== First synthesis ==
-</div>
+<span id="First_synthesis"></span>
+== Première synthèse ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The above examples show that it is possible, using angular and surface deviation, to obtain meshes within the requested tolerance of the original shape and achieve the desired smoothness when representing curves. They also show the importance of an adequate setting and that simply setting low values may not yield the best meshes.
-</div>
+Les exemples ci-dessus montrent qu'il est possible, en utilisant la déviation angulaire et la déviation de surface, d'obtenir des maillages dans les limites de tolérance requises par la forme d'origine et d'obtenir la fluidité souhaitée lors de la représentation des courbes. Ils montrent également l'importance d'un réglage adéquat et que le simple fait de définir des valeurs faibles ne permet pas nécessairement d'obtenir les meilleurs maillages.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== The devil is in the details ==
-</div>
+<span id="The_devil_is_in_the_details"></span>
+== Le diable est dans les détails ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-While our circular shape provided a good understanding of the influence of the parameters on mesh generation, it is unfortunately too simplistic compared to real-life meshing challenges. A common case is the presence of fine details on bigger shapes. Let’s add a detail to our circular shape: a smaller circular edge at the top.
-</div>
+Bien que notre forme circulaire ait permis de bien comprendre l'influence des paramètres sur la génération de maillages, elle est malheureusement trop simpliste par rapport aux défis réels du maillage. Un cas courant est la présence de détails fins sur des formes plus grandes. Ajoutons un détail à notre forme circulaire : une arête circulaire plus petite en haut.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {|
-! [[File:Detail_orig_vignette.png|thumb|none|alt=BRep circular face (blue) with a circular detail at the top|BRep circular face (blue) with a circular detail at the top]]
-! [[File:Detail_orig_detail_vignette.png|thumb|none|alt=Close view of the circular detail|Close view of the circular detail]]
+! [[File:Detail_orig_vignette.png|thumb|rien|alt=Face circulaire du B-rep (bleue) avec un détail circulaire en haut|Face circulaire du B-rep (bleue) avec un détail circulaire en haut]]
+! [[File:Detail_orig_detail_vignette.png|thumb|none|alt=Vue du détail circulaire|Vue du détail circulaire]]
 |}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {|
 !width="25%"|
-Angular deviation /
-</div>
+Déviation angulaire /
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Surface deviation
+Déviation de surface
 !width="25%"| 90°
 !width="25%"| 30°
 !width="25%"| 5°
 |-
-| 5mm
+| 5 mm
 | [[File:Detail_5-90_vignette.png|thumb|none]]
 | [[File:Detail_5-30_vignette.png|thumb|none]]
 | [[File:Detail_5-5_vignette.png|thumb|none]]
 |-
-| Nb of triangles
+| Nombre de triangles
 | 10
 | 32
 | 149
 |-
-| 1mm
+| 1 mm
 | [[File:Detail_1-90_vignette.png|thumb|none]]
 | [[File:Detail_1-30_vignette.png|thumb|none]]
 | [[File:Detail_1-5_vignette.png|thumb|none]]
 |-
-| Nb of triangles
+| Nombre de triangles
 | 18
 | 34
 | 188
@@ -249,41 +178,37 @@ Surface deviation
 | [[File:Detail_01-30_vignette.png|thumb|none]]
 | [[File:Detail_01-5_vignette.png|thumb|none]]
 |-
-| Nb of triangles
+| Nombre de triangles
 | 53
 | 59
 | 207
 |}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {|
 !width="25%"|
-Angular deviation /
-</div>
+Déviation angulaire /
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Surface deviation
+Déviation de surface
 !width="25%"| 90°
 !width="25%"| 30°
 !width="25%"| 5°
 |-
-| 5mm
+| 5 mm
 | [[File:Detail_5-90_detail_vignette.png|thumb|none]]
 | [[File:Detail_5-30_detail_vignette.png|thumb|none]]
 | [[File:Detail_5-5_detail_vignette.png|thumb|none]]
 |-
-| Nb of triangles
+| Nombre de triangles
 | 10
 | 32
 | 149
 |-
-| 1mm
+| 1 mm
 | [[File:Detail_1-90_detail_vignette.png|thumb|none]]
 | [[File:Detail_1-30_detail_vignette.png|thumb|none]]
 | [[File:Detail_1-5_detail_vignette.png|thumb|none]]
 |-
-| Nb of triangles
+| Nombre de triangles
 | 18
 | 34
 | 188
@@ -293,75 +218,55 @@ Surface deviation
 | [[File:Detail_01-30_detail_vignette.png|thumb|none]]
 | [[File:Detail_01-5_detail_vignette.png|thumb|none]]
 |-
-| Nb of triangles
+| Nombre de triangles
 | 53
 | 59
 | 207
 |}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Lowering angular deviation results in a rapid increase in fidelity between the mesh and the original shape. This is done at the expense of rapidly increasing the number of triangles. On the other hand, lowering the surface deviation allows generating meshes that just meet a requested tolerance, with as many triangles as needed, but the smoothness of the curve representation may be crude.
-</div>
+La réduction de la déviation angulaire entraîne une augmentation rapide de la fidélité entre le maillage et la forme d'origine. Cela se fait au détriment d'une augmentation rapide du nombre de triangles. D'autre part, la réduction de la déviation de surface permet de générer des maillages qui répondent juste à la tolérance requise, avec autant de triangles que nécessaire, mais la fluidité de la représentation des courbes peut être grossière.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Again, one may note the redundancy between the respective influences of angular and surface deviation, and that some sort of convergence is achieved regarding mesh fidelity, even as more triangles are added, particularly when lowering angular deviation. This underlines once again that finding a good setting is better than simply choosing a low parameter value.
-</div>
+Une fois encore, on peut noter la redondance entre les influences respectives de la déviation angulaire et de la déviation de surface, et constater qu'une certaine convergence est obtenue en termes de fidélité du maillage, même lorsque davantage de triangles sont ajoutés, en particulier lorsque la déviation angulaire est réduite. Cela souligne une fois de plus qu'il vaut mieux trouver un bon réglage plutôt que de simplement choisir une valeur de paramètre faible.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Hidden parameter example ==
-</div>
+<span id="Hidden_parameter_example"></span>
+== Exemple de paramètres cachés ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-High values of surface and angular deviations do not lead to the suppression of detail at the top of our shape during mesh modeling. This is an example of the effect of hidden operations and parameters within the meshing algorithms: particular types of edges, and circular edges, among others, have a lower limit of points for their polyline representation. In this case, the minimum of 4 points will result in at least three segments within the polyline. This can be highlighted by meshing a similar shape, but instead of a circular curve, a spline has been used to model the detail at the top. The minimal number of points then does not apply, and the detail is totally inhibited when high values of surface deviation are used.
-</div>
+Des valeurs élevées de déviations de surface et angulaires n'entraînent pas la suppression des détails au sommet de notre forme lors de la modélisation du maillage. Il s'agit d'un exemple de l'effet des opérations et paramètres cachés dans les algorithmes de maillage : certains types d'arêtes, notamment les arêtes circulaires, ont une limite inférieure de points pour leur représentation en polyligne. Dans ce cas, le minimum de 4 points donnera lieu à au moins trois segments dans la polyligne. Cela peut être mis en évidence en maillant une forme similaire, mais au lieu d'une courbe circulaire, une spline a été utilisée pour modéliser le détail au sommet. Le nombre minimal de points ne s'applique alors pas, et le détail est totalement inhibé lorsque des valeurs élevées de déviation de surface sont utilisées.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {|
-! Geometrical nature of the detail
-! The shape
-! The mesh
-! A close view
+! Nature géométrique du détail
+! Forme
+! Maillage
+! Vue rapprochée
 |-
-| Arc of circle
+| Arc de cercle
 | [[File:Detail_orig_vignette.png|thumb|none]]
 | [[File:Detail_50-90_vignette.png|thumb|none]]
 | [[File:Detail_50-90_detail_vignette.png|thumb|none]]
 |-
-| Spline curve
+| Courbe spline
 | [[File:DetailBS_orig_vignette.png|thumb|none]]
 | [[File:DetailBS_50-90_vignette.png|thumb|none]]
 | [[File:DetailBS_50-90_detail_vignette.png|thumb|none]]
 |}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Second synthesis ==
-</div>
+<span id="Second_synthesis"></span>
+== Deuxième synthèse ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-These examples, including details within larger shapes, which are very common in real life, show that adapting the discretization precision to the size of the entities to be meshed can lead to better trade-offs between mesh precision and complexity. Sometimes it can even be mandatory, for instance, when performing automated meshing operations, where a user cannot intervene to set up the surface deviation based on the shape size.
-</div>
+Ces exemples, qui incluent des détails dans des formes plus grandes, très courants dans la vie réelle, montrent que l'adaptation de la précision de discrétisation à la taille des entités à mailler peut permettre d'obtenir un meilleur compromis entre la précision et la complexité du maillage. Cela peut même parfois s'avérer obligatoire, par exemple lors d'opérations de maillage automatisées, où l'utilisateur ne peut pas intervenir pour définir la déviation de surface en fonction de la taille de la forme.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-== Relative surface deviation ==
-</div>
+<span id="Relative_surface_deviation"></span>
+== Déviation relative de surface ==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-A solution is to set the surface deviation as a function of the edge length, which is achieved using the '''relative surface deviation parameter'''. The principle is to scale the acceptable tolerance between the mesh and the original shape as a function of the shape's size. For instance, a value of 0.1 will lead to a surface deviation of 10cm on a 1m edge, and a 1m surface deviation on 10m edge. Let’s take a look on the results on our test shape.
-</div>
+Une solution consiste à définir la déviation de surface en fonction de la longueur des arêtes, ce qui est possible grâce au paramètre « déviation relative de surface ». Le principe consiste à mettre à l'échelle la tolérance acceptable entre le maillage et la forme d'origine en fonction de la taille de la forme. Par exemple, une valeur de 0.1 entraînera une déviation de surface de 10 cm sur une arête de 1 m et une déviation de surface de 1 m sur une arête de 10 m. Examinons les résultats obtenus sur notre forme test.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {|
-! [[File:MeshAlgosnParamsRSD_462p192.png|thumb|none|alt=Relative surface deviation parameters|Relative surface deviation parameters]]
+! [[File:MeshAlgosnParamsRSD_462p192.png|thumb|none|alt=Paramètres de la déviation relative de surface|Paramètres de la déviation relative de surface]]
 |}
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {|
 !width="25%"|
-Surface deviation (relative)
-</div>
+Déviation de surface (relative)
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 &amp; Angular deviation
