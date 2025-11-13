@@ -12,15 +12,16 @@ Es muss erstellt werden:
 * {{incode|[YourClass]Py.xml}}
 * {{incode|[YourClass]PyImp.cpp}}
 
-Edit the appropriate {{FileName|CMakeLists.txt}} file to add references to these two files. From the XML file, the build system will then create:
+Man bearbeitet die entsprechende Datei {{FileName|CMakeLists.txt}}, um Verweise auf diese beiden Dateien hinzuzufügen. Aus der XML-Datei erstellt das Build-System dann Folgendes:
 * {{incode|[YourClass]Py.cpp}}
 * {{incode|[YourClass]Py.h}}
 
-== Class Description XML File ==
+<span id="Class_Description_XML_File"></span>
+== XML-Datei mit Klassenbeschreibung ==
 
-The XML file {{incode|[YourClass]Py.xml}} provides information about the functions and attributes that the Python class implements, as well as the user documentation for those items that displays in the FreeCAD [[Python_console|Python console]].
+Die XML-Datei {{incode|[YourClass]Py.xml}} enthält Informationen zu den Funktionen und Attributen, die die Python-Klasse implementiert, sowie die Benutzerdokumentation für diese Elemente, die in FreeCAD in der [[Python_console/de|Python-Konsole]] anzeigt.
 
-For this example, we will look at the wrapper for the Axis C++ class. The XML description file begins with:
+Für dieses Beispiel schauen wir uns den Wrapper der Achsen-C++-Klasse an. Die XML-Beschreibung beginnt mit:
 
 {{Code|lang=xml|code=
 <?xml version="1.0" encoding="UTF-8"?>
@@ -45,7 +46,7 @@ For this example, we will look at the wrapper for the Axis C++ class. The XML de
     </Documentation>
 }}
 
-Following this preamble, a list of methods and attributes is given. The format of a method is:
+Im Anschluss an diese Einleitung folgt eine Liste von Methoden und Attributen. Das Format einer Methode lautet:
 
 {{Code|lang=xml|code=
 <Methode Name="move">
@@ -58,7 +59,7 @@ Following this preamble, a list of methods and attributes is given. The format o
 </Methode>
 }}
 
-The format of an attribute is:
+Das Format eines Attributes ist:
 
 {{Code|lang=xml|code=
 <Attribute Name="Direction" ReadOnly="false">
@@ -69,7 +70,7 @@ The format of an attribute is:
 </Attribute>
 }}
 
-For an attribute, if "ReadOnly" is false, you will provide both a getter and a setter function. If it is true, only a getter is allowed. In this case we will be required to provide two functions in the implementation C++ file:
+Wenn für ein Attribut „ReadOnly” falsch ist, muss man sowohl eine Getter- als auch eine Setter-Funktion bereitstellen. Ist es wahr, ist nur eine Getter-Funktion zulässig. In diesem Fall müssen wir zwei Funktionen in der C++-Implementierungsdatei bereitstellen:
 
 {{Code|lang=cpp|code=
 Py::Object AxisPy::getDirection(void) const
@@ -81,13 +82,15 @@ und:
 void AxisPy::setDirection(Py::Object arg)
 }}
 
-== Implementation Cplusplus File ==
+<span id="Implementation_Cplusplus_File"></span>
+== Implementierungs-Cplusplus-Datei ==
 
-The implementation C++ file {{incode|[YourClass]PyImp.cpp}} provides the "glue" that connects the C++ and Python structures together, effectively translating from one language to the other. The FreeCAD C++-to-Python system provides a number of C++ classes that map to their corresponding Python type. The most fundamental of these is the {{incode|Py::Object}} class -- rarely created directly, this class provides the base of the inheritance tree, and is used as the return type for any function that is returning Python data.
+Die Implementierungsdatei {{incode|[YourClass]PyImp.cpp}} in C++ fungiert als "Klebstoff", der die C++- und Python-Strukturen miteinander verbindet und so eine effektive Übersetzung von einer Sprache in die andere ermöglicht. Das FreeCAD-System für die Übersetzung von C++ nach Python stellt eine Reihe von C++-Klassen bereit, die ihren entsprechenden Python-Typen zugeordnet sind. Die grundlegendste davon ist die Klasse {{incode|Py::Object}} – diese Klasse wird selten direkt erstellt, bildet jedoch die Basis des Vererbungsbaums und wird als Rückgabetyp für alle Funktionen verwendet, die Python-Daten zurückgeben.
 
-=== Include Files ===
+<span id="Include_Files"></span>
+=== Dateien einbinden ===
 
-Your C++ implementation file will include the following files:
+Die C++_Implementationsdatei enthält die folgenden Dateien:
 
 {{Code|lang=cpp|code=
 #include "PreCompiled.h"
@@ -99,18 +102,18 @@ Your C++ implementation file will include the following files:
 #include "[YourClass]Py.cpp"
 }}
 
-Of course, you may include whatever other C++ headers your code requires to function as well.
+Selbstverständlich kann man auch alle anderen C++-Header einbinden, die der Code benötigt, um zu funktionieren.
 
 <span id="Constructor"></span>
 === Konstruktor ===
 
-Your C++ implementation must contain the definition of the PyInit function: for example, for the Axis class wrapper, this is
+Die C++-Implementierung muss die Definition der PyInit-Funktion enthalten: Für den Axis-Klassen-Wrapper lautet diese beispielsweise
 
 {{Code|lang=cpp|code=
 int AxisPy::PyInit(PyObject* args, PyObject* /*kwd*/)
 }}
 
-Within this function you will most likely need to parse incoming arguments to the constructor: the most important function for this purpose is the Python-provided {{incode|PyArg_ParseTuple}}. It takes in the passed argument list, a descriptor for the expected arguments that it should parse, and type information and storage locations for the parsed results. For example:
+Innerhalb dieser Funktion muss man höchstwahrscheinlich eingehende Argumente für den Konstruktor analysieren: Die wichtigste Funktion für diesen Zweck ist die von Python bereitgestellte {{incode|PyArg_ParseTuple}}. Sie nimmt die übergebene Argumentliste, einen Deskriptor für die zu analysierenden erwarteten Argumente sowie Typinformationen und Speicherorte für die analysierten Ergebnisse entgegen. Beispiel:
 
 {{Code|lang=cpp|code=
     PyObject* d;
@@ -123,7 +126,7 @@ Within this function you will most likely need to parse incoming arguments to th
     }
 }}
 
-For a complete list of format specifiers see [https://docs.python.org/3/c-api/arg.html Python C API documentation]. Note that several related functions are also defined which allow the use of keywords, etc. The complete set is:
+Eine vollständige Liste der Formatbezeichner findet man in der [https://docs.python.org/3/c-api/arg.html Python C API-Dokumentation]. Man beachte, dass auch mehrere verwandte Funktionen definiert sind, die die Verwendung von Schlüsselwörtern usw. ermöglichen. Der vollständige Satz lautet:
 
 {{Code|lang=cpp|code=
 PyAPI_FUNC(int) PyArg_Parse (PyObject *, const char *, ...);
