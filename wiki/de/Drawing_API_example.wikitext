@@ -1,0 +1,247 @@
+<languages/>
+
+<span id="Introduction"></span>
+== Einleitung ==
+
+Der Arbeitsablauf für die grafische Benutzerschnittstelle für den [[Drawing Workbench|Arbeitsbereich Drawing]] ist begrenzt, daher ist die Skript-API interessanter.
+
+<span id="Simple_example"></span>
+== Einfaches Beispiel ==
+
+Zuallererst braucht man das Part- und das Drawing-Modul:
+{{Code|code=
+import FreeCAD, Part, Drawing
+}}
+
+Man erstellt ein kleines Beispiel-Teil
+{{Code|code=
+Part.show(Part.makeBox(100,100,100).cut(Part.makeCylinder(80,100)).cut(Part.makeBox(90,40,100)).cut(Part.makeBox(20,85,100)))
+}}
+
+Direkte Projektion. Das G0 bedeutet harte Kante, der G1 ist dauernde Tangente.
+{{Code|code=
+Shape = App.ActiveDocument.Shape.Shape
+[visibleG0,visibleG1,hiddenG0,hiddenG1] = Drawing.project(Shape)
+print "visible edges:", len(visibleG0.Edges)
+print "hidden edges:", len(hiddenG0.Edges)
+}}
+
+Alles wird auf der Z-Ebene projiziert:
+{{Code|code=
+print "Bnd Box shape: X=",Shape.BoundBox.XLength," Y=",Shape.BoundBox.YLength," Z=",Shape.BoundBox.ZLength
+print "Bnd Box project: X=",visibleG0.BoundBox.XLength," Y=",visibleG0.BoundBox.YLength," Z=",visibleG0.BoundBox.ZLength
+}}
+
+Anderer Projektions-Vektor
+{{Code|code=
+[visibleG0,visibleG1,hiddenG0,hiddenG1] = Drawing.project(Shape,App.Vector(1,1,1))
+}}
+
+Projekt zu SVG
+{{Code|code=
+resultSVG = Drawing.projectToSVG(Shape,App.Vector(1,1,1))
+print resultSVG
+}}
+
+<span id="Parametric_example"></span>
+== Parametrisches Beispiel ==
+
+Den Körper erstellen
+{{Code|code=
+import FreeCAD
+import Part
+import Drawing
+
+# Create three boxes and a cylinder
+App.ActiveDocument.addObject("Part::Box","Box")
+App.ActiveDocument.Box.Length=100.00
+App.ActiveDocument.Box.Width=100.00
+App.ActiveDocument.Box.Height=100.00
+
+App.ActiveDocument.addObject("Part::Box","Box1")
+App.ActiveDocument.Box1.Length=90.00
+App.ActiveDocument.Box1.Width=40.00
+App.ActiveDocument.Box1.Height=100.00
+
+App.ActiveDocument.addObject("Part::Box","Box2")
+App.ActiveDocument.Box2.Length=20.00
+App.ActiveDocument.Box2.Width=85.00
+App.ActiveDocument.Box2.Height=100.00
+
+App.ActiveDocument.addObject("Part::Cylinder","Cylinder")
+App.ActiveDocument.Cylinder.Radius=80.00
+App.ActiveDocument.Cylinder.Height=100.00
+App.ActiveDocument.Cylinder.Angle=360.00
+# Fuse two boxes and the cylinder
+App.ActiveDocument.addObject("Part::Fuse","Fusion")
+App.ActiveDocument.Fusion.Base = App.ActiveDocument.Cylinder
+App.ActiveDocument.Fusion.Tool = App.ActiveDocument.Box1
+
+App.ActiveDocument.addObject("Part::Fuse","Fusion1")
+App.ActiveDocument.Fusion1.Base = App.ActiveDocument.Box2
+App.ActiveDocument.Fusion1.Tool = App.ActiveDocument.Fusion
+# Cut the fused shapes from the first box
+App.ActiveDocument.addObject("Part::Cut","Shape")
+App.ActiveDocument.Shape.Base = App.ActiveDocument.Box 
+App.ActiveDocument.Shape.Tool = App.ActiveDocument.Fusion1
+# Hide all the intermediate shapes 
+Gui.ActiveDocument.Box.Visibility=False
+Gui.ActiveDocument.Box1.Visibility=False
+Gui.ActiveDocument.Box2.Visibility=False
+Gui.ActiveDocument.Cylinder.Visibility=False
+Gui.ActiveDocument.Fusion.Visibility=False
+Gui.ActiveDocument.Fusion1.Visibility=False
+}}
+
+Ein Seitenobjekt einfügen und eine Schablone zuweisen
+{{Code|code=
+App.ActiveDocument.addObject('Drawing::FeaturePage','Page')
+App.ActiveDocument.Page.Template = App.getResourceDir()+'Mod/Drawing/Templates/A3_Landscape.svg'
+}}
+
+Eine Sicht auf das "Shape"-Objekt erstellen, die Position und Größe festlegen und es einer Seite zuweisen
+{{Code|code=
+App.ActiveDocument.addObject('Drawing::FeatureViewPart','View')
+App.ActiveDocument.View.Source = App.ActiveDocument.Shape
+App.ActiveDocument.View.Direction = (0.0,0.0,1.0)
+App.ActiveDocument.View.X = 10.0
+App.ActiveDocument.View.Y = 10.0
+App.ActiveDocument.Page.addObject(App.ActiveDocument.View)
+}}
+
+Eine zweite Ansicht auf demselben Objekt erstellen, aber dieses Mal wird die Ansicht um 90° gedreht.
+{{Code|code=
+App.ActiveDocument.addObject('Drawing::FeatureViewPart','ViewRot')
+App.ActiveDocument.ViewRot.Source = App.ActiveDocument.Shape
+App.ActiveDocument.ViewRot.Direction = (0.0,0.0,1.0)
+App.ActiveDocument.ViewRot.X = 290.0
+App.ActiveDocument.ViewRot.Y = 30.0
+App.ActiveDocument.ViewRot.Scale = 1.0
+App.ActiveDocument.ViewRot.Rotation = 90.0
+App.ActiveDocument.Page.addObject(App.ActiveDocument.ViewRot) 
+}}
+
+Eine dritte Sicht auf das gleiche Objekt erstellen, aber mit einer isometrischen Ansichts-Richtung. Die verborgenen Linien sind auch aktiviert.
+{{Code|code=
+App.ActiveDocument.addObject('Drawing::FeatureViewPart','ViewIso')
+App.ActiveDocument.ViewIso.Source = App.ActiveDocument.Shape
+App.ActiveDocument.ViewIso.Direction = (1.0,1.0,1.0)
+App.ActiveDocument.ViewIso.X = 335.0
+App.ActiveDocument.ViewIso.Y = 140.0
+App.ActiveDocument.ViewIso.ShowHiddenLines = True
+App.ActiveDocument.Page.addObject(App.ActiveDocument.ViewIso) 
+}}
+
+Etwas ändern und aktualisieren. Der Aktualisierungsprozess ändert die Ansicht und die Seite.
+{{Code|code=
+App.ActiveDocument.View.X = 30.0
+App.ActiveDocument.View.Y = 30.0
+App.ActiveDocument.View.Scale = 1.5
+App.ActiveDocument.recompute()
+}}
+
+<span id="Accessing_the_bits_and_pieces"></span>
+=== Zugriff auf die Bits und Teile ===
+
+Das SVG-Fragment einer einzelnen Ansicht holen
+{{Code|code=
+ViewSVG = App.ActiveDocument.View.ViewResult
+print ViewSVG
+}}
+
+Die gesamte Ergebnisseite abrufen (es handelt sich um eine Datei im temporären Verzeichnis des Dokuments, nur Leserechte).
+{{Code|code=
+print "Resulting SVG document: ",App.ActiveDocument.Page.PageResult
+file = open(App.ActiveDocument.Page.PageResult,"r")
+print "Result page is ",len(file.readlines())," lines long"
+}}
+
+Wichtig: Die Datei freigeben!
+{{Code|code=
+del file
+}}
+ 
+
+Eine Ansicht mit eigenem Inhalt einfügen:
+{{Code|code=
+App.ActiveDocument.addObject('Drawing::FeatureView','ViewSelf')
+App.ActiveDocument.ViewSelf.ViewResult = """<g id="ViewSelf"
+  stroke="rgb(0, 0, 0)"
+  stroke-width="0.35"
+  stroke-linecap="butt"
+  stroke-linejoin="miter"
+  transform="translate(30,30)"
+  fill="#00cc00"
+  >
+
+  <ellipse cx="40" cy="40" rx="30" ry="15"/>
+  </g>"""
+App.ActiveDocument.Page.addObject(App.ActiveDocument.ViewSelf)
+App.ActiveDocument.recompute()
+
+del ViewSVG
+}}
+
+Das führt zu folgendem Ergebnis:
+
+[[Image:DrawingScriptResult.jpg]]
+
+<span id="General_dimensioning_and_tolerancing"></span>
+== Allgemeine Bemaßung und Toleranzen ==
+
+{{Emphasis|See also:}} [[Drawing Dimensioning Addon]]
+
+Die Zeichnungsmaße und Toleranzen befinden sich noch in der Entwicklung, aber mit etwas Aufwand können bereits einige grundlegende Funktionen benutzt werden.
+
+Zuerst muss das Python-Modul gdtsvg von hier heruntergeladen werden (ACHTUNG: Dies kann jederzeit nicht mehr funktionieren!): 
+
+https://github.com/jcc242/FreeCAD
+
+Um einen Feature-Kontrollrahmen zu erhalten, versucht man Folgendes:
+{{Code|code=
+import gdtsvg as g # Import the module, I like to give it an easy handle
+ourFrame = g.ControlFrame("0","0", g.Perpendicularity(), ".5", g.Diameter(), g.ModifyingSymbols("M"), "A",  
+           g.ModifyingSymbols("F"), "B", g.ModifyingSymbols("L"), "C", g.ModifyingSymbols("I"))
+}}
+
+Hier findet man eine gute Übersicht über den Inhalt eines Feature Control Frame: http://www.cadblog.net/adding-geometric-tolerances.htm
+
+Die an den Steuerungsrahmen zu übergebenden Parameter sind: 
+#X-Koordinate im SVG-Koordinatensystem (Typ String)
+#Y-Koordinate im SVG-Koordinatensystem (Typ String)
+#Das gewünschte geometrische Merkmalssymbol (Tupel, SVG-String als erstes, Breite des Symbols als zweites, Höhe des Symbols als drittes)
+#Die Toleranz (Typ String)
+#(optional) Das Durchmessersymbol (Tupel, SVG-String als erstes, Breite des Symbols als zweites, Höhe des Symbols als drittes)
+#(optional) Das bedingungsmodifizierende Material (Tupel, SVG-String als erstes, Breite des Symbols als zweites, Höhe des Symbols als drittes)
+#(optional) Die erste Bezugsgröße (Typ String)
+#(optional) Die modifizierende Bedingung der ersten Angabe (Tupel, SVG-Zeichenfolge als erstes, Breite des Symbols als zweites, Höhe des Symbols als drittes)
+#(optional) Die zweite Angabe (Typ: Zeichenfolge)
+#(optional) Die modifizierende Bedingung der zweiten Angabe (Tupel, SVG-Zeichenfolge als erstes, Breite des Symbols als zweites, Höhe des Symbols als drittes)
+#(optional) Die dritte Angabe (Typ: Zeichenfolge)
+#(optional) Die Materialbedingung des dritten Datums (Tupel, SVG-Zeichenfolge als erstes, Breite des Symbols als zweites, Höhe des Symbols als drittes)
+
+Die Funktion ControlFrame gibt einen Typ zurück, der Folgendes enthält: (SVG-Zeichenfolge, Gesamtbreite des Steuerungsrahmens, Gesamthöhe des Steuerungsrahmens)'''
+
+Um eine Bemassung zu erhalten, probiert man Folgendes aus:
+{{Code|code=
+import gdtsvg
+ourDimension = linearDimension(point1, point2, textpoint, dimensiontext, linestyle=getStyle("visible"), 
+               arrowstyle=getStyle("filled"), textstyle=getStyle("text")
+}}
+
+Eingaben für lineare Bemaßungen sind:
+#point1, ein (x,y)-Tupel mit SVG-Koordinaten, dies ist einer der Punkte, zwischen denen Sie bemaßen möchten.
+#point2, ein (x,y)-Tupel mit SVG-Koordinaten, dies ist der zweite Punkt, zwischen dem Sie bemaßen möchten.
+#textpoint, ein (x,y)-Tupel mit SVG-Koordinaten, hier wird der Text Ihrer Bemaßung angezeigt
+#dimensiontext, eine Zeichenfolge mit dem Text, den die Bemaßung anzeigen soll
+#linestyle, eine Zeichenfolge mit SVG-Stilen (d. h. CSS), wobei die Funktion getStyle verwendet wird, um eine voreingestellte Zeichenfolge abzurufen, mit der das Aussehen der Linien gestaltet wird
+#arrowstyle, eine Zeichenfolge mit SVG-Stilen (d. h. CSS-Stilen), wobei die Funktion getStyle verwendet wird, um eine voreingestellte Zeichenfolge abzurufen, mit der das Aussehen der Pfeile gestaltet wird
+#textstyle, eine Zeichenfolge mit SVG-Stilen (d. h. CSS-Stilen), wobei die Funktion getStyle verwendet wird, um eine voreingestellte Zeichenfolge abzurufen, mit der das Aussehen des Textes gestaltet wird 
+
+Mit diesen beiden kann man wie oben beschrieben vorgehen, um sie auf der Zeichnungsseite anzuzeigen. Dieses Modul ist sehr fehlerhaft und kann jederzeit ausfallen. Fehlermeldungen sind vorerst auf der GitHub-Seite willkommen, oder man wendet sich an jcc242 in den Foren, wenn man einen Fehler an anderer Stelle melden möchte.
+
+{{Powerdocnavi{{#translation:}}}}
+[[Category:Developer Documentation{{#translation:}}]]
+[[Category:Python Code{{#translation:}}]]
+{{Drawing Tools navi{{#translation:}}}}
+{{clear}}
