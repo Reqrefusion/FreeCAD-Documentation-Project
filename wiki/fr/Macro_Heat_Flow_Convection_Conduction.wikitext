@@ -1,0 +1,391 @@
+<languages/>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Macro
+|Name=Macro Heat Flow Convection Conduction
+|Description=This macro calculates the heat flow rate in one direction due to convection and (or) conduction, when the phenomenon is in steady state. It also calculates the temperatures between the layers of the materials.
+|Author=Garlic
+|Download=[https://www.freecadweb.org/wiki/images/2/2c/Text-x-python.png Text-x-python.png]
+|Links=[https://git.disroot.org/CrowdDiscussesAlternatives/ScriptsForFreeCAD/src/branch/master/Thermal/HeatFlowConvectionConduction_documentation.pdf Heat Flow Convection Conduction Documentation]
+|Date=2025-09-14
+|Version=0.0.2
+|FCVersion= All
+}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Description==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This is an algorithm that calculates thermal flow due to conduction and/or convection in one direction (e.g. a wall layered with various materials such as plaster, bricks and insulation, or a window with double glass and an enclosed cavity filled with air etc.). The phenomenon must be in steady state (i.e. not variable with time).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The input of the data must be written in a spreadsheet in [https://freecad.org FreeCAD] and the results are written in the same spreadsheet, a few lines below the last written row. This input data must include (in a specific order) the thermal properties of the materials of the layers that the thermal flow occurs, the thickness of each layer, the area, the temperature of the first and the last point in the direction of the thermal flow, the type of the phenomenon in each layer (e.g. [https://en.wikipedia.org/wiki/Thermal_conduction conduction], or forced [https://en.wikipedia.org/wiki/Convection convection], or free convection at a horizontal, vertical, inclined surface, or an enclosed cavity). The results are the heat flow rate (in Watts), the relative accuracy of the calculations (the algorithm uses thermal flow equations and solves the problem in iterations, trying to converge) and the calculated temperatures of the two surfaces on each layer.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Installation==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Please note that you need to do the following steps only once:
+# From the menu of FreeCAD, go to {{MenuCommand|Macro → Macros...}}
+# Find which is the path written in the field '''"User macros location:"'''
+# Open this folder with the file explorer (or any other file management application).
+# Download the files '''HeatFlowConvectionConduction.py''', '''Thermal.py''' and '''SpreadsheetDataReadWrite.py''' from https://git.disroot.org/CrowdDiscussesAlternatives/ScriptsForFreeCAD/src/branch/master/Thermal and paste them in this folder.
+# {{Button|Close}} the [[Std_DlgMacroExecute|Execute macro dialog box]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[How_to_install_macros|Here]], you can find more info on how to manually install macros.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Usage==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The following examples demonstrate how to use this script.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Example 1===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In this example, the heat flow rate that flows through a double glazed window, is calculated. It is given that the ambient air temperature inside the room is 25°C, and the ambient air temperature outside the window is 10°C. The size of the window is 0.57m height &times; 0.43m width (i.e. an area of 0.2451 m<sup>2</sup>). The thickness of each glass is 4mm (i.e. 0.004m) and the air gap in between is 16mm.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In order to use the algorithm, firstly, open the FreeCAD application. Then, select the [[Spreadsheet_Workbench|Spreadsheet Workbench]], create a new [[Image:Std_New.svg|16px]] [[Std_New|document]] and after that, create a new [[File:Spreadsheet_CreateSheet.svg|16px]] [[Spreadsheet_CreateSheet|spreadsheet]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+====Input data====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The algorithm searches the first column of the spreadsheet, in order to find the first number. When it finds it, it assumes that this is the id of the first layer. It then searches for the id of the second layer. If five subsequent rows have not a number in the first column, then it assumes that there are not other layers. The rows in between the data of the layers can be used in order to write the units, comments etc. The properties of each layer must be written in a specific order.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+For this example, the data in the spreadsheet can be written as illustrated in the picture below.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[File:HeatFlowConvectionConduction Macro Example1 InputData.png]]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Row 4 has the data of the layer with id 1. This is the layer that convection takes place between the ambient air outside the window and the outer surface of the outer glass of the window. '''The units of the data are in [https://en.wikipedia.org/wiki/International_System_of_Units S.I.]''' (metric system).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Temp. 1 is the ambient outdoor temperature, in Kelvins (which is known: 10°C + 273.15 = 283.15K).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Temp. 2 is the temperature of the outer surface of the outer glass and is roughly estimated to be 286.15K. This is an initial value for the solver to start the first iteration. This temperature will be calculated and presented in the results. In order to estimate an initial value, we used the following equation: (25 - 10) / 5 = 3, where 25°C is the indoor temperature, 10°C is the outdoor temperature and 5 are the number of the layers, so we added 3 to 283.15K.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.2451m<sup>2</sup> is the area of the window.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+2 is the number that specifies the category of ''“free convection on an inclined or a vertical surface”'' (as a mechanism of heat transfer in this layer).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+101325Pa is the atmospheric pressure at sea level.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.7 (70% / 100) is the relative humidity of the outdoor ambient air.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.57m is the characteristic length (for a free convection on a vertical plane, the characteristic length is the height of the plane).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0 degrees is the angle between the plane and the Vertical.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Please note that in order for the algorithm to understand the data, these must be written in the above order''' (without empty cells in between), when the heat transfer mechanism is free convection on a vertical plane.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Row 7 has the data of the layer that conduction occurs on the outer glass of the window. 2 is the id of this layer.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Temp. 1 is the temperature of the outer surface of the outer glass and is roughly estimated to be 286.15K (it must have the same value of temp. 2 of the previous layer, since it refers to the same surface).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Temp. 2 is the temperature of the inner surface of the outer glass (i.e. the surface that is in contact with the air that is enclosed between the two glasses) and is roughly estimated to be 289.15K (the previous temperature plus 3K). This temperature will be calculated by the solver.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.2451m<sup>2</sup> is the area of the window.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+1 is the number that specifies the category of ''“conduction”'' (as a mechanism of heat transfer in this layer).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.96 W / (m &times; K) is the thermal conductivity of the glass [https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html]. There are various tables on the internet that have the thermal properties of the most common materials. You can also use the [[Material Workbench]] to view the properties of a [[Std SetMaterial|material]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.004m is the thickness of the glass.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The above order is the one that the data must be written on the spreadsheet, when concerning conduction.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Row 10 has the data of the layer of the air that is trapped between the two glasses. 3 is the id of this layer.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+289.15K is the roughly estimated temperature of the inner surface of the outer glass.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+292.15K is the roughly estimated temperature of the opposite surface that encloses the air (i.e. the surface of the other glass that is in contact with the trapped air). This temperature will also be calculated by the solver.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.2451m<sup>2</sup> is the area of the window.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+4 is the number that specifies the category of ''“free convection in an enclosure”'' (as a mechanism of heat transfer in this layer). Please note that the set of equations in the algorithm (for this case) is only suitable for small gaps, similar to the gap in a double glazed window (i.e. less than 0.05m) [https://iopscience.iop.org/article/10.1088/1757-899X/939/1/012049/pdf].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+101325Pa is the atmospheric pressure at sea level.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.2 (20% / 100) is the relative humidity of the enclosed air.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.016m is the characteristic length (for a free convection in an enclosure, the characteristic length is the thickness of the air gap, i.e. the distance between the two glasses).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Row 13 has the data of the layer with id 4, which concerns the conduction (category 1) that occurs at the second glass of the window.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Row 16 has the data of the layer with id 5, which concerns the free convection (category 2) that occurs at the surface of the second glass of the window that is in contact with the ambient air of the room. Note that the Temp. 2 of this layer is 298.15K which is 25°C (a given value in this example).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Please note that the used equations are valid for a range of values concerning the input data (the comments in the script [https://git.disroot.org/CrowdDiscussesAlternatives/ScriptsForFreeCAD/src/branch/master/Thermal/Thermal.py Thermal.py] specify these ranges). '''If these ranges are exceeded, then warnings (or errors) are printed in the [[Python Console]] of the FreeCAD.'''
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+====Executing the script====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In order for the algorithm to run, you need to open the [[Python Console]] on FreeCAD, and execute the code below (i.e. copy-paste each line of the code below separately and press each time {{Button|Enter}}).
+</div>
+
+{{Code|lang=python|code=
+import HeatFlowConvectionConduction
+heatFlowObj = HeatFlowConvectionConduction.HeatFlowConvectionConduction()
+heatFlowObj.calcHeatFlowConvectionConduction()
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Please note that once you open FreeCAD, you need to copy-paste the first two lines of this code only once (the first line imports the script and the second line creates an object). Then, every time you want to execute the algorithm of the script (in order to read the data of the spreadsheet, run the solver, and present the results), just copy-paste the third line of the code above and then press {{Button|Enter}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The results are written in the same spreadsheet, three rows below the last written row (please have in mind that the algorithm checks only if the first ten columns in seven subsequent rows are empty, and if true, it considers that it has found “the last written row”).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+====Results====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[File:HeatFlowConvectionConduction Macro Example1 Results.png]]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The heat flow rate is 2.62W. We firstly wrote the lower temperature, thus the minus symbol in the picture above indicates that the flow is in the opposite direction (i.e. from the higher temperature to the lower).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The relative accuracy is 0.76% (the solver of the algorithm terminates if the relative accuracy is less than 5%, or the number of iterations are more than ten - you can change these limits by altering their values in the {{incode|simulate_thermal_flow}} function inside the script).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The temperatures of each layer are calculated. The rest of the input data are also printed again for each layer, for clarity.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Example 2===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+A wind with speed 10m/sec, humidity 40%, and temperature 10°C flows in parallel with the width of a wall, which has 5m width &times; 3m height, and which its surface has a temperature of 11°C.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In order to calculate the heat flow rate, we need to write the data on the spreadsheet, in the correct order.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+1 is the id of the layer.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+283.15K is the temperature of the air (the temperature of the wall could also have been written firstly).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+284.15K is the temperature of the surface of the wall.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+15m<sup>2</sup> is the area of the surface.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+5 specifies the category ''“forced convection parallel to a flat surface”''.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+101325Pa is the atmospheric pressure at sea level.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.4 is the relative humidity divided by 100.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+5m is the characteristic length (for forced convection, it is the dimension of the surface that is parallel to the flow).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+10m/sec is the speed of flow.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The results show that the heat flow rate is 367.18W.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Example 3===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The surface of a terrace has an area of 50m<sup>2</sup> (10m length &times; 5m width) and a temperature of 11°C. The outdoor ambient temperature is 10°C and the humidity is 50%.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In order to calculate the heat flow rate, we need to enter these data in a correct order.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+1 is the id of the layer.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+283.15K is the temperature of the ambient air (i.e. the temperature of the fluid outside the [https://en.wikipedia.org/wiki/Thermal_boundary_layer_thickness_and_shape thermal boundary layer], in Kelvins).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+284.15K is the temperature of the surface of the terrace.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+50m<sup>2</sup> is the area of the surface.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+3 specifies the category ''“free convection on a horizontal surface”''.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+101325Pa is the atmospheric pressure at sea level.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+0.5 is the relative humidity divided by 100.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+1.67m is the characteristic length (for free convection on a horizontal surface it is the area of the surface divided by the perimeter: 50 / (10 + 5 + 10 + 5)). '''Please note that in order for the data to be read correctly, you should write in the cell of the spreadsheet 1.67 (and not = 50 / (10 + 5 + 10 + 5)).'''
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+1 is the direction of the surface. Since the air is on the top of the surface, this entry must be 1. If the air was at the bottom of the surface (e.g. in the case of a ceiling) then you should write -1.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+2 is the last written data in the row, and it specifies that temp. 1 is the temperature of the air and temp. 2 is the temperature of the surface. If you had written firstly the temperature of the surface and secondly the temperature of the air, then this last entry should be 1.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The results show that the heat flow rate is 92.55W
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Simulated cases of heat transfer===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The above examples cover the five cases (categories) that the algorithm in the script can calculate heat flow:
+* Category 1: Conduction.
+* Category 2: Free convection on an inclined or a vertical surface.
+* Category 3: Free convection on a horizontal surface.
+* Category 4: Free convection in an enclosure (for small gaps, similar to the gap in a double glazed window).
+* Category 5: Forced convection parallel to a flat surface.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Scripts==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You can download the files HeatFlowConvectionConduction.py, Thermal.py and
+SpreadsheetDataReadWrite.py from:
+</div>
+
+https://git.disroot.org/CrowdDiscussesAlternatives/ScriptsForFreeCAD/src/branch/master/Thermal
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Links==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The forum discussion: [https://forum.freecad.org/viewtopic.php?t=99795 Presenting HeatFlowConvectionConduction macro]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The documentation of this script in pdf format: [https://git.disroot.org/CrowdDiscussesAlternatives/ScriptsForFreeCAD/src/branch/master/Thermal/HeatFlowConvectionConduction_documentation.pdf Heat Flow Convection Conduction Documentation]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==References==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+# [https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html Thermal Conductivity of Common Materials - Solids, Liquids and Gases]
+# Heat transfer through a double-glazed window by convection, V А Маiоrоv. Citation V A Maiorov 2020 IOP Conf. Ser.: Mater. Sci. Eng. 939 012049, DOI 10.1088/1757-899X/939/1/012049. https://iopscience.iop.org/article/10.1088/1757-899X/939/1/012049/pdf
+# Heat Transfer Handbook, by Adrian Bejan and Allan D. Kraus
+</div>
