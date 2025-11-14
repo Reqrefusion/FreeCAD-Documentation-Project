@@ -3,20 +3,14 @@
 <span id="Introduction"></span>
 ==Einleitung==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-It is possible to [[Embedding_FreeCAD|import the FreeCAD module]] into a [[Python|Python]] application, and use all its tools from the host application, but the graphical user interface (GUI) can be imported as a Python module as well. Normally you can only import the complete interface as a whole, not pieces of it; this is because the FreeCAD interface system is not only made of independent widgets and toolbars, but is a complex construction where several invisible components (such as the selection system, etc) are needed for the main [[3D_view|3D view]] to be able to function.
-</div>
+Es ist möglich, das FreeCAD-Modul in eine Python-Anwendung zu importieren und alle seine Werkzeuge aus der Host-Anwendung heraus zu verwenden, aber auch die grafische Benutzeroberfläche (GUI) kann als Python-Modul importiert werden. Normalerweise kann nur die gesamte Schnittstelle als Ganzes importiert werden, nicht einzelne Teile davon. Der Grund dafür ist, dass das FreeCAD-Schnittstellensystem nicht nur aus unabhängigen Widgets und Symbolleisten besteht, sondern eine komplexe Konstruktion ist, bei der mehrere unsichtbare Komponenten (wie das Auswahlsystem usw.) erforderlich sind, damit die Haupt-[[3D_View/de|3D-Ansicht]] funktionieren kann.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-But, with a bit of hacking, it is possible to import the whole FreeCAD interface, then move the 3D view from it to your own Qt application. We show here 3 different methods.
-</div>
+Mit ein wenig Hacking ist es jedoch möglich, die gesamte FreeCAD-Oberfläche zu importieren und dann die 3D-Ansicht daraus in Ihre eigene Qt-Anwendung zu verschieben. Wir zeigen hier drei verschiedene Methoden.
 
 <span id="Using_the_FreeCAD_3D_view_widget_directly"></span>
 ==Direktes Nutzen des FreeCAD 3D-Ansichts-Widget==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Be aware that there are a lot of problems with this approach. The Qt event handling doesn't seem to work (no idea why) and if you use the 3d view's context-menu the application crashes. A better way could be to create your own 3d view SoQtExaminerViewer or SoQtViewer and "push" the content of FreeCAD's 3d view to your view, as shown in the other sections below.
-</div>
+Man beachte, dass dieser Ansatz viele Probleme mit sich bringt. Die Qt-Ereignisbehandlung scheint nicht zu funktionieren (keine Ahnung warum) und wenn man das Kontextmenü der 3D-Ansicht verwendet, stürzt die Anwendung ab. Eine bessere Möglichkeit wäre, eine eigene 3D-Ansicht SoQtExaminerViewer oder SoQtViewer zu erstellen und den Inhalt der 3D-Ansicht von FreeCAD in diese Ansicht zu "pushen", wie in den anderen Abschnitten unten gezeigt.
 
 Zuerst das Hauptfenster über [[PySide/de|PySide]] holen:
 {{Code|code=
@@ -33,9 +27,7 @@ def getMainWindow():
 mw = getMainWindow()
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Then get the View3DInventor view the same way:
-</div>
+Dann die Ansicht View3DInventor auf die gleiche Weise aufrufen:
 {{Code|code=
 def get3dview(mw):
       childs=mw.findChildren(QtGui.QMainWindow)
@@ -47,9 +39,7 @@ def get3dview(mw):
 v = get3dview(mw)
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-The following code is generated automatically, by [[Dialog_creation|creating a Ui-file with QtDesigner]], and converting it to python code with the pyuic tool:
-</div>
+Der folgende Code wird automatisch generiert, indem [[Dialog_creation/de|eine Ui-Datei mit QtDesigner erstellt]], und mit dem pyuic-Tool in Python-Code konvertiert wird:
 {{Code|code=
 # -*- coding: utf-8 -*-
 
@@ -95,9 +85,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Then, create a main window that should be your application's main window, apply the UI setup above to it in order to add an MDI area and "move" our [[3D_view|3D view]] to it.
-</div>
+Dann ein Hauptfenster erstellen, das das Hauptfenster der Anwendung sein soll, die oben beschriebene UI-Einrichtung darauf anwenden, um einen MDI-Bereich hinzuzufügen und unsere [[3D_view/de|3D-Ansicht]] dorthin zu "verschieben".
 {{Code|code=
 ui = Ui_MainWindow()
 my_mw = QtGui.QMainWindow()
@@ -106,13 +94,10 @@ ui.mdiArea.addSubWindow(v)
 my_mw.show()
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-==Creating a soGui Examiner Viewer==
-</div>
+<span id="Creating_a_soGui_Examiner_Viewer"></span>
+==Einen soGui Examiner-Viewer erzeugen==
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Alternatively, you can also use the FreeCADGui module to extract a OpenInventor (Coin) representation of the objects of your scene, then use that data in an external viewer (your application). Here is an easy way to get the 3D representation of an object.
-</div>
+Alternativ kann auch das FreeCADGui-Modul verwendet werden, um eine OpenInventor (Coin)-Darstellung der Objekte der Szene zu extrahieren und diese Daten dann in einem externen Viewer (der Anwendung) zu verwenden. Hier ist eine einfache Möglichkeit, die 3D-Darstellung eines Objekts zu erhalten.
 {{Code|code=
 from pivy import coin
 import FreeCAD as App
@@ -124,9 +109,7 @@ inp.setBuffer(s)
 myNode = coin.SoDB.readAll(inp)  # restore from string
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Then, create a standalone viewer with [[Pivy|Pivy]]:
-</div>
+Dann einen eigenständigen Viewer mit [[Pivy/de|Pivy]] erstellen:
 {{Code|code=
 from pivy.sogui import *
 from pivy.coin import *
@@ -155,9 +138,7 @@ def myViewer():
     SoGui.mainLoop()     # Main Coin event loop
 }}
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Then you just need to run your viewer:
-</div>
+Dann muss nur noch der Viewer gestartet werden:
 {{Code|code=
 myViewer()
 }}
