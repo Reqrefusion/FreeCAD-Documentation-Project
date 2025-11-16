@@ -1,5 +1,6 @@
 <languages/>
 
+<div class="mw-translate-fuzzy">
 {{Macro/fr
 |Name=Macro Polyhedrons
 |Name/fr=Macro Polyhedrons
@@ -12,6 +13,7 @@
 |Download=|Download=[https://wiki.freecad.org/images/a/a4/Dodecahedron.svg Icône de la barre d'outils]
 |SeeAlso=[[Macro_Pyramid/fr|Macro Pyramid]]
 }}
+</div>
 
 ==Description==
 
@@ -82,10 +84,15 @@ Icône de la barre d'outils [[File:Dodecahedron.svg|36px]]
 
 __Title__   = "Macro_Polyhedrons"
 __Author__  = "Eddy Verlinden"
-__Version__ = "01.04"
-__Date__    = "2020-02-25"
+__Version__ = "01.05"
+__Date__    = "2025-11-15"
 __Comment__ = "This macro creates parametric polyhedrons."
 
+
+# version 1.05 (2025-11-15)
+# follow Qt5 namespacing
+# added flag for local styling - original style choices not great dark themes
+# no functional changes
 
 # version 1.04 (2020-02-25)
 # correction : value of the side of icosahedron-truncated 
@@ -97,15 +104,19 @@ __Comment__ = "This macro creates parametric polyhedrons."
 # ver 01.02 (2020-01-10) 
 #  => first release
 
-import FreeCAD,FreeCADGui
-import Part
+
 import math
 import sys, time
-from PySide import QtGui, QtCore
+
+from PySide import QtGui, QtCore, QtWidgets
+
+import FreeCAD, FreeCADGui
 from FreeCAD import Base
+import Part
 
+LOCAL_STYLE = False
 
-def horizontal_regular_polygon_vertexes(sidescount,radius,z, startangle = 0):
+def horizontal_regular_polygon_vertexes(sidescount, radius, z, startangle=0):
     vertexes = []
     if radius != 0 :
         for i in range(0,sidescount+1):
@@ -131,7 +142,7 @@ class Tetrahedron:
     radiusvalue = 0  
       
     def __init__(self, obj, radius=5):
-        obj.addProperty("App::PropertyLength","Radius","Tetrahedron","Radius of the tetrahedron").Radius=radius
+        obj.addProperty("App::PropertyLength","Radius","Tetrahedron","Radius of the tetrahedron").Radius = radius
         obj.addProperty("App::PropertyLength","Side","Tetrahedron","Sidelength of the tetrahedron")
         obj.Proxy = self
 
@@ -148,15 +159,15 @@ class Tetrahedron:
             radius = self.radiusvalue
             
         faces = []        
-        vertexes_bottom = horizontal_regular_polygon_vertexes(3,4*radius/3/math.sqrt(2),- radius / 3)
-        vertexes_top    = horizontal_regular_polygon_vertexes(1,0,radius)
+        vertexes_bottom = horizontal_regular_polygon_vertexes(3, 4 * radius / 3 / math.sqrt(2), - radius / 3)
+        vertexes_top    = horizontal_regular_polygon_vertexes(1, 0, radius)
         
         for i in range(3):
-            vertexes_side=[vertexes_bottom[i],vertexes_bottom[i+1],vertexes_top[0],vertexes_bottom[i]]
-            polygon_side=Part.makePolygon(vertexes_side)
+            vertexes_side = [vertexes_bottom[i], vertexes_bottom[i+1], vertexes_top[0], vertexes_bottom[i]]
+            polygon_side = Part.makePolygon(vertexes_side)
             faces.append(Part.Face(polygon_side))
 
-        polygon_bottom=Part.makePolygon(vertexes_bottom)
+        polygon_bottom = Part.makePolygon(vertexes_bottom)
         
         faces.append(Part.Face(polygon_bottom))
         shell = Part.makeShell(faces)
@@ -173,7 +184,7 @@ class Hexahedron:
     radiusvalue = 0  
     
     def __init__(self, obj, radius=5):
-        obj.addProperty("App::PropertyLength","Radius","Hexahedron","Radius of the hexahedron").Radius=radius
+        obj.addProperty("App::PropertyLength","Radius","Hexahedron","Radius of the hexahedron").Radius = radius
         obj.addProperty("App::PropertyLength","Side","Hexahedron","Sidelength of the hexahedron")
         obj.Proxy = self
 
@@ -191,18 +202,18 @@ class Hexahedron:
             side = obj.Side       
              
         faces = []
-        vertexes_bottom = horizontal_regular_polygon_vertexes(4,math.sqrt(side ** 2 / 2),- side/2, math.pi/4)
-        vertexes_top    = horizontal_regular_polygon_vertexes(4,math.sqrt(side ** 2 / 2), side/2, math.pi/4)
+        vertexes_bottom = horizontal_regular_polygon_vertexes(4, math.sqrt(side ** 2 / 2), -side/2, math.pi/4)
+        vertexes_top    = horizontal_regular_polygon_vertexes(4, math.sqrt(side ** 2 / 2), side/2, math.pi/4)
 
         for i in range(4):
-            vertexes_side=[vertexes_bottom[i],vertexes_bottom[i+1],vertexes_top[i+1],vertexes_top[i],vertexes_bottom[i]]
-            polygon_side=Part.makePolygon(vertexes_side)
+            vertexes_side = [vertexes_bottom[i], vertexes_bottom[i+1], vertexes_top[i+1], vertexes_top[i], vertexes_bottom[i]]
+            polygon_side = Part.makePolygon(vertexes_side)
             faces.append(Part.Face(polygon_side))
 
-        polygon_bottom=Part.makePolygon(vertexes_bottom)
+        polygon_bottom = Part.makePolygon(vertexes_bottom)
         faces.append(Part.Face(polygon_bottom))
         
-        polygon_top=Part.makePolygon(vertexes_top)
+        polygon_top = Part.makePolygon(vertexes_top)
         faces.append(Part.Face(polygon_top))
 
         shell = Part.makeShell(faces)
@@ -216,7 +227,7 @@ class Octahedron:
     radiusvalue = 0  
     
     def __init__(self, obj, radius=5):
-        obj.addProperty("App::PropertyLength","Radius","Octahedron","Radius of the octahedron").Radius=radius
+        obj.addProperty("App::PropertyLength","Radius","Octahedron","Radius of the octahedron").Radius = radius
         obj.addProperty("App::PropertyLength","Side","Octahedron","Sidelength of the octahedron")
         obj.Proxy = self
   
@@ -232,18 +243,18 @@ class Octahedron:
             radius = self.radiusvalue 
 
         faces = []
-        vertexes_middle = horizontal_regular_polygon_vertexes(4,radius,0)
-        vertexes_bottom = horizontal_regular_polygon_vertexes(1,0,-radius)
-        vertexes_top    = horizontal_regular_polygon_vertexes(1,0,radius)
+        vertexes_middle = horizontal_regular_polygon_vertexes(4, radius, 0)
+        vertexes_bottom = horizontal_regular_polygon_vertexes(1, 0,-radius)
+        vertexes_top    = horizontal_regular_polygon_vertexes(1, 0, radius)
 
         for i in range(4):
-            vertexes_side=[vertexes_middle[i],vertexes_middle[i+1],vertexes_top[0],vertexes_middle[i]]
-            polygon_side=Part.makePolygon(vertexes_side)
+            vertexes_side = [vertexes_middle[i], vertexes_middle[i+1], vertexes_top[0], vertexes_middle[i]]
+            polygon_side = Part.makePolygon(vertexes_side)
             faces.append(Part.Face(polygon_side))
 
         for i in range(4):
-            vertexes_side=[vertexes_middle[i],vertexes_middle[i+1],vertexes_bottom[0],vertexes_middle[i]]
-            polygon_side=Part.makePolygon(vertexes_side)
+            vertexes_side = [vertexes_middle[i], vertexes_middle[i+1], vertexes_bottom[0], vertexes_middle[i]]
+            polygon_side = Part.makePolygon(vertexes_side)
             faces.append(Part.Face(polygon_side))
 
         shell = Part.makeShell(faces)
@@ -259,7 +270,7 @@ class Dodecahedron:
     radiusvalue = 0  
    
     def __init__(self, obj, radius=5):
-        obj.addProperty("App::PropertyLength","Radius","Dodecahedron","Radius of the dodecahedron").Radius=radius
+        obj.addProperty("App::PropertyLength","Radius","Dodecahedron","Radius of the dodecahedron").Radius = radius
         obj.addProperty("App::PropertyLength","Side","Dodecahedron","Sidelength of the dodecahedron")
         obj.Proxy = self
     
@@ -285,21 +296,21 @@ class Dodecahedron:
 
         h2 = z * math.sin(angleribs/180 * math.pi)
 
-        #height of the side-tips
+        # height of the side-tips
         radius1 = z / 2 / math.sin(36 * math.pi / 180)
         h5h = (radius1 + radius1 * math.cos(36 * math.pi / 180))   * math.sin(anglefaces * math.pi / 180) #height of the tops
 
         radius2 = radius1 - z * math.cos(angleribs * math.pi / 180 )
 
-        r=(h2 + h5h)/2  # XXX to make it fit!
+        r = (h2 + h5h) / 2  # XXX to make it fit!
 
 
 
 
-        vertexes_bottom = horizontal_regular_polygon_vertexes(5,radius1,-r)
-        vertexes_low = horizontal_regular_polygon_vertexes(5,radius2, -r + h2)
-        vertexes_high = horizontal_regular_polygon_vertexes(5,radius2, -r + h5h,  math.pi/5)
-        vertexes_top = horizontal_regular_polygon_vertexes(5,radius1, r, math.pi/5)
+        vertexes_bottom = horizontal_regular_polygon_vertexes(5, radius1, -r)
+        vertexes_low = horizontal_regular_polygon_vertexes(5, radius2, -r + h2)
+        vertexes_high = horizontal_regular_polygon_vertexes(5, radius2, -r + h5h,  math.pi/5)
+        vertexes_top = horizontal_regular_polygon_vertexes(5, radius1, r, math.pi/5)
 
         polygon_bottom = Part.makePolygon(vertexes_bottom)
         face_bottom = Part.Face(polygon_bottom)
@@ -310,14 +321,14 @@ class Dodecahedron:
         faces.append(face_top)
 
         for i in range(5):
-            vertexes_side=[vertexes_bottom[i],vertexes_bottom[i+1],vertexes_low[i+1],vertexes_high[i],vertexes_low[i], vertexes_bottom[i] ]
-            polygon_side=Part.makePolygon(vertexes_side)
+            vertexes_side = [vertexes_bottom[i],vertexes_bottom[i+1],vertexes_low[i+1],vertexes_high[i],vertexes_low[i], vertexes_bottom[i]]
+            polygon_side = Part.makePolygon(vertexes_side)
             faces.append(Part.Face(polygon_side))
 
         for i in range(5):
             #vertexes_side=[vertexes_top[i],vertexes_top[i+1],vertexes_high[i+1],vertexes_high2[i], vertexes_high[i],vertexes_top[i] ]
-            vertexes_side=[vertexes_top[i],vertexes_top[i+1],vertexes_high[i+1],vertexes_low[i+1],vertexes_high[i],vertexes_top[i] ]
-            polygon_side=Part.makePolygon(vertexes_side)
+            vertexes_side = [vertexes_top[i], vertexes_top[i+1], vertexes_high[i+1], vertexes_low[i+1], vertexes_high[i], vertexes_top[i]]
+            polygon_side = Part.makePolygon(vertexes_side)
             faces.append(Part.Face(polygon_side))
 
         shell = Part.makeShell(faces)
@@ -332,7 +343,7 @@ class Icosahedron:
     radiusvalue = 0  
 
     def __init__(self, obj, radius=5):
-        obj.addProperty("App::PropertyLength","Radius","Icosahedron","Radius of the icosahedron").Radius=radius
+        obj.addProperty("App::PropertyLength","Radius","Icosahedron","Radius of the icosahedron").Radius = radius
         obj.addProperty("App::PropertyLength","Side","Icosahedron","Sidelength of the icosahedron")
         obj.Proxy = self
 
@@ -341,7 +352,7 @@ class Icosahedron:
 
         radius = float(obj.Radius)
         if (radius != self.radiusvalue):
-            obj.Side = 4*radius / math.sqrt(10 + 2 * math.sqrt(5))
+            obj.Side = 4 * radius / math.sqrt(10 + 2 * math.sqrt(5))
             self.radiusvalue = radius
         else:
             self.radiusvalue = float(obj.Side * math.sqrt(10 + 2 * math.sqrt(5)) / 4)
@@ -349,14 +360,14 @@ class Icosahedron:
             radius = self.radiusvalue
             
 
-        z = 4*radius / math.sqrt(10 + 2 * math.sqrt(5))
+        z = 4  * radius / math.sqrt(10 + 2 * math.sqrt(5))
         anglefaces = 138.189685104
         r = z/12 * math.sqrt(3) * (3 + math.sqrt(5))
 
 
-        #radius of a pentagon with the same side
-        radius2 = z / math.sin(36 * math.pi/180)/2
-        #height of radius2 in the sphere
+        # radius of a pentagon with the same side
+        radius2 = z / math.sin(36 * math.pi/180) / 2
+        # height of radius2 in the sphere
 
         angle = math.acos(radius2/radius)
         height = radius * math.sin(angle)
@@ -364,27 +375,27 @@ class Icosahedron:
         faces = []
 
         vertex_bottom = (0,0,-radius)
-        vertexes_low = horizontal_regular_polygon_vertexes(5,radius2, -height)
-        vertexes_high = horizontal_regular_polygon_vertexes(5,radius2, height, math.pi/5)
-        vertex_top = (0,0,radius)
+        vertexes_low = horizontal_regular_polygon_vertexes(5, radius2, -height)
+        vertexes_high = horizontal_regular_polygon_vertexes(5, radius2, height, math.pi/5)
+        vertex_top = (0, 0, radius)
 
 
         for i in range(5):
-            vertexes_side=[vertex_bottom,vertexes_low[i],vertexes_low[i+1], vertex_bottom]
-            polygon_side=Part.makePolygon(vertexes_side)
+            vertexes_side = [vertex_bottom,vertexes_low[i], vertexes_low[i+1],  vertex_bottom]
+            polygon_side = Part.makePolygon(vertexes_side)
             faces.append(Part.Face(polygon_side))
 
         for i in range(5):
-            vertexes_side=[vertexes_low[i],vertexes_low[i+1],vertexes_high[i],vertexes_low[i] ]
-            polygon_side=Part.makePolygon(vertexes_side)
+            vertexes_side = [vertexes_low[i], vertexes_low[i+1], vertexes_high[i], vertexes_low[i]]
+            polygon_side = Part.makePolygon(vertexes_side)
             faces.append(Part.Face(polygon_side))
-            vertexes_side=[vertexes_high[i],vertexes_high[i+1],vertexes_low[i+1],vertexes_high[i] ]
-            polygon_side=Part.makePolygon(vertexes_side)
+            vertexes_side = [vertexes_high[i], vertexes_high[i+1], vertexes_low[i+1], vertexes_high[i]]
+            polygon_side = Part.makePolygon(vertexes_side)
             faces.append(Part.Face(polygon_side))
 
         for i in range(5):
-            vertexes_side=[vertex_top,vertexes_high[i],vertexes_high[i+1],vertex_top ]
-            polygon_side=Part.makePolygon(vertexes_side)
+            vertexes_side = [vertex_top,vertexes_high[i], vertexes_high[i+1], vertex_top]
+            polygon_side = Part.makePolygon(vertexes_side)
             faces.append(Part.Face(polygon_side))
 
         shell = Part.makeShell(faces)
@@ -400,7 +411,7 @@ class Icosahedron_truncated:
     radiusvalue = 0  
 
     def __init__(self, obj, radius=5):
-        obj.addProperty("App::PropertyLength","Radius","Icosahedron_truncated","Radius (of the base-icosahedron)").Radius=radius
+        obj.addProperty("App::PropertyLength","Radius","Icosahedron_truncated","Radius (of the base-icosahedron)").Radius = radius
         obj.addProperty("App::PropertyLength","Side","Icosahedron_truncated","Sidelength of the truncated icosahedron")
         obj.Proxy = self
 
@@ -408,7 +419,7 @@ class Icosahedron_truncated:
 
         radius = float(obj.Radius)
         if (radius != self.radiusvalue):
-            obj.Side = 4*radius / math.sqrt(10 + 2 * math.sqrt(5)) / 3
+            obj.Side = 4 * radius / math.sqrt(10 + 2 * math.sqrt(5)) / 3
             self.radiusvalue = radius
         else:
             self.radiusvalue = float(obj.Side * math.sqrt(10 + 2 * math.sqrt(5)) / 4) * 3
@@ -419,19 +430,19 @@ class Icosahedron_truncated:
         anglefaces = 138.189685104
         r = z/12 * math.sqrt(3) * (3 + math.sqrt(5))
 
-        #radius of a pentagon with the same side
-        radius2 = z / math.sin(36 * math.pi/180)/2
+        # radius of a pentagon with the same side
+        radius2 = z / math.sin(36 * math.pi/180) / 2
 
-        #height of radius2 in the sphere
+        # height of radius2 in the sphere
         angle = math.acos(radius2/radius)
         height = radius * math.sin(angle)
 
         faces = []
 
-        vertex_bottom = (0,0,-radius)
-        vertexes_low = horizontal_regular_polygon_vertexes(5,radius2, -height)
-        vertexes_high = horizontal_regular_polygon_vertexes(5,radius2, height,  -math.pi/5)
-        vertex_top = (0,0,radius)
+        vertex_bottom = (0, 0, -radius)
+        vertexes_low = horizontal_regular_polygon_vertexes(5, radius2, -height)
+        vertexes_high = horizontal_regular_polygon_vertexes(5, radius2, height,  -math.pi/5)
+        vertex_top = (0, 0, radius)
 
         vertexes_bottom = []
         vertexes_top = []
@@ -439,39 +450,39 @@ class Icosahedron_truncated:
         for i in range(6):
             new_vertex = ((vertex_bottom[0]+vertexes_low[i][0])/3 , (vertex_bottom[1]+vertexes_low[i][1])/3 , vertex_bottom[2]-(vertex_bottom[2]-vertexes_low[i][2])/3)
             vertexes_bottom.append(new_vertex)
-        polygon_side=Part.makePolygon(vertexes_bottom)
+        polygon_side = Part.makePolygon(vertexes_bottom)
         faces.append(Part.Face(polygon_side))
 
         for i in range(6):
             new_vertex = ((vertex_top[0]+vertexes_high[i][0])/3 , (vertex_top[1]+vertexes_high[i][1])/3 , vertex_top[2]-(vertex_top[2]-vertexes_high[i][2])/3)
             vertexes_top.append(new_vertex)
-        polygon_side=Part.makePolygon(vertexes_top)
+        polygon_side = Part.makePolygon(vertexes_top)
         faces.append(Part.Face(polygon_side))
 
         pg6_bottom = []
         for i in range(5):
-            vertex1=vertexes_bottom[i]
-            vertex2=vertexes_bottom[i+1]
-            vertex3=(vertexes_bottom[i+1][0] + (vertexes_low[i+1][0] - vertexes_bottom[i+1][0])/2, vertexes_bottom[i+1][1] + (vertexes_low[i+1][1] - vertexes_bottom[i+1][1])/2, (vertexes_low[i+1][2] + vertexes_bottom[i+1][2])/2)
-            vertex4=((vertexes_low[i+1][0]*2 +vertexes_low[i][0])/3, (vertexes_low[i+1][1]*2 +vertexes_low[i][1])/3, -height)
-            vertex5=((vertexes_low[i+1][0]+vertexes_low[i][0]*2)/3, (vertexes_low[i+1][1] +vertexes_low[i][1]*2)/3, -height)
-            vertex6=(vertexes_bottom[i][0] + (vertexes_low[i][0] - vertexes_bottom[i][0])/2, vertexes_bottom[i][1] + (vertexes_low[i][1] - vertexes_bottom[i][1])/2, (vertexes_low[i][2] + vertexes_bottom[i][2])/2)
-            vertexes = [vertex1,vertex2,vertex3,vertex4,vertex5,vertex6,vertex1]
+            vertex1 = vertexes_bottom[i]
+            vertex2 = vertexes_bottom[i+1]
+            vertex3 = (vertexes_bottom[i+1][0] + (vertexes_low[i+1][0] - vertexes_bottom[i+1][0])/2, vertexes_bottom[i+1][1] + (vertexes_low[i+1][1] - vertexes_bottom[i+1][1])/2, (vertexes_low[i+1][2] + vertexes_bottom[i+1][2])/2)
+            vertex4 = ((vertexes_low[i+1][0]*2 + vertexes_low[i][0])/3, (vertexes_low[i+1][1]*2 + vertexes_low[i][1])/3, -height)
+            vertex5 =((vertexes_low[i+1][0] + vertexes_low[i][0]*2)/3, (vertexes_low[i+1][1] + vertexes_low[i][1]*2)/3, -height)
+            vertex6 = (vertexes_bottom[i][0] + (vertexes_low[i][0] - vertexes_bottom[i][0])/2, vertexes_bottom[i][1] + (vertexes_low[i][1] - vertexes_bottom[i][1])/2, (vertexes_low[i][2] + vertexes_bottom[i][2])/2)
+            vertexes = [vertex1, vertex2, vertex3, vertex4, vertex5, vertex6, vertex1]
             pg6_bottom.append(vertexes)
-            polygon_side=Part.makePolygon(vertexes)
+            polygon_side = Part.makePolygon(vertexes)
             faces.append(Part.Face(polygon_side))
 
         pg6_top = []
         for i in range(5):
-            vertex1=vertexes_top[i]
-            vertex2=vertexes_top[i+1]
-            vertex3=(vertexes_top[i+1][0] + (vertexes_high[i+1][0] - vertexes_top[i+1][0])/2, vertexes_top[i+1][1] + (vertexes_high[i+1][1] - vertexes_top[i+1][1])/2, (vertexes_high[i+1][2] + vertexes_top[i+1][2])/2)
+            vertex1 = vertexes_top[i]
+            vertex2 = vertexes_top[i+1]
+            vertex3 = (vertexes_top[i+1][0] + (vertexes_high[i+1][0] - vertexes_top[i+1][0])/2, vertexes_top[i+1][1] + (vertexes_high[i+1][1] - vertexes_top[i+1][1])/2, (vertexes_high[i+1][2] + vertexes_top[i+1][2])/2)
             vertex4=((vertexes_high[i+1][0]*2 +vertexes_high[i][0])/3, (vertexes_high[i+1][1]*2 +vertexes_high[i][1])/3, height)
-            vertex5=((vertexes_high[i+1][0]+vertexes_high[i][0]*2)/3, (vertexes_high[i+1][1] +vertexes_high[i][1]*2)/3, height)
-            vertex6=(vertexes_top[i][0] + (vertexes_high[i][0] - vertexes_top[i][0])/2, vertexes_top[i][1] + (vertexes_high[i][1] - vertexes_top[i][1])/2, (vertexes_high[i][2] + vertexes_top[i][2])/2)
-            vertexes = [vertex1,vertex2,vertex3,vertex4, vertex5,vertex6,vertex1]
+            vertex5 = ((vertexes_high[i+1][0]+vertexes_high[i][0]*2)/3, (vertexes_high[i+1][1] +vertexes_high[i][1]*2)/3, height)
+            vertex6 = (vertexes_top[i][0] + (vertexes_high[i][0] - vertexes_top[i][0])/2, vertexes_top[i][1] + (vertexes_high[i][1] - vertexes_top[i][1])/2, (vertexes_high[i][2] + vertexes_top[i][2])/2)
+            vertexes = [vertex1, vertex2, vertex3, vertex4, vertex5, vertex6, vertex1]
             pg6_top.append(vertexes)
-            polygon_side=Part.makePolygon(vertexes)
+            polygon_side = Part.makePolygon(vertexes)
             faces.append(Part.Face(polygon_side))
 
         pg6_low = []
@@ -482,9 +493,9 @@ class Icosahedron_truncated:
             vertex4 = ((vertexes_low[i][0] + vertexes_high[i+1][0]*2)/3,(vertexes_low[i][1] + vertexes_high[i+1][1]*2)/3, (vertexes_low[i][2] + vertexes_high[i+1][2]*2)/3)
             vertex5 = ((vertexes_low[i+1][0] + vertexes_high[i+1][0]*2)/3,(vertexes_low[i+1][1] + vertexes_high[i+1][1]*2)/3, (vertexes_low[i+1][2] + vertexes_high[i+1][2]*2)/3)
             vertex6 = ((vertexes_low[i+1][0]*2 + vertexes_high[i+1][0])/3,(vertexes_low[i+1][1]*2 + vertexes_high[i+1][1])/3, (vertexes_low[i+1][2]*2 + vertexes_high[i+1][2])/3)
-            vertexes = [vertex1,vertex2,vertex3,vertex4, vertex5,vertex6,vertex1]
+            vertexes = [vertex1, vertex2, vertex3, vertex4, vertex5, vertex6, vertex1]
             pg6_low.append(vertexes)
-            polygon_side=Part.makePolygon(vertexes)
+            polygon_side = Part.makePolygon(vertexes)
             faces.append(Part.Face(polygon_side))
 
         pg6_high = []
@@ -495,9 +506,9 @@ class Icosahedron_truncated:
             vertex4 = pg6_low[i-1][5]
             vertex5 = pg6_low[i][2]
             vertex6 = pg6_low[i][3]
-            vertexes = [vertex1,vertex2, vertex3, vertex4,vertex5,vertex6 ,vertex1]
+            vertexes = [vertex1, vertex2, vertex3, vertex4, vertex5, vertex6, vertex1]
             pg6_high.append(vertexes)
-            polygon_side=Part.makePolygon(vertexes)
+            polygon_side = Part.makePolygon(vertexes)
             faces.append(Part.Face(polygon_side))
 
         for i in range(5):
@@ -506,8 +517,8 @@ class Icosahedron_truncated:
             vertex3 = pg6_high[i-1][6]
             vertex4 = pg6_high[i-1][5]
             vertex5 = pg6_low[i-1][4]
-            vertexes = [vertex1,vertex2, vertex3,vertex4,vertex5,vertex1]
-            polygon_side=Part.makePolygon(vertexes)
+            vertexes = [vertex1, vertex2, vertex3, vertex4, vertex5, vertex1]
+            polygon_side = Part.makePolygon(vertexes)
             faces.append(Part.Face(polygon_side))
 
         for i in range(5):
@@ -516,8 +527,8 @@ class Icosahedron_truncated:
             vertex3 = pg6_low[i-1][6]
             vertex4 = pg6_low[i-1][5]
             vertex5 = pg6_high[i][4]
-            vertexes = [vertex1,vertex2, vertex3,vertex4,vertex5, vertex1]
-            polygon_side=Part.makePolygon(vertexes)
+            vertexes = [vertex1, vertex2, vertex3, vertex4, vertex5, vertex1]
+            polygon_side = Part.makePolygon(vertexes)
             faces.append(Part.Face(polygon_side))
 
 
@@ -531,7 +542,8 @@ class Icosahedron_truncated:
 
 def geodesic_radius2side(radius, div):
     # approximative experience values! Not all sides are equal!
-    dictsides = {"2":618.034, "3":412.41, "4":312.87,"5":245.09,"6":205.91,"7":173.53,"8":152.96,"9":135.96,"10":121.55}
+    dictsides = {"2": 618.034, "3": 412.41, "4": 312.87, "5": 245.09, "6": 205.91,
+                 "7": 173.53, "8": 152.96, "9": 135.96, "10":121.55}
     div = int(round(div))
     if div < 0:
         return 0
@@ -543,7 +555,8 @@ def geodesic_radius2side(radius, div):
 
 def geodesic_side2radius(side, div):
     # approximative experience values!  Not all sides are equal!
-    dictsides = {"2":618.034, "3":412.41, "4":312.87,"5":245.09,"6":205.91,"7":173.53,"8":152.96,"9":135.96,"10":121.55}
+    dictsides = {"2": 618.034, "3": 412.41, "4": 312.87, "5": 245.09, "6": 205.91,
+                 "7": 173.53, "8": 152.96, "9": 135.96, "10": 121.55}
     div = int(round(div))
     if div < 0:
         return 0
@@ -563,14 +576,14 @@ class Geodesic_sphere:
 
 
     def __init__(self, obj, radius=5, div=2):
-        obj.addProperty("App::PropertyLength","Radius","Geodesic","Radius of the sphere").Radius=radius
+        obj.addProperty("App::PropertyLength","Radius","Geodesic","Radius of the sphere").Radius = radius
         obj.addProperty("App::PropertyLength","Side","Geodesic","Sidelength of the triangles (approximative!)")
         obj.addProperty("App::PropertyInteger","DividedBy","Geodesic","The sides of the icosahedron are divided in x").DividedBy = div
 
         obj.Proxy = self
 
     
-    def geodesic_divide_triangles(self,vertex1, vertex2, vertex3, faces):
+    def geodesic_divide_triangles(self, vertex1, vertex2, vertex3, faces):
         
         vector1 = (Base.Vector(vertex2) - Base.Vector(vertex1)) / self.divided_by
         vector2 = (Base.Vector(vertex3) - Base.Vector(vertex2)) / self.divided_by
@@ -593,7 +606,7 @@ class Geodesic_sphere:
                 vertex1x = icosaPt[str(level*10+1+point)].normalize().multiply(self.radiusvalue)
                 vertex2x = icosaPt[str(level*10+11+point)].normalize().multiply(self.radiusvalue)
                 vertex3x = icosaPt[str(level*10+12+point)].normalize().multiply(self.radiusvalue)
-                polygon = Part.makePolygon([vertex1x,vertex2x,vertex3x, vertex1x])
+                polygon = Part.makePolygon([vertex1x, vertex2x, vertex3x, vertex1x])
                 faces.append(Part.Face(polygon))
 
             for point in range(level):
@@ -626,35 +639,35 @@ class Geodesic_sphere:
             
         self.divided_by = obj.DividedBy   
 
-        z = 4*radius / math.sqrt(10 + 2 * math.sqrt(5))
+        z = 4 * radius / math.sqrt(10 + 2 * math.sqrt(5))
         anglefaces = 138.189685104
         r = z/12 * math.sqrt(3) * (3 + math.sqrt(5))
 
 
-        #radius of a pentagram with the same side
-        radius2 = z / math.sin(36 * math.pi/180)/2
+        # radius of a pentagram with the same side
+        radius2 = z / math.sin(36 * math.pi/180) / 2
         
-        #height of radius2 in the sphere
-        angle = math.acos(radius2/radius)
+        # height of radius2 in the sphere
+        angle = math.acos(radius2 / radius)
         height = radius * math.sin(angle)
 
         faces = []
 
-        vertex_bottom = (0,0,-radius)
-        vertexes_low = horizontal_regular_polygon_vertexes(5,radius2, -height)
-        vertexes_high = horizontal_regular_polygon_vertexes(5,radius2, height, math.pi/5)
-        vertex_top = (0,0,radius)
+        vertex_bottom = (0 ,0, -radius)
+        vertexes_low = horizontal_regular_polygon_vertexes(5, radius2, -height)
+        vertexes_high = horizontal_regular_polygon_vertexes(5, radius2, height, math.pi/5)
+        vertex_top = (0, 0, radius)
         
         for i in range(5):
-            faces = self.geodesic_divide_triangles(vertex_bottom,vertexes_low[i+1],vertexes_low[i],faces)
+            faces = self.geodesic_divide_triangles(vertex_bottom, vertexes_low[i+1], vertexes_low[i], faces)
 
         
         for i in range(5):
-            faces = self.geodesic_divide_triangles(vertexes_high[i],vertexes_low[i+1],vertexes_low[i],faces)
-            faces = self.geodesic_divide_triangles(vertexes_low[i+1],vertexes_high[i+1],vertexes_high[i],faces)
+            faces = self.geodesic_divide_triangles(vertexes_high[i], vertexes_low[i+1], vertexes_low[i], faces)
+            faces = self.geodesic_divide_triangles(vertexes_low[i+1], vertexes_high[i+1], vertexes_high[i], faces)
 
         for i in range(5):
-            faces = self.geodesic_divide_triangles(vertex_top,vertexes_high[i],vertexes_high[i+1],faces)
+            faces = self.geodesic_divide_triangles(vertex_top, vertexes_high[i], vertexes_high[i+1], faces)
 
         
         shell = Part.makeShell(faces)
@@ -678,13 +691,13 @@ class ViewProviderBox:
     def updateData(self, fp, prop):
         return
 
-    def getDisplayModes(self,obj):
+    def getDisplayModes(self, obj):
         return "As Is"
         
     def getDefaultDisplayMode(self):
         return "As Is"
 
-    def setDisplayMode(self,mode):
+    def setDisplayMode(self, mode):
         return "As Is"
 
     def onChanged(self, vobj, prop):
@@ -741,18 +754,18 @@ class ViewProviderBox:
     def __getstate__(self):
         return None
 
-    def __setstate__(self,state):
+    def __setstate__(self, state):
         return None
         
         
 # ===========================================================================  
 
 def msgbox(s):
-    msg = QtGui.QMessageBox()
-    msg.setIcon(QtGui.QMessageBox.Information)
+    msg = QtWidgets.QMessageBox()
+    msg.setIcon(QtWidgets.QMessageBox.Information)
     msg.setText(s)
     msg.setWindowTitle("Message")
-    msg.setStandardButtons(QtGui.QMessageBox.Ok )
+    msg.setStandardButtons(QtWidgets.QMessageBox.Ok )
     retval = msg.exec_()
 
 
@@ -760,7 +773,7 @@ def msgbox(s):
 
 
 
-class polyhedron_dialog(QtGui.QWidget):
+class polyhedron_dialog(QtWidgets.QWidget):
     
     polyhedronname = ""
 
@@ -770,18 +783,20 @@ class polyhedron_dialog(QtGui.QWidget):
         self.initUI()
 
     def initUI(self):
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
 
-        button = QtGui.QPushButton('Cancel')
-        button.setStyleSheet("color:blue")
+        button = QtWidgets.QPushButton('Cancel')
+        if LOCAL_STYLE:
+            button.setStyleSheet("color:blue")
         grid.addWidget(button, 10, 3)
         button.clicked.connect(self.cancel_method)
-        button2 = QtGui.QPushButton('OK')
-        button2.setStyleSheet("color:blue")
+        button2 = QtWidgets.QPushButton('OK')
+        if LOCAL_STYLE:
+            button2.setStyleSheet("color:blue")
         grid.addWidget(button2, 10, 5)
         button2.clicked.connect(self.slot_method)
 
-        self.listBox = QtGui.QListWidget(self)
+        self.listBox = QtWidgets.QListWidget(self)
         grid.addWidget(self.listBox, 0, 3)
         self.listBox.addItem("tetrahedron")
         self.listBox.addItem("hexahedron")
@@ -792,19 +807,21 @@ class polyhedron_dialog(QtGui.QWidget):
         self.listBox.addItem("geodesic-sphere")
         self.listBox.itemClicked.connect(self.listwidgetclicked)
 
-        grid.addWidget(QtGui.QLabel('radius :'), 3, 2)
-        self.radius = QtGui.QLineEdit("5")
-        self.radius.setStyleSheet("background : white; font-weight:bold; padding-left:10px")
-        grid.addWidget(self.radius,3,3)
+        grid.addWidget(QtWidgets.QLabel('radius :'), 3, 2)
+        self.radius = QtWidgets.QLineEdit("5")
+        if LOCAL_STYLE:
+            self.radius.setStyleSheet("background : white; font-weight:bold; padding-left:10px")
+        grid.addWidget(self.radius, 3, 3)
 
-        grid.addWidget(QtGui.QLabel('or sidelength:'), 3, 4)
-        self.side = QtGui.QLineEdit()
-        self.side.setStyleSheet("background : white; font-weight:bold; padding-left:10px")
-        grid.addWidget(self.side, 3,5)
+        grid.addWidget(QtWidgets.QLabel('or sidelength:'), 3, 4)
+        self.side = QtWidgets.QLineEdit()
+        if LOCAL_STYLE:
+            self.side.setStyleSheet("background : white; font-weight:bold; padding-left:10px")
+        grid.addWidget(self.side, 3, 5)
 
-        self.warning = QtGui.QLineEdit()
+        self.warning = QtWidgets.QLineEdit()
         self.warning.setStyleSheet("color : red")
-        grid.addWidget(self.warning, 5,3)
+        grid.addWidget(self.warning, 5, 3)
 
 
         self.setLayout(grid)
@@ -844,7 +861,7 @@ class polyhedron_dialog(QtGui.QWidget):
             if FreeCAD.ActiveDocument == None:
                 FreeCAD.newDocument() 
                       
-            obj=FreeCAD.ActiveDocument.addObject("Part::FeaturePython",self.listBox.currentItem().text())
+            obj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython", self.listBox.currentItem().text())
 
             if self.listBox.currentItem().text() == "tetrahedron":
                 if radius==0:
@@ -875,7 +892,7 @@ class polyhedron_dialog(QtGui.QWidget):
                     radius = side / 2 * math.sqrt(10 + 2 * math.sqrt(5))
                 Geodesic_sphere(obj,radius)  
                                   
-            obj.ViewObject.Proxy=0
+            obj.ViewObject.Proxy = 0
             ViewProviderBox(obj.ViewObject, self.listBox.item)
             FreeCAD.ActiveDocument.recompute()
             FreeCADGui.SendMsgToActiveView("ViewFit")                
@@ -887,6 +904,5 @@ class polyhedron_dialog(QtGui.QWidget):
 
 
 mainaction = polyhedron_dialog()
-
 
 }}
