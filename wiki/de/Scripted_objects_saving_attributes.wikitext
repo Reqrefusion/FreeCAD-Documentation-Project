@@ -99,13 +99,13 @@ class CustomStates:
         self.width = state[1]
 }}
 
-The return value of {{incode|dumps}} is the object that will be serialized. This can be a single value, or a tuple of values. When the object is restored, the class calls the {{incode|loads}} method, passing the {{incode|state}} variable with the serialized content. In this case {{incode|state}} is a tuple that is unpacked into the respective variables to reconstruct the "state" that original existed.
+Der Rückgabewert von {{incode|dumps}} ist das Objekt, das serialisiert wird. Dies kann ein einzelner Wert oder ein Tupel von Werten sein. Wenn das Objekt wiederhergestellt wird, ruft die Klasse die Methode {{incode|loads}} auf und übergibt dabei die Variable {{incode|state}} mit dem serialisierten Inhalt. In diesem Fall ist {{incode|state}} ein Tupel, das in die entsprechenden Variablen entpackt wird, um den ursprünglich vorhandenen ''Zustand'' wiederherzustellen.
 {{Code|code=
 state = (self.color, self.width)
 state = ((0, 0, 1), 2.5)
 }}
 
-We can create an object with this class, and save the document, just like in the previous example. When we re-open the file we can inspect the dictionary of the object's class.
+Wir können mit dieser Klasse ein Objekt erstellen und das Dokument speichern, genau wie im vorherigen Beispiel. Wenn wir die Datei erneut öffnen, können wir das Wörterbuch der Klasse des Objekts überprüfen.
 {{Code|code=
 >>> obj2 = App.ActiveDocument.Custom2
 >>> print(obj2.Proxy)
@@ -114,7 +114,7 @@ We can create an object with this class, and save the document, just like in the
 {'color': [0, 0, 1], 'width': 2.5}
 }}
 
-The original tuple for {{incode|self.color}} was converted to a list, but otherwise the information was recovered fine. Instead of restoring all attributes like in the previous case, only the attributes that we specified in {{incode|dumps}} and {{incode|loads}} were restored.
+Das ursprüngliche Tupel für {{incode|self.color}} wurde in eine Liste konvertiert, aber ansonsten wurden die Informationen einwandfrei wiederhergestellt. Anstatt wie im vorherigen Fall alle Attribute wiederherzustellen, wurden nur die Attribute wiederhergestellt, die wir in {{incode|dumps}} und {{incode|loads}} angegeben hatten.
 
 <span id="Usage"></span>
 == Anwendung ==
@@ -122,11 +122,11 @@ The original tuple for {{incode|self.color}} was converted to a list, but otherw
 <span id="Identifying_the_type"></span>
 === Identifizieren des Typs ===
 
-Normally, [[scripted_objects|scripted objects]] should use [[property|properties]] to store information, as these are automatically restored when the document is opened.
+Normalerweise sollten [[Scripted_objects/de|Skriptgenerierte Objekte]] [[Property/de|Eigenschaften]] zum Speichern von Informationen verwenden, da diese beim Öffnen des Dokuments automatisch wiederhergestellt werden.
 
-However, sometimes the class restore internal information which is not intended to be modified, but which is helpful to inspect.
+Manchmal stellt die Klasse jedoch interne Informationen wieder her, die nicht geändert werden sollen, deren Überprüfung jedoch hilfreich ist.
 
-For example, most objects of the [[Draft_Workbench|Draft Workbench]] set up a {{incode|Type}} attribute that can be used to determine the type of object that is under use.
+Beispielsweise richten die meisten Objekte des [[Draft_Workbench|Arbeitsbereichs Draft]] ein {{incode|Type}}-Attribut ein, mit dem der Typ des verwendeten Objekts bestimmt werden kann.
 
 {{Code|code=
 class DraftObject:
@@ -141,7 +141,7 @@ class DraftObject:
             self.Type = state
 }}
 
-All objects have a {{incode|TypeId}} property, but for [[scripted_objects|scripted objects]] this property is not useful, as it always refers to the parent C++ class, for example, [[Part_Part2DObject|{{incode|Part::Part2DObjectPython}}]] or [[Part_Feature|{{incode|Part::FeaturePython}}]]. Therefore, having this additional {{incode|Proxy.Type}} attribute in the class is useful to treat each object in a particular way.
+Alle Objekte haben eine {{incode|TypeId}}-Eigenschaft, aber für [[scripted_objects/de|skriptgenerierte Objekte]] ist diese Eigenschaft nicht nützlich, da sie sich immer auf die übergeordnete C++-Klasse bezieht, zum Beispiel [[Part_Part2DObject/de|{{incode|Part::Part2DObjectPython}}]] oder [[Part_Feature/de|{{incode|Part::FeaturePython}}]] verweist. Daher ist es sinnvoll, dieses zusätzliche Attribut {{incode|Proxy.Type}} in der Klasse zu haben, um jedes Objekt auf eine bestimmte Weise zu behandeln.
 
 <span id="Migrating_the_object"></span>
 === Das Objekt migrieren ===
@@ -163,7 +163,7 @@ class CustomObject:
             self.version = state[1]
 }}
 
-If the structure of the class changes, that is, if its properties or methods change, are renamed, or are removed, we could test the version attribute in order to migrate the older object to a new set of properties or to a new class. This can be done by implementing the {{incode|onDocumentRestored}} method, as explained in [[Scripted_objects_migration|Scripted objects migration]].
+Wenn sich die Struktur der Klasse ändert, d. h. wenn ihre Eigenschaften oder Methoden geändert, umbenannt oder entfernt werden, könnten wir das Versionsattribut testen, um das ältere Objekt auf einen neuen Satz von Eigenschaften oder eine neue Klasse zu migrieren. Dies kann durch Implementierung der Methode {{incode|onDocumentRestored}} erfolgen, wie in [[Scripted_objects_migration/de|Migration skriptgesteuerter Objekte]] erläutert.
 
 {{Code|code=
 class CustomObject:
@@ -183,8 +183,8 @@ class CustomObject:
 * [[Scripted_objects_migration/de|Migration geskripteter Objekte]]
 * [https://forum.freecadweb.org/viewtopic.php?f=10&t=49120 FreeCAD Forums-Diskussion: Skriptbasierte Objektserialisierung: json oder pickle?]
 
-* [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009 obj.Proxy.Type is a dict, not a string], explanation of {{incode|dumps}} and {{incode|loads}} in the forum.
-* [https://docs.python.org/3/library/pickle.html#object.__getstate__ The Pickle module] in the Python documentation.
+* [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009 obj.Proxy.Type ist ein Dict, kein String], Erklärung von {{incode|dumps}} und {{incode|loads}} im Forum.
+* [https://docs.python.org/3/library/pickle.html#object.__getstate__ Das Pickle-Modul] in der Python-Dokumentation.
 
 {{Powerdocnavi{{#translation:}}}}
 [[Category:Developer Documentation{{#translation:}}]]
