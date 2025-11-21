@@ -1,54 +1,119 @@
-import requests
-import json
 
-# Define the API URL
-url = "https://wiki.freecad.org/api.php"
+'''
+Fetches all pages from the FreeCAD wiki using the MediaWiki API.
+https://www.mediawiki.org/wiki/API:Allpages
+'''
 
-# Set API parameters
-params = {
-    "action": "query",
-    "list": "allpages",
-    "aplimit": "max",  # Get the maximum number of pages
-    "format": "json"
-}
+from requests import get
+from typing import TypedDict , Optional , List , Any
+from time import sleep
+from json import dump
+from os import system , name
 
-all_pages = []  # Store all pages here
-continue_param = {}  # Store the API's continue parameter
-page_count = 0  # Track the total number of pages retrieved
 
-while True:
-    # Send request to the API
-    print(f"Sending request to the API... (Total pages retrieved so far: {page_count})")
-    response = requests.get(url, params={**params, **continue_param})
-    
-    # Check the request status
-    if response.status_code == 200:
-        print("Request successful!")
-    else:
-        print(f"Request failed! HTTP Code: {response.status_code}")
+class Page ( TypedDict ):
+    pageid : int
+    title : str
+    ns : int
+
+class Query ( TypedDict ):
+    allpages : List[ Page ]
+
+
+Data = TypedDict('Data',{
+    'continue' : Optional[ dict[ Any , Any ] ] ,
+    'query' : Query
+})
+
+
+Server = 'https://wiki.freecad.org/api.php'
+Output = 'all_pages.json'
+
+
+pointer : None | dict[ Any , Any ] = {}
+'''Optional pointer to the next pages'''
+
+page_list : List[ Page ] = []
+
+
+def clearConsole ():
+    system('cls' if name == 'nt' else 'clear')
+
+
+def writePages ( pages : List[ Page ] ):
+
+    file = open(
+        encoding = 'utf-8' ,
+        file = Output ,
+        mode = 'w'
+    )
+
+    with file :
+        dump(
+            ensure_ascii = False ,
+            indent = 4 ,
+            obj = pages ,
+            fp = file
+        )
+
+
+def fetchPage () -> None | bool :
+
+    global page_list , pointer
+
+    clearConsole()
+
+    print(f'Fetching pages ..',end = ' ')
+
+    params = {
+        ** ( pointer or {} ) ,
+        'aplimit' : 'max' ,
+        'action' : 'query' ,
+        'format' : 'json' ,
+        'list' : 'allpages'
+    }
+
+    response = get(Server,params)
+
+    if not response.ok :
+        print(f'❌')
+        print(f'Status : { response.status_code }')
+        print(f'Message : { response.text }')
+        pass
+
+    print(f'✅')
+
+    data : Data = response.json()
+
+    pages = data[ 'query' ][ 'allpages' ]
+
+    print(f'Fetched pages : { len(page_list) } ( +{ len(pages) } )')
+
+    page_list.extend(pages)
+
+    pointer = data.get('continue')
+
+    if pointer :
+        print(f'Found more pages.')
+        return True
+
+
+def fetchAllPages ():
+
+    while True :
+
+        if fetchPage() :
+            sleep(1)
+            continue
+
         break
 
-    data = response.json()
 
-    # Accumulate the pages retrieved
-    page_count_in_response = len(data['query']['allpages'])
-    all_pages.extend(data['query']['allpages'])
-    page_count += page_count_in_response
 
-    # Provide feedback on the number of pages retrieved
-    print(f"{page_count_in_response} pages retrieved. Total pages so far: {page_count}")
+fetchAllPages()
 
-    # Check if the API has a "continue" parameter to get more pages
-    if 'continue' in data:
-        continue_param = data['continue']
-        print(f"Continue parameter found: {continue_param}. Preparing the next request...\n")
-    else:
-        print("All pages have been retrieved!")
-        break  # Exit the loop if there is no more data
+writePages(page_list)
 
-# Save the result to a JSON file
-with open('all_pages.json', 'w', encoding='utf-8') as f:
-    json.dump(all_pages, f, ensure_ascii=False, indent=4)
+clearConsole()
 
-print(f"\nAll pages successfully saved to 'all_pages.json'.")
-print(f"Total number of pages retrieved: {page_count}")
+print(f'Wrote { len(page_list) } pages to { Output }')
