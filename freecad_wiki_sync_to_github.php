@@ -1,6 +1,8 @@
 <?php
 date_default_timezone_set('UTC');  // Set timezone to UTC
 
+$enableCronJob = true; // Set to false to disable cron-style polling
+
 $githubRepoPath = "Reqrefusion/FreeCAD-Documentation-Project";  // GitHub repository path
 
 $githubToken = "ghp_XXX"; // Place your GitHub API token here.
@@ -195,20 +197,50 @@ function sanitize_name($name) {
     return str_replace(array(' ', ':'), array('_', ';'), $name);  // Replace invalid characters
 }
 
-// Check for recent changes made in the last 20 minutes
-$currentTime = new DateTime(); // Get the current time
-$timeLimit = clone $currentTime;
-$timeLimit->modify('-35 minutes'); // Go back 35 minutes
+// Allow this script to be triggered directly (e.g. from a MediaWiki hook)
+$triggerPageTitle = isset($_REQUEST['page_title']) ? $_REQUEST['page_title'] : null;
+$triggerUser      = isset($_REQUEST['user']) ? $_REQUEST['user'] : null;
+$triggerComment   = isset($_REQUEST['comment']) ? $_REQUEST['comment'] : null;
 
-// Format the timestamp
-$timestampStart = $timeLimit->format('Y-m-d\TH:i:s\Z'); // 20 minutes ago timestamp
+// Prepare the structure that will be used as "recent changes"
+$recentChanges = null;
 
-$wikiRecentChangesUrl = "https://wiki.freecad.org/api.php?action=query&list=recentchanges&rcprop=title|timestamp|user|comment&rclimit=500&rcend=" . $timestampStart . "&format=json";
-echo $wikiRecentChangesUrl;
+// If we have an explicit page title, build a synthetic recentchanges entry
+if ($triggerPageTitle !== null && $triggerPageTitle !== '') {
+    $recentChanges = array(
+        'query' => array(
+            'recentchanges' => array(
+                array(
+                    'title'     => $triggerPageTitle,
+                    'user'      => $triggerUser ?: 'Unknown',
+                    'comment'   => $triggerComment ?: '',
+                    'timestamp' => gmdate('Y-m-d\TH:i:s\Z')
+                )
+            )
+        )
+    );
+} else {
+    // Normal cron-style behaviour: poll the wiki for recent changes
+    if (!$enableCronJob) {
+        echo "INFO: Cron job processing is disabled.<br>";
+        exit;
+    }
 
-// Fetch the recent changes from the Wiki API
-$recentChanges = file_get_contents($wikiRecentChangesUrl);
-$recentChanges = json_decode($recentChanges, true);
+    // Check for recent changes made in the last 20 minutes
+    $currentTime = new DateTime(); // Get the current time
+    $timeLimit = clone $currentTime;
+    $timeLimit->modify('-35 minutes'); // Go back 35 minutes
+
+    // Format the timestamp
+    $timestampStart = $timeLimit->format('Y-m-d\TH:i:s\Z'); // 20 minutes ago timestamp
+
+    $wikiRecentChangesUrl = "https://wiki.freecad.org/api.php?action=query&list=recentchanges&rcprop=title|timestamp|user|comment&rclimit=500&rcend=" . $timestampStart . "&format=json";
+    echo $wikiRecentChangesUrl;
+
+    // Fetch the recent changes from the Wiki API
+    $recentChanges = file_get_contents($wikiRecentChangesUrl);
+    $recentChanges = json_decode($recentChanges, true);
+}
 
 // If there are no errors, process the changes
 if (isset($recentChanges['query']['recentchanges'])) {
