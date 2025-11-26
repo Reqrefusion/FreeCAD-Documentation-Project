@@ -13,24 +13,24 @@ Der Arbeitsbereich FEM unterstützt schon viele unterschiedliche Randbedingungen
 
 Neue Randbedingungen, Gleichungen oder Löser hinzuzufügen ist hauptsächlich Routinearbeit. Aber beim ersten Mal ist es wahrscheinlich nicht so einfach, wie es aussieht. Ein Verständnis für die folgenden Themen wird hilfreich sein:
 
-* Python scripting in FreeCAD.
-** [[Python_scripting_tutorial|FreeCAD Scripting Tutorial]]
-** [[FreeCAD_Scripting_Basics|FreeCAD Scripting Basics]]
-* Extending FreeCAD with Python.
-** [[Scripted_objects|Scripted Objects]]
-* A solid understanding of the solver for which new objects shall be added (e.g. CalculiX or Elmer) is important.
-* A little knowledge about build systems, especially cmake (build system used by FreeCAD).
+* Python-Skripting in FreeCAD.
+** [[Python_scripting_tutorial/de|Tutorial Skripterstellung mit Python]]
+** [[FreeCAD_Scripting_Basics/de|Grundlagen der Skripterstellung in FreeCAD]]
+* FreeCAD mit Python erweitern.
+** [[Scripted_objects/de|Skriptgenerierte Objekte]]
+* Ein grundlegendes Verständnis des Lösers, für den neue Objekte hinzugefügt werden sollen (z. B. CalculiX oder Elmer), ist wichtig.
+* Ein wenig Wissen über Build-Systeme, insbesondere CMake (das von FreeCAD verwendete Build-System).
 
 <span id="Build_System_(cmake)"></span>
 == Build-System (cmake) ==
 
-The build system must be modified regardless of which objects shall be added o the FEM workbench. Every python module (file) must be registered. The FEM workbench requires every new python module to be registered in {{incode|Mod/Fem/CMakeLists.txt}}. This is true regardless of the type of the python module (GUI or non-GUI). Where exactly the module must be inserted depends on the role of the module. Solver, equations and constraints all use different lists. Searching for similar files and inserting the new file in the same list works most of the time.
+Das Build-System muss unabhängig davon geändert werden, welche Objekte zum Arbeitsbereich FEM hinzugefügt werden sollen. Jedes Python-Modul (Datei) muss registriert werden. Der Arbeitsbereich FEM erfordert, dass jedes neue Python-Modul in {{incode|Mod/Fem/CMakeLists.txt}} registriert wird. Dies gilt unabhängig vom Typ des Python-Moduls (GUI oder Nicht-GUI). Wo genau das Modul eingefügt werden muss, hängt von der Rolle des Moduls ab. Löser, Gleichungen und Beschränkungen verwenden alle unterschiedliche Listen. Meistens funktioniert es, nach ähnlichen Dateien zu suchen und die neue Datei in dieselbe Liste einzufügen.
 
-As an '''example''' lets add a new constraint called {{incode|pressure}} which is related to the '''flow equation'''. So, '''FlowPressure''' will widely used as <name> for this constraint. A new constraint requires at least the following new modules: 
+Als '''Beispiel''' fügen wir eine neue Einschränkung namens {{incode|pressure}} hinzu, die mit der '''Strömungsgleichung''' zusammenhängt. Daher wird '''FlowPressure''' häufig als Name für diese Beschränkung verwendet. Eine neue Beschränkung erfordert mindestens die folgenden neuen Module:
 * {{incode|constraint_<name>.py}}
 * {{incode|view_constraint_<name>.py}} 
-* {{incode|CommandFemConstraint<name>.py}} (may be unnecessary) 
-These three files must be added to {{incode|Mod/Fem/CMakeLists.txt}} as well as {{incode|Mod/Fem/App/CMakeLists.txt}}. All inserted lines of code are indicated by a starting '''+'''.
+* {{incode|CommandFemConstraint<name>.py}} (kann unnötig sein) 
+Diese drei Dateien müssen zu {{incode|Mod/Fem/CMakeLists.txt}} hinzugefügt werden, genauso wie  {{incode|Mod/Fem/App/CMakeLists.txt}}. Alle eingefügten Codezeilen werden durch einen Startbefehl gekennzeichnet. '''+'''.
 
 {{FileName|Mod/Fem/CMakeLists.txt}}
 
@@ -66,14 +66,14 @@ SET(FemGuiViewProvider_SRCS
 <span id="Source_Organization"></span>
 == Quellorganisation ==
 
-For organizing the python code the FEM module uses the following approach. The module is split into the following packages: 
-* {{incode|femobjects}}, which contains all non-GUI like python proxies for document objects and 
-* {{incode|femviewproviders}} containing everything GUI related like python proxies for view provider
-* C++ based task panels are stored in '{{incode|Gui}}',
-* icons can be found in '{{incode|Gui/Resources/icons/}}',
-* .ui files are stored in '{{incode|Gui/Resources/ui/}}' commands.
+Zur Organisation des Python-Codes verwendet das FEM-Modul den folgenden Ansatz. Das Modul ist in die folgenden Pakete unterteilt:
+* {{incode|femobjects}}, das alle nicht-GUI-ähnlichen Python-Proxys für Dokumentobjekte enthält, und
+* {{incode|femviewproviders}}, das alles GUI-bezogene wie Python-Proxys für View-Provider enthält
+* C++-basierte Aufgabenfelder werden in '{{incode|Gui}}' gespeichert,
+* Symbole finden sich in '{{incode|Gui/Resources/icons/}}',
+* .ui-Dateien werden in '{{incode|Gui/Resources/ui/}}' gespeichert.
 
-One package doesn't follow this pattern: {{incode|femsolver}}. It has its place on the same level as {{incode|femobjects}} and {{incode|femguiobjects}} ({{incode|src/Mod/Fem/femsolver}}). The package contains solver and equation related packages and modules and it is organized the following way:
+Ein Paket folgt diesem Muster nicht: {{incode|femsolver}}. Es befindet sich auf derselben Ebene wie {{incode|femobjects}} und {{incode|femguiobjects}} ({{incode|src/Mod/Fem/femsolver}}). Das Paket enthält Löser- und Gleichungs-bezogene Pakete und Module und ist wie folgt organisiert:
 
 <pre>
 .femsolver
@@ -88,20 +88,20 @@ One package doesn't follow this pattern: {{incode|femsolver}}. It has its place 
 <span id="Solver"></span>
 == Löser ==
 
-In FreeCAD a solver can be split into two parts: 
-* One is the document object used by the user to interact with the solver. Through it, solver parameters can be set and it is also used to control the solving process. 
-* The other one are the so called tasks of a solver. The solving process is split into those tasks, namely: ''check, prepare, solve and results''. Those do the actual work of exporting the analysis into a format understood by the solver executable, starting the executable and loading the results back into FreeCAD.
+In FreeCAD kann ein Löser in zwei Teile unterteilt werden:
+* Der eine Teil ist das Dokumentobjekt, das vom Benutzer zur Interaktion mit dem Löser verwendet wird. Über dieses Objekt können die Löser-Parameter eingestellt und der Lösungsprozess gesteuert werden. 
+* Der andere Teil sind die sogenannten Aufgaben eines Lösers. Der Lösungsprozess ist in diese Aufgaben unterteilt, nämlich: ''Prüfen, Vorbereiten, Lösen und Ergebnisse''. Diese übernehmen die eigentliche Arbeit, indem sie die Analyse in ein Format exportieren, das vom Löser-Programm verstanden wird, das Programm starten und die Ergebnisse wieder in FreeCAD laden.
 
-Most files related to a solver reside in a sub-package of the {{incode|femsolver}} package (e.g. for Elmer its in {{incode|femsolver/elmer}}). The following list enumerates all files related to the implementation of a solver. Those are the files that need to be copied and modified to add support for a new solver to FreeCAD. The given example is taken from the solver implementation of Elmer. 
+Die meisten Dateien, die sich auf einen Löser beziehen, befinden sich in einem Unterpaket des Pakets {{incode|femsolver}} (z. B. für Elmer in {{incode|femsolver/elmer}}). Die folgende Liste enthält alle Dateien, die mit der Implementierung eines Lösers zusammenhängen. Dies sind die Dateien, die kopiert und geändert werden müssen, um FreeCAD um einen neuen Löser zu erweitern. Das angegebene Beispiel stammt aus der Löser-Implementierung von Elmer. 
 
-* '''femsolver/elmer/solver.py:''' Document object visible in the tree-view. Implemented in python via a document proxy and view proxy.
-* '''femsolver/elmer/tasks.py:''' Module containing one task class per task required for a solver implementation. Those tasks divide the process of solving a analysis into the following steps: check, prepare, solve, results.
-* '''femcommands/commands.py:''' Adds the solver document object to the active document. Required to access the solver object from the GUI.
+* '''femsolver/elmer/solver.py:''' Dokumentobjekt in der Baumansicht sichtbar. Implementiert in Python über einen Dokument-Proxy und einen Ansichts-Proxy.
+* '''femsolver/elmer/tasks.py:''' Modul, das eine Aufgabenklasse pro Aufgabe enthält, die für eine Löser-Implementierung erforderlich ist. Diese Aufgaben unterteilen den Prozess der Lösung einer Analyse in die folgenden Schritte: Prüfen, Vorbereiten, Lösen, Ergebnisse.
+* '''femcommands/commands.py:''' Fügt das Löser-Dokumentobjekt zum aktiven Dokument hinzu. Erforderlich, um über die Grafische Benutzeroberfläche auf das Löser-Objekt zuzugreifen.
 
 <span id="Equations"></span>
 ==Gleichungen==
 
-An equation represents a particular physics that shall be considered when solving the analysis (e.g. Flow, Heat). Not all solver in FreeCAD support (all) equations. Equations are represented by child objects of the corresponding solver object. In the tree-view this looks like this:
+Eine Gleichung repräsentiert eine bestimmte physikalische Größe, die bei der Lösung der Analyse berücksichtigt werden muss (z. B. Strömung, Wärme). Nicht alle Löser in FreeCAD unterstützen (alle) Gleichungen. Gleichungen werden durch untergeordnete Objekte des entsprechenden Löser-Objekts dargestellt. In der Baumansicht sieht dies wie folgt aus:
 
 * Elmer-Löser
 ** Elastizität
@@ -109,11 +109,11 @@ An equation represents a particular physics that shall be considered when solvin
 ** Strömung
 ** Elektrostatik
 
-Most solver specific options (e.g. max. iterations, method of solving, etc) are set via the equation objects. One consequence of this is that each solver must have it's own implementation of &quot;the same&quot; equation. CalculiX would have a different Heat-object that Elmer. To avoid having multiple buttons for the same physics in the GUI each solver object adds it's equations itself.
+Die meisten löserspezifischen Optionen (z. B. maximale Iterationen, Lösungsmethode usw.) werden über die Gleichungsobjekte festgelegt. Eine Folge davon ist, dass jeder Löser seine eigene Implementierung derselben Gleichung haben muss. CalculiX hätte ein anderes Wärmeobjekt als Elmer. Um zu vermeiden, dass in der GUI mehrere Schaltflächen für dieselbe Physik vorhanden sind, fügt jedes Löserobjekt seine Gleichungen selbst hinzu.
 
-The actual implementation can be split into the generic and the solver specific part. The generic part can be found in the {{incode|femsolver.equationbase}} module. The solver specific part resides inside individual Equations sub-packages of the solver packages (e.g. {{incode|femsolver/elmer/equations}}).
+Die eigentliche Implementierung kann in einen generischen und einen löserspezifischen Teil unterteilt werden. Der generische Teil befindet sich im Modul {{incode|femsolver.equationbase}}. Der löserspezifische Teil befindet sich in einzelnen Equations-Unterpaketen der Löserpakete (z. B. {{incode|femsolver/elmer/equations}}).
 
-Adding a new equations to Elmer should be very easy. For newcomers there exists a tutorial which shows how to add a new equation to Elmer by adding the existing elasticity solver to FreeCAD: [[Add_FEM_Equation_Tutorial|Add FEM Equation Tutorial]].
+Das Hinzufügen neuer Gleichungen zu Elmer sollte sehr einfach sein. Für Neulinge gibt es ein Tutorial, das zeigt, wie man eine neue Gleichung zu Elmer hinzufügt, indem man den vorhandenen Elastizitätslöser zu FreeCAD hinzufügt: [[Add_FEM_Equation_Tutorial/de|Tutorial FEM Gleichung hinzufügen]].
 
 <span id="Constraints"></span>
 ==Randbedingungen==
