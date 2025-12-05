@@ -1,0 +1,187 @@
+<languages/>
+{{Macro/de
+|Name=Macro Wiring And Hoses
+|Name/de=Makro Verkabelung und Leitungen
+|Description=Diese Makros unterstützen die Erstellung und Wartung von Kabeln und Leitungen.
+|Author=Piffpoof
+}}
+
+'''Hinweis von [[User:Piffpoof]]: Einige Änderungen zwischen Version 0.14 und Version 0.15 haben Auswirkungen auf dieses Makro, wodurch sich dessen Veröffentlichung verzögert.'''
+
+Diese Makros unterstützen die Erstellung und Wartung von Verkabelungen und Leitungen.
+
+[[File:Macro_Wiring_And_HosesCompletedHouse.jpg]]
+
+<span id="Background"></span>
+==Hintergrund==
+
+Im Rahmen unserer anderen FreeCAD-Projekte benötigten wir eine Möglichkeit, Verkabelungen und Leitungen zu dokumentieren. Diese Makros wurden entwickelt, um diesen Bedarf zu decken. Dieses System kann vieles nicht, aber es kann Verkabelungen und Leitungen visuell darstellen, entweder als isoliertes System oder im Kontext eines FreeCAD-Modells. Die Aufzeichnungen aller Kabel und Leitungen werden in einer CSV-Datei außerhalb von FreeCAD gespeichert. Die Datei kann also in ein Tabellenkalkulationsprogramm geladen oder von anderer Software verwendet werden.
+
+==Beschreibung==
+Im Rahmen eines Dokumentationsprojekts stellten wir fest, dass wir Verkabelungen und Leitungen dokumentieren mussten. Wir probierten verschiedene Szenarien aus, beispielsweise das Erstellen von Linien oder Zylindern als Teil des bestehenden Modells. Aufgrund von Problemen bei der Verwendung oder Pflege entschieden wir uns jedoch dafür, die Informationen in einem anderen Format und außerhalb von FreeCAD zu speichern. Auf diese Weise konnten sie eigenständig oder innerhalb eines bestehenden Dokuments erstellt werden. Diese Entscheidung ermöglichte es den Benutzern, mit den Verkabelungen und Leitungen auf die für sie passende Weise zu arbeiten. Außerdem konnten sie je nach Bedarf zu unterschiedlichen Zeitpunkten auf unterschiedliche Weise damit arbeiten.
+
+Anfangs waren wir uns nicht sicher, wie wir eine Liste der Leitungen und Verkabelungen führen sollten, und probierten verschiedene Ansätze aus. Am einfachsten schien es, das seit langem bekannte CSV-Dateiformat zu verwenden. Außerdem gab es bereits Routinen für die Verwaltung von CSV-Dateien aus Python. Einige der Vorteile waren:
+
+* für Menschen lesbar
+* kann in jede Tabellenkalkulation geladen werden
+* kann mit einer Tabellenkalkulation oder einem einfachen Texteditor gepflegt werden
+* eine mögliche zukünftige Verbesserung wäre die Verwendung mit dem FreeCAD-Arbeitsbereich Spreadsheet
+
+Die nächsten Entscheidungen betrafen die Frage, "wie" solche Kabelverläufe definiert werden sollten. Da unser Ziel in erster Linie die Dokumentation war, entschieden wir uns dafür, Liniensegmente von Punkt zu Punkt zu verlegen. Probleme wie der Biegeradius werden nicht behandelt. Auch der Kabeldurchmesser wird nicht berücksichtigt. Eine Tabelle der Kabelverläufe wird über die CSV-Datei gepflegt, aber Dinge wie die Nähe von Kabeln (wegen elektrischer Interferenzprobleme) und die Verlegungslänge werden nicht unterstützt (obwohl es möglich wäre, eine rudimentäre Kabelverlegungslänge recht einfach hinzuzufügen).
+
+Dieser Satz von Makros ist im Wesentlichen ein "Konzeptnachweis", der einige Ideen und deren Machbarkeit demonstriert. Unser Hauptziel war die Dokumentation, nicht das physische Anlagenmanagement. Wir haben uns entschieden, eine Datenstruktur aus Punkten zu pflegen, durch die die Verkabelungen und Leitungen verlaufen. Zweitens haben wir eine Datenstruktur eingerichtet, die die Verkabelungen und Leitungen anhand der Punkte definiert, durch die sie verlaufen. Ein Kabel kann also nur dort verlegt werden, wo Punkte dafür definiert wurden.
+
+Für die beiden Datenstrukturen haben wir folgende Namen gewählt:
+* Nexus – ein Punkt, durch den ein Kabel oder Schlauch geführt werden kann (der Plural lautet Nexi). Nexi sind einfach Punkte im dreidimensionalen Raum. Zur besseren Visualisierung platziert die Software Toroidringe um den Standort, dies dient jedoch nur der Benutzerfreundlichkeit. Die Toroidringe können je nach Benutzerpräferenz ein- oder ausgeschaltet werden.
+* Flows – allgemein sind dies Routen, die aus Nexi bestehen. Jedem Typ ist ein Code zugeordnet, wobei die Standardcodes wie folgt lauten
+**W – elektrische Leitungen
+**C – Leitungsrohre, die in erster Linie für Leitungen vorgesehen sind, aber alles enthalten können
+**H – Schläuche zum Transport verschiedener Flüssigkeiten
+**G – Gasleitungen
+**K – eine Kameraführung, die eigentlich nur für zukünftige Erkundungen gemäß [https://forum.freecad.org/viewtopic.php?f=24&t=8437 Tour-Kameraanimation] reserviert ist.
+
+
+Sowohl Nexi als auch Flows haben vom Benutzer zugewiesene Namen, zusätzlich hat Nexi intern IDs zugewiesen, um die Verwaltung zu erleichtern. Da es sich um Punkte oder Orte im 3-dimensionalen Raum handelt, haben Nexi keine Farben, aber Flows können eine von 48 definierten Farben haben. Die Betonung der Farben knüpft an den beabsichtigten Zweck der Dokumentation an.
+
+
+Der allgemeine Arbeitsablauf ist
+* Nexi definieren und positionieren
+* Flows in Bezug auf Nexi definieren
+* zu Wartungszwecken sowohl Nexi als auch Flows entweder visuell über die FreeCAD-GUI oder mithilfe eines tabellarischen Ansatzes und der CSV-Definitionen bearbeiten
+
+
+Da die Datendatei, die sowohl die Nexi- als auch die Flow-Definition enthält, textbasiert ist, kann sie in jedem Texteditor oder jedem anderen Programm verwendet werden, das auf die Daten zugreifen möchte.
+
+
+===Navigationsmodi===
+Da ein Großteil der Arbeit mit diesen Makros davon abhängt, die Anzeige des Modells zu manipulieren, um die Platzierung von Punkten im 3-dimensionalen Raum zu platzieren und zu überprüfen, ist es unerlässlich, mit den Navigationsmodi von FreeCAD vertraut zu sein, die auf der Seite [[Mouse_navigation/de|Mausnavigation]] dokumentiert sind. Es ist unerlässlich, das Modell im 3-dimensionalen Raum drehen zu können und dann Operationen an einem stationären Modell durchzuführen.
+
+
+==Installation==
+Der Code für "Verkabelung und Leitungen" befindet sich in mehreren Makros und einer Bibliothek. Die Installation umfasst daher das Kopieren des Codes in das entsprechende Makroverzeichnis und das Aufrufen des Build-Dienstprogramms über das Makro-Menü, die Python-Konsole oder eine Symbolleisten-Schaltfläche (die bevorzugte Methode).
+
+
+<mehr folgt>
+
+* siehe [[How to install macros/de|Wie man Makros installiert]] zu Informationen zur Installation dieses Makro-Codes
+* siehe [[Customize Toolbars/de|Symbolleisten anpassen]] zu Informationen zur Installation als Schaltfläche in einer Symbolleiste
+
+==Verwendung==
+Es gibt zwei verschiedene Ansätze für die Arbeit mit diesen Makros: Die Nexi und Flows können eigenständig unter Verwendung von 3-Raum-Koordinaten definiert werden, oder es kann ein vorhandenes FreeCAD-Dokument verwendet werden, in dessen Kontext die Nexi und Flows definiert werden können. Dies ist keine "Entweder-oder"-Entscheidung, sondern beide Ansätze können verwendet werden, wenn sie am besten geeignet sind. Da die Definitionen der Nexi und Flows in einer CSV-Datei außerhalb von FreeCAD gespeichert werden, hat das Vorhandensein oder Fehlen eines FreeCAD-Dokuments keinen Einfluss auf die Arbeit mit den Nexi und Flows, sondern erleichtert diese lediglich durch die Bereitstellung eines visuellen Kontexts. Für diese Beschreibung der Verwendung wird das Beispiel ein zuvor geladenes FreeCAD-Dokument als Kontext verwenden, da es einfacher ist, die 
+
+
+Die Verwendung dieser Makros lässt sich in drei Abschnitte unterteilen:
+* Nexi definieren
+* Flows definieren
+* Die CSV-Formatdatei bearbeiten, um Nexi und Flows zu ändern oder hinzuzufügen
+
+
+Es gibt alternative Möglichkeiten, einige der unten beschriebenen Aufgaben auszuführen, und die persönliche Präferenz kann dabei ausschlaggebend sein. In diesem Beispiel werden die elektrische Verkabelung und die Kaltwasserinstallation in einem Haus vorgenommen. Unser leeres Haus sieht wie folgt aus
+
+
+[[File:Macro_Wiring_And_HosesEmptyHouse.jpg]]
+
+und wartet darauf, dass kaltes Wasser und Strom installiert werden. Zur besseren Übersichtlichkeit sind alle elektrischen Geräte in Gelb und das Wasser in Blau dargestellt (mit Ausnahme der beiden Waschbecken).
+
+
+===Nexi definieren===
+Der erste Schritt besteht darin, Punkte im 3-dimensionalen Raum zu erstellen (im Plural „Nexi” oder „Nexus” genannt). Diese Punkte werden im nächsten Schritt verwendet, um einen Flow zu definieren. Wir erstellen diese Punkte, indem wir auf eine Oberfläche klicken (d. h. sie auswählen) und dann einen Namen für die Nexi eingeben. Diese Beschreibung bezieht sich auf die Definition der Nexi für den Wasser-Flow.
+
+
+# Auf das <N-Symbol> klicken.
+# Der folgende Dialog wird angezeigt:
+<Bildschirmfoto Möchten Sie laden?>
+Hier wird man gefragt, ob man ein FreeCAD-Dokument öffnen und laden möchte, das das Modell enthält, zu dem man Nexi und Flows hinzufügen möchte. Es ist nicht notwendig, ein Dokument zu laden, aber für dieses Beispiel laden wir unser leeres Haus.
+
+# Eine Oberfläche durch Anklicken auswählen. Sie wird im Baumfenster hervorgehoben und mit einer Farbe gekennzeichnet, die die Auswahl anzeigt.
+# Auf das <N-Symbol> klicken.
+# Es erscheint das folgende Dialogfeld, in dem man nach einem Namen für den neuen Nexus gefragt wird:
+<Bildschirmaufnahme Nexus Name>
+# Der Nexus wird nun definiert. Er wird im 3-D-Raum so positioniert, dass er auf der Linie von der ausgewählten Fläche zum Betrachter liegt, und zwar knapp außerhalb der Fläche, sodass er sich nicht innerhalb des Objekts befindet. Auch wenn der Nexus möglicherweise nicht perfekt positioniert ist, man lässt ihn vorerst so, wie er ist, da er in einem späteren Schritt bearbeitet wird. Es wird ein Toroid (d. h. ein Ring) angezeigt, der auf den Punkt des Nexus zentriert ist. Dieser Ring dient lediglich der Visualisierung, damit die Position des Punktes identifiziert werden kann. Die Visualisierungsringe können jederzeit ein- und ausgeschaltet werden.
+# Man definier weitere Nexi auf die gleiche Weise und gibt jedem einen aussagekräftigen Namen.
+# Auf das Symbol <N> klicken.
+# Das folgende Dialogfeld wird angezeigt:
+<Bildschirmaufnahme In einer Datei speichern>
+# Die Frage mit "Ja" beantworten, um die neuen Nexi zu speichern.
+
+<strong>Hinweis</strong>: Man kann jederzeit ein bestehendes Projekt zusammenführen, um einen visuellen Kontext zu erhalten.
+
+
+===Flow definieren===
+Sobald Nexi definiert sind, können sie zur Definition eines Flows verwendet werden. Unser Haus sieht nun wie folgt aus:
+
+< Bildschirmaufnahme eines Hauses mit Nexi, aber ohne Flows >
+
+Es hat Nexi für das Wasser-Flow definiert, aber jetzt fließt es noch nicht.
+
+
+# Auf das <F-Symbol> klicken.
+Das folgende Dialogfeld wird angezeigt:
+
+<Bildschirmfoto Nexi für den Flow auswählen>
+
+
+Hier wird man gebeten, die Nexi in der Reihenfolge auszuwählen, in der sie den Flow erstellen sollen.
+# Man wähl die Art des Flows aus: Kabel, Leitungen, Schläuche, Gasleitungen.
+# Im zweiten Popup-Fenster die Nexi in der gewünschten Reihenfolge auswählen.
+
+<Bildschirmaufnahme Ausgewählte Nexi für den Flow>
+
+
+#Einen Namen für den Flow eingeben
+#Eine Farbe für den Flow auswählen
+#Auf "OK" oder "Abbrechen" klicken. Wenn man bei der Auswahl der Nexi einen Fehler gemacht hat (entweder bei der Reihenfolge oder durch Einfügen einer falschen Nexi), klickt man auf "Abbrechen" und wiederholt diesen Schritt.
+
+< Bildschirmaufnahme des Haus mit Wasser-Flow>
+
+[[File:Macro_Wiring_And_HosesFlowsOnly.jpg]]
+
+
+===Bearbeiten von Nexi und Flows===
+Es gibt drei verschiedene Möglichkeiten, Nexi zu bearbeiten. Da Flows in Bezug auf Nexi definiert sind, wirkt sich eine Änderung von Nexi auf alle Flows aus, die diese enthalten. Für beschreibende Flow-Attribute wie Farbe und Name gibt es eine Möglichkeit, Änderungen vorzunehmen.
+
+Bisher haben wir in diesem Beispiel die folgende Tabelle erstellt:
+
+<Bildschirmfoto Bearbeiten einer Tabelle>
+
+<Bildschirmfoto Bearbeiten der Nexus-Position>
+
+<Bildschirmfoto Doppelklick-Bearbeitung eines Toroids>
+
+
+==Benutzeroberfläche==
+Die Benutzeroberfläche ist eine Kombination aus benutzerdefinierten Bildschirmen und Standardkomponenten der FreeCAD-GUI.
+
+<Bildschirmfoto 1: Definition von Nexi>
+
+<Bildschirmfoto 2: Definition des Flows>
+
+<Bildschirmfoto 3: Bearbeiten einer CSV-Datei>
+
+<Bildschirmfoto 1: Bearbeiten einer Position>
+
+==Optionen==
+Derzeit gibt es keine Optionen für Verkabelung und Leitungen.
+
+==Beispieldateien==
+blah blah blah
+
+==Anmerkungen==
+blah blah blah
+
+==Bekannte Probleme==
+blah blah blah
+
+==Zukünftige Möglichkeiten==
+blah blah blah
+
+==Glossar==
+blah blah blah
+
+==Verweise==
+blah blah blah
+
+==Skript==
+blah blah blah
+
+{{clear}}
