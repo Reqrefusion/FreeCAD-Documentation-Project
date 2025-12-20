@@ -272,22 +272,25 @@ See the example code in the Pyzo repository:
 
 https://github.com/pyzo/pyzo/blob/main/pyzo/resources/code_examples/myRunner.py
 
-=== Debugging Start-Up of FreeCAD Modules ===
+=== Debugging Start-Up of FreeCAD Workbenches ===
 
-To debug the init script of a FreeCAD Mod, e.g. files such as {{FileName|Mod/Draft/Init.py}} or {{FileName|Mod/Draft/InitGui.py}} using breakpoints, we need to set a breakpoint in the code file. These init script files are not directly executed.
+Init scripts of a FreeCAD workbench, e.g. files such as {{FileName|Mod/Draft/Init.py}} or {{FileName|Mod/Draft/InitGui.py}} can be debugged using Pyzo like any other Python script, for example by placing breakpoints in these files.
 
-During startup, FreeCAD runs the Python scripts {{FileName|src/App/FreeCADInit.py}} and {{FileName|src/Gui/FreeCADGuiInit.py}}, and each of these reads the corresponding init scripts (App and Gui) of the Mod and executes them as a string with the code contents:
+But in older FreeCAD versions < v1.0, such as v0.21.2, we need to apply a patch so that the Python interpreter knows the path of the executed init script. So, for older FreeCAD versions, follow the instructions in chapter [[#Extracting Python code used for initializing FreeCAD modules|Extracting Python code used for initializing FreeCAD modules]].
 
-{{Code|code=
-with open(file=InstallFile, encoding="utf-8") as f:
-    exec(f.read())
-}}
+We can now, for example, open {{FileName|Mod/Draft/Init.py}} in Pyzo, set a breakpoint there in line 28 and start the FreeCAD shell in Pyzo. Execution will be interrupted at the breakpoint. We can switch the stack frames, view and manipulate variables and step/continue the code execution. To see and debug Python code from higher levels, i.e. from callers in the FreeCAD library, the corresponding Python code must be extracted before, as described in the following chapter.
 
-The interpreter has no more information about the filepath of the executed code. To include the filepath, we need to patch the lines above. FreeCAD version 0.22 or newer [https://github.com/FreeCAD/FreeCAD/pull/10618 already contain this patch].
+=== Extracting Python code used for initializing FreeCAD workbenches ===
 
-This is not all. The scripts {{FileName|src/App/FreeCADInit.py}} and {{FileName|src/Gui/FreeCADGuiInit.py}} are not individual files anymore but resource files in libraries in the distributed binary versions of FreeCAD. Therefore we will extract them into files and replace the data in the libraries with a short Python script that will call our new out-sourced scripts. So we could also open these new files and set breakpoints there.
+During startup, FreeCAD executes the Python scripts {{FileName|src/App/FreeCADInit.py}} and {{FileName|src/Gui/FreeCADGuiInit.py}} as a string inside a compiled C++ library, and each of these scripts reads the corresponding init scripts (App and Gui) of the workbench and executes them using the Python {{Incode|exec}} command.
 
-The following code will extract the scripts from the libraries, patch them and place the caller code back in the libraries:
+The scripts {{FileName|src/App/FreeCADInit.py}} and {{FileName|src/Gui/FreeCADGuiInit.py}} are not individual files anymore but resource files in libraries in the distributed binary versions of FreeCAD.
+This makes it difficult to modify these scripts, and this makes it also difficult to debug that Python code.
+
+But there is a work-around: The init scripts can be extracted to normal files which are then executed by the FreeCAD library.
+The extracted scripts can then be opened in Pyzo, modified and debugged like any other Python script.
+
+The following code will extract the scripts from the libraries, and place the caller code back in the libraries. The start-up code for older FreeCAD versions < v1.0 will also be [https://github.com/FreeCAD/FreeCAD/pull/10618 patched], as mentioned in the previous chapter.
 <div style="height:20em; overflow:auto; border: 1px solid #000">
 {{Code|code=
 import os
@@ -295,8 +298,8 @@ import sys
 import shutil
 
 
-lib_dirpath = '/home/.../FreeCAD/usr/lib' # example for linux os
-# lib_dirpath = r'C:\ProgramData\FreeCAD\bin' # example for windows os
+lib_dirpath = '/home/.../FreeCAD/usr/lib'  # example for linux os
+# lib_dirpath = r'C:\ProgramData\FreeCAD\bin'  # example for windows os
 
 restore_original_libs = False
 # restore_original_libs = True
@@ -305,47 +308,51 @@ restore_original_libs = False
 lib_dirpath = os.path.abspath(lib_dirpath)
 for appgui in ['App', 'Gui']:
     if sys.platform == 'linux':
-        fp = os.path.join(lib_dirpath, 'libFreeCAD{}.so'.format(appgui))
+        fp_lib = os.path.join(lib_dirpath, 'libFreeCAD{}.so'.format(appgui))
     elif sys.platform == 'win32':
-        fp = os.path.join(lib_dirpath, 'FreeCAD{}.dll'.format(appgui))
+        fp_lib = os.path.join(lib_dirpath, 'FreeCAD{}.dll'.format(appgui))
     else: raise NotImplementedError()
 
-    fp_backup = fp + '.orig'
+    fp_backup = fp_lib + '.orig'
 
     if restore_original_libs:
-        shutil.copy(fp_backup, fp)
+        shutil.copy(fp_backup, fp_lib)
+        print('restored library file:', fp_lib)
         continue
 
     if not os.path.isfile(fp_backup):
-        shutil.copy(fp, fp_backup)
+        shutil.copy(fp_lib, fp_backup)
+        print('created library backup file:', fp_backup)
 
     with open(fp_backup, 'rb') as fd:
         dd = fd.read()
 
     if appgui == 'App':
-        needle = b'\n# FreeCAD init module\n'
-        fp_py = fp + '.FreeCADInit.py'
+        needle_cands = [b'\n# FreeCAD init module\n', b'\n# FreeCAD init module - App\n']
+        fp_py = os.path.abspath(os.path.join(lib_dirpath, '..', 'FreeCADInit.py'))
     else:
-        needle = b'\n# FreeCAD gui init module\n'
-        fp_py = fp + '.FreeCADGuiInit.py'
+        needle_cands = [b'\n# FreeCAD gui init module\n', b'\n# FreeCAD init module - Gui\n']
+        fp_py = os.path.abspath(os.path.join(lib_dirpath, '..', 'FreeCADGuiInit.py'))
 
-    i_needle = dd.index(needle)
-    assert dd.find(needle, i_needle + 1) == -1
+    for needle in needle_cands:
+        # try different needles because of differences in FreeCAD versions
+        i_needle = dd.find(needle)
+        only_one_result = dd.find(needle, i_needle + 1) == -1
+        if i_needle != -1 and only_one_result:
+            break  # found
+    else:
+        raise ValueError('needle not found')
 
     i_start = i_needle - dd[:i_needle][::-1].index(b'\x00')
     i_end = dd.index(b'\x00', i_needle)
 
     dd_code = dd[i_start:i_end]
 
-    fp_py_orig = fp_py + '.orig'
-    with open(fp_py_orig, 'wb') as fd:
-        fd.write(dd_code)
-
     loader_code = '\n'.join([
-        'fp = ' + repr(fp_py),
-        'with open(fp, "rt", encoding="utf-8") as fd: source = fd.read()',
-        'exec(compile(source, fp, "exec"))',
-        ]).format(repr(fp_py))
+        'fp_lib = ' + repr(fp_py),
+        'with open(fp_lib, "rt", encoding="utf-8") as fd: source = fd.read()',
+        'exec(compile(source, fp_lib, "exec"))',
+    ]).format(repr(fp_py))
 
     dd_code_new = loader_code.encode('utf-8')
     assert len(dd_code_new) <= len(dd_code)
@@ -354,35 +361,33 @@ for appgui in ['App', 'Gui']:
     dd_new = dd[:i_start] + dd_code_new + dd[i_end:]
     assert len(dd_new) == len(dd)
 
-    with open(fp, 'wb') as fd:
+    with open(fp_lib, 'wb') as fd:
         fd.write(dd_new)
-
+    print('modified library file:', fp_lib)
 
     tt_code = dd_code.decode('utf-8')
 
+    # patch init code of older FreeCAD versions < v1.0
+    # see https://github.com/FreeCAD/FreeCAD/pull/10618
     needle = """
                 with open(file=InstallFile, encoding="utf-8") as f:
                     exec(f.read())
     """
-
     needle_patched = """
                 with open(InstallFile, 'rt', encoding='utf-8') as f:
                     exec(compile(f.read(), InstallFile, 'exec'))
     """
-
     if needle in tt_code:
-        # older FreeCAD versions < 0.22 need to be patched
         tt_code = tt_code.replace(needle, needle_patched)
-    else:
-        assert needle_patched in tt_code
+        print('applied patch to code:', fp_py)
+
 
     with open(fp_py, 'wt', encoding='utf-8') as fd:
         fd.write(tt_code)
+    print('extracted init code (that will be called from the lib) to file:', fp_py)
 
 }}
 </div>
-
-We can now, for example, open {{FileName|Mod/Draft/Init.py}} in Pyzo, set a breakpoint there in line 26 and start the FreeCAD shell in Pyzo. Execution will be interrupted at the breakpoint. We can switch the stack frames, view and manipulate variables and step/continue the code execution.
 
 == Pyzo customizations developed by FreeCAD users ==
 
