@@ -1,0 +1,173 @@
+<languages/>
+
+{{Docnav
+|[[Manual:All_workbenches_at_a_glance|All workbenches at a glance]]
+|[[Manual:Traditional_2D_drafting|Traditional 2D drafting]]
+|[[Manual:Introduction|Manual start]]
+|IconC=Crystal_Clear_manual.png
+}}
+
+{{Manual:TOC}}
+
+[https://en.wikipedia.org/wiki/Constructive_solid_geometry CSG] stands for Constructive Solid Geometry and describes the fundamental way to work with solid 3D geometry. It involves creating complex objects by adding or removing pieces from solids using Boolean operations such as union, subtraction, or intersection.
+
+As discussed earlier in this manual, FreeCAD supports various types of geometry. However, the preferred and most practical type for designing real-world 3D objects in FreeCAD is solid [https://en.wikipedia.org/wiki/Boundary_representation BREP] geometry, primarily handled by the Part Workbench. BREP defines 3D objects by specifying their spatial boundaries. The key aspects of BREP include: faces, the surface elements of the object; edges, the boundary lines where two faces meet; and vertices, the points where edges converge.
+
+BREP offers several advantages. First, it defines surfaces using mathematical equations, enabling precise and accurate modeling. This precision is crucial for engineering applications where exact dimensions are required. Additionally, BREP provides smooth and detailed surfaces, unlike [https://en.wikipedia.org/wiki/Polygon_mesh polygon meshes] that approximate curved surfaces with facets. This is similar to the difference between vector images, which scale without losing quality, and bitmap images, which can appear pixelated when enlarged. BREP retains comprehensive topological information about the object, including relationships between faces, edges, and vertices, which is essential for complex operations like Boolean calculations and filleting.
+
+[[Image:Mesh_vs_brep.jpg]]
+
+{{Caption|On the left a mesh representation and on the right a BREP representation}}
+
+Polygon meshes consist of vertices, edges, and faces that form triangles or quadrilaterals. Meshes are simpler and faster for rendering but lack precision. When zoomed in or printed at large scales, meshes show faceted surfaces rather than smooth curves. In contrast, BREP utilizes curves and surfaces defined mathematically, offering superior accuracy and smoothness. BREP models are preferable for CAD applications where precision is required.
+
+In FreeCAD, BREP-based geometry is managed by [https://en.wikipedia.org/wiki/Open_Cascade_Technology OpenCasCade], an open-source software library. The primary interface between FreeCAD and the OpenCasCade kernel is the Part Workbench, which serves as the foundation for most other workbenches, providing essential tools for creating and manipulating BREP objects. The Part Workbench includes tools for creating primitives, such as basic shapes like boxes, cylinders, and spheres. It also has tools for Boolean operations like fusing, intersecting, and subtracting shapes, as well as tools for moving, rotating, scaling, and cloning objects. 
+
+While other FreeCAD workbenches, such as the PartDesign and Surface Workbenches, offer more advanced tools for building and manipulating geometry, they rely on the underlying Part Workbench. Understanding how Part objects work internally and being adept with the basic Part tools is beneficial. Often, these simpler tools can resolve issues that more complex tools may not handle effectively.
+
+To illustrate the use of the Part Workbench, we will model this table using only CSG operations (except the screws, for which we will use one of the addons, and the dimensions, which will see in the next chapter):
+
+[[Image:Exercise_table_complete.jpg]]
+
+Let's create a new document ('''Ctrl+N''' or menu '''File → New''') for our table design. The document is initially called "Unnamed" in the Model tab in the Combo View panel. If you save the document ('''Ctrl+Shift+S''' or menu '''File → Save As''') as "table.FCStd", the document will be renamed "table", which more clearly identifies the project. We will use millimeters (mm) as our units of length. Feel free to change units by using the menu located on the lower right corner, according to your preference. 
+
+Now we can switch to the Part Workbench and create our first table leg.
+
+* Press the [[Image:Part_Box.svg|16px]] '''Cube''' button
+* Select the cube, then set the following properties (on the '''Data''' tab):
+** Length: 80 mm 
+** Width: 80 mm
+** Height: 750 mm
+* Duplicate the cube by pressing '''Ctrl+C''' then '''Ctrl+V''' (or menu '''Edit → Copy''' and '''Paste'''). You will not see any change in the 3D view, because the second object is overlaying the first. You can tell that the new cube has been pasted in because the Tree view now shows an object called "Cube001".
+* Select Cube001 in the Tree view
+* Change the position of Cube001 by editing its Placement property on the Data tab (click the arrow next to Position to expand):
+** Position x: 8 mm
+** Position y: 8 mm
+
+You should now see two tall cubes, one shifted 8mm from the other in both X and Y directions:
+
+[[Image:Exercise_table_01.jpg]]
+
+* Now we can subtract one cube from the other to get our L-shaped table leg: Select the original cube, part of which will remain after the Cut operation. Then, with the Ctrl key pressed, select Cube001, which will be subtracted from the first. Note that the selection order determines the result of the Cut operation. Press the [[Image:Part_Cut.svg|16px]] '''Cut''' button:
+
+[[Image:Exercise_table_02.jpg]]
+
+The newly created object, called "Cut", contains the two cubes we used as operands. In fact, the two cubes are still in the document, and have merely been hidden and grouped under the Cut object in the tree view. You can still select them by expanding the arrow next to the Cut object. If you wish, you can make them visible again by clicking the eye icons next to their object labels, in their right-click menus, or by changing their properties.
+
+You can also perform cut and other Boolean operations with the [[Image:Part_Boolean.svg|16px]] [[Part Boolean|Boolean]] tool.
+
+* Now let's create the three other table legs making six additional copies of our original cube. Since it is still copied on the clipboard, you can simply paste (Ctrl+V) 6 times. Change the position of each new cube as follows:
+** Cube002: x: 0, y: 800 mm
+** Cube003: x: 8 mm, y: 792 mm
+** Cube004: x: 1200 mm, y: 0
+** Cube005: x: 1192 mm, y: 8 mm
+** Cube006: x: 1200 mm, y: 800 m
+** Cube007: x: 1192 mm, y: 792 mm
+
+* Now let's do three additional cut operations by selecting the "host" cube first and then the cube to be cut off. We now have four Cut objects:
+
+[[Image:Exercise_table_03.jpg]]
+
+Instead of duplicating the base cube six times, we could have duplicated the complete leg three times by copying and pasting the Cut object created above from our first two cubes and rotating each cut leg into their proper orientation. In FreeCAD there are often multiple ways to achieve the same result. This is important to remember, because you may find it easier or more efficient to use different techniques in different contexts.
+
+* We will now make holes for the screws, using the same Cut operation. Since we need 8 holes (two in each leg) we could make 8 objects to be subtracted. However, let's explore another way. We can make 4 cylinders, each intersecting a pair of legs. So, let's create them with the [[Image:Part_Cylinder.svg|16px]] '''Cylinder''' tool. You can make one cylinder and duplicate it three times. Give each cylinder a radius of 6 mm. This time, we will need to rotate the cylinders using the '''Placement''' property under the Data tab ''('''Note:''' change the Axis property ''before'' setting the Angle, or the rotation will not be applied)'':
+** Cylinder: height: 1300 mm, angle: 90°, axis: x: 0, y: 1, z: 0, position: x: -10 mm, y: 40 mm, z: 720 mm
+** Cylinder001: height: 1300 mm, angle: 90°, axis: x: 0, y: 1, z: 0, position: x: -10 mm, y: 840 m, z: 720 mm
+** Cylinder002: height: 900 mm, angle: 90°, axis: x: -1, y: 0, z: 0, position: x: 40 mm, y: -10 mm, z: 700 m
+** Cylinder003: height: 900 mm, angle: 90°, axis: x: -1, y: 0, z: 0, position: x: 1240 mm, y: -10 mm, z: 700 mm
+
+[[Image:Exercise_table_04.jpg]]
+
+You will notice that the cylinders extend beyond the table legs. This is because, as in all solid-based 3D applications, boolean operations in FreeCAD sometimes fail when objects' faces are co-planar. We can avoid potential errors by putting the ends of the cylinders beyond the legs' surfaces.
+
+* Now let's do the subtractions to create holes in the table legs. Select the first leg; then, with Ctrl pressed, select one of the cylinders that intersects it and press the '''Cut''' button. The hole will be created in the leg, and the cylinder will be hidden. You can find it in the tree view by expanding the leg's new cut object.
+* Select the other leg that intersects by this hidden cylinder, and repeat the operation. This time, select the cylinder in the Tree view, since it is hidden in the 3D view. (Alternatively, you could make the cylinder visible again and select it in the 3D view.) Repeat this operation for the other legs until each of them has two holes:
+
+[[Image:Exercise_table_05.jpg]]
+
+As you can see, each leg is now described by a series of multiple operations nested in the Tree view. All the geometry we have created remains parametric, and you can change any parameter of any of the older operations any time. In FreeCAD, we refer to this series as "modeling history", since it records the history of the operations we performed. 
+
+Another particularity of FreeCAD is that the concept of 3D object and the concept of 3D operation tend to blend into one. "Cut" refers to an operation, and also to the 3D object resulting from this operation. In FreeCAD this is sometimes called a "feature", rather than "object" or "operation".
+
+Now let's model the tabletop. It will be a simple rectangular prism, so let's start with another '''Cube''' and change its dimensions under the Data tab as follows:
+* Box: length: 1260 mm, width: 860 mm, height: 80 mm, position: x: 10 mm, y: 10 mm, z: 670 mm. 
+In the '''View''' tab, you can give it a brownish, wood-like color by changing its '''Shape Appearance''' property:
+
+Now that our five pieces are complete, it is a good time to give them more descriptive names than "Cut015". By right-clicking each object in the tree view (or pressing '''F2''' with an object selected), you can rename them to something more meaningful. Properly naming your objects can be just as important as the way you model them.
+
+* We will now insert some screws with an addon. [https://github.com/shaise/FreeCAD_FastenersWB Fasteners] is an extremely useful addon developed by a member of the FreeCAD community. You can find it on the [https://github.com/FreeCAD/FreeCAD-addons FreeCAD addons] repository. Installing addon workbenches is easy! See the [[Std_AddonMgr|Addon manager]] for more information.
+* Once you have installed the Fasteners Workbench and restarted FreeCAD, select Fasteners in the workbenches dropdown list. Let's add a screw to one of the holes we modeled above. First, select the circular edge of a hole in one of the table legs:
+
+[[Image:FastenerWorkbench.png]]
+
+* Then, select one of the screws provided in the Fasteners Workbench. For this exercise, let's use the '''EN 1665 Hexagon bolt with flanges, heavy series'''. The screw will be placed in and aligned with our hole; and the diameter will automatically match the size of our hole. Sometimes the orientation of the screw will need to be flipped, using its '''Invert''' property:
+
+[[Image:FastenerWorkbench_sel.png]]
+
+* Repeat this for the other seven holes, and our table is complete!
+
+As mentioned earlier, you can achieve the same result by following different steps. To demonstrate this, let's create the same table using a different methodology. Remember, there is no right or wrong way - just individual creativity.
+
+We will start in a similar way, by creating a cube with the following dimensions: length 80 mm, width 8 mm, and height 750 mm
+* Create a cube by selecting the [[Image:Part_Box.svg|16px]] '''Cube''' button and set the following properties (in the '''Data''' tab):
+** Length: 80 mm 
+** Width: 8 mm
+** Height: 750 mm
+*Next, we will create a [[Image:Part_Cylinder.svg|16px]] '''Cylinder''' with the following properties:
+** radius: 6 mm, height: 100 mm, angle: 90°, axis: x: 1, y: 0, z: 0, position: x: 40 mm, y: 40 mm, z: 720 mm
+* Next, we will apply the Cut operation. Select the cube; then, hold the Ctrl key and select the cylinder. Keep in mind that the order is important to define which one stays. Then, press the [[Image:Part_Cut.svg|16px]] '''Cut''' button.
+*  We will then copy and paste the cut object by pressing '''Ctrl+C''' then '''Ctrl+V''' (or menu '''Edit → Copy''' and '''Paste'''):
+** angle: 90°, axis: x: 0, y: 0, z: 1, position: x: 8 mm
+* Select the two objects and apply the [[Image:Part_Fuse.svg|16px]] '''Fuse''' tool. Now the two objects are fused, and we have an L-shaped table leg.
+* Copy and paste the fused leg, positioning it at
+** angle: 90°, axis: x: 0, y: 0, z: -1, position y: 800 mm.
+* Select the two legs and create a [[Image:Part_Compound.svg|16px]] '''Compound'''. 
+* Copy and paste the compound, positioning it at:
+** angle: 180°, axis: x:0, y:0, z:1, position x: 1200 mm, y: 800 mm. We have our legs.
+Let's create the table top. 
+* Create a Cube, and edit its properties as follows:
+** Length: 1184 mm
+** Width: 784 mm
+** Height: 80 mm
+** position x: 8 mm, y: 8 mm, z: 670 mm. 
+Now, continue adding screws in the Fasteners Workbench as before.
+
+[[Image:Tabble_alternative_complete.png]]
+
+'''The internal structure of Part objects'''
+
+As we saw above, in FreeCAD it is possible to select not only whole objects but parts of them, e.g. the circular edge of our screw hole. This is a good time to have a quick look at how Part objects are constructed internally. Every workbench that produces Part geometry will be based on these:
+
+* '''Vertices''': These are points (usually endpoints) on which all the rest is built. For example, a line has two vertices.
+* '''Edges''': Edges can take the form of lines, arcs, ellipses or [https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline NURBS] curves. They usually have two vertices, but some special cases have only one (e.g. a closed circle).
+* '''Wires''': A wire is a sequence of edges connected by their endpoints. A wire can contain edges of any type, and it can be closed or not.
+* '''Faces''': Faces can be planar or curved. They can be defined by one closed wire forming the border of the face, or by more than one if the face has holes.
+* '''Shells''': Shells are groups of faces connected by their edges. They can be open or closed.
+* '''Solids''': A closed shell can be turned into a solid. Solids carry the notion of inside and outside. Many workbenches rely on this to make sure the objects they produce can be built in the real world.
+* '''Compounds''': Compounds combine other shapes of one or more types into a single object.
+
+In the 3D view, you can select individual '''vertices''', '''edges''' or '''faces'''. Selecting one of these also selects the whole object it belongs to.
+
+'''A note about shared design'''
+
+You might look at the table above and think its design is not very good. The legs don't seem attached to the tabletop very securely! You might want to add reinforcing pieces, or you might have other improvements in mind. This is where sharing becomes interesting. You can download the file made during this exercise from the link below, and modify it to make it better. Then, if you share that improved file, others might be able to make it even better or use your well designed table in their projects. Your design might then give other ideas to other people, and maybe you will have contributed to a better world...
+
+'''Downloads'''
+
+* The file produced in this exercise: https://github.com/yorikvanhavre/FreeCAD-manual/blob/master/files/table.FCStd
+
+'''Read more'''
+
+* [[Part_Workbench|The Part Workbench]]
+* [https://github.com/FreeCAD/FreeCAD-addons The FreeCAD addons repository]
+* [https://github.com/shaise/FreeCAD_FastenersWB The Fasteners Workbench]
+
+
+{{Docnav
+|[[Manual:All_workbenches_at_a_glance|All workbenches at a glance]]
+|[[Manual:Traditional_2D_drafting|Traditional 2D drafting]]
+|[[Manual:Introduction|Manual start]]
+|IconC=Crystal_Clear_manual.png
+}}
+
+[[Category:Tutorials{{#translation:}}]]
