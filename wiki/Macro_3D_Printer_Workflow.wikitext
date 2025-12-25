@@ -100,8 +100,7 @@ ToolBar Icon [[Image:Macro_3D_Printer_Workflow.png]]
 ver 00.02 05/02/2023 by 2cv001 '''3D_Printer_Workflow.FCMacro'''
 
 <!--pre tags required as the macro contains piping characters-->
-<pre>
-#!/usr/bin/env python
+<pre>#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ==================================================================
 # ==================================================================
@@ -113,10 +112,10 @@ ver 00.02 05/02/2023 by 2cv001 '''3D_Printer_Workflow.FCMacro'''
 # ==================================================================
 __author__ = "2cv001"
 __title__   = "Macro_3D_Printer_Workflow"
-__date__    = "2023/02/05"    #YYYY/MM/DD
+__date__    = "2025/12/25"    #YYYY/MM/DD
 __version__ = __date__
-__icon__    = "https://wiki.freecad.org/images/b/b4/Macro_3D_Printer_Workflow.png"
-__Wiki__    = "https://wiki.freecad.org/Macro_3D_Printer_Workflow"
+__icon__    = "https://wiki.freecadweb.org/images/b/b4/Macro_3D_Printer_Workflow.png"
+__Wiki__    = "http://www.freecadweb.org/wiki/Macro_3D_Printer_Workflow"
 """
 Macro that creates an "stl" file with perfect rounding
 = without visible facets.
@@ -144,9 +143,10 @@ Examples of applications:
 
 Tested on windows and Linux
 """
+
 import FreeCAD as App
 import Mesh
-from PySide2 import QtCore, QtWidgets
+from PySide import QtCore, QtWidgets
 import os, sys, subprocess
 import time
 import FreeCADGui as Gui
@@ -165,7 +165,7 @@ import FreeCADGui as Gui
 # but the larger the size of the stl file
 # the value must be between 0 and 1
 deviation=0.01
-doitLancerFichier=True # if True, it will be proposed to launch the stl file.
+doitLancerFichier=False # if True, it will be proposed to launch the stl file.####################################################################################################
                                  # otherwise put False
 
 # Automatic program launch,
@@ -181,7 +181,7 @@ delaiMax=10 # if the user enters a delay greater than this value,
 #turn on your printer or/and a light etc.
 #Use the following syntax by adding after the line "# insert your lines here" a line
 #   with this syntax (important: align the [ with the others):
-#  [ ['command to execute', 'param 1', param 2, ] ,'.extension','question to ask', waiting time],
+#  [ ['command to execute', 'param 1', param 2, ] ,'.extension','question to ask', waiting time,checked by default],
 # Details of the syntax :
 #  'command to execute' : the command you want to execute. 
 #  'param 1, param 2,...' : if your program needs parameters. 
@@ -191,12 +191,14 @@ delaiMax=10 # if the user enters a delay greater than this value,
 #  'question to ask': the question to display in the dialog box
 #  time_wait : optional : nb of seconds to wait after execution
 #      allows for example to wait for the printer to start before asking it to heat the plate
+#  'checked by default' False if you whant it unchecked by default
 
 #  Note in the examples below the double \ in place of \ (because the special characters
 #    must be preceded by an \ in python). Ditto for the apostrophe for example
 #  the lines in question are to be inserted further down after commands=[...
 #
 # Examples of possible launches:
+
 
 """
 Launching a program :
@@ -249,8 +251,6 @@ commandes=[
   [  ['curl','https://pijeedom/core/api/jeeApi.php?apikey=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&type=cmd&id=4048','--insecure'  ] , ''   ,'Heat the bed ?'],
   [  ['C:\\Program Files\\Mozilla Firefox\\firefox.exe','https://octopi'],'','Launch Octoprint ?'],
 
-
-
            ]
 
 
@@ -263,6 +263,7 @@ indiceCommandeEtParam=0
 indiceExtFileNameParamCommandeALancer=1
 indiceTextAutreCommandeALancer=2
 indiceDelai=3
+indiceCheckedCommandeAlancer=4
 
 # UI Class definitions
 class BoiteDialogueSTLGuiClass(QtWidgets.QDialog):
@@ -281,17 +282,25 @@ class BoiteDialogueSTLGuiClass(QtWidgets.QDialog):
         self.checkboxGenererSTL = QtWidgets.QCheckBox("Generate STL ?", self)
         self.checkboxGenererSTL.setCheckState(QtCore.Qt.Checked)
         lay.addWidget(self.checkboxGenererSTL, 0, 0)
-        if doitLancerFichier :
-            self.checkboxLancerSTL = QtWidgets.QCheckBox("Launch the slicer ?", self)
-            self.checkboxLancerSTL.setCheckState(QtCore.Qt.Checked)
-            lay.addWidget(self.checkboxLancerSTL, 2, 0)
 
+        self.checkboxLancerSTL = QtWidgets.QCheckBox("Launch the slicer ?", self)
+        self.checkboxLancerSTL.setCheckState(QtCore.Qt.Checked)
+        lay.addWidget(self.checkboxLancerSTL, 2, 0)
+        
+        if not doitLancerFichier :    
+          self.checkboxLancerSTL.setVisible(False)
+          self.checkboxLancerSTL.setCheckState(QtCore.Qt.Unchecked)
+          
         for posLigne, cmd in enumerate(commandes, start=3):
            textCommande=cmd[indiceTextAutreCommandeALancer]
            self.checkboxTextCommande = QtWidgets.QCheckBox(textCommande, self)
            # storing this checkbox in a table :
-           self.tabCheckboxTextCommandes.append(self.checkboxTextCommande)
-           self.checkboxTextCommande.setCheckState(QtCore.Qt.Checked)
+           self.tabCheckboxTextCommandes.append(self.checkboxTextCommande)                       
+           try :
+               caseChecked=cmd[indiceCheckedCommandeAlancer]
+           except :
+               caseChecked=True                 
+           self.checkboxTextCommande.setCheckState(QtCore.Qt.Checked if caseChecked else QtCore.Qt.Unchecked)          
            lay.addWidget(self.checkboxTextCommande, posLigne, 0)
 
         # numeric input field
@@ -530,9 +539,8 @@ def lanceCommmandes(commandesAlancer,fileStlName,formBoiteDialogueSTL):
                    # We add a parameter to put our file name
                    # with our extension.
                    commandeEtParam.append('')
-                commandeEtParam[1]=   os.path.splitext(fileStlName)[0]+  extFileNameParamCommandeALancer
+                commandeEtParam[1]= os.path.splitext(fileStlName)[0]+ extFileNameParamCommandeALancer
             subprocess.Popen(commandeEtParam,close_fds=True)
-            print(commandeEtParam)
             time.sleep(delai)# Pause time (seconds)
 
 
@@ -577,7 +585,7 @@ def run(objs=Gui.Selection.getSelection(), dev=deviation):
 
 # Dialog box of what we want to do
     formBoiteDialogueSTL=BoiteDialogueSTLGuiClass(mw)
-    if not formBoiteDialogueSTL.exec_() :
+    if not formBoiteDialogueSTL.exec() :
         return
     dev=formBoiteDialogueSTL.precision.value()
     # we memorize the selected solids and their deviation,
@@ -594,7 +602,6 @@ def run(objs=Gui.Selection.getSelection(), dev=deviation):
     #The solids in dictionaryOriginDeviation are passed as parameters
     if formBoiteDialogueSTL.checkboxGenererSTL.isChecked():
        Mesh.export(list(dictionnaireOrigineDeviation.keys()), fileStlName)
-       print('Export done')
     # restitution of the original property deviation for all solids :
     restitueDeviation(dictionnaireOrigineDeviation)
     recalcul(dictionnaireOrigineDeviation)
@@ -608,5 +615,4 @@ def run(objs=Gui.Selection.getSelection(), dev=deviation):
 
 
 if __name__ == '__main__':
-    run()
-</pre>
+    run()</pre>
