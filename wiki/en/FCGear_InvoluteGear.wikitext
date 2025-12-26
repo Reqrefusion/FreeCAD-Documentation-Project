@@ -102,15 +102,21 @@ An FCGear InvoluteGear object is derived from a [[Part_Feature|Part Feature]] ob
 
 ==Notes==
 
-* {{Emphasis|beta}}: When {{Emphasis|beta}} is changed, {{Emphasis|pitch diameter}} also changes. The following formula illustrates how the parameters interact: d = m * Z / cos beta (Z = number of teeth, d = pitch diameter, m = module). This means for the spur gear: cos beta = 1 and for the helical gear: cos beta < 1. However, a helix angle of less than 10° has hardly any advantages over straight teeth.
-* {{Emphasis|clearance}}: At a gear pair, clearance is the distance between the tooth tip of the first gear and the tooth root of the second gear.
-* {{Emphasis|double_gear}}: To use the double helical gearing the helix angle β ({{Emphasis|beta}}) for the helical gearing must first be entered.
-* {{Emphasis|module}}: Using ISO (International Organization for Standardization) guidelines, Module size is designated as the unit representing gear tooth-sizes. Module (m): m = 1 (p = 3.1416), m = 2 (p = 6.2832), m = 4 (p = 12.566). If you multiply Module by Pi, you can obtain Pitch (p). Pitch is the distance between corresponding points on adjacent teeth.
-* {{Emphasis|shift}}: Profile shift is not merely used to prevent undercut. It can be used to adjust center distance between two gears. If a positive correction is applied, such as to prevent undercut in a pinion, the tooth thickness at top is thinner.
-* {{Emphasis|teeth}}: If the number of teeth is changed, the pitch diameter also changes ({{Emphasis|dw}}).
-* {{Emphasis|undercut}}: Undercut is used when the number of teeth of a gear is too small. Otherwise the mating gear will cut into the tooth root.  The undercut not only weakens the tooth with a wasp-like waist, but also removes some of the useful involute adjacent to the base circle.
-* {{Emphasis|pressure_angle}}: 20° is a standard value here. The pressure angle is defined as the angle between the line-of-action (common tangent to the base circles) and a perpendicular to the line-of-centers. Thus, for standard gears, 14.5° pressure angle gears have base circles much nearer to the roots of teeth than 20° gears.  It is for this reason that 14.5° gears encounter greater undercutting problems than 20° gears. Important. the pressure angle changes with a profile shift. Only change the parameter, if sufficient knowledge of the gear geometry is available.
-* {{Emphasis|reversed_backlash}}: If there are several gears, pay attention to which gear the parameter is set for.
+* {{PropertyData|helix_angle}} ({{Emphasis|beta}}, <math>\beta</math>): Changing the helix angle does not change the pitch diameter, or more precise the transverse pitch diameter (<math>d_t</math>) since the {{PropertyData|module}} property represents the transverse module (<math>m_t</math>) unless the {{PropertyData|properties_from_tool}} property is {{true}}. In that case it represents the normal module (<math>m_n</math>), and all properties depending on the transverse module in the '''computed''' group will be divided by cos <math>\beta</math> and thus enlarged.
+** Spur gear: <math>\beta = 0^\circ</math>,  <math>\cos (\beta) = 1 </math> and <math>m_t = m_n</math>
+** Helical gear: <math>\beta > 0^\circ</math>,  <math>\cos (\beta) < 1 </math> and <math>m_t =  \frac{m_n}{\cos (\beta)}</math>
+** <math>d_t = z \cdot m_t = z \cdot \frac {m_n} {\cos (\beta)}</math>
+*: However, a helix angle of less than 10° has hardly any advantages over straight teeth.
+* {{PropertyData|clearance}} (<math>c</math>): At a gear pair, clearance is the distance between the tooth tip of the first gear and the tooth root of the second gear.
+* {{PropertyData|double_helix}}: Activates double helical gearing if the {{PropertyData|helix_angle}} property is larger than 0 (<math>\beta > 0^\circ</math>).
+* {{PropertyData|module}} (<math>m</math>): Using ISO (International Organization for Standardization) guidelines, Module size is designated as the unit representing gear tooth-sizes.
+** The module multiplied by the number of teeth (<math>z</math>) defines the pitch circle diameter (<math>d</math>): <math>d = m \cdot z</math>
+** The module multiplied by Pi (<math>\pi</math>) defines the pitch (<math>p</math>), the arc distance on the pitch circle between corresponding points of adjacent teeth: <math>p = m \cdot \pi</math>
+* {{PropertyData|shift}}: Profile shift is not merely used to prevent undercut. It can be used to adjust center distance between two gears. If a positive correction is applied, such as to prevent undercut in a pinion, the tooth thickness at top is thinner.
+* {{PropertyData|num_teeth}} ({{Emphasis|number of teeth}}, <math>z</math>): If the number of teeth is changed, the pitch diameter (<math>d</math>) also changes.
+* {{PropertyData|undercut}}: Undercut is used when the number of teeth of a gear is too small. Otherwise the mating gear will cut into the tooth root.  The undercut not only weakens the tooth with a wasp-like waist, but also removes some of the useful involute adjacent to the base circle.
+* {{PropertyData|pressure_angle}} (<math>\alpha</math>): 20° is a standard value here. The pressure angle is defined as the angle between the line-of-action (common tangent to the base circles) and a perpendicular to the line-of-centers. Thus, for standard gears, 14.5° pressure angle gears have base circles much nearer to the roots of teeth than 20° gears.  It is for this reason that 14.5° gears encounter greater undercutting problems than 20° gears. Important. the pressure angle changes with a profile shift. Only change the parameter, if sufficient knowledge of the gear geometry is available.
+* {{PropertyData|reversed_backlash}}: If there are several gears, pay attention to which gear the parameter is set for.
 
 ==Limitations==
 
@@ -129,7 +135,7 @@ Here “standard” refers to those spur gears with no profile shift coefficient
 |-
 | <math>m</math> || ''Module'' || - || <math>\texttt{module}</math>
 |-
-| <math>z</math> || ''Number of Teeth'' || - || <math>\texttt{teeth}</math>
+| <math>z</math> || ''Number of Teeth'' || - || <math>\text{num} {\_} \text{teeth}</math>
 |-
 | <math>\alpha</math> || ''Pressure Angle''
 | Typically,  <math>\alpha = 20^\circ</math>
@@ -137,8 +143,8 @@ Here “standard” refers to those spur gears with no profile shift coefficient
 |-
 | <math>d</math>
 | ''Reference Diameter'' or ''Pitch Diameter''
-| <math>z \cdot m</math>
-| <math>\texttt{dw}</math>
+| <math>d = z \cdot m</math>
+| <math>\text{pitch} {\_} \texttt{diameter}</math>
 |-
 | <math>h^*_a</math>
 | ''Addendum Coefficient''
@@ -213,11 +219,31 @@ Typically, <math>d_f = (z + 2.5) \cdot m</math>
 Typically, <math>c = 0.25 \cdot m</math>
 |}
 
-*'''Helical and double helical gearing'''
-**{{Emphasis|pitch diameter (dw)}} = {{Emphasis|module}} * {{Emphasis|teeth}} : {{Emphasis|cos beta}}
-**{{Emphasis|axle base}} = {{Emphasis|(pitch diameter (dw) 1 + pitch diameter (dw) 2)}} : 2
-**{{Emphasis|addendum diameter}} = {{Emphasis|pitch diameter (dw)}} + 2 * {{Emphasis|module}}
-**{{Emphasis|module}} = {{Emphasis|pitch diameter (dw)}} * {{Emphasis|cos beta}} : {{Emphasis|teeth}}
+===Standard Helical Gears===
+
+As above with no profile shifting involved and the same formulas apply but some properties exist in two variants, a normal one, depending on the helix angle (<math> \beta</math>), and a transverse one, correlating with the spur gear property above.
+
+{| class="wikitable"
+|+ style="text-align: left;" | Helical and double helical gearing
+|-
+! Symbol !! Term !! Formula
+|-
+| <math>d_t</math>
+| ''Transverse Pitch Diameter''
+| <math>d_t = z \cdot m_t = z \cdot \frac {m_n} {\cos (\beta)}</math>
+|-
+| <math>a</math>
+| ''Center Distance''
+| <math>a =  \frac {d_t_1 + d_t_2}  {2}</math>
+|-
+| <math>d_a</math>
+| ''Addendum Diameter''
+| <math>d_a = d_t + 2 \cdot m_n</math>
+|-
+| <math>m_n</math>
+| ''Normal Module''
+| <math>m_n = m_t \cdot {\cos (\beta)} = \frac {d_t} {z} \cdot \cos (\beta)</math>
+|}
 
 ==Scripting==
 
