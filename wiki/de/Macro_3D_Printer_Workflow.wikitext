@@ -1,5 +1,6 @@
 <languages/>
 
+<div class="mw-translate-fuzzy">
 {{Macro/de
 |Name=3D-Drucker Arbeitsablauf
 |Icon=Macro_3D_Printer_Workflow.png
@@ -11,6 +12,7 @@ Nach der Erstellung der STL-Datei können Sie beispielsweise Ihren Slicer mit de
 |Date=2023-01-21
 |FCVersion=Alle
 }}
+</div>
 
 <span id="Description"></span>
 ==Beschreibung==
@@ -84,7 +86,8 @@ Werkzeugleisten-Symbol [[Image:Macro_3D_Printer_Workflow.png]]
 
 === Code ===
 
-ver 00.02 05/02/2023 by 2cv001 '''3D_Printer_Workflow.FCMacro'''
+
+ver 00.03 2025/12/25 by 2cv001 '''3D_Printer_Workflow.FCMacro'''
 
 <!--pre tags required as the macro contains piping characters-->
 <pre>
@@ -100,7 +103,7 @@ ver 00.02 05/02/2023 by 2cv001 '''3D_Printer_Workflow.FCMacro'''
 # ==================================================================
 __author__ = "2cv001"
 __title__   = "Macro_3D_Printer_Workflow"
-__date__    = "2023/02/05"    #YYYY/MM/DD
+__date__    = "2025/12/25"    #YYYY/MM/DD
 __version__ = __date__
 __icon__    = "https://wiki.freecad.org/images/b/b4/Macro_3D_Printer_Workflow.png"
 __Wiki__    = "https://wiki.freecad.org/Macro_3D_Printer_Workflow"
@@ -131,9 +134,10 @@ Examples of applications:
 
 Tested on windows and Linux
 """
+
 import FreeCAD as App
 import Mesh
-from PySide2 import QtCore, QtWidgets
+from PySide import QtCore, QtWidgets
 import os, sys, subprocess
 import time
 import FreeCADGui as Gui
@@ -152,8 +156,7 @@ import FreeCADGui as Gui
 # but the larger the size of the stl file
 # the value must be between 0 and 1
 deviation=0.01
-doitLancerFichier=True # if True, it will be proposed to launch the stl file.
-                                 # otherwise put False
+doitLancerFichier=False # if True, it will be proposed to launch the stl otherwise put False
 
 # Automatic program launch,
 # Automation of the production line
@@ -164,20 +167,21 @@ delaiMax=10 # if the user enters a delay greater than this value,
 
 #To launch programs of your choice
 #------------------------------------------
-#Typically for example a home automation program, 
+#Typically for example a home automation program,
 #turn on your printer or/and a light etc.
 #Use the following syntax by adding after the line "# insert your lines here" a line
 #   with this syntax (important: align the [ with the others):
-#  [ ['command to execute', 'param 1', param 2, ] ,'.extension','question to ask', waiting time],
+#  [ ['command to execute', 'param 1', param 2, ] ,'.extension','question to ask', waiting time, checked by default]
 # Details of the syntax :
-#  'command to execute' : the command you want to execute. 
-#  'param 1, param 2,...' : if your program needs parameters. 
+#  'command to execute' : the command you want to execute.
+#  'param 1, param 2,...' : if your program needs parameters.
 #      These parameters will be taken into account only if extension=''.#
-#  'extension': if not empty then the first parameter will be replaced by the name of 
+#  'extension': if not empty then the first parameter will be replaced by the name of
 #      your FreeCAD file but with this extension.
 #  'question to ask': the question to display in the dialog box
 #  time_wait : optional : nb of seconds to wait after execution
 #      allows for example to wait for the printer to start before asking it to heat the plate
+#  'checked by default' False if you whant it unchecked by default
 
 #  Note in the examples below the double \ in place of \ (because the special characters
 #    must be preceded by an \ in python). Ditto for the apostrophe for example
@@ -192,15 +196,15 @@ Launching a program :
 [ ['calc.exe'                                         ] ,''    ,'Launch the calculator ?'],
   to launche a program with a parameter (here : dessin.jpg)
 [ ['C:\\WINDOWS\\system32\\mspaint.exe','dessin.jpg'  ] ,''    ,'Launch  Paint ?'          ],
-  to launche a program with an extension parameter. If for example, 
+  to launche a program with an extension parameter. If for example,
   the freecad project file name is 'mondessin.FCStd'
   and if you give '.stl' as extension, the program will be launched with as first parameter 'mondessin.stl'
-  Here cura will be launched with the file 'modessin.stl' loaded : 
+  Here cura will be launched with the file 'modessin.stl' loaded :
 [ ['C:\\Program Files\\Ultimaker Cura 4.8.0\\Cura.exe'] ,'.stl','Launch  Cura ?'           ],
   to load an url in firefox. Here, to launch octopi in firefox.
 [ ['C:\\Program Files\\Mozilla Firefox\\firefox.exe','https://octopi.local'],'','Launch Octoprint ?'],
     On linux:
-[ [   'firefox','https://octopi.local'                ] , ''   ,'Launch Octoprint ?'      ], 
+[ [   'firefox','https://octopi.local'                ] , ''   ,'Launch Octoprint ?'      ],
 
 Launching a web page (here, a php script) :
 -----------------------------------------
@@ -209,9 +213,9 @@ Launching an url using https but insecure
 [ ['curl','https://pidomotique/connecte.php,'--insecure'] , ''   ,'Connect the printer ?'],
 And if we want a delay of 10 seconds before the following program is executed: :
 [ ['curl','https://pidomotique/connecte.php,'--insecure'] , ''   ,'Connect the printer ?',10],
-Example of printer control via octoprint (f you have it...): 
+Example of printer control via octoprint (f you have it...):
    send a G-code (see https://marlinfw.org/meta/gcode/ for others G-codes)
-   here : temperature setting of the plate 
+   here : temperature setting of the plate
 - Replace the XXX after X-Api-Key: by your API key (found in the octoprint parameters)
 - Replace http://octopi.local by the url with which you access octoprint
 - Change the value 050 in "M140 S050". S050 indicates that you need to heat to 50°.
@@ -236,8 +240,6 @@ commandes=[
   [  ['curl','https://pijeedom/core/api/jeeApi.php?apikey=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&type=cmd&id=4048','--insecure'  ] , ''   ,'Heat the bed ?'],
   [  ['C:\\Program Files\\Mozilla Firefox\\firefox.exe','https://octopi'],'','Launch Octoprint ?'],
 
-
-
            ]
 
 
@@ -250,6 +252,7 @@ indiceCommandeEtParam=0
 indiceExtFileNameParamCommandeALancer=1
 indiceTextAutreCommandeALancer=2
 indiceDelai=3
+indiceCheckedCommandeAlancer=4
 
 # UI Class definitions
 class BoiteDialogueSTLGuiClass(QtWidgets.QDialog):
@@ -268,17 +271,25 @@ class BoiteDialogueSTLGuiClass(QtWidgets.QDialog):
         self.checkboxGenererSTL = QtWidgets.QCheckBox("Generate STL ?", self)
         self.checkboxGenererSTL.setCheckState(QtCore.Qt.Checked)
         lay.addWidget(self.checkboxGenererSTL, 0, 0)
-        if doitLancerFichier :
-            self.checkboxLancerSTL = QtWidgets.QCheckBox("Launch the slicer ?", self)
-            self.checkboxLancerSTL.setCheckState(QtCore.Qt.Checked)
-            lay.addWidget(self.checkboxLancerSTL, 2, 0)
+
+        self.checkboxLancerSTL = QtWidgets.QCheckBox("Launch the slicer ?", self)
+        self.checkboxLancerSTL.setCheckState(QtCore.Qt.Checked)
+        lay.addWidget(self.checkboxLancerSTL, 2, 0)
+
+        if not doitLancerFichier :
+          self.checkboxLancerSTL.setVisible(False)
+          self.checkboxLancerSTL.setCheckState(QtCore.Qt.Unchecked)
 
         for posLigne, cmd in enumerate(commandes, start=3):
            textCommande=cmd[indiceTextAutreCommandeALancer]
            self.checkboxTextCommande = QtWidgets.QCheckBox(textCommande, self)
            # storing this checkbox in a table :
            self.tabCheckboxTextCommandes.append(self.checkboxTextCommande)
-           self.checkboxTextCommande.setCheckState(QtCore.Qt.Checked)
+           try :
+               caseChecked=cmd[indiceCheckedCommandeAlancer]
+           except :
+               caseChecked=True
+           self.checkboxTextCommande.setCheckState(QtCore.Qt.Checked if caseChecked else QtCore.Qt.Unchecked)
            lay.addWidget(self.checkboxTextCommande, posLigne, 0)
 
         # numeric input field
@@ -310,8 +321,8 @@ class BoiteDialogueSTLGuiClass(QtWidgets.QDialog):
 #===============
 def octopi(api,commande,urlOctopi,apiKey) :
     """
-    Function that returns the parameter to pass to subprocess.Popen if you 
-    want to run an octopi API. Not used here. But for memory purposes 
+    Function that returns the parameter to pass to subprocess.Popen if you
+    want to run an octopi API. Not used here. But for memory purposes
     and a future evolution
 
     Arguments :
@@ -517,9 +528,8 @@ def lanceCommmandes(commandesAlancer,fileStlName,formBoiteDialogueSTL):
                    # We add a parameter to put our file name
                    # with our extension.
                    commandeEtParam.append('')
-                commandeEtParam[1]=   os.path.splitext(fileStlName)[0]+  extFileNameParamCommandeALancer
+                commandeEtParam[1]= os.path.splitext(fileStlName)[0]+ extFileNameParamCommandeALancer
             subprocess.Popen(commandeEtParam,close_fds=True)
-            print(commandeEtParam)
             time.sleep(delai)# Pause time (seconds)
 
 
@@ -564,7 +574,7 @@ def run(objs=Gui.Selection.getSelection(), dev=deviation):
 
 # Dialog box of what we want to do
     formBoiteDialogueSTL=BoiteDialogueSTLGuiClass(mw)
-    if not formBoiteDialogueSTL.exec_() :
+    if not formBoiteDialogueSTL.exec() :
         return
     dev=formBoiteDialogueSTL.precision.value()
     # we memorize the selected solids and their deviation,
@@ -581,7 +591,6 @@ def run(objs=Gui.Selection.getSelection(), dev=deviation):
     #The solids in dictionaryOriginDeviation are passed as parameters
     if formBoiteDialogueSTL.checkboxGenererSTL.isChecked():
        Mesh.export(list(dictionnaireOrigineDeviation.keys()), fileStlName)
-       print('Export done')
     # restitution of the original property deviation for all solids :
     restitueDeviation(dictionnaireOrigineDeviation)
     recalcul(dictionnaireOrigineDeviation)
