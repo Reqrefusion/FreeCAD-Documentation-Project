@@ -85,23 +85,111 @@ An FCGear BevelGear object is derived from a [[Part_Feature|Part Feature]] objec
 
 ==Notes==
 
-* Bevel gears are quite complex, because their properties not only depend on the gear ratio but also on the angle between the gear axes. The default bevel gear is built for perpendicular axes and a 1:1 ratio.
-* {{Emphasis|pitch angle}}: The taper angle of the pitch cone is half the angle between gear axes for a 1:1 ratio, that is 45° for perpendicular axes. Pitch angles for other combinations of ratio and angles between axes can be determined geometrically within a [[Sketcher_Workbench|sketch]].
-* {{Emphasis|clearance}}: At a gear pair, clearance is the distance between the tooth tip of the first gear and the tooth root of the second gear.
-* {{Emphasis|module}}: Using ISO (International Organization for Standardization) guidelines, Module size is designated as the unit representing gear tooth-sizes. Module (m): m = 1 (p = 3.1416), m = 2 (p = 6.2832), m = 4 (p = 12.566). If you multiply Module by Pi, you can obtain Pitch (p). Pitch is the distance between corresponding points on adjacent teeth.
-* {{Emphasis|pressure_angle}}: Only change the parameter, if sufficient knowledge of the gear geometry is available.
-* {{Emphasis|reset_origin}}: It is recommended to set the parameter to {{Emphasis|false}} to have the origin of the gear at the tip of the pitch cone. This way we can extend the bevel gear beyond the pitch circle plane using the module property.
-* The weak point of this tool is that it builds the geometry from the pitch diameter towards the tip and ignores the fact that there is also geometry in the opposite direction. That is why we have to determine the cross-section of the gear at the pitch circle belonging to our chosen module to define cutting geometry and then use an extended (scaled from the tip) bevel gear to be cut. (see ''reset origin'' above)
+* Bevel gears are quite complex, because their properties not only depend on the gear ratio but also on the angle between the gear axes. The default bevel gear is built for perpendicular axes and a 1:1 ratio (this is called a miter gear). 
+* {{PropertyData|pitch angle}} (<math>\delta</math>): The taper angle of the pitch cone is half the angle between gear axes for a 1:1 ratio, that is 45° for perpendicular axes. Pitch angles for other combinations of ratio and angles between axes can be determined geometrically within a [[Sketcher_Workbench|sketch]].
+* {{PropertyData|clearance}} (<math>c</math>): At a gear pair, clearance is the distance between the tooth tip of the first gear and the tooth root of the second gear.
+* {{PropertyData|module}} (<math>m</math>): Using ISO (International Organization for Standardization) guidelines, Module size is designated as the unit representing gear tooth-sizes. 
+** The module multiplied by the number of teeth (<math>z</math>) defines the pitch circle diameter (<math>d</math>): <math>d = m \cdot z</math>
+** The module multiplied by Pi (<math>\pi</math>) defines the pitch (<math>p</math>), the arc distance on the pitch circle between corresponding points of adjacent teeth: <math>p = m \cdot \pi</math>
+* {{PropertyData|pressure_angle}} (<math>\alpha</math>): Only change the parameter, if sufficient knowledge of the gear geometry is available.
+* {{PropertyData|reset_origin}}: It is recommended to set the parameter to {{false}} to have the origin of the gear at the tip of the pitch cone. This way we can extend the bevel gear beyond the pitch circle plane using the module property.
+* The weak point of this tool is that it builds the geometry from the pitch diameter towards the tip and ignores the fact that there is also geometry in the opposite direction, the back cone. That is why we have to determine the cross-section of the gear at the pitch circle belonging to our chosen module to define cutting geometry and then use an extended (scaled from the tip) bevel gear to be cut. (see {{PropertyData|reset_origin}} above)
 
 ==Useful formulas==
 
-*{{Emphasis|pitch diameter}} = {{Emphasis|module}} * {{Emphasis|teeth}}
-*{{Emphasis|addendum diameter}} = {{Emphasis|pitch diameter}} + 2 * {{Emphasis|module}} * {{Emphasis|cos reference cone angle}}
-*{{Emphasis|tip angle 1}} = {{Emphasis|(teeth 1 + 2)}} * {{Emphasis|(cos reference cone angle 1)}} : {{Emphasis|(teeth 2 - 2)}} * {{Emphasis|(sin reference cone angle 1)}}
-*{{Emphasis|tip angle 2}} = {{Emphasis|(teeth 2 + 2)}} * {{Emphasis|(cos reference cone angle 2)}} : {{Emphasis|(teeth 1 - 2)}} * {{Emphasis|(sin reference cone angle 2)}}
-*{{Emphasis|reference cone angle 1}} = {{Emphasis|(teeth 1)}} : {{Emphasis|(teeth 2)}}
-*{{Emphasis|reference cone angle 2}} = {{Emphasis|(teeth 2)}} : {{Emphasis|(teeth 1)}}
-*{{Emphasis|axis angle total}} = {{Emphasis|reference cone angle 1}} + {{Emphasis|reference cone angle 2}}
+{| class="wikitable"
+|+ style="text-align: left;" | Basic formulas common to standard bevel gear pairs
+|-
+! Symbol !! Term !! Formula 1<br>This Gear !! Formula 2<br>Other Gear
+|-
+| <math>m</math> || ''Module'' || - || -
+|-
+| <math>z</math> || ''Number of Teeth'' || - || -
+|-
+| <math>\Sigma</math> || ''Shaft Angle'' || - || -
+|-
+| <math>u</math> || ''Gear Ratio''
+| <math>u_1 = \frac {z_2} {z_1}</math>
+| <math>u_2 = \frac {z_1} {z_2} = \frac {1} {u_1}</math>
+|-
+| <math>\delta</math> || ''Pitch Cone Angle''
+| <math>\delta_1 = \arctan \left( \frac {\sin(\Sigma)}{u_1 + \cos(\Sigma)} \right)</math>
+| <math>\delta_2 = \arctan \left( \frac {\sin(\Sigma)}{u_2 + \cos(\Sigma)} \right)</math>
+|-
+| <math>R_e</math> || ''Cone Distance''
+| <math>R_e = \frac {z_1 \cdot m} {2 \cdot \sin(\delta_1)}</math>
+| <math>R_e = \frac {z_2 \cdot m} {2 \cdot \sin(\delta_2)}</math>
+|-
+| <math>\vartheta_a</math> || ''Addendum Angle''
+| <math>\vartheta_a = \arctan \left( \frac {m} {R_e} \right)</math>
+| <math>\vartheta_a = \arctan \left( \frac {m} {R_e} \right)</math>
+|-
+| <math>c</math> || ''Clearance''
+| <math>0.1 \le c \le 0.3</math>
+| <math>0.1 \le c \le 0.3</math>
+|-
+| <math>\vartheta_f</math> || ''Dedendum Angle''
+| <math>\vartheta_f = \arctan \left( \frac {m + c} {R_e} \right)</math>
+| <math>\vartheta_f = \arctan \left( \frac {m + c} {R_e} \right)</math>
+|-
+| <math>\delta_a</math>
+| ''Face Angle''
+| <math>\delta_{a_1} = \delta_1 + \vartheta_a</math>
+| <math>\delta_{a_2} = \delta_2 + \vartheta_a</math>
+|-
+| <math>\delta_f</math>
+| ''Root Angle''
+| <math>\delta_{f_1} = \delta_1 - \vartheta_f</math>
+| <math>\delta_{f_2} = \delta_2 - \vartheta_f</math>
+|-
+| <math>\delta_s</math>
+| ''Back Cone Angle''
+| <math>\delta_{s_1} = 90^\circ - \delta_1</math>
+| <math>\delta_{s_2} = 90^\circ - \delta_2</math>
+|-
+|}
+
+{| class="wikitable"
+|+ style="text-align: left;" | Basic formulas common to standard bevel gears
+|-
+! Symbol !! Term !! Formula !! FCGear Parameter 
+|-
+| <math>m</math> || ''Module'' || - || <math>\texttt{module}</math>
+|-
+| <math>z</math> || ''Number of Teeth'' || - || <math>\text{num} {\_} \text{teeth}</math>
+|-
+| <math>\delta</math> || ''Pitch Cone Angle'' || - || <math>\text{pitch} {\_} \text{angle}</math>
+|-
+| <math>p</math> || ''Pitch'' || <math>p = m \cdot \pi</math> || -
+|-
+| <math>d</math>
+| ''Pitch Diameter''
+| <math>d = z \cdot m</math>
+| <math>dw</math>
+|-
+| <math>d_a</math>
+| ''Addendum Diameter''
+| <math>d_a = d + 2  \cdot m \cdot \cos ( \delta)</math>
+| -
+|-
+| <math>R_e</math> || ''Cone Distance'' || <math>R_e = \frac {d} {2 \cdot \sin(\delta)} = \frac {z  \cdot m} {2 \cdot \sin(\delta)}</math> || -
+|-
+| <math>b</math> || ''Width of Teeth'' || <math>b \le \frac {R_e} {3}</math> || -
+|-
+| <math>h_a</math> || ''Addendum'' || <math>h_a = m</math> || -
+|-
+| <math>h_f</math> || ''Dedendum'' || <math>h_f = m + c</math> || -
+|-
+| <math>h</math>
+| ''Tooth Height'' or ''Tooth Depth''
+| <math>h = h_a + h_f = 2 \cdot m + c</math>
+| -
+|}
+
+* Pitch diameter AKA reference diameter
+* Face angle AKA tip angle
+* Pitch cone angle AKA reference cone angle
+* Shaft angle AKA axis angle
 
 Substantive reference cone angle [TECH.]
 
