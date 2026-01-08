@@ -1,0 +1,422 @@
+<languages/>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{TutorialInfo
+|Topic=Cables Create Custom Connector
+|Level=Intermediate
+|Time=N/A
+|Author=[[User:SargoDevel|SargoDevel]]
+|FCVersion=1.0 or above
+|SeeAlso=[[Cables_Workbench|Cables Workbench]]
+}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Introduction ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The [[Image:Cables_CableConnector.svg|24px]] [[Cables_CableConnector|Cable Connector]] tool from the [[Cables_Workbench|Cables Workbench]] has several ready to use connector models in a built-in library. In addition to the library, anyone can create custom connectors from existing [https://en.wikipedia.org/wiki/ISO_10303 STEP] models available from manufacturers.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The custom connector should be created in a user-dedicated folder. The built-in library from the Cables Workbench should be treated as a read-only reference. Any additional files created in the built-in library will be removed in subsequent updates of the workbench.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This tutorial presents a method for manually creating a user-made connector containing [[Cables_CableTerminal|CableTerminals]] and [[Cables_SuppLines|SuppLines]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The newly created connector will be available in the list of '''Presets''' in the task panel upon [[Cables_CableConnector#Usage|Cable Connector]] creation. There is no need to restart FreeCAD.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+NOTE: This tutorial describes only the creation of a connector type called [[Cables_CableConnector#Fixed PresetType|Fixed PresetType]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Preparing folders ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Before creating the connector it is necessary to prepare two custom library folders and some files.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Make sure the folders below exist. If not, create them.
+</div>
+
+{{Code|lang=bash|code=
+$FREECAD_USER_DIR/Cables/
+$FREECAD_USER_DIR/Cables/lib/
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The {{Incode|$FREECAD_USER_DIR}} can be obtained from the [[Python_Console|Python Console]]:
+</div>
+
+{{Code|code=
+FreeCAD.getUserAppDataDir()
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Preparing files ==
+</div>
+
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Main presets file ===
+</div>
+
+<div class="mw-collapsible-content">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+For [[Cables_CableConnector|Cable Connector]] objects the '''main presets file''' is named {{FileName|connectorpresets.csv}}. Download the [https://github.com/sargo-devel/Cables/blob/master/freecad/cables/resources/presets/connectorpresets.csv connectorpresets.csv] file from the '''Cables Workbench''' source code and place it in the {{Incode|$FREECAD_USER_DIR/Cables/}} folder created in the previous step.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Edit the {{FileName|connectorpresets.csv}} file with your favorite text editor. I recommend the [https://kate-editor.org Kate editor] which has a nice built-in coloring of edited CSV files.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Inside the {{FileName|connectorpresets.csv}} file remove all lines which DO NOT start with a '#' sign (empty lines can be left as they are). This is to avoid duplicate connectors which already exist in built-in library.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+IMPORTANT: The {{FileName|connectorpresets.csv}} file has to be created <u>only once</u>. This file can contain base definitions for all custom-created connectors. Each connector is defined by a single line in this file. If a new connector is added in the future, you will simply need to add a new line to this file. There are some additional files needed in the ''lib/'' subfolder, but this will be explained in the next steps.
+</div>
+
+</div> <!-- End of collapsible element for Main presets file section. Do not remove! -->
+</div> <!-- End of collapsible element for Main presets file section. Do not remove! -->
+
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== STEP file ===
+</div>
+
+<div class="mw-collapsible-content">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The connector type of [[Cables_CableConnector#Fixed PresetType|Fixed PresetType]] is not parametric and requires an external shape loaded from a STEP file every time a new connector is created.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+As an example the [https://www.traceparts.com/pl/product/molex-microfit-30-plug-housing-dual-row-2-circuits-ul-94v2-panel-mount-ears-glowwire-capable-black?CatalogPath=TRACEPARTS%3ATP10016001005006&Product=90-04042024-042829&PartNumber=430200210 Micro-Fit 3.0 Plug for 2 circuits with Panel Mount Ears] will be used in this tutorial. Download it in STEP AP242 format.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''VERY IMPORTANT''': Some STEP files will probably do not load properly into the connector. The [[Cables_CableConnector#STEP_file|CableConnector STEP File]] describes how to deal with this problem.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+After downloading, change the file name to {{FileName|Micro-Fit3_DualRow-PME-2.step}} (the name can be anything, but it should describe the connector model as precisely as possible). Place the file in the {{Incode|$FREECAD_USER_DIR/Cables/lib/}} folder.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+NOTE: Since the name of the connector has been established, it has to be used consequently in all steps below especially inside the csv files. For example the '''Name''' and '''Connector Class''' fields in the {{FileName|connectorpresets.csv}} file are used by the software to look for a valid connector name (if '''Name''' = ''DualRow-PME-2'', '''Connector Class''' = ''Micro-Fit3'', and the CSV description file has to be named '''Connector Class'''_'''Name'''.csv, this results in {{FileName|Micro-Fit3_DualRow-PME-2.csv}} for this example).
+</div>
+
+</div> <!-- End of collapsible element for STEP file section. Do not remove! -->
+</div> <!-- End of collapsible element for STEP file section. Do not remove! -->
+
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== CSV description file for STEP file ===
+</div>
+
+<div class="mw-collapsible-content">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Each STEP model used to build a [[Cables_CableConnector|Cable Connector]] should have its own CSV description file. This file contains additional information about model placement, [[Cables_CableTerminal|CableTerminal]]s and [[Cables_SuppLines|SuppLines]] attached to the model. In this tutorial the CSV description file will have the name {{FileName|Micro-Fit3_DualRow-PME-2.csv}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Download the [https://github.com/sargo-devel/Cables/blob/master/freecad/cables/resources/presets/lib/Connector_Dummy.csv Connector_Dummy.csv] file from the '''Cables Workbench''' source code and place it in the {{Incode|$FREECAD_USER_DIR/Cables/lib/}} folder. Change its name to {{FileName|Micro-Fit3_DualRow-PME-2.csv}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Edit the {{FileName|Micro-Fit3_DualRow-PME-2.csv}} file with a text editor. Inside the {{FileName|Micro-Fit3_DualRow-PME-2.csv}} file remove all lines which DO NOT begin with a '#' sign (empty lines can be left as they are). The new necessary lines will be created in the next steps.
+</div>
+
+</div> <!-- End of collapsible element for CSV description... section. Do not remove! -->
+</div> <!-- End of collapsible element for CSV description... section. Do not remove! -->
+
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Filling files with basic data ==
+</div>
+
+<div class="mw-collapsible-content">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Edit the {{FileName|connectorpresets.csv}} file once again. Create a new line below the following lines:
+</div>
+
+{{Code|lang=bash|code=
+# Fixed Preset Type
+# Name,Fixed,Connector Class,StepFileName,NrOfTerminals,NrOfSuppLines
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and add a text as the one below:
+</div>
+
+{{Code|lang=text|code=
+DualRow-PME-2,Fixed,Micro-Fit3,Micro-Fit3_DualRow-PME-2.step,2,1
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+It contains the information that this connector will have 2 [[Cables_CableTerminal|CableTerminal]]s and 1 [[Cables_SuppLines|SuppLines]] cross. To learn more about the rules for this line, have a look at [[Cables_CableConnector#More_details_about_Fixed_PresetType_in_connectorpresets.csv_file|CableConnector More details about Fixed PresetType in connectorpresets.csv file]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Then edit the {{FileName|Micro-Fit3_DualRow-PME-2.csv}} file. Create a new line below the following lines:
+</div>
+
+{{Code|lang=bash|code=
+# Connector Element Type
+# Name,ExtShape,Class,Offset X,Offset Y,Offset Z,Rotation Yaw(Z),Rotation Pitch(Y), Rotation Roll(X)
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and add the text:
+</div>
+
+{{Code|lang=text|code=
+DualRow-PME-2,ExtShape,Micro-Fit3,0.0,0.0,0.0,0.0,0.0,0.0
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+then below the lines:
+</div>
+
+{{Code|lang=bash|code=
+# Terminal Element Type
+# Name,Terminal,Class,Offset X,Offset Y,Offset Z,Rotation Yaw(Z),Rotation Pitch(Y), Rotation Roll(X),NrOfConnections,Length,Spacing
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+add 2 lines:
+</div>
+
+{{Code|lang=text|code=
+Pin001,Terminal,Terminal,-10.0,0.0,0.0,0.0,0.0,0.0,1,10.0,1.0
+Pin002,Terminal,Terminal,10.0,0.0,0.0,0.0,0.0,0.0,1,10.0,1.0
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and finally below the lines:
+</div>
+
+{{Code|lang=bash|code=
+# SupportLines Element Type
+# Name,SupportLines,Class,Offset X,Offset Y,Offset Z,Rotation Yaw(Z),Rotation Pitch(Y), Rotation Roll(X)
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+add 1 line:
+</div>
+
+{{Code|lang=text|code=
+SuppLines001,SupportLines,SupportLines,0,0,30.0,0,0,0
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The lines added above define the starting positions of connector body, 2 terminals and 1 supplines cross. In the next steps the final positions of all elements will be established.
+</div>
+
+</div> <!-- End of collapsible element for Filling files... section. Do not remove! -->
+</div> <!-- End of collapsible element for Filling files... section. Do not remove! -->
+
+<span id="Adjusting_element_positions"></span>
+== Regolazione delle posizioni degli elementi ==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If previous steps have been performed properly, it should be now possible to create the connector from '''Micro-Fit3_DualRow-PME-2''' preset. Create a new document in FreeCAD and create the connector according to [[Cables_CableConnector#Usage|Cable Connector Usage]]. Select the '''Micro-Fit3_DualRow-PME-2''' preset in the task panel and confirm with {{Button|OK}}. The result should look like on the image below.
+</div>
+
+[[File:Cables_Creating_Own_Connector_Img1.png]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|'''Micro-Fit3_DualRow-PME-2''' connector with default placement data.}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In next steps placements of connector body, CableTerminals and SuppLines will be adjusted.
+</div>
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Adjusting position of connector body ===
+</div>
+
+<div class="mw-collapsible-content">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The placement of imported STEP shape can be different then expected. Let's assume in this example that the plug should stand vertically, with the cables exiting upwards, and the bottom should touch the (0,0,0) point.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Let's forget about CableTerminals and SuppLines for a moment, select the connector in the [[Tree_View|Tree View]] and move it and rotate with [[Std_TransformManip|TransformManip]] tool.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Its placement can be checked now in the [[Property_View|Property View]] or in [[Python_Console|Python Console]]. Details on how to do this are presented in [[Placement|Placement]]. Choose the view of Yaw, Pitch and Roll in the Placement task panel. It will better present rotation results. The precise values can be entered manually.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The placement result should be like this: {{Incode|Placement [Pos{{:=}}(0,0,8.445), Yaw-Pitch-Roll{{:=}}(0,0,-90)]}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Edit the {{FileName|Micro-Fit3_DualRow-PME-2.csv}} file again and modify the line:
+</div>
+
+{{Code|lang=text|code=
+DualRow-PME-2,ExtShape,Micro-Fit3,0.0,0.0,0.0,0.0,0.0,0.0
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+to:
+</div>
+
+{{Code|lang=text|code=
+DualRow-PME-2,ExtShape,Micro-Fit3,0.0,0.0,8.445,0.0,0.0,-90.0
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and save the {{FileName|Micro-Fit3_DualRow-PME-2.csv}} file.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Delete all objects in current FreeCAD document and create the connector again choosing '''Micro-Fit3_DualRow-PME-2''' preset. Its current placement should match what was just set. Note that the connector placement shown in the [[Property_View|Property View]] or in [[Python_Console|Python Console]] is now {{Incode|Placement [Pos{{:=}}(0,0,0), Yaw-Pitch-Roll{{:=}}(0,0,0)]}}. This is correct because the connector shape placement has been set upon creation based on data in {{FileName|Micro-Fit3_DualRow-PME-2.csv}} file.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The final effect should be like on the image below.
+</div>
+
+[[File:Cables_Creating_Own_Connector_Img2.png]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|'''Micro-Fit3_DualRow-PME-2''' connector placed vertically.}}
+</div>
+</div> <!-- End of collapsible element for Adjusting position of connector body section. Do not remove! -->
+</div> <!-- End of collapsible element for Adjusting position of connector body. section. Do not remove! -->
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Adjusting position of CableTerminals ===
+</div>
+
+<div class="mw-collapsible-content">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Expand '''CableConnector''' in the [[Tree_View|Tree View]]. It should contain two terminal subobjects: '''CableConnector_Term001''' and '''CableConnector_Term002'''. Both have to be adjusted to fit into connector.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Clear the '''Attachment Support''' property value of both terminals in the [[Property_View|Property View]]. This is necessary to enable unattached movement of terminals.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Select the first terminal in the [[Tree_View|Tree View]] and change its '''Length''' to 6mm in the [[Property_View|Property View]]. Then using [[Std_TransformManip|TransformManip]] tool place it vertically inside connector making sure that Vertex1 of the terminal is facing up (this is important later during cable attachment). The vertex number is shown in bottom status line of FreeCAD while hovering cursor over the vertex in the [[3D_View|3D View]]. Repeat all moves for the second terminal.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Using the same methods as in previous step check if the placement of terminals match the values given below:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''CableConnector_Term001''': {{Incode|Placement [Pos{{:=}}(0,1.5,12.0), Yaw-Pitch-Roll{{:=}}(0,0,90)]}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''CableConnector_Term001''': {{Incode|Placement [Pos{{:=}}(0,-1.5,12.0), Yaw-Pitch-Roll{{:=}}(0,0,90)]}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Retype these values into the {{FileName|Micro-Fit3_DualRow-PME-2.csv}} file by replacing the lines:
+</div>
+
+{{Code|lang=text|code=
+Pin001,Terminal,Terminal,-10.0,0.0,0.0,0.0,0.0,0.0,1,10.0,1.0
+Pin002,Terminal,Terminal,10.0,0.0,0.0,0.0,0.0,0.0,1,10.0,1.0
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+with these lines:
+</div>
+
+{{Code|lang=text|code=
+Pin001,Terminal,Terminal,0.0,1.5,12.0,0.0,0.0,90.0,1,6.0,1.0
+Pin002,Terminal,Terminal,0.0,-1.5,12.0,0.0,0.0,90.0,1,6.0,1.0
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Delete all objects in current FreeCAD document and create the connector again choosing '''Micro-Fit3_DualRow-PME-2''' preset. Its current placement should match what was just set and should be similar to the image below.
+</div>
+
+[[File:Cables_Creating_Own_Connector_Img3.png]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|'''Micro-Fit3_DualRow-PME-2''' connector with terminals properly aligned. It is transparent for better visibility of terminals.}}
+</div>
+
+</div> <!-- End of collapsible element for Adjusting position of CableTerminals section. Do not remove! -->
+</div> <!-- End of collapsible element for Adjusting position of CableTerminals section. Do not remove! -->
+
+<div class="mw-collapsible mw-collapsed toccolours">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Adjusting position of SuppLines ===
+</div>
+
+<div class="mw-collapsible-content">
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The single SuppLines object ('''CableConnector_SuppLines001''' in this example) has the shape of a cross with a fixed predefined size. This object can be used as a fixing point for a cable attached to the connector. It is up to the user to use it or not.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The default placement of SuppLines cross in this tutorial is too high. Let's change its placement using methods described in previous steps.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The final placement of SuppLines may look like this:
+'''CableConnector_SuppLines001''': {{Incode|Placement [Pos{{:=}}(0,0,25), Yaw-Pitch-Roll{{:=}}(0,0,0)]}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Retype the above values into the {{FileName|Micro-Fit3_DualRow-PME-2.csv}} file by replacing the line:
+</div>
+
+{{Code|lang=text|code=
+SuppLines001,SupportLines,SupportLines,0,0,30.0,0,0,0
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+with this line:
+</div>
+
+{{Code|lang=text|code=
+SuppLines001,SupportLines,SupportLines,0,0,25.0,0,0,0
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Once again delete all objects in current FreeCAD document and create the connector choosing '''Micro-Fit3_DualRow-PME-2''' preset. The result should present all final adjustments of created objects.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The connector '''Micro-Fit3_DualRow-PME-2''' preset definition is now ready to use in projects.
+</div>
+
+</div> <!-- End of collapsible element for Adjusting position of SuppLines section. Do not remove! -->
+</div> <!-- End of collapsible element for Adjusting position of SuppLines section. Do not remove! -->
+
+{{Userdocnavi{{#translation:}}}}
