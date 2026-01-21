@@ -4,59 +4,68 @@
 <span id="Introduction"></span>
 == Introduzione ==
 
-Beginning in FreeCAD version 0.20, external addons (workbenches, macros, preference packs, bundles{{VersionNote|1.1}}, and generic "other" collections of tools{{VersionNote|1.1}}) may be distributed with a metadata file describing the contents of the package. If the file "package.xml" is present it is read by FreeCAD and its contents used in various parts of the user interface. It is currently optional for workbenches and macros, and required for preference packs. This page documents the format of that metadata file. The format (and the contents of this Wiki page) are based on [https://ros.org/reps/rep-0149.html REP 149].
+Beginning in FreeCAD v0.20 addons should be distributed with a manifest file describing their contents. FreeCAD uses this metadata to determine what resources to load and what dependencies to install upon other things. The file also provides information used to display your addon in the Addon Manager.
 
 <span id="Overall_file_format"></span>
 == Formato file complessivo ==
 
-This document currently describes file format version 1. 
+This document currently describes file format version 1.
+
+The original format and contents of this page were based on [https://ros.org/reps/rep-0149.html REP 149].
 
 The metadata file must be a valid, well-formed XML 1.0 document. It must be called "package.xml", and must exist in the base directory of each of the software package's displayed branches (as specified by the [https://github.com/FreeCAD/FreeCAD-addons/blob/master/AddonCatalog.json FreeCAD-addons AddonCatalog.json file]) in its git repository. Each branch is expected to contain an independent package.xml file that pertains specifically to that branch (e.g. a "development" branch should specify a version number that makes it clear it is a development branch, etc.). All understood XML tags are in lowercase, but unrecognized tags are '''not''' an error. Most tags are optional, and some only apply to certain types of package contents (for example, only Workbenches currently provide a "classname" element). Unneeded or unrecognized elements are ignored.
 
 Any file path specified in package.xml must use the slash ("/") as the directory separator: on systems that expect a different separator during execution (e.g. Windows) FreeCAD will automatically convert to the correct separator.
 
-<span id="Content_elements"></span>
+<span id="Tags"></span>
+<div class="mw-translate-fuzzy">
 == Elementi del contenuto ==
+</div>
 
 === <package> ===
 
-The only top-level element allowed is <package>, and the file may only contain one <package> element. Immediately subordinate to that are several required or optional elements, defined here. No other tags are permitted directly under the <package> element.
+The <package> tag is the only top-level element allowed in the manifest and there can only be one. All other tags and their contents are nested within it.
 
-<pre>
-<package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
-</pre>
-
-The <package> tag is the unique top-level tag in a package.xml file. All other tags are nested under it.
+<syntaxhighlight lang = 'xml' >
+<package 
+    format="1"
+    xmlns="https://wiki.freecad.org/Package_Metadata"
+>
+</syntaxhighlight>
 
 <span id="Attributes"></span>
 ==== Attributi ====
 
-* format="NUMBER": Specifying the package.xml format being used. For this interface, you must specify format="1".
-* xmlns="NAMESPACE": Specifies the XML namespace for this package, and must be included exactly as shown above, as a link to https://wiki.freecad.org/Package_Metadata.
+* format="NUMBER": Specifies the version of the format being used, currently only version "1" exists.
+* xmlns="NAMESPACE": Specifies the XML namespace being used. Must be set to "https://wiki.freecad.org/Package_Metadata".
 
-<span id="Required_child_tags"></span>
+<span id="Required_Tags"></span>
+<div class="mw-translate-fuzzy">
 ==== Child tags richiesti ====
+</div>
 
-The top-level <package> element must contain at least the following tags:
+The following tags must be present in the <package> element:
 
 * [[#.3Cname.3E|<name>]]
 * [[#.3Cversion.3E|<version>]]
 * [[#.3Cdate.3E|<date>]]
 * [[#.3Cdescription.3E|<description>]]
-* [[#.3Cmaintainer.3E|<maintainer>]] (multiple, but at least one)
-* [[#.3Clicense.3E|<license>]] (multiple, but at least one)
+* [[#.3Cmaintainer.3E|<maintainer>]]
+* [[#.3Clicense.3E|<license>]]
 * [[#.3Cicon.3E|<icon>]]
-* [[#.3Ccontent.3E|<content>]] (container element for package content items)
+* [[#.3Ccontent.3E|<content>]]
 
-<span id="Optional_child_tags"></span>
+<span id="Optional_Tags"></span>
+<div class="mw-translate-fuzzy">
 ==== Child tags opzionali ====
+</div>
 
-* [[#.3Curl.3E|<url>]] (multiple)
-* [[#.3Cauthor.3E|<author>]] (multiple)
-* [[#.3Cdepend.3E|<depend>]] (multiple)
-* [[#.3Cconflict.3E|<conflict>]] (multiple)
-* [[#.3Creplace.3E|<replace>]] (multiple)
-* [[#.3Ctag.3E|<tag>]] (multiple)
+* [[#.3Curl.3E|<url>]]
+* [[#.3Cauthor.3E|<author>]]
+* [[#.3Cdepend.3E|<depend>]]
+* [[#.3Cconflict.3E|<conflict>]]
+* [[#.3Creplace.3E|<replace>]]
+* [[#.3Ctag.3E|<tag>]]
 * [[#.3Cfreecadmin.3E|<freecadmin>]]
 * [[#.3Cfreecadmax.3E|<freecadmax>]]
 * [[#.3Cpythonmin.3E|<pythonmin>]]
@@ -85,7 +94,7 @@ REQUIRED
 
 A concise (up to several sentences) text-only description of this package. No markup is supported.
 
-=== <maintainer>
+=== <maintainer> ===
 
 AT LEAST ONE REQUIRED (multiple allowed)
 
@@ -109,23 +118,24 @@ AT LEAST ONE REQUIRED (multiple allowed)
 SPDX short identifier of the license(s) for this package, e.g. BSD-2-Clause, GPL-3.0-or-later, LGPL-2.1-or-later. In order to assist machine readability, only include the license's SPDX short identifier (see [https://spdx.org/licenses/ the SPDX site]). For multiple licenses multiple separate tags must be used. A package will have multiple licenses if different source files have different licenses. Every license occurring in the source files should have a corresponding <license> tag. For any explanatory text about licensing caveats, please use the <description> tag. To specify that no license applies (e.g. "All rights reserved.") set this value to "UNLICENSED". To specify a custom license without an SPDX identifier set this value to "SEE LICENSE IN <filename>".
 
 Commonly-used license strings:
-* {{incode|"Apache-2.0"}}
-* {{incode|"BSD-2-Clause"}}
-* {{incode|"BSD-3-Clause"}}
-* {{incode|"BSL-1.0"}}
-* {{incode|"GPL-2.0-or-later"}}
-* {{incode|"GPL-3.0-or-later"}}
-* {{incode|"LGPL-2.1-or-later"}}
-* {{incode|"LGPL-3.0-or-later"}}
-* {{incode|"MIT"}}
-* {{incode|"MPL-1.1"}}
-* {{incode|"CC0-1.0"}} (Public Domain dedication)
+* {{incode|Apache-2.0}}
+* {{incode|BSD-2-Clause}}
+* {{incode|BSD-3-Clause}}
+* {{incode|BSL-1.0}}
+* {{incode|GPL-2.0-or-later}}
+* {{incode|GPL-3.0-or-later}}
+* {{incode|LGPL-2.1-or-later}}
+* {{incode|LGPL-3.0-or-later}}
+* {{incode|MIT}}
+* {{incode|MPL-1.1}}
+* {{incode|CC-BY-SA-4.0}}
+* {{incode|CC0-1.0}}
 
 '''Backwards-compatibility note''': The Addon Manager will attempt to normalize license identifiers that do not exactly match an SPDX license string. This will sometimes result in a license ID that yields a non-FSF-Libre or non-OSI-approved license: for example "LGPL2" will be normalized to "LGPL-2.0", which is a non-FSF-Libre license: what was probably intended was "LGPL-2.1-or-later".
 
 ==== Attributes ====
 
-* {{incode|file<nowiki>=</nowiki>"FILE"}} (optional): A path relative to the {{incode|package.xml}} file containing the full license text. Many licenses require including the license text when redistributing the software. E.g. the Apache License, Version 2.0 states in paragraph 4.1: "You must give any other recipients of the Work or Derivative Works a copy of this License"
+* file="FILE" (optional): A path relative to the {{incode|package.xml}} file containing the full license text. Many licenses require including the license text when redistributing the software. E.g. the Apache License, Version 2.0 states in paragraph 4.1: "You must give any other recipients of the Work or Derivative Works a copy of this License"
 
 === <content> ===
 
@@ -179,7 +189,7 @@ For workbenches, the name of the Python main entry class. This is the class that
 
 {{Code|code=
 class MyNewWB:
-    Icon = "resources/icon.svg"
+    Icon="resources/icon.svg"
 }}
 
 then the package.xml file expects:
@@ -293,15 +303,15 @@ See <depend>.
 
 A simple text tag used for categorization when using a package manager. Multiple <tag> elements may be specified.
 
-=== <freecadmin>
+=== <freecadmin> ===
 
 The minimum version of FreeCAD required to use this package/element, as a semantic version 2.0 string in the format MAJOR.MINOR.BUILD. This tag may be used to specify that a particular branch of this addon should only be shown to users of a specific FreeCAD version (or later). It may be combined with {{incode|<freecadmax>}} to set a specific valid range.
 
-=== <freecadmax>
+=== <freecadmax> ===
 
 The maximum version of FreeCAD required to use package/element, as a semantic version 2.0 string in the format MAJOR.MINOR.BUILD. This tag may be used to specify that a particular branch of this addon should only be shown to users of a specific FreeCAD version (or earlier). It may be combined with {{incode|<freecadmin>}} to set a specific valid range. Note that it is an exact version string, so to indicate that the addon supports an entire minor release, the "patch" component should be chosen to be a suitably large number (e.g. "1.0.99" to support the entire 1.0.x release series).
 
-=== <pythonmin>
+=== <pythonmin> ===
 
 (New in FreeCAD 0.21, ignored by previous versions.) The minimum version of Python required to use package/element, as a semantic version 2.0 string in the format MAJOR.MINOR. The Addon Manager will not permit an Addon to be installed on a system running a version of Python before this one. Only Python 3.x versions are supported. Although you may specify a three-component version, only the minor number is considered during the compatibility check.
 
