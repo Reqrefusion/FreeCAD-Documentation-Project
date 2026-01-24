@@ -242,7 +242,10 @@ if 'server' not in dir(FreeCAD):
 		global _doc
 		
 		if n:
-			doc = App.getDocument(n)
+			try:
+				doc = App.getDocument(n)
+			except NameError:
+				return 0
 		elif _doc:
 			doc = _doc
 		else:
@@ -255,6 +258,7 @@ if 'server' not in dir(FreeCAD):
 		global _ss
 
 		doc = getDoc(n)
+		if not doc: return 0
 
 		if s:
 			ss = doc.getObject(s)
@@ -270,6 +274,7 @@ if 'server' not in dir(FreeCAD):
 		global _obj
 
 		doc = getDoc(n)
+		if not doc: return 0
 
 		if s:
 			obj = doc.getObject(s)
@@ -280,16 +285,28 @@ if 'server' not in dir(FreeCAD):
 
 		return obj
 
-	def getPath(s=0, default_fn='file.stl'):
+	def getPath(s=0, default_fn=0):
 		'''Get file path (for export mainly)'''
 		global _path,ROOT
+
+		path = ''
+
+		if not default_fn:
+			default_fn='file'
 
 		if s:
 			path = s
 		elif _path:
 			path = _path
 		else:
-			path = ROOT + '/' + default_fn
+			path = ROOT
+
+		path = path.replace('\\','/')# make it objectively right ;)
+		
+		if os.path.isdir(path):
+			path = path + '/' + default_fn
+		if '.' not in path.split('/')[-1]:
+			path += '.stl'
 
 		return path
 
@@ -350,7 +367,7 @@ if 'server' not in dir(FreeCAD):
 	
 	def fc_getId(m,n,s):
 		resp = 'i%s\n' % FreeCAD.server[0]
-		resp += '#I : server : fc_getId : done\n'
+		#resp += '#I : server : fc_getId : done\n'
 		putstdout(resp)
 	
 	def fc_docList(m,n,s):
@@ -359,30 +376,44 @@ if 'server' not in dir(FreeCAD):
 		for k,_ in App.listDocuments().items():
 			resp += 'd%s\n' % k
 		
-		resp += '#I : server : fc_docList : done\n'
+		if not resp:
+			resp += '#I : server : fc_docList : empty\n'
+		
 		putstdout(resp)
 
 	def fc_objList(m,n,s):
 		resp = ''
 		doc = getDoc(n)
 		
-		for obj in doc.Objects:
-			resp += 'o%s %s\n' % (obj.Name, obj.Label)
+		if not doc:
+			resp += '#E : server : fc_objList : no doc\n'
+		else:
 		
-		resp += '#I : server : fc_objList : done\n'
+			for obj in doc.Objects:
+				resp += 'o%s %s\n' % (obj.Name, obj.Label)
+			
+			if not resp:
+				resp += '#I : server : fc_objList : empty\n'
+		
 		putstdout(resp)
 
 	def fc_cellsList(m,n,s):
 		resp = ''
 		ss = getSS(s,n)
 
-		# Build list of non-empty cells
-		for k in ss.getNonEmptyCells():
-			v = ss.get(k)
-			resp += 'c%s %s\n' % (k,v)
+		if not ss:
+			resp += '#E : server : fc_cellsList : no sheet\n'
+		else:
 
+			# Build list of non-empty cells
+			for k in ss.getNonEmptyCells():
+				v = ss.get(k)
+				resp += 'c%s %s\n' % (k,v)
+			
+			if not resp:
+				resp += '#I : server : fc_cellsList : empty\n'
+		
 		# Sends it
-		resp += '#I : server : fc_cellsList : done\n'
 		putstdout(resp)
 	
 
@@ -395,37 +426,60 @@ if 'server' not in dir(FreeCAD):
 		
 	def fc_selectDoc(m,n,s):
 		global _doc
+		
+		resp = ''
 
 		if n:
-			_doc = App.getDocument(n)
+			try:
+				_doc = App.getDocument(n)
+			except NameError:
+				resp = '#E : server : fc_selectDoc : no doc\n'
 		else:
 			_doc = 0
+		
+		if not resp:
+			resp = '#I : server : fc_selectDoc : done\n'
 
-		putstdout('#I : server : fc_selectDoc : done\n')
+		putstdout(resp)
 	
 	def fc_selectSpreadsheet(m,n,s):
 		global _ss
 
+		resp = ''
 		doc = getDoc(n)
 
-		if s:
-			_ss = doc.getObject(s)
+		if not doc:
+			resp += '#E : server : fc_selectSpreadsheet : no doc\n'
 		else:
-			_ss = 0
+		
+			if s:
+				_ss = doc.getObject(s)
+			else:
+				_ss = 0
+			
+			resp = '#I : server : fc_selectSpreadsheet : done\n'
 
-		putstdout('#I : server : fc_selectSpreadsheet : done\n')
+		putstdout(resp)
 	
 	def fc_selectObj(m,n,s):
 		global _obj
 
+		resp = ''
 		doc = getDoc(n)
 
-		if s:
-			_obj = doc.getObject(s)
+		if not doc:
+			resp += '#E : server : fc_selectObj : no doc\n'
 		else:
-			_obj = 0
+
+			if s:
+				_obj = doc.getObject(s)
+			else:
+				_obj = 0
+			
+			if not resp:
+				resp = '#I : server : fc_selectObj : done\n'
 	
-		putstdout('#I : server : fc_selectObj : done\n')
+		putstdout(resp)
 
 	def fc_selectPath(m,n,s):
 		global _path
@@ -441,16 +495,29 @@ if 'server' not in dir(FreeCAD):
 	def fc_getCell(m,n,s):
 		resp = ''
 		ss = getSS(s)
-		v = ss.get(n)
-		resp = 'c%s %d' % (n, v)
-		resp += '#I : server : fc_getCell : done\n'
+		if not ss:
+			resp = '#E : server : fc_getCell : no sheet\n'
+		else:
+		
+			try:
+				v = ss.get(n)
+				resp = 'c%s %d\n' % (n, v)
+			except ValueError:
+				resp = '#E : server : fc_getCell : no cell\n'
+				
+		#resp += '#I : server : fc_getCell : done\n'
 		putstdout(resp)
 	
 	def fc_setCell(m,n,s):
+		resp = ''
 		ss = getSS()
-		v = ss.set(n,s)
+		if not ss:
+			resp = '#E : server : fc_setCell : no sheet\n'
+		else:
+			v = ss.set(n,s)
+			resp = '#I : server : fc_setCell : done\n'
 	
-		putstdout('#I : server : fc_setCell : done\n')
+		putstdout(resp)
 
 	
 	def fc_recompute(m,n,s):
@@ -459,16 +526,27 @@ if 'server' not in dir(FreeCAD):
 		putstdout('#I : server : fc_recompute : done\n')
 
 	def fc_export(m,n,s):
+		resp = ''
 		obj = getObj(n)
-		path = getPath(s)
-		
-		if hasattr(Mesh, "exportOptions"):
-			options = Mesh.exportOptions(path)
-			Mesh.export([obj], path, options)
-		else:
-			Mesh.export([obj], path)
+		path = getPath(s, obj.Label)
 
-		putstdout('#I : server : fc_export : done\n')
+		if not obj:
+			resp = '#E : server : fc_export : no object\n'
+		else:
+			
+			if not path:
+				resp = '#E : server : fc_export : no path\n'
+			else:
+			
+				if hasattr(Mesh, "exportOptions"):
+					options = Mesh.exportOptions(path)
+					Mesh.export([obj], path, options)
+				else:
+					Mesh.export([obj], path)
+				
+				resp += '#I : server : fc_export : done : %s\n' % path
+
+		putstdout(resp)
 
 
 	def fc_(m,n,s):
@@ -636,10 +714,10 @@ if len(sys.argv) > 1:
 		else:
 			cmd += a
 		cmd += '\n'
-else:
+#else:
 	# Default : get document list
 
-	cmd = 'D\n'
+#	cmd = 'D\n'
 
 
 # Setup brcko lib
@@ -651,7 +729,8 @@ addstdout('%s/server.stdin' %path)
 
 
 # Send command script
-putstdout(cmd)
+if cmd:
+	putstdout(cmd)
 
 try:
 
