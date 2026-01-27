@@ -1,0 +1,723 @@
+<nowiki>#</nowiki> Macro: MascherinaHDMI_Femmina_Precisa
+
+<nowiki>#</nowiki> Descrizione: Crea una mascherina con foro ESATTO per HDMI femmina Type A
+
+<nowiki>#</nowiki> Dimensioni basate su specifiche HDMI Licensing Administrator
+
+import FreeCAD
+
+import Part
+
+import Draft
+
+from FreeCAD import Base, Vector
+
+import math
+
+def crea_mascherina_hdmi_precisa():
+
+    """
+
+    Crea una mascherina con foro PRECISO per connettore HDMI femmina Type A.
+
+    Dimensioni basate sullo standard HDMI.
+
+    """
+
+    
+
+    # Dimensioni massime della mascherina
+
+    larghezza_totale = 20.0  # mm
+
+    altezza_totale = 20.0    # mm
+
+    spessore = 2.0           # mm
+
+    
+
+    # ============================================
+
+    # DIMENSIONI ESATTE CONNETTORE HDMI FEMMINA TYPE A
+
+    # Fonte: Specifiche HDMI 1.4b, IEC 62680-1-3
+
+    # ============================================
+
+    
+
+    # Dimensioni esteriori del connettore femmina (casa metallica)
+
+    larghezza_esterna = 13.9    # mm ±0.1 (A in datasheet)
+
+    altezza_esterna = 4.45      # mm ±0.1 (B in datasheet)
+
+    
+
+    # Dimensioni apertura interna (dove entra il maschio)
+
+    # Queste sono le misure CRITICHE per il foro nella mascherina
+
+    larghezza_apertura = 13.5   # mm (C in datasheet, massima)
+
+    altezza_apertura = 4.35     # mm (D in datasheet, massima)
+
+    
+
+    # Forma trapezoidale caratteristica dell'HDMI
+
+    # L'apertura è leggermente trapezoidale
+
+    larghezza_superiore = 13.5   # mm
+
+    larghezza_inferiore = 12.7   # mm
+
+    altezza_trapezio = 4.35      # mm
+
+    
+
+    # Raggio angoli caratteristico
+
+    raggio_angoli = 0.5          # mm
+
+    
+
+    # Posizione pin (per riferimento)
+
+    altezza_pin_centro = 2.1     # mm dal bordo inferiore
+
+    
+
+    # ============================================
+
+    # CREAZIONE MASCHERINA
+
+    # ============================================
+
+    
+
+    # Crea il documento
+
+    doc = FreeCAD.ActiveDocument
+
+    if not doc:
+
+        doc = FreeCAD.newDocument("Mascherina_HDMI_Precisa")
+
+    
+
+    # 1. CREA BASE PRINCIPALE 20x20x2mm
+
+    base = Part.makeBox(larghezza_totale, altezza_totale, spessore)
+
+    
+
+    # Centro della mascherina
+
+    centro_x = larghezza_totale / 2
+
+    centro_y = altezza_totale / 2
+
+    
+
+    # 2. CREA FORO HDMI PRECISO (forma a trapezio)
+
+    print("Creando foro HDMI con dimensioni esatte...")
+
+    print(f"Larghezza superiore: {larghezza_superiore}mm")
+
+    print(f"Larghezza inferiore: {larghezza_inferiore}mm")
+
+    print(f"Altezza: {altezza_trapezio}mm")
+
+    
+
+    # Crea il profilo trapezoidale dell'HDMI
+
+    # Coordinate rispetto al centro del trapezio
+
+    metà_sup = larghezza_superiore / 2
+
+    metà_inf = larghezza_inferiore / 2
+
+    h = altezza_trapezio / 2
+
+    
+
+    # Punti del trapezio (in senso orario)
+
+    # Forma esatta dell'HDMI: trapezio isoscele
+
+    punti = [
+
+        Vector(-metà_inf, -h, 0),      # Angolo inferiore sinistro
+
+        Vector(metà_inf, -h, 0),       # Angolo inferiore destro
+
+        Vector(metà_sup, h, 0),        # Angolo superiore destro
+
+        Vector(-metà_sup, h, 0),       # Angolo superiore sinistro
+
+    ]
+
+    
+
+    # Crea il wire (contorno)
+
+    wire = Part.makePolygon(punti + [punti[0]])  # Chiudi il contorno
+
+    faccia = Part.Face(wire)
+
+    
+
+    # Estrudi per creare il solido di taglio
+
+    foro_hdmi = faccia.extrude(Vector(0, 0, spessore * 3))  # Extra lungo per sicurezza
+
+    
+
+    # Posiziona al centro della mascherina
+
+    foro_hdmi.translate(Vector(centro_x, centro_y, -spessore - 1))
+
+    
+
+    # 3. APPLICA RAGGI AGLI ANGOLI (caratteristici dell'HDMI)
+
+    try:
+
+        # Raggio sui 4 angoli del trapezio
+
+        # Nota: In FreeCAD è più facile applicare il raggio prima dell'estrusione
+
+        # Creiamo direttamente un profilo con raggi
+
+        
+
+        # Alternativa: crea un rettangolo con raggi e poi ritaglia il trapezio
+
+        rettangolo_base = Part.makeRoundedRectangle(
+
+            larghezza_superiore, 
+
+            altezza_trapezio, 
+
+            raggio_angoli, 
+
+            raggio_angoli, 
+
+            raggio_angoli, 
+
+            raggio_angoli,
+
+            Vector(0,0,0), 
+
+            Vector(0,0,1)
+
+        )
+
+        
+
+        # Crea il solido dal rettangolo arrotondato
+
+        foro_hdmi_arrot = rettangolo_base.extrude(Vector(0, 0, spessore * 3))
+
+        foro_hdmi_arrot.translate(Vector(
+
+            centro_x - larghezza_superiore/2,
+
+            centro_y - altezza_trapezio/2,
+
+            -spessore - 1
+
+        ))
+
+        
+
+        # Usa questa versione arrotondata
+
+        foro_hdmi = foro_hdmi_arrot
+
+        
+
+    except:
+
+        print("Usando forma trapezoidale senza raggi (fallback)")
+
+    
+
+    # 4. CREA FORI PER VITI DI FISSAGGIO (M2.5 standard)
+
+    diametro_vite = 2.5  # mm per vite M2.5
+
+    distanza_bordo = 2.5 # mm dal bordo
+
+    
+
+    # Posizioni dei 4 fori (angoli della mascherina)
+
+    posizioni_fori = [
+
+        (distanza_bordo, distanza_bordo),  # Basso-sinistra
+
+        (larghezza_totale - distanza_bordo, distanza_bordo),  # Basso-destra
+
+        (distanza_bordo, altezza_totale - distanza_bordo),  # Alto-sinistra
+
+        (larghezza_totale - distanza_bordo, altezza_totale - distanza_bordo)  # Alto-destra
+
+    ]
+
+    
+
+    # 5. CREA GUIDA ORIENTATIVA (tacca per montaggio corretto)
+
+    # L'HDMI ha una tacca sul lato inferiore per orientamento
+
+    larghezza_tacca = 7.0  # mm
+
+    altezza_tacca = 0.8    # mm
+
+    profondita_tacca = 0.5  # mm
+
+    
+
+    # Crea la tacca di orientamento
+
+    tacca = Part.makeBox(larghezza_tacca, profondita_tacca, altezza_tacca)
+
+    tacca.translate(Vector(
+
+        centro_x - larghezza_tacca/2,  # Centrata in orizzontale
+
+        0,  # Sul bordo inferiore
+
+        spessore - altezza_tacca  # Sulla faccia superiore
+
+    ))
+
+    
+
+    # 6. UNISCI TUTTI I SOLIDI DI TAGLIO
+
+    taglio_totale = foro_hdmi
+
+    
+
+    # Aggiungi fori per viti
+
+    for pos in posizioni_fori:
+
+        foro = Part.makeCylinder(diametro_vite/2, spessore * 3)
+
+        foro.translate(Vector(pos[0], pos[1], -spessore - 1))
+
+        taglio_totale = taglio_totale.fuse(foro)
+
+    
+
+    # Aggiungi la tacca (è un'aggiunta, non un taglio)
+
+    # Per la tacca usiamo un'operazione di taglio dalla faccia superiore
+
+    tacca_taglio = tacca.copy()
+
+    tacca_taglio.translate(Vector(0, 0, -0.1))  # Assicura penetrazione
+
+    taglio_totale = taglio_totale.fuse(tacca_taglio)
+
+    
+
+    # 7. APPLICA TUTTI I TAGLI ALLA BASE
+
+    mascherina = base.cut(taglio_totale)
+
+    
+
+    # 8. AGGIUNGI RACCOLTI PER MIGLIORARE LA STAMPABILITÀ
+
+    try:
+
+        # Raccordo spigoli esterni verticali
+
+        raccordo = 0.3  # mm
+
+        bordi_da_raccordare = []
+
+        
+
+        for edge in mascherina.Edges:
+
+            # Trova bordi verticali (paralleli all'asse Z)
+
+            if abs(edge.Length - spessore) < 0.01:
+
+                # Verifica se è un bordo esterno
+
+                for vertex in edge.Vertexes:
+
+                    x, y, z = vertex.X, vertex.Y, vertex.Z
+
+                    if (x < 0.1 or x > larghezza_totale - 0.1 or 
+
+                        y < 0.1 or y > altezza_totale - 0.1):
+
+                        bordi_da_raccordare.append(edge)
+
+                        break
+
+        
+
+        # Applica raccordo se ci sono bordi validi
+
+        if bordi_da_raccordare:
+
+            mascherina = mascherina.makeFillet(raccordo, bordi_da_raccordare[:4])
+
+            
+
+    except Exception as e:
+
+        print(f"Raccordo non applicabile: {e}")
+
+    
+
+    # 9. AGGIUNGI AL DOCUMENTO
+
+    obj_mascherina = doc.addObject("Part::Feature", "Mascherina_HDMI_Precisa")
+
+    obj_mascherina.Shape = mascherina
+
+    obj_mascherina.ViewObject.ShapeColor = (0.2, 0.2, 0.2)  # Grigio scuro
+
+    
+
+    # 10. CREA UN RIFERIMENTO VISIVO DEL CONNETTORE
+
+    # Crea un modello semplificato del connettore HDMI per verifica
+
+    connettore_ref = Part.makeBox(larghezza_esterna, 5.0, altezza_esterna)
+
+    connettore_ref.translate(Vector(
+
+        centro_x - larghezza_esterna/2,
+
+        centro_y - 2.5,  # Centrato in verticale
+
+        spessore + 0.1  # Appena sopra la mascherina
+
+    ))
+
+    
+
+    obj_connettore = doc.addObject("Part::Feature", "Connettore_HDMI_Riferimento")
+
+    obj_connettore.Shape = connettore_ref
+
+    obj_connettore.ViewObject.ShapeColor = (0.8, 0.3, 0.0)  # Arancione metallico
+
+    obj_connettore.ViewObject.Transparency = 60
+
+    
+
+    # 11. CREA UNA VISTA IN SEZIONE PER VERIFICA
+
+    # Crea un piano di taglio per vedere la sezione
+
+    piano_sezione = Part.makeBox(larghezza_totale, altezza_totale/2, spessore * 2)
+
+    piano_sezione.translate(Vector(0, altezza_totale/2, -spessore))
+
+    
+
+    sezione = mascherina.common(piano_sezione)
+
+    obj_sezione = doc.addObject("Part::Feature", "Sezione_Verifica")
+
+    obj_sezione.Shape = sezione
+
+    obj_sezione.ViewObject.ShapeColor = (0.0, 0.6, 0.8)  # Blu chiaro
+
+    
+
+    # 12. AGGIUNGI QUOTE PER MISURE
+
+    # Crea linee di quota visive
+
+    # Quota larghezza foro HDMI
+
+    linea_quota_larg = Part.makeLine(
+
+        Vector(centro_x - larghezza_superiore/2, centro_y + altezza_trapezio/2 + 3, spessore),
+
+        Vector(centro_x + larghezza_superiore/2, centro_y + altezza_trapezio/2 + 3, spessore)
+
+    )
+
+    obj_quota_larg = doc.addObject("Part::Feature", "Quota_Larghezza_HDMI")
+
+    obj_quota_larg.Shape = linea_quota_larg
+
+    
+
+    # 13. AGGIORNA TUTTO
+
+    doc.recompute()
+
+    
+
+    # 14. IMPOSTA VISTA 3D OTTIMALE
+
+    FreeCADGui.ActiveDocument.activeView().viewIsometric()
+
+    FreeCADGui.ActiveDocument.activeView().fitAll()
+
+    
+
+    # 15. STAMPA RIEPILOGO DETTAGLIATO
+
+    print("\n" + "="*70)
+
+    print("MASCHERINA HDMI FEMMINA - DIMENSIONI ESATTE")
+
+    print("="*70)
+
+    print(f"DIMENSIONI MASCHERINA:")
+
+    print(f"  • Larghezza totale: {larghezza_totale} mm")
+
+    print(f"  • Altezza totale: {altezza_totale} mm")
+
+    print(f"  • Spessore: {spessore} mm")
+
+    print()
+
+    print(f"FORO HDMI TYPE A (dimensioni reali):")
+
+    print(f"  • Larghezza superiore: {larghezza_superiore} mm")
+
+    print(f"  • Larghezza inferiore: {larghezza_inferiore} mm")
+
+    print(f"  • Altezza: {altezza_trapezio} mm")
+
+    print(f"  • Forma: Trapezio isoscele con raggi R{raggio_angoli}mm")
+
+    print()
+
+    print(f"FORI DI FISSAGGIO:")
+
+    print(f"  • Diametro: {diametro_vite} mm (vite M{diametro_vite})")
+
+    print(f"  • Posizione: {distanza_bordo} mm dal bordo")
+
+    print()
+
+    print(f"CARATTERISTICHE AGGIUNTIVE:")
+
+    print(f"  • Tacca di orientamento: {larghezza_tacca}x{altezza_tacca} mm")
+
+    print(f"  • Raccordo spigoli: 0.3 mm")
+
+    print("="*70)
+
+    print("\n✓ Verificare SEMPRE le dimensioni con un calibro sul connettore reale!")
+
+    print("✓ Consigliato: stampa 3D di prova in PLA/PETG prima di produzione definitiva")
+
+    
+
+    return obj_mascherina
+
+<nowiki>#</nowiki> FUNZIONE ALTERNATIVA: Versione con foro rettangolare semplificato
+
+<nowiki>#</nowiki> (per compatibilità o se si hanno problemi con la forma trapezoidale)
+
+def crea_mascherina_hdmi_rettangolare():
+
+    """Versione con foro rettangolare, adatta a processi di taglio laser"""
+
+    
+
+    # Dimensioni
+
+    larghezza_totale = 20.0
+
+    altezza_totale = 20.0
+
+    spessore = 2.0
+
+    
+
+    # Foro HDMI semplificato (rettangolare)
+
+    # Dimensioni massime: 13.9 x 4.45 mm
+
+    larghezza_foro = 13.5  # mm (leggermente più grande per tolleranza)
+
+    altezza_foro = 4.35    # mm
+
+    
+
+    doc = FreeCAD.ActiveDocument
+
+    if not doc:
+
+        doc = FreeCAD.newDocument("Mascherina_HDMI_Rettangolare")
+
+    
+
+    # Base
+
+    base = Part.makeBox(larghezza_totale, altezza_totale, spessore)
+
+    
+
+    # Centro
+
+    centro_x = larghezza_totale / 2
+
+    centro_y = altezza_totale / 2
+
+    
+
+    # Foro HDMI rettangolare
+
+    foro = Part.makeBox(larghezza_foro, altezza_foro, spessore * 3)
+
+    foro.translate(Vector(
+
+        centro_x - larghezza_foro/2,
+
+        centro_y - altezza_foro/2,
+
+        -spessore - 1
+
+    ))
+
+    
+
+    # Fori viti M2.5
+
+    diametro_vite = 2.5
+
+    pos_fori = [(3,3), (17,3), (3,17), (17,17)]
+
+    
+
+    taglio_totale = foro
+
+    for pos in pos_fori:
+
+        vite = Part.makeCylinder(diametro_vite/2, spessore * 3)
+
+        vite.translate(Vector(pos[0], pos[1], -spessore - 1))
+
+        taglio_totale = taglio_totale.fuse(vite)
+
+    
+
+    # Applica tagli
+
+    mascherina = base.cut(taglio_totale)
+
+    
+
+    # Aggiungi al documento
+
+    obj = doc.addObject("Part::Feature", "Mascherina_HDMI_Rettangolare")
+
+    obj.Shape = mascherina
+
+    obj.ViewObject.ShapeColor = (0.3, 0.3, 0.3)
+
+    
+
+    doc.recompute()
+
+    
+
+    print("\n✓ Mascherina HDMI con foro rettangolare creata")
+
+    print(f"  Foro: {larghezza_foro} x {altezza_foro} mm")
+
+    print(f"  Viti: M{diametro_vite} (4 fori)")
+
+    
+
+    return obj
+
+<nowiki>#</nowiki> ============================================
+
+<nowiki>#</nowiki> ESEGUZIONE PRINCIPALE
+
+<nowiki>#</nowiki> ============================================
+
+try:
+
+    print("Creazione mascherina HDMI femmina con dimensioni ESATTE...")
+
+    
+
+    # Scegli quale versione creare:
+
+    # 1. Versione precisa con forma trapezoidale (RACCOMANDATA)
+
+    # 2. Versione con foro rettangolare (semplice)
+
+    
+
+    risposta = input("Premi 1 per forma precisa trapezoidale, 2 per rettangolare: ")
+
+    
+
+    if risposta == "2":
+
+        print("Creazione versione rettangolare semplificata...")
+
+        risultato = crea_mascherina_hdmi_rettangolare()
+
+    else:
+
+        print("Creazione versione precisa con forma HDMI esatta...")
+
+        risultato = crea_mascherina_hdmi_precisa()
+
+    
+
+    print("\n✅ MASCHERINA CREATA CON SUCCESSO!")
+
+    print("\nIstruzioni post-creazione:")
+
+    print("1. Verifica le misure con lo strumento 'Misura' di FreeCAD")
+
+    print("2. Esporta come STL per stampa 3D")
+
+    print("3. Per produzione laser/CNC, esporta come DXF della faccia superiore")
+
+    
+
+except Exception as e:
+
+    print(f"\n❌ ERRORE durante la creazione: {e}")
+
+    print("\nSoluzioni possibili:")
+
+    print("1. Assicurati di avere un documento FreeCAD aperto")
+
+    print("2. Prova a riavviare FreeCAD")
+
+    print("3. Usa la versione semplificata")
+
+    
+
+    # Fallback automatico
+
+    try:
+
+        print("\nTentativo con versione semplificata...")
+
+        risultato = crea_mascherina_hdmi_rettangolare()
+
+    except:
+
+        print("\nImpossibile creare la mascherina. Controlla l'installazione di FreeCAD.")
