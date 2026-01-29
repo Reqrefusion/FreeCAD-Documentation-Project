@@ -1,0 +1,774 @@
+<languages/>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Docnav
+|[[BIM_Material|Material]]
+|[[Arch_Schedule|Schedule]]
+|[[BIM_Workbench|BIM]]
+|IconL=BIM_Material.svg
+|IconR=Arch_Schedule.png
+|IconC=Workbench_BIM.svg
+}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{GuiCommand
+|Name=BIM Report
+|MenuLocation=Manage → Report Tools → BIM Report
+|Workbenches=[[BIM_Workbench|BIM]]
+|Version=1.2
+|SeeAlso=
+}}
+</div>
+
+<span id="Description"></span>
+== Beschreibung ==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The '''BIM Report''' is a tool for generating schedules and data reports from a FreeCAD model. It uses an SQL-like query language to select, filter, and aggregate data, offering a declarative alternative to other scheduling tools. Ultimately, it enables users to create and automatically populate a [[Spreadsheet_Workbench|spreadsheet]] with data gathered from the model.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You might choose the BIM Report tool when you need to perform:
+* '''Complex filtering:''' Select objects based on a combination of properties, including nested data (e.g., an object's placement coordinates).
+* '''Data aggregation:''' Calculate totals, counts, minimums, or maximums across many objects (e.g., find the total area of all "Space" objects).
+* '''Hierarchical queries:''' Select objects based on their relationship to other objects (e.g., find all windows hosted in walls on a specific floor).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Usage ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+# Open or create a FreeCAD document which contains some objects.
+# There are several ways to invoke the tool:
+#* Press the {{Button|[[Image:BIM_Report.svg|16px]] [[BIM_Report|BIM Report]]}} button.
+#* Select the {{MenuCommand|Manage → Report Tools → [[Image:BIM_Report.svg|16px]] BIM Report}} option from the menu.
+# The new Report will open its Task Panel automatically. Create one or more statements for the report. You can optionally use the provided statement editor to see a preview of executing those statements.
+# Press {{Button|OK}} to save the report and refresh the associated spreadsheet with the query results.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== User interface ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The BIM Report system consists of three main components: the '''Report''' object in the Tree View, the Target '''Spreadsheet''' for the results, and the '''Task Panel''' where you configure the report.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+When you create a new report, you will see two new objects in the '''Tree View''': the Report object, which stores all your settings, and its associated ReportResult spreadsheet.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Double-clicking the {{PropertyData|Report}} object opens the '''Task Panel''', which is the primary workspace for editing your report. The panel is divided into two main areas: the ''Report Statements'' and the ''Statement Editor''.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[File:BIM_Report_Task_Panel_Overview.png|thumb|The BIM Report Task Panel, showing the Statements Overview section at the top.]]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==== Report Statements ====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This section is always visible at the top of the Task Panel and gives you a summary of all the queries (or "statements") that make up your report.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The main feature is a '''table''' listing each statement. From here, you can see and directly edit the '''Description''', and toggle key options for each query:
+* '''Pipe:''' Enables pipeline mode for that statement, using the output of the previous one as its input.
+* '''Header:''' Uses the statement's description as a merged section header in the spreadsheet.
+* '''Cols:''' Includes the column names (e.g., {{Incode|Label}}, {{Incode|Area}}) as a header row for that statement's results.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Double-clicking on a statement row will open the statement for editing. Pressing {{KEY|F2}} on a statement row enables in-place editing of the statement description without loading the full editor.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Below the table are buttons to {{Button|[[Image:List-add.svg|16px]] Add}}, {{Button|[[Image:List-remove.svg|16px]] Remove}}, {{Button|[[Image:Edit-copy.svg|16px]] Duplicate}}, or {{Button|[[Image:Edit-edit.svg|16px]] Edit}} the selected statement.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Finally, the '''Report Templates''' dropdown menu allows you to load complete, pre-configured reports, such as a "Room and Area Schedule".
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==== Statement Editor ====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This section appears at the bottom of the Task Panel when you select a statement and click {{Button|[[Image:Edit-edit.svg|16px]] Edit Selected}}. This is where you write and configure an individual SQL query.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[File:BIM_Report_Statement_Editor.png|thumb|The Statement Editor, showing the SQL editor, preview pane, and display options.]]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* The '''SQL Query Editor''' is a text box with syntax highlighting. Autocompletion for SQL keywords and property names from your model is automatically enabled. Use the {{KEY|↑}} and {{KEY|↓}} keys as needed, and press the {{KEY|Tab}} to apply the chosen suggestion.
+* Below the editor, a '''Live Validation''' status label gives you immediate feedback, indicating if your syntax is valid and showing a live count of matching objects.
+* The {{Button|[[Image:Std_ToggleVisibility.svg|16px]] Show Preview}} button will run the current query on-demand and display the full data results in a temporary table, allowing you to test your query without closing the editor.
+* The {{Button|[[Image:Help-browser.svg|16px]] Help}} button opens a dialog with a "cheatsheet" of all supported SQL clauses and functions.
+* The '''Display Options''' group contains checkboxes for controlling the final formatting in the spreadsheet:
+** {{CheckBox|Use as Pipeline Step}}: When checked, this statement will use the results of the previous statement as its data source instead of querying the entire document. This is the key control for enabling pipeline workflows.
+** {{CheckBox|Use Description as Section Header}}: When checked, the statement's description (e.g., "Room List") will be written as a merged, centered header row in the spreadsheet before its data results.
+** {{CheckBox|TRUE|Include Column Names}}: This option, enabled by default, includes the column headers (e.g., {{Incode|Label}}, {{Incode|Area}}) in the spreadsheet output for this statement.
+** {{CheckBox|Add Empty Row After}}: When checked, a blank row will be inserted after this statement's results, providing visual separation in a multi-section report.
+** {{CheckBox|Print Results in Bold}}: Renders the data cells for this statement's results in a bold font for emphasis.
+* The '''Query Presets''' dropdown allows you to load and save individual, commonly used SQL queries.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The {{Button|[[Image:Document-save.svg|16px]] Save}} button saves the modifications to the loaded statement. When the {{CheckBox|Save and Next}} checkbox is ticked and the {{Button|[[Image:Document-save.svg|16px]] Save}} button is pressed, in addition to the save operation a new statement will be created for a more streamlined edition experience. The {{Button|❌ Discard}} button closes the statement editor without saving any changes made.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Workflow ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This small tutorial guides you through creating a complete room schedule, from a simple list to a multi-part report with calculated totals.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Step 1: New report ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+# Click the {{Button|[[Image:BIM_Report.svg|16px]] [[BIM_Report|Report]]}} button in the BIM workbench toolbar.
+# FreeCAD will create a '''Report object''' and a '''ReportResult spreadsheet''' in the Tree View and automatically open the Task Panel.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Step 2: Simple statement ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+First, let's create a simple list of all spaces and their areas.
+# In the '''Report Statements''', click the {{Button|[[Image:List-add.svg|16px]] Add Statement}} button. A new, empty statement will appear in the list.
+# With the new statement selected, click the {{Button|[[Image:Edit-edit.svg|16px]] Edit Selected}} button. The '''Statement Editor''' will appear at the bottom of the Task Panel.
+# In the '''Description''' field, type {{Incode|Room List}}.
+# In the '''SQL Query''' editor, enter the following query. This selects the name and area of all objects that are {{Incode|Space}}s and sorts them alphabetically.{{Code|lang=sql|code=
+SELECT Label, Area FROM document WHERE IfcType = 'Space' ORDER BY Label ASC
+}}
+# Click the {{Button|[[Image:Document-save.svg|16px]] Save}} button in the editor to commit your changes to the statement.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Step 3: Multi-section report ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Now, let's add a second statement to calculate the total area.
+# In the overview, click {{Button|[[Image:List-add.svg|16px]] Add Statement}} again to create a second statement.
+# With this new statement selected, click {{Button|[[Image:Edit-edit.svg|16px]] Edit Selected}}.
+# Set the '''Description''' to {{Incode|Total Area}}.
+# In the '''SQL Query''' editor, enter this aggregation query:{{Code|lang=sql|code=
+SELECT 'Total Usable Area', SUM(Area) FROM document WHERE IfcType = 'Space'
+}}
+# Under '''Display Options''', uncheck '''Include Column Names''' (since our first column is a custom label) and check '''Print Results in Bold''' for emphasis.
+# Click {{Button|[[Image:Document-save.svg|16px]] Save}}. You now have a two-statement report. Click the main {{Button|OK}} button at the bottom of the Task Panel to execute it. The associated spreadsheet will open automatically with the formatted results.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Step 4: Pipelining for advanced queries ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Pipelining allows you to chain queries together, where the output of one becomes the input for the next. This is essential for complex hierarchical selections, such as when using the {{Incode|CHILDREN()}} function. Since it is not recursive, it only finds direct descendants.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+For example, to find all doors located on the "Ground Floor," you must perform a multi-step query, because doors are children of walls, which are in turn children of the floor.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+# Create a new report.
+# '''Statement 1: Find the 'Ground Floor' Object'''
+#* Add a statement with the description {{Incode|Find Ground Floor}}.
+#* This query selects the starting point of our search.{{Code|lang=sql|code=
+SELECT * FROM document WHERE Label = 'Ground Floor'
+}}
+# '''Statement 2: Find the Walls on that Floor'''
+#* Add a second statement with the description {{Incode|Find Walls on Floor}}.
+#* In the editor, check the {{CheckBox|Use as Pipeline Step}} checkbox. This tells the statement to run on the results of the previous one (the floor object).
+#* Use this query to find all direct children of the floor and keep only the walls:{{Code|lang=sql|code=
+SELECT * FROM CHILDREN(SELECT * FROM document) WHERE IfcType = 'Wall'
+}}
+# '''Statement 3: Find the Doors in those Walls'''
+#* Add a third statement with the description {{Incode|Find Doors in Walls}}.
+#* Check the {{CheckBox|Use as Pipeline Step}} checkbox again. This now links it to the output of Statement 2 (the list of walls).
+#* Use this query to find the children of the walls and keep only the doors:{{Code|lang=sql|code=
+SELECT Label, Width, Height FROM CHILDREN(SELECT * FROM document) WHERE IfcType = 'Door'
+}}
+# Click {{Button|OK}}. The report will execute the full three-step pipeline.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Understanding the Result:''' The final spreadsheet will only show the results of the last statement in the pipeline (the list of doors). The first two statements act as intermediate filters whose results are passed in memory but not printed to the spreadsheet, giving you a clean and precise final report.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Step 5: Presets and templates ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* '''Report Templates''' load a full, multi-statement report. In the '''Report Statements''', select a template like "Room and Area Schedule" from the dropdown to instantly load the configuration from Steps 2 & 3. You can save your own reports as new templates for reuse.
+* '''Query Presets''' load a single query into the editor. In the '''Statement Editor''', select a preset like "All Walls" from the dropdown to populate the SQL editor. You can save your own frequently used queries by clicking the {{Button|Save…}} button.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== BIM SQL dialect reference ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This section provides a detailed reference for the SQL dialect used by the BIM Report tool.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Note''': The most up-to-date reference for all clauses and functions can always be found in the UI by clicking the {{Button|[[Image:Help-browser.svg|16px]] Help}} button within the report's Task Panel editor.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Clauses ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* {{Incode|SELECT}}: Specifies the columns of data to return. Can use {{Incode|*}} to select a default identifier for all objects.
+* {{Incode|FROM}}: Specifies the data source. In a standalone query, this is always {{Incode|document}}. In a pipeline, {{Incode|document}} is a placeholder for the data from the previous step. Can also use the {{Incode|CHILDREN()}} function.
+* {{Incode|WHERE}}: Filters objects based on conditions.
+* {{Incode|GROUP BY}}: Groups rows that have the same values into summary rows, typically used with aggregate functions.
+* {{Incode|ORDER BY}}: Sorts the final results. Can be followed by {{Incode|ASC}} (ascending, default) or {{Incode|DESC}} (descending). Supports sorting by multiple columns.
+* {{Incode|AS}}: Creates an alias (a custom name) for a column in the {{Incode|SELECT}} clause, e.g., {{Incode|SELECT Area AS "My Area"}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==== Usage notes for GROUP BY and ORDER BY ====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The dialect has specific rules for how to use expressions (like functions or arithmetic) in the {{Incode|GROUP BY}} and {{Incode|ORDER BY}} clauses.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* '''For {{Incode|GROUP BY}}:''' When grouping by an expression, you must repeat the entire expression in the {{Incode|GROUP BY}} clause. Using an alias from the {{Incode|SELECT}} list is not supported.
+** ✅ '''Correct:''' {{Code|lang=sql|code=SELECT TYPE(*) … GROUP BY TYPE(*)}}
+** ❌ '''Incorrect:'''{{Code|lang=sql|code=SELECT TYPE(*) AS BimType … GROUP BY BimType}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* '''For {{Incode|ORDER BY}}:''' Conversely, sorting by a raw expression is not supported. To sort by the result of an expression, you '''must''' first include it in the {{Incode|SELECT}} list with an {{Incode|AS}} alias, and then refer to that alias in the {{Incode|ORDER BY}} clause.
+** ✅ '''Correct:'''{{Code|lang=sql|code=SELECT Label, LOWER(Label) AS sort_key … ORDER BY sort_key}}
+** ❌ '''Incorrect:'''{{Code|lang=sql|code=SELECT Label … ORDER BY LOWER(Label)}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Functions ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The dialect includes a library of built-in functions for data manipulation and analysis.
+{| class="wikitable"
+! Category
+! Function
+! Description
+|-
+| '''Aggregate'''
+| {{Incode|COUNT(property<nowiki>|</nowiki>*)}}
+| Counts the number of objects. {{Incode|COUNT(*)}} counts all rows; {{Incode|COUNT(property)}} counts rows where the specified property is not {{Incode|NULL}}.
+|-
+|
+| {{Incode|SUM(property)}}
+| Calculates the sum of a numerical property.
+|-
+|
+| {{Incode|MIN(property)}}
+| Finds the minimum value of a numerical property.
+|-
+|
+| {{Incode|MAX(property)}}
+| Finds the maximum value of a numerical property.
+|-
+| '''Hierarchical'''
+| {{Incode|PARENT(*)}}
+| Returns the architecturally significant parent of an object (e.g., the Wall a Window is in), transparently skipping over generic groups.
+|-
+|
+| {{Incode|CHILDREN(subquery)}}
+| A function used in the {{Incode|FROM}} clause. Returns all children of objects found by the subquery, resolving both containment ({{Incode|.Group}}) and hosting ({{Incode|.Hosts}}) relationships. This function is '''not recursive'''. To find grandchildren or deeper descendants, chain multiple {{Incode|CHILDREN()}} steps together using a pipeline.
+|-
+|
+| {{Incode|CHILDREN_RECURSIVE(subquery, max_depth{{:=}}15)}}
+| A function used in the {{Incode|FROM}} clause. Returns all descendant objects of the {{Incode|subquery}} results by recursively traversing the hierarchy. It transparently skips generic groups. An optional {{Incode|max_depth}} can be specified (default: 15, {{Incode|0}} for unlimited). This replaces the need for complex pipelines to find nested objects.
+|-
+| '''Utility'''
+| {{Incode|TYPE(*)}}
+| Returns the object's user-facing type, as determined by its proxy (e.g., {{Incode|Wall}}, {{Incode|Space}}, {{Incode|Part::Box}}).
+|-
+|
+| {{Incode|CONVERT(quantity, 'unit')}}
+| Converts a FreeCAD Quantity object to a new unit and returns it as a raw number. Example: {{Incode|CONVERT(Area, 'm^2')}}.
+|-
+| '''String'''
+| {{Incode|LOWER(property)}}
+| Converts a text property to lowercase.
+|-
+|
+| {{Incode|UPPER(property)}}
+| Converts a text property to uppercase.
+|-
+|
+| {{Incode|CONCAT(val1, val2, …)}}
+| Joins multiple text values and properties together into a single string.
+|}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Property access ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You can access any property of an object, including nested data structures.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* '''Direct Access:''' Access a simple property directly by its name.
+** Example: {{Incode|Label}}, {{Incode|IfcType}}
+* '''Nested Access:''' Use dot notation to access sub-properties.
+** Example: {{Incode|Shape.Volume}}, {{Incode|Placement.Base.z}}
+* '''Chained Access:''' Chain property access onto the result of a function, most commonly {{Incode|PARENT()}}.
+** Example: {{Incode|PARENT(*).Label}}, {{Incode|PARENT(*).PARENT(*).Height}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Operators ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{| class="wikitable"
+! Type
+! Operators
+! Description
+|-
+| '''Comparison'''
+| {{Incode|{{:=}}}}, {{Incode|!{{:=}}}}, {{Incode|>}}, {{Incode|<}}, {{Incode|>{{:=}}}}, {{Incode|<{{:=}}}}
+| Standard comparison operators.
+|-
+|
+| {{Incode|LIKE}}
+| Case-insensitive pattern matching. Use {{Incode|%}} for multiple characters and {{Incode|_}} for a single character.
+|-
+|
+| {{Incode|IS NULL}}, {{Incode|IS NOT NULL}}
+| Checks if a property has a value.
+|-
+|
+| {{Incode|IN (value1, value2, …)}}
+| Checks if a property's value is in a given list of literals.
+|-
+| '''Logical'''
+| {{Incode|AND}}, {{Incode|OR}}
+| Used in the {{Incode|WHERE}} clause to combine multiple conditions.
+|-
+| '''Arithmetic'''
+| {{Incode|+}}, {{Incode|-}}, {{Incode|*}}, {{Incode|/}}
+| Perform calculations on numerical properties. Obeys standard operator precedence; use {{Incode|()}} to override.
+|}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== General syntax ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* '''Literals and Quotes''': Both single quotes ({{Incode|'}}) and double quotes ({{Incode|"}}) can be used for text literals (strings). For example, {{Incode|WHERE Label {{:=}} 'Wall'}} and {{Incode|WHERE Label {{:=}} "Wall"}} are equivalent.
+* '''Comments''': The parser ignores both single-line comments, which start with {{Incode|--}}, and multi-line comments, which are enclosed in {{Incode|/* … */}}.
+* '''Internationalization''': The parser correctly handles non-ASCII (Unicode) characters in property names (e.g., Fläche).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==  Sample queries ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This section provides a collection of practical queries that you can use directly or modify for your reports.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Basic selections ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Select all structural elements (Columns and Beams):'''
+</div>
+
+{{Code|lang=sql|code=
+SELECT Label, IfcType 
+FROM document 
+WHERE IfcType IN ('Column', 'Beam') 
+ORDER BY IfcType, Label
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Select all walls with "Exterior" in their name:'''
+</div>
+
+{{Code|lang=sql|code=
+SELECT Label, Length, Height 
+FROM document 
+WHERE IfcType = 'Wall' AND Label LIKE '%Exterior%'
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Data aggregation & summaries ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Count all BIM objects, grouped by their type:'''
+</div>
+
+{{Code|lang=sql|code=
+SELECT IfcType, COUNT(*) 
+FROM document 
+WHERE IfcType IS NOT NULL 
+GROUP BY IfcType 
+ORDER BY IfcType ASC
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Get a full quantity takeoff for all walls:'''
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This query calculates the total number of walls, their combined length, and the minimum and maximum wall heights.
+</div>
+
+{{Code|lang=sql|code=
+SELECT 
+    COUNT(*) AS "Total Count", 
+    SUM(Length) AS "Total Length (mm)", 
+    MIN(Height) AS "Min Height (mm)", 
+    MAX(Height) AS "Max Height (mm)" 
+FROM document 
+WHERE IfcType = 'Wall'
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Hierarchical queries ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''List all objects located directly on the "Ground Floor":'''
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This uses the {{Incode|CHILDREN()}} function to query the contents of a specific container object.
+</div>
+
+{{Code|lang=sql|code=
+SELECT Label, IfcType 
+FROM CHILDREN(SELECT * FROM document WHERE Label = 'Ground Floor') 
+ORDER BY IfcType
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''List all doors and the specific wall they are hosted in:'''
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This uses the {{Incode|PARENT()}} function to find the host of each door.
+</div>
+
+{{Code|lang=sql|code=
+SELECT 
+    Label AS "Door_Name", 
+    PARENT(*).Label AS "Host_Wall_Name" 
+FROM document 
+WHERE IfcType = 'Door' 
+ORDER BY "Host_Wall_Name"
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Find all windows on the "Ground Floor" (by checking the grandparent):'''
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This query finds windows, checks their parent (the wall), and then checks that wall's parent (the floor).
+</div>
+
+{{Code|lang=sql|code=
+SELECT Label 
+FROM document 
+WHERE IfcType = 'Window' AND PARENT(*).PARENT(*).Label = 'Ground Floor'
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Advanced queries ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Generate a complete room and area schedule:'''
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This query produces a formatted list of all spaces, grouped by the floor they belong to, with their area converted to square meters.
+</div>
+
+{{Code|lang=sql|code=
+SELECT 
+    PARENT(*).Label AS "Floor", 
+    Label AS "Room Name", 
+    CONVERT(Area, 'm^2') AS "Area (m²)" 
+FROM document 
+WHERE IfcType = 'Space' 
+ORDER BY "Floor", "Room Name"
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Usage notes ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Units ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+When you select a property that has units (a `Quantity`), such as `Length` or `Area`, the BIM Report engine returns the raw numerical value of that property as it is stored internally in the FreeCAD document. FreeCAD's internal units are always based on millimeters ({{Incode|mm}}).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This means the default output will be in {{Incode|mm}} for length, {{Incode|mm²}} for area, and {{Incode|mm³}} for volume, regardless of your current unit schema or user preferences. The automatically generated column header will correctly reflect this internal unit.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Example: Default Behavior'''
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you run this simple query on a space that is 1 meter by 1 meter:
+</div>
+
+{{Code|lang=sql|code=
+SELECT Label, Area FROM document WHERE IfcType = 'Space'
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The resulting spreadsheet will show:
+* '''Header:''' {{Incode|Area (mm²)}}
+* '''Value:''' {{Incode|1000000.0}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==== Using {{Incode|CONVERT()}} ====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To get the results in the units you desire, you can use the {{Incode|CONVERT()}} function, which provides explicit control over the output. To obtain the area in square meters, modify the query as follows:
+</div>
+
+{{Code|lang=sql|code=
+SELECT Label, CONVERT(Area, 'm^2') AS "Area (m²)" FROM document WHERE IfcType = 'Space'
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This query now produces the result in the desired unit:
+* '''Header:''' {{Incode|Area (m²)}}
+* '''Value:''' {{Incode|1.0}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Using {{Incode|CONVERT()}} guarantees that your report's output is unambiguous and that any calculations you perform within the query (e.g., {{Incode|SUM(CONVERT(Area, 'm^2'))}}) are mathematically correct.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Properties ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+An Arch Report object exposes the following properties to the user.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Data ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{TitleProperty|Report}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* {{PropertyData|AutoUpdate}}: This property, True by default, controls whether the report automatically re-runs every time the document is recomputed. When enabled, the report spreadsheet will always be in sync with the model. For example, if a wall's length is changed, a {{Incode|SUM(Length)}} value in the report will update automatically after the recompute. On very large models, it may be desirable to disable this for performance reasons while making many changes. If AutoUpdate is set to False, the report can be updated manually at any time by right-clicking the Report object in the Tree View and selecting Recompute, or by pressing the global Recompute button.
+* {{PropertyData|Target}}: holds a link to the Spreadsheet object where the report's results will be written. When creating a new report, a new spreadsheet is automatically created and linked here. This property can be changed to target a different, existing spreadsheet in the current document if so desired.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Scripting ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The BIM Report engine is fully accessible through Python, allowing you to integrate its advanced query capabilities into your own scripts and automations.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Arch.selectObjects(query_string) ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This is the primary function for executing a single, straightforward SQL query. It takes a query string as input and returns a list of the FreeCAD DocumentObjects that match the query. If the query is invalid or finds no objects, it returns an empty list and prints an error to the console.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Example: Get all Wall objects with "Exterior" in their name'''
+</div>
+
+{{Code|code=
+import FreeCAD
+import Arch
+
+# This query selects all Wall objects whose Label contains the substring "Exterior"
+query = "SELECT * FROM document WHERE IfcType = 'Wall' AND Label LIKE '%Exterior%'"
+
+exterior_walls = Arch.selectObjects(query)
+
+# The result is a list of FreeCAD objects
+FreeCAD.Console.PrintMessage(f"Found {len(exterior_walls)} exterior walls.\n")
+for wall in exterior_walls:
+    FreeCAD.Console.PrintMessage(f"- {wall.Label} (Length: {wall.Length})\n")
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Arch.selectObjectsFromPipeline(statements) ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+For more complex, multi-step selections, you can use this function to execute a pipeline. It takes a list of {{Incode|ArchSql.ReportStatement}} objects and returns the final list of FreeCAD DocumentObjects that result from the full pipeline.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This is the programmatic equivalent of using the '''"Use as Pipeline Step"''' checkbox in the UI.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Example: Find all doors on the "Ground Floor"'''
+This is a classic hierarchical problem that requires multiple steps. The goal is to find the "grandchildren" (doors) of a "grandparent" (the floor). Since the {{Incode|CHILDREN()}} function is not recursive, we must chain multiple steps in a pipeline.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+# First, we find the {{Incode|'Ground Floor'}} object.
+# Second, we find its direct children (the walls, spaces, etc.).
+# Third, we find the children of ''those'' objects (which will include the doors and windows hosted by the walls).
+# Finally, we filter that last group to keep only the doors.
+</div>
+
+{{Code|code=
+import FreeCAD
+import Arch
+import ArchSql
+
+# Step 1: Define the pipeline statements.
+# The ReportStatement class must be imported from the ArchSql module.
+
+# Statement 1: Find the parent 'Ground Floor' object.
+# Output of this step: [Ground_Floor_Object]
+stmt1 = ArchSql.ReportStatement(
+    query_string="SELECT * FROM document WHERE Label = 'Ground Floor'"
+)
+
+# Statement 2: Find the direct children of the floor (walls, spaces, etc.).
+# is_pipelined=True tells this to run on the output of stmt1.
+# Output of this step: [Wall_Object_1, Wall_Object_2, Space_Object_1, …]
+stmt2 = ArchSql.ReportStatement(
+    query_string="SELECT * FROM CHILDREN(SELECT * FROM document)",
+    is_pipelined=True
+)
+
+# Statement 3: Find the children of the objects from the previous step.
+# This finds the doors and windows hosted by the walls.
+# Output of this step: [Door_Object, Window_Object_1, …]
+stmt3 = ArchSql.ReportStatement(
+    query_string="SELECT * FROM CHILDREN(SELECT * FROM document)",
+    is_pipelined=True
+)
+
+# Statement 4: Filter the final list to keep only the doors.
+# This runs on the output of stmt3.
+# Final Output: [Door_Object]
+stmt4 = ArchSql.ReportStatement(
+    query_string="SELECT * FROM document WHERE IfcType = 'Door'",
+    is_pipelined=True
+)
+
+# Step 2: Execute the full pipeline.
+pipeline_statements = [stmt1, stmt2, stmt3, stmt4]
+doors_on_floor = Arch.selectObjectsFromPipeline(pipeline_statements)
+
+# The result is the final list of door objects.
+FreeCAD.Console.PrintMessage(f"Found {len(doors_on_floor)} doors on the ground floor.\n")
+for door in doors_on_floor:
+    FreeCAD.Console.PrintMessage(f"- {door.Label}\n")
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Inspecting and sharing a report via the Python Console ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+For debugging, scripting, or sharing your work with others, you can get a complete, human-readable summary of a Report's configuration directly from the Python Console.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The custom logic and detailed content of a BIM Report are stored in its '''proxy object'''. Accessing the {{Incode|.Proxy}} attribute provides a full printout of all statements and their SQL queries. This is a convenient way to copy your entire report definition to the clipboard to share in a forum or a bug report.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''How to use it:'''
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+# Select your Report object in the Tree View.
+# Press {{KEY|Ctrl}}+{{KEY|Shift}}+{{KEY|P}}. This will send the selected object to the Python Console as the variable {{Incode|obj}}.
+# In the console, type the following and press Enter:
+</div>
+
+{{Code|code=
+print(obj.Proxy)
+}}
+
+'''Beispiel-Ausgabe:'''
+
+{{Code|code=
+>>> print(obj.Proxy)
+BIM Report: 'My Door Schedule' (2 statements)
+
+--- Statement [1]: Find All Walls on Ground Floor ---
+    SELECT * 
+    FROM CHILDREN(SELECT * FROM document WHERE Label = 'Ground Floor')
+    WHERE IfcType = 'Wall'
+
+--- Statement [2]: Final Door Schedule (Pipelined, Header) ---
+    SELECT
+        Tag,
+        COUNT(*) AS "Count"
+    FROM
+        document
+    GROUP BY
+        Tag
+}}
+
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Docnav
+|[[BIM_Material|Material]]
+|[[Arch_Schedule|Schedule]]
+|[[BIM_Workbench|BIM]]
+|IconL=BIM_Material.svg
+|IconR=Arch_Schedule.png
+|IconC=Workbench_BIM.svg
+}}
+</div>
+
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
