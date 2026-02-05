@@ -295,7 +295,7 @@ Macro_Server.FCMacro
 # Python 3.11.13, Qt 5.15.15, Coin 4.0.3, Vtk 9.3.0, OCC 7.8.1
 # Locale: Czech/Czech Republic (cs_CZ)
 # Stylesheet/Theme/QtStyle: FreeCAD Dark.qss/FreeCAD Dark/Fusion
-# Installed mods: 
+# Installed mods:
 #   * freecad.gears 1.3.0
 #   * sheetmetal 0.7.58
 
@@ -322,7 +322,7 @@ ROOT = 'c:/tmp'
 
 if 'server' not in dir(FreeCAD):
 	# Server not running - we will start it then
-	
+
 	import os
 	from threading import Event,Thread
 	import Mesh
@@ -402,7 +402,7 @@ if 'server' not in dir(FreeCAD):
 	def getDoc(n=0):
 		'''Get document'''
 		global _doc
-		
+
 		if n:
 			try:
 				doc = App.getDocument(n)
@@ -464,7 +464,7 @@ if 'server' not in dir(FreeCAD):
 			path = ROOT
 
 		path = path.replace('\\','/')# make it objectively right ;)
-		
+
 		if os.path.isdir(path):
 			path = path + '/' + default_fn
 		if '.' not in path.split('/')[-1]:
@@ -489,7 +489,7 @@ if 'server' not in dir(FreeCAD):
 					n,s = ln.split(' ',1)
 				else:
 					n = ln
-		
+
 		return m,n,s
 
 	def register(m, fc):
@@ -504,7 +504,7 @@ if 'server' not in dir(FreeCAD):
 
 	def _th(qe,id):
 		global _cb_d,_id
-		
+
 		while not qe.is_set():
 			for data in getstdin():
 				for ln in data.split('\n'):
@@ -526,37 +526,37 @@ if 'server' not in dir(FreeCAD):
 
 
 ## --- stdlib start --- ##
-	
+
 	def fc_getId(m,n,s):
 		resp = 'i%s\n' % FreeCAD.server[0]
 		#resp += '#I : server : fc_getId : done\n'
 		putstdout(resp)
-	
+
 	def fc_docList(m,n,s):
 		resp = ''
-		
+
 		for k,_ in App.listDocuments().items():
 			resp += 'd%s\n' % k
-		
+
 		if not resp:
 			resp += '#I : server : fc_docList : empty\n'
-		
+
 		putstdout(resp)
 
 	def fc_objList(m,n,s):
 		resp = ''
 		doc = getDoc(n)
-		
+
 		if not doc:
 			resp += '#E : server : fc_objList : no doc\n'
 		else:
-		
+
 			for obj in doc.Objects:
 				resp += 'o%s %s\n' % (obj.Name, obj.Label)
-			
+
 			if not resp:
 				resp += '#I : server : fc_objList : empty\n'
-		
+
 		putstdout(resp)
 
 	def fc_cellsList(m,n,s):
@@ -571,24 +571,24 @@ if 'server' not in dir(FreeCAD):
 			for k in ss.getNonEmptyCells():
 				v = ss.get(k)
 				resp += 'c%s %s\n' % (k,v)
-			
+
 			if not resp:
 				resp += '#I : server : fc_cellsList : empty\n'
-		
+
 		# Sends it
 		putstdout(resp)
-	
+
 
 	def fc_selectId(m,n,s):
 		global _id
-		
+
 		_id = n
-		
+
 		putstdout('#I : server : fc_selectId : done\n')
-		
+
 	def fc_selectDoc(m,n,s):
 		global _doc
-		
+
 		resp = ''
 
 		if n:
@@ -598,12 +598,12 @@ if 'server' not in dir(FreeCAD):
 				resp = '#E : server : fc_selectDoc : no doc\n'
 		else:
 			_doc = 0
-		
+
 		if not resp:
 			resp = '#I : server : fc_selectDoc : done\n'
 
 		putstdout(resp)
-	
+
 	def fc_selectSpreadsheet(m,n,s):
 		global _ss
 
@@ -613,16 +613,16 @@ if 'server' not in dir(FreeCAD):
 		if not doc:
 			resp += '#E : server : fc_selectSpreadsheet : no doc\n'
 		else:
-		
+
 			if s:
 				_ss = doc.getObject(s)
 			else:
 				_ss = 0
-			
+
 			resp = '#I : server : fc_selectSpreadsheet : done\n'
 
 		putstdout(resp)
-	
+
 	def fc_selectObj(m,n,s):
 		global _obj
 
@@ -637,10 +637,10 @@ if 'server' not in dir(FreeCAD):
 				_obj = doc.getObject(s)
 			else:
 				_obj = 0
-			
+
 			if not resp:
 				resp = '#I : server : fc_selectObj : done\n'
-	
+
 		putstdout(resp)
 
 	def fc_selectPath(m,n,s):
@@ -650,26 +650,26 @@ if 'server' not in dir(FreeCAD):
 			_path = s
 		else:
 			_path = 0
-	
+
 		putstdout('#I : server : fc_selectPath : done\n')
 
-	
+
 	def fc_getCell(m,n,s):
 		resp = ''
 		ss = getSS(s)
 		if not ss:
 			resp = '#E : server : fc_getCell : no sheet\n'
 		else:
-		
+
 			try:
 				v = ss.get(n)
 				resp = 'c%s %d\n' % (n, v)
 			except ValueError:
 				resp = '#E : server : fc_getCell : no cell\n'
-				
+
 		#resp += '#I : server : fc_getCell : done\n'
 		putstdout(resp)
-	
+
 	def fc_setCell(m,n,s):
 		resp = ''
 		ss = getSS()
@@ -678,13 +678,13 @@ if 'server' not in dir(FreeCAD):
 		else:
 			v = ss.set(n,s)
 			resp = '#I : server : fc_setCell : done\n'
-	
+
 		putstdout(resp)
 
-	
+
 	def fc_recompute(m,n,s):
 		getDoc(n).recompute()
-		
+
 		putstdout('#I : server : fc_recompute : done\n')
 
 	def fc_export(m,n,s):
@@ -695,17 +695,17 @@ if 'server' not in dir(FreeCAD):
 		if not obj:
 			resp = '#E : server : fc_export : no object\n'
 		else:
-			
+
 			if not path:
 				resp = '#E : server : fc_export : no path\n'
 			else:
-			
+
 				if hasattr(Mesh, "exportOptions"):
 					options = Mesh.exportOptions(path)
 					Mesh.export([obj], path, options)
 				else:
 					Mesh.export([obj], path)
-				
+
 				resp += '#I : server : fc_export : done : %s\n' % path
 
 		putstdout(resp)
@@ -731,7 +731,7 @@ if 'server' not in dir(FreeCAD):
 
 
 	# Register all command functions with their codes
-	
+
 	register('I', fc_getId)
 	register('D', fc_docList)
 	register('O', fc_objList)
@@ -742,13 +742,13 @@ if 'server' not in dir(FreeCAD):
 	register('s', fc_selectSpreadsheet)
 	register('o', fc_selectObj)
 	register('p', fc_selectPath)
-	
+
 	register('@', fc_getCell)
 	register('!', fc_setCell)
-	
+
 	register('r', fc_recompute)
 	register('e', fc_export)
-	
+
 	#register('', fc_)
 
 
@@ -770,7 +770,7 @@ if 'server' not in dir(FreeCAD):
 	# Little bit of flexing O:)
 	genid = lambda seed,lvl: 'QWERTYUIOPASDFGHJKLZXCVBNM'[seed%26]+genid((seed*12345)%56789,lvl-1) if lvl>0 else ''
 	id = genid(int(time.time()*1000),8)
-	
+
 	qe = Event()
 	th = Thread(target=_th,args=(qe,id))
 
@@ -781,7 +781,7 @@ if 'server' not in dir(FreeCAD):
 
 else:
 	# Server is running - let's stop it now
-	
+
 	(id,qe,th) = FreeCAD.server
 
 	qe.set()
@@ -872,7 +872,7 @@ cmd = ''
 
 if len(sys.argv) > 1:
 	# Use command line arguments to build command script
-	
+
 	for a in sys.argv[1:]:
 		if a == '-':
 			# Read list of commands from (real) stdin
