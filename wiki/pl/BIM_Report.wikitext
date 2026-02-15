@@ -128,27 +128,25 @@ Potokowanie pozwala łączyć zapytania w łańcuch, gdzie wynik jednego staje s
 
 Na przykład, aby znaleźć wszystkie drzwi znajdujące się na "Parterze", trzeba wykonać zapytanie wieloetapowe, ponieważ drzwi są dziećmi ścian, które z kolei są dziećmi kondygnacji.
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
-# Create a new report.
-# '''Statement 1: Find the 'Ground Floor' Object'''
-#* Add a statement with the description {{Incode|Find Ground Floor}}.
-#* This query selects the starting point of our search.{{Code|lang=sql|code=
+# Utwórz nowy raport.
+# '''Instrukcja 1: Znajdź obiekt 'Parter' '''
+#* Dodaj instrukcję z opisem {{Incode|Znajdź parter}}.
+#* To zapytanie wybiera punkt początkowy naszego wyszukiwania.{{Code|lang=sql|code=
 SELECT * FROM document WHERE Label = 'Ground Floor'
 }}
-# '''Statement 2: Find the Walls on that Floor'''
-#* Add a second statement with the description {{Incode|Find Walls on Floor}}.
-#* In the editor, check the {{CheckBox|Use as Pipeline Step}} checkbox. This tells the statement to run on the results of the previous one (the floor object).
-#* Use this query to find all direct children of the floor and keep only the walls:{{Code|lang=sql|code=
+# '''Instrukcja 2: Znajdź ściany na tej kondygnacji'''
+#* Dodaj drugą instrukcję z opisem {{Incode|Znajdź ściany na kondygnacji}}.
+#* W edytorze zaznacz pole {{CheckBox|Użyj kroku potoku}}. Informuje to instrukcję, że ma działać na wynikach poprzedniej instrukcji (obiekt kondygnacji).
+#* Użyj tego zapytania, aby znaleźć wszystkich bezpośrednich potomków kondygnacji i pozostawić tylko ściany:{{Code|lang=sql|code=
 SELECT * FROM CHILDREN(SELECT * FROM document) WHERE IfcType = 'Wall'
 }}
-# '''Statement 3: Find the Doors in those Walls'''
-#* Add a third statement with the description {{Incode|Find Doors in Walls}}.
-#* Check the {{CheckBox|Use as Pipeline Step}} checkbox again. This now links it to the output of Statement 2 (the list of walls).
-#* Use this query to find the children of the walls and keep only the doors:{{Code|lang=sql|code=
+# '''Instrukcja 3: Znajdź drzwi w tych ścianach'''
+#* Dodaj trzecią instrukcję z opisem {{Incode|Znajdź drzwi w ścianach}}.
+#* Ponownie zaznacz pole {{CheckBox|Użyj kroku potoku}}. Teraz łączy ją z wynikiem Instrukcji 2 (lista ścian).
+#* Użyj tego zapytania, aby znaleźć obiekty podrzędne ścian i pozostawić tylko drzwi:{{Code|lang=sql|code=
 SELECT Label, Width, Height FROM CHILDREN(SELECT * FROM document) WHERE IfcType = 'Door'
 }}
-# Click {{Button|OK}}. The report will execute the full three-step pipeline.
-</div>
+# Kliknij {{Button|OK}}. Raport wykona pełny trzyetapowy potok.
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 '''Understanding the Result:''' The final spreadsheet will only show the results of the last statement in the pipeline (the list of doors). The first two statements act as intermediate filters whose results are passed in memory but not printed to the spreadsheet, giving you a clean and precise final report.
