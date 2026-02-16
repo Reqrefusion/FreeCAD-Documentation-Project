@@ -1,0 +1,141 @@
+<languages/>
+{{Macro
+|Name=Macro_3D_Printer_3mf_Workflow
+|Description=FreeCAD macro exporting smooth 3MF files and preserving all slicer print settings, with automatic workflow to your preferred slicer.
+|Author=2cv001
+|Version=00.02
+|Date=2026-02-14
+|FCVersion=All
+|Download=
+[https://wiki.freecad.org/images/3/32/Macro_3D_Printer_3mf_Workflow.png Toolbar icon]
+[https://raw.githubusercontent.com/2cv001/3D_printer_3mf_workflow/refs/heads/main/3D_Printer_3mf_Workflow.FCMacro Macro 3D_Printer_3mf_Workflow]
+[https://raw.githubusercontent.com/2cv001/3D_printer_3mf_workflow/refs/heads/main/3D_Printer_3mf_Workflow_ConfigIni.FCMacro 3D_Printer_3mf_Workflow_ConfigIni.FCMacro]
+}}
+
+== Description ==
+
+FreeCAD macro exporting smooth 3MF files and preserving all slicer print settings, with automatic workflow to your preferred slicer.
+
+{{Codeextralink|https://raw.githubusercontent.com/2cv001/3D_printer_3mf_workflow/main/3D_Printer_3mf_Workflow.FCMacro}}
+
+More detailed description:
+
+https://github.com/2cv001/3D_printer_3mf_workflow/blob/main/README.md
+
+=== Purpose ===
+
+This macro automates and enhances the 3D printing workflow from FreeCAD to your slicer by:
+* Generating smooth 3D prints without visible facets.
+* '''Preserving print settings (temperature, supports, speed…)''' directly within the FreeCAD project.
+* Launching external programs to streamline the full pipeline: FreeCAD → Slicer → Print.
+
+This macro is the successor to macro 3d_printer_workflow.
+
+While the previous version enabled smooth exports and program launching, it relied on .stl files, which cannot store print settings.
+
+This macro uses .3mf files, allowing full geometry + print configuration to be preserved and reused.
+
+To retain the core functionality of the previous macro, this version also provides an STL export option with adjustable tessellation parameters, allowing smooth mesh generation just like before.
+
+=== Limitation ===
+
+The current version can export only a single object, but you can work around this by using links — for example, a Simple Group — to combine multiple objects into one.
+
+=== Principle of smoothing ===
+
+[[File:Macro_3D_Printer_Workflow_With_Facets.png]]
+{{Caption|With visible facets}}
+
+[[File:Macro_3D_Printer_Workflow_Without_Facets.png]]
+{{Caption|Without visible facets}}
+
+The macro exports the selected objects to a 3MF file using the specified tessellation parameters (LinearDeflection and AngularDeflection). It generates temporary mesh objects for the export process and automatically removes them afterward.
+
+=== Launching other programs or commands === 
+
+The macro allows you to define custom commands that will be executed automatically after the 3MF file is generated. This feature is optional and can be used to automate additional steps in your workflow, such as:
+* copying the generated 3MF file to another location
+* turning on your 3D printer through a smart plug
+* turn a light on
+* pre‑heating the build plate
+* sending an HTTP request to your home automation system
+* launching a script or external tool
+
+== Principle diagram ==
+
+[[File:Principe Macro 3D Printer 3mf Workflow.png]]
+
+== Setup ==
+
+A dedicated helper macro is provided to make configuration easy. Your commands are stored in an .ini file used by the workflow.
+
+The ⚙️ button in the options window allows you to both install and open the configuration macro (3D_Printer_3mf_Workflow_ConfigIni.FCMacro).
+* Fill in the fields in the configuration window
+* Hover your mouse over a column title to display help tooltips
+* Each command you define will be executed in order after the 3MF file is produced.
+
+[[File:Macro_3D_Printer_3mf_workflow_capture_écrant1.png|alt=Macro_3D_Printer_3mf_workflow capture écrant]]
+
+=== Using %PROJECT%, %PROJECTDIR%, and %PROJECTNAME% in user commands ===
+
+When you define custom post‑processing commands in the workflow, you can use three special placeholders.
+These placeholders are automatically replaced by values derived from your FreeCAD project file.
+
+== Available placeholders ==
+
+Placeholder	Meaning
+%PROJECT%	Full path of the FreeCAD project without extension
+%PROJECTDIR%	Folder containing the FreeCAD project
+%PROJECTNAME%	Project file name without extension
+
+== Examples ==
+
+Copy the generated 3MF file next to the project :
+
+<code>
+copy "%PROJECT%.3mf" "%PROJECTDIR%/backup/%PROJECTNAME%.3mf"
+</code>
+
+Run a script stored in the project folder :
+
+<code>python "%PROJECTDIR%/scripts/postprocess.py" "%PROJECT%.3mf"</code>
+
+Send an HTTP request using the project name :
+
+<code>
+curl "http://myserver/api/start?job=%PROJECTNAME%"
+</code>
+
+Turn on a Shelly smart plug Gen 1
+
+<code>
+curl "http://192.168.xxx.xxx/relay/0?turn=on"
+</code>
+
+Gen2
+
+<code>
+http://192.168.xxx.xxx/rpc/Switch.Set?id=0&on=true
+</code>
+
+Or if your device have a password :
+
+<code>
+curl -u admin:yourpassword "http://192.168.xxx.xx/rpc/Switch.Set?id=0&on=true"
+</code>
+
+== Usage ==
+
+More details at https://github.com/2cv001/3D_printer_3mf_workflow 
+
+== Script == 
+
+ToolBar Icon [[Image:Macro_3D_Printer_3mf_Workflow.png]]
+
+=== Code ===
+
+ver 00.02 2026/02/14 by 2cv001 '''3D_Printer_3mf_Workflow.FCMacro'''
+
+==== Download ====
+
+{{CodeDownload|https://raw.githubusercontent.com/2cv001/3D_printer_3mf_workflow/main/3D_Printer_3mf_Workflow.FCMacro| Download latest version of the macro}}
