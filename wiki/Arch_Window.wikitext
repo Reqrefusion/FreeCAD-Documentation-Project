@@ -42,7 +42,11 @@ All information applicable to an Arch Window also applies to an [[Arch Door|Arch
 
 ==Usage== <!--T:7-->
 
-===Using a preset=== <!--T:8-->
+There are different ways to create windows, depending of whether any of the strategies cover the desired level of detail and functionality.
+
+===Creating a window from a preset=== <!--T:8-->
+
+This is the most straightforward way of creation, where [[#Presets|existing presets]] cover the most general types of windows.
 
 <!--T:27-->
 # There are several ways to invoke the tool:
@@ -54,13 +58,99 @@ All information applicable to an Arch Window also applies to an [[Arch Door|Arch
 # In the [[3D_View|3D View]], move the window to the location where you wish to place it. If you move the pointer over an [[Arch_Wall|Arch Wall]], the outline of the window should align itself with the face of that object.
 # Click on the [[3D_View|3D View]] with the mouse, or press the {{KEY|Enter}} key three times to confirm the X-, Y-, Z-coordinates of the placement.
 
-==== Additional presets ==== <!--T:60-->
+Learn more about [[#Presets|presets]].
 
-<!--T:66-->
+===Creating a window from custom components=== <!--T:28-->
+
+When the desired window format is not covered by any of the existing presets, custom windows can be created and optionally included as user presets in addition to the [[#Presets|built-in presets]]. 
+
+<!--T:29-->
+# Optionally, select a face on the Arch object where you want the window to be included, and then [[Draft_SelectPlane#Usage_with_pre-selection|set the working plane to it]].
+# Create a new sketch with the {{Button|[[Image:BIM_Sketch.svg|16px]] [[BIM_Sketch|New Sketch]]}} command on the current working plane.
+# For proper placement, the bottom left hand corner of the window should be at the sketch origin.
+# Draw one or more closed wires (loops). Pay close attention to the creation order of these loops, the numbering of the "wires" in the [[Task_Panel|task panel]] ("Window elements") depends on this.
+# Close the sketch.
+# Select the sketch and press the {{Button|[[Image:Arch_Window.svg|16px]] [[Arch_Window|Window]]}} button, or any of the alternative ways to invoke the tool.
+# To adjust the window components and various properties, enter the window [[Task_Panel|task panel]] by double-clicking on the created object in the [[Tree_View|Tree View]].
+# Note that since components following a hinged component will also hinge, all fixed components, such as outer frames and fixed glass panels, must be defined before any hinged components. And a glass panel in a hinged frame must be defined after that frame, and before any other hinged components.
+
+Learn more about [[#Custom_components|custom components]].
+
+===Creating a window from custom types=== <!--T:54-->
+
+<!--T:55-->
+# Create a window frame object, a glass panel, and any other window component you need, using [[Part_Workbench|Part Workbench]] or [[PartDesign_Workbench|PartDesign]] tools.
+#* For example, create a base rectangular sketch for your window, then a profile sketch for the frame, and create a [[Part_Sweep|Part Sweep]] to sweep the profile around the base sketch. Create a [[Part_Offset2D|Part Offset2D]] from the base sketch, then a [[Part_Extrude|Part Extrude]] to create the glass panel
+#* Optionally, create a volume to be subtracted from the wall, for example by extruding the base sketch. 
+#* Make sure all these pieces have a unique, meaningful name (for example, "Frame" or "Glass panel")
+# Create an [[App_Part|App Part]], and place all your subcomponents in it
+#* If you created one, make sure the subtraction volume part's visibility is turned off
+# If you want to make your window parametric, you can add 3 properties to your App Part, by right-clicking its Property View and selecting "Add Property". Add the following properties (all of them are optional, the property group doesn't matter):
+#* '''Height''' as a PropertyLength and link it, for example, to a vertical constraint of your base sketch
+#* '''Width''' as a PropertyLength and link it, for example, to a horizontal constraint of your base sketch
+#* '''Subvolume''' as a PropertyLink and link it to the volume to be subtracted that we created above
+#* '''Tag''' as a PropertyString
+# To create window objects from the newly-created type. select the App Part and press the {{Button|[[Image:Arch_Window.svg|16px]] [[Arch_Window|Window]]}} button, or any of the alternative ways to invoke the tool.
+
+<!--T:57-->
+The "Height", "Width", "Subvolume" and "Tag" properties of the window will be linked to the corresponding property of the App Part, if existing.
+
+Learn more about [[#Custom_types|custom types]].
+
+== Strategies for placing windows ==
+
+TBD - explain:
+
+- Links vs clones
+- Advanced snapping
+
+==Options== <!--T:12-->
+
+<!--T:13-->
+* If the '''Auto include in host object''' checkbox on the Window creation task panel is unchecked, the window won't be inserted into any host object on creation.
+* Add a selected window to a [[Arch_Wall|wall]] by selecting both, then pressing the {{Button|[[Image:Arch_Add.svg|16px]] [[Arch_Add|Add Component]]}} button. The order of selection is important: first select the window, then the wall.
+* Remove a selected window from a [[Arch_Wall|wall]] by selecting the window, then pressing the {{Button|[[Image:Arch_Remove.svg|16px]] [[Arch_Remove|Remove Component]]}} button.
+* When using presets, it is often convenient to turn the "Near" [[Draft Snap|Draft Snap]] on, so you can snap your window to an existing face.
+* The hole created by a window in its host object is determined by two properties: {{PropertyData|Hole Depth}} and {{PropertyData|Hole Wire}} ({{Version|0.17}}). The Hole Wire number can be picked in the 3D View from the window's task panel available when double-clicking the window in the Tree View
+* Windows can make use of [[Arch_MultiMaterial|Multi-Materials]]. The window will search in the attached Multi-Material for material layers with a same name for each of its window component, and use it if any is found. For example, a component named "OuterFrame" will search in the attached Multi-Material, for a material layer named "OuterFrame". If such material layer is found, its material will be attributed to the OuterFrame component. The thickness value of the material layer is disregarded.
+
+===Openings=== <!--T:33-->
+
+<!--T:37-->
+See also: [[Tutorial for open windows|Tutorial for open windows]]
+
+<!--T:34-->
+Doors and windows can appear partially or fully open in the 3D model, or can display opening symbols both in plan and/or elevation. Consequently, these will also appear in extracted 2D views generated by [[Draft Shape2DView|Draft Shape2DView]] or [[TechDraw Workbench|TechDraw Workbench]]. To obtain this, at least one of the window components must have a hinge and an opening mode defined (see the [[#Building components|Building components]] above). Then, using the {{PropertyData|Opening}}, {{PropertyData|Symbol Plan}} or {{PropertyData|Symbol Elevation}} properties, you can configure the appearance of the window:
+
+</translate>
+[[Image:Arch window openings.png|600px]]
+<translate>
+<!--T:35-->
+{{Caption|A door showing the symbol plan, symbol elevation and opening properties at work}}
+
+==Presets== <!--T:30-->
+
+<!--T:31-->
+The following presets are available:
+
+<!--T:32-->
+<gallery heights=160 widths=200>
+Image:ParametersWindowFixed.svg|Fixed
+Image:ParametersWindowSimple.svg|Open 1-pane
+Image:ParametersWindowDouble.svg|Open 2-pane
+Image:ParametersWindowStash.svg|Sash 2-pane
+Image:ParametersWindowDouble.svg|Sliding 2-pane
+Image:ParametersDoorSimple.svg|Simple door
+Image:ParametersDoorGlass.svg|Glass door
+Image:ParametersWindowDouble.svg|Sliding 4-pane
+Image:ParametersWindowSimple.svg|Awning
+Image:ParametersOpening.svg|Opening only {{Version|1.0}}
+</gallery>
+
+==== Additional user presets ==== <!--T:60-->
+
 In addition to the default presets, the window tool can also use custom presets. A custom preset is a FreeCAD file containing a single window based on a parametric sketch that has two named constrains: {{Value|Width}} and {{Value|Height}}. Custom presets can be placed in the following locations:
-
 <!--T:67-->
-The window tool will always search this pair of locations:
 
 </translate>
 {{FileName|$ROOT_DIR/Arch/Doors/Custom/}}<br>
@@ -85,38 +175,7 @@ If you install the [[Parts_Library_Workbench|Parts Library]] from the [[Std_Addo
 <!--T:68-->
 Custom presets will be available in the window tool's presets dropdown menu. Presets in library locations will also be available in the Parts Library dialog.
 
-===Creating a custom window=== <!--T:28-->
-
-<!--T:29-->
-# Optionally, select a face on the Arch object where you want the window to be included.
-# Create a new sketch with the {{Button|[[Image:BIM_Sketch.svg|16px]] [[BIM_Sketch|New Sketch]]}} command.
-# For proper placement, the bottom left hand corner of the window should be at the sketch origin.
-# Draw one or more closed wires (loops). Pay close attention to the creation order of these loops, the numbering of the "wires" in the [[Task_Panel|task panel]] ("Window elements") depends on this.
-# Close the sketch.
-# Invoke the tool as described above, with the sketch selected.
-# To adjust the window components and various properties, enter the window [[Task_Panel|task panel]] by double-clicking on the created object in the [[Tree_View|Tree View]].
-# Note that since components following a hinged component will also hinge, all fixed components, such as outer frames and fixed glass panels, must be defined before any hinged components. And a glass panel in a hinged frame must be defined after that frame, and before any other hinged components.
-
-==Presets== <!--T:30-->
-
-<!--T:31-->
-The following presets are available:
-
-<!--T:32-->
-<gallery heights=160 widths=200>
-Image:ParametersWindowFixed.svg|Fixed
-Image:ParametersWindowSimple.svg|Open 1-pane
-Image:ParametersWindowDouble.svg|Open 2-pane
-Image:ParametersWindowStash.svg|Sash 2-pane
-Image:ParametersWindowDouble.svg|Sliding 2-pane
-Image:ParametersDoorSimple.svg|Simple door
-Image:ParametersDoorGlass.svg|Glass door
-Image:ParametersWindowDouble.svg|Sliding 4-pane
-Image:ParametersWindowSimple.svg|Awning
-Image:ParametersOpening.svg|Opening only {{Version|1.0}}
-</gallery>
-
-==Building components== <!--T:9-->
+==Custom components== <!--T:9-->
 
 <!--T:10-->
 Windows can include 4 types of components: frames, solid panels, glass panels and louvres. Panels and louvres are made from one closed wire, which gets extruded, while frames are made from 2 or more closed wire, where each one is extruded, then the smaller ones are subtracted from the biggest one. You can access, create, modify and delete components of a window in edit mode (double-click the window in the Tree View). The components have the following properties:
@@ -133,31 +192,7 @@ Windows can include 4 types of components: frames, solid panels, glass panels an
 <!--T:24-->
 [[Image:Arch Window options.jpg|600px]]
 
-==Options== <!--T:12-->
-
-<!--T:13-->
-* If the '''Auto include in host object''' checkbox on the Window creation task panel is unchecked, the window won't be inserted into any host object on creation.
-* Add a selected window to a [[Arch_Wall|wall]] by selecting both, then pressing the {{Button|[[Image:Arch_Add.svg|16px]] [[Arch_Add|Add Component]]}} button. The order of selection is important: first select the window, then the wall.
-* Remove a selected window from a [[Arch_Wall|wall]] by selecting the window, then pressing the {{Button|[[Image:Arch_Remove.svg|16px]] [[Arch_Remove|Remove Component]]}} button.
-* When using presets, it is often convenient to turn the "Near" [[Draft Snap|Draft Snap]] on, so you can snap your window to an existing face.
-* The hole created by a window in its host object is determined by two properties: {{PropertyData|Hole Depth}} and {{PropertyData|Hole Wire}} ({{Version|0.17}}). The Hole Wire number can be picked in the 3D View from the window's task panel available when double-clicking the window in the Tree View
-* Windows can make use of [[Arch_MultiMaterial|Multi-Materials]]. The window will search in the attached Multi-Material for material layers with a same name for each of its window component, and use it if any is found. For example, a component named "OuterFrame" will search in the attached Multi-Material, for a material layer named "OuterFrame". If such material layer is found, its material will be attributed to the OuterFrame component. The thickness value of the material layer is disregarded.
-
-==Openings== <!--T:33-->
-
-<!--T:37-->
-See also: [[Tutorial for open windows|Tutorial for open windows]]
-
-<!--T:34-->
-Doors and windows can appear partially or fully open in the 3D model, or can display opening symbols both in plan and/or elevation. Consequently, these will also appear in extracted 2D views generated by [[Draft Shape2DView|Draft Shape2DView]] or [[TechDraw Workbench|TechDraw Workbench]]. To obtain this, at least one of the window components must have a hinge and an opening mode defined (see the [[#Building components|Building components]] above). Then, using the {{PropertyData|Opening}}, {{PropertyData|Symbol Plan}} or {{PropertyData|Symbol Elevation}} properties, you can configure the appearance of the window:
-
-</translate>
-[[Image:Arch window openings.png|600px]]
-<translate>
-<!--T:35-->
-{{Caption|A door showing the symbol plan, symbol elevation and opening properties at work}}
-
-==Defining window types== <!--T:50-->
+==Custom types== <!--T:50-->
 
 <!--T:51-->
 Windows can also take advantage of other tools, specifically [[PartDesign Workbench|PartDesign]] workflows, to define a type. A type is an object that defines the shape of the window. This is specially well suited to work with [[App Part|App Parts]]:
@@ -167,24 +202,6 @@ Windows can also take advantage of other tools, specifically [[PartDesign Workbe
 
 <!--T:53-->
 [https://github.com/FreeCAD/Examples/raw/master/Arch_Example_Files/Window_Type.FCStd Download the example file shown above]
-
-===Example workflow=== <!--T:54-->
-
-<!--T:55-->
-# Create a window frame object, a glass panel, and any other window component you need, using [[Part_Workbench|Part Workbench]] or [[PartDesign_Workbench|PartDesign]] tools.
-#* For example, create a base rectangular sketch for your window, then a profile sketch for the frame, and create a [[Part_Sweep|Part Sweep]] to sweep the profile around the base sketch. Create a [[Part_Offset2D|Part Offset2D]] from the base sketch, then a [[Part_Extrude|Part Extrude]] to create the glass panel
-#* Optionally, create a volume to be subtracted from the wall, for example by extruding the base sketch. 
-#* Make sure all these pieces have a unique, meaningful name (for example, "Frame" or "Glass panel")
-# Create an [[App_Part|App Part]], and place all your subcomponents in it
-#* If you created one, make sure the subtraction volume part's visibility is turned off
-# If you want to make your window parametric, you can add 3 properties to your App Part, by right-clicking its Property View and selecting "Add Property". Add the following properties (all of them are optional, the property group doesn't matter):
-#* '''Height''' as a PropertyLength and link it, for example, to a vertical constraint of your base sketch
-#* '''Width''' as a PropertyLength and link it, for example, to a horizontal constraint of your base sketch
-#* '''Subvolume''' as a PropertyLink and link it to the volume to be subtracted that we created above
-#* '''Tag''' as a PropertyString
-
-<!--T:57-->
-Our window type is now ready. We can create window objects from it, simply by selecting the App Part and pressing the window button. The "Height", "Width", "Subvolume" and "Tag" properties of the window will be linked to the corresponding property of the App Part, if existing.
 
 <!--T:70-->
 Note that windows created in this manner do not support the [[#Openings|Openings]] features.
