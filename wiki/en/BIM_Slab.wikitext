@@ -1,5 +1,4 @@
 <languages/>
-{{UnfinishedDocu{{#translation:}}}}
 
 {{Docnav
 |[[BIM_Beam|Beam]]
@@ -20,7 +19,9 @@
 
 == Description ==
 
-The '''BIM Slab''' tool creates a '''Slab''' object, a horizontal structure element, from a planar shape.
+The '''BIM Slab''' tool creates a '''Slab''' object, a horizontal structure element, from a planar shape. Slabs are specialized [[Arch_Structure|Arch Structure]] objects with their {{PropertyData|Ifc Type}} preset to "Slab".
+
+While it behaves like a standard Arch Structure, the BIM tool specifically initializes the slab with a default height (thickness) of 200 mm and an extrusion direction pointing downwards.
 
 ==Usage==
 
@@ -33,9 +34,37 @@ The '''BIM Slab''' tool creates a '''Slab''' object, a horizontal structure elem
 # A new Slab object is created and the tool is finished.
 # Optionally change some properties in the [[Property_View|Property View]].
 
+==Notes==
+
+* '''Wrapping behavior''': the tool "wraps" the selected object. If you select a sub-element (like a face in the 3D view), the tool identifies the parent object and uses that as the {{PropertyData|Base}}.
+* '''Thickness''': to change the thickness of the slab, modify the {{PropertyData|Height}} property.
+* '''Orientation''': To make the slab extrude upwards, change the {{PropertyData|Normal}} property to {{Value|(0, 0, 1)}}.
+
 ==Properties==
 
 A Slab object shares the common properties and behaviors of all [[Arch_Structure|Arch Structures]]. Its {{PropertyData|IfcType}} is preset to {{Value|Slab}}.
+
+==Scripting==
+
+The BIM Slab is created using the same Python function as Arch Structures:
+
+{{Code|code=
+import FreeCAD
+import Arch
+import Draft
+
+# Create a rectangle profile
+rect = Draft.make_rectangle(length=2000, width=3000)
+FreeCAD.ActiveDocument.recompute()
+
+# Create a structure and define it as a slab
+slab = Arch.makeStructure(rect)
+slab.IfcType = "Slab"
+slab.Height = 150  # mm
+slab.Normal = (0, 0, -1)  # Slab is extruded downwards
+
+FreeCAD.ActiveDocument.recompute()
+}}
 
 
 {{Docnav
