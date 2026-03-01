@@ -1,0 +1,332 @@
+<languages/>
+<translate>
+
+{{Docnav
+|[[Arch_Window|Window]]
+|[[Arch_Pipe|Pipe]]
+|[[BIM_Workbench|BIM]]
+|IconL=Arch_Window.svg
+|IconR=Arch_Pipe.svg
+|IconC=Workbench_BIM.svg
+}}
+
+{{VeryImportantMessage|THIS COMMAND IS EXPERIMENTAL AND NOT PART OF FREECAD. It is a work in progress PR (https://github.com/FreeCAD/FreeCAD/pull/27222) that needs to be reviewed and tested. This is a placeholder to host documentation for testers.}}
+
+{{GuiCommand
+|Name=BIM Covering
+|MenuLocation=3D/BIM → Covering
+|Workbenches=[[BIM_Workbench|BIM]]
+|Shortcut={{KEY|C}} {{KEY|V}}
+|Version=1.2
+|SeeAlso=
+}}
+
+== Description ==
+
+The '''BIM Covering''' tool creates a parametric object representing a surface finish applied to a planar face. Typical use cases include floor tiling, wall cladding, ceiling finishes, roofing, skirting boards, and any other repeating surface material.
+
+Depending on the selected Finish Mode, the object produces either individual 3D tile geometry with real joint gaps, a flat parametric representation, or a technical hatch pattern. All modes update a set of Quantity Take-Off properties on every recompute, making the object useful for material schedules and cost estimation regardless of the level of geometric detail chosen.
+
+The Covering object is semantically equivalent to the IFC {{Incode|IfcCovering}} class. Its {{PropertyData|IfcPredefinedType}} property maps directly to the IFC subtypes (FLOORING, CLADDING, ROOFING, MOLDING, SKIRTINGBOARD, CEILING, WRAPPING), making it suitable for BIM workflows that require IFC export.
+
+== Usage ==
+
+=== From a pre-selection ===
+
+# Select one or more faces or objects in the 3D view or the model tree. Multiple faces across different objects are allowed; the command will create one Covering per selected item in a single batch operation.
+# Invoke the command via the menu ({{MenuCommand|3D/BIM → Covering}}) or the toolbar button.
+# The task panel opens with the selection already populated. Adjust parameters and press {{Button|OK}}.
+
+=== From the command (no pre-selection) ===
+
+# Invoke the command with nothing selected.
+# The task panel opens with the {{Button|Pick}} button active (indicated by the red recording icon and the label "Picking…"). The 3D view is in selection mode.
+# Click a face or object to select it as the base:
+#* Objects can be selected from the '''model tree''' by a single click.
+#* To select a specific face from the '''3D view''', click the object once to select it, then click the face a second time. Clicking an edge on the first or second click will clear the selection rather than adding to it.
+#* Hold {{KEY|Ctrl}} while clicking to accumulate multiple items before confirming.
+# Adjust parameters and press {{Button|OK}} to create the Covering(s).
+
+Enable '''Continue''' mode (checkbox at the bottom of the Geometry panel) to keep the task panel open after each OK, resetting for the next covering. This is useful for applying the same finish settings to many faces one at a time.
+
+=== Edit mode ===
+
+Double-click an existing Covering object in the model tree to reopen the task panel in edit mode. All parameters can be changed. To reassign the base face, activate the {{Button|Pick}} button and select a new face.
+
+== Finish Modes ==
+
+The Finish Mode controls how the covering geometry is generated and displayed. It can be changed at any time without losing other settings.
+
+All modes except '''Hatch Pattern''' support texture mapping via the [[#Visuals|Visuals]] task panel section.
+
+=== Solid Tiles ===
+
+Individual 3D tiles are generated with real joint gaps between them via boolean subtraction. Each tile is a separate solid extruded to the specified thickness. This mode is the most geometrically accurate and produces the most informative Quantity Take-Off data (including individual tile counts and waste). It is also the less performant. It is best suited for close-up renders, detailed drawings, and material schedules.
+
+'''Performance note:''' When the tile count exceeds 10,000 or the joint width is less than 0.1 mm, the engine automatically switches to analytical mode: the geometry falls back to a single monolithic solid, while tile counts and areas are still computed mathematically. A warning is printed to the Report View when this occurs. At counts above 100,000, layout lines are also hidden.
+
+=== Parametric Pattern ===
+
+A grid of tile layout lines is drawn on a single flat slab without extruding individual tiles. The slab thickness is controlled by the Tile Thickness parameter. This mode is lighter to display and recompute than Solid Tiles, making it suitable for large-scale views, preliminary layouts, or performance-sensitive models.
+
+=== Monolithic ===
+
+A single continuous surface is produced with no tile subdivisions. The tile dimensions define the texture repeat period only. This mode is intended for seamless or near-seamless materials such as plaster, paint, polished concrete, carpet, or linoleum, where individual unit boundaries are absent or irrelevant.
+
+=== Hatch Pattern ===
+
+A 2D CAD-style hatch pattern is applied to a single flat slab using a standard {{FileName|.PAT}} pattern file. This mode is intended for technical drawings and plans. A PAT file and pattern name must be specified; FreeCAD's bundled {{FileName|FCPAT.pat}} is offered as the default. Texture mapping is not available in this mode.
+
+== Options ==
+
+The task panel is divided into three collapsible sections.
+
+=== Covering Definition ===
+
+{| class="wikitable"
+! Control
+! Description
+|-
+| {{Button|Base}}
+| The face or object the covering is applied to. Click Pick to change it interactively.
+|-
+| {{Button|Finish Mode}}
+| Selects the geometry generation strategy (see [[#Finish_Modes|Finish Modes]] above).
+|-
+| {{Button|Length}}
+| Tile body length along the U axis.
+|-
+| {{Button|Width}}
+| Tile body width along the V axis.
+|-
+| {{Button|Thickness}}
+| Extrusion depth of each tile (or slab thickness in non-Solid modes).
+|-
+| {{Button|Joint Width}}
+| Width of the gap between tiles.
+|-
+| {{Button|Stagger}}
+| Running bond offset: None (stacked), 1/2, 1/3, 1/4, or Custom. The Custom option enables a free offset input.
+|-
+| {{CheckBox|Continue}}
+| When checked, pressing OK creates the covering and immediately resets the panel for a new one, without closing the task panel.
+|}
+
+=== Layout and Boundaries ===
+
+{| class="wikitable"
+! Control
+! Description
+|-
+| {{Button|Rotation}}
+| Rotates the entire tile grid around the face normal.
+|-
+| {{Button|Alignment}}
+| Preset or Custom grid anchor (see [[#Alignment|Alignment]] section below).
+|-
+| {{Button|U Offset}} / {{Button|V Offset}}
+| Manual offset of the grid origin along the face U and V axes. Active only in Custom alignment mode. FreeCAD expressions are supported.
+|-
+| {{Button|Border Setback}}
+| Shrinks the tiling area inward from the face boundary by the given distance. Useful to keep tiles away from skirting boards or other perimeter elements.
+|}
+
+=== Visuals ===
+
+{| class="wikitable"
+! Control
+! Description
+|-
+| {{Button|Texture Image}}
+| An image file mapped continuously onto the covering surface. The file is embedded in the document.
+|-
+| {{Button|Texture Scale}}
+| Multiplier applied to the texture repeat in U and V independently. Values above 1.0 stretch the texture; values below 1.0 compress it.
+|}
+
+== Alignment ==
+
+The Alignment setting controls where the tile grid is anchored relative to the base face boundary.
+
+=== Preset alignments ===
+
+Five presets are available: '''Center''', '''TopLeft''', '''TopRight''', '''BottomLeft''', '''BottomRight'''.
+
+For corner presets, the ''named corner of a tile'' is aligned to the ''named corner of the face bounding box''. For example, TopRight places the top-right corner of a tile flush with the top-right corner of the face. The joint then bleeds slightly outside the face boundary, which is the physically correct behaviour at a wall or floor edge (grout is cut at the edge, not inset from it).
+
+For '''Center''', the centre of a tile is placed at the centre of the face.
+
+=== Custom alignment ===
+
+Selecting Custom activates the {{Button|U Offset}} and {{Button|V Offset}} input fields, which shift the grid origin by an arbitrary distance along the face coordinate axes. The offset is measured from the face centre. FreeCAD parametric expressions are accepted in both fields, allowing the offset to be driven by a VarSet, spreadsheet cell or a model dimension.
+
+=== Pick Origin ===
+
+The {{Button|Pick Origin}} button (available in Custom mode) enters an interactive snapping mode. A tile wireframe tracks the mouse cursor in the 3D view, anchored at its bottom-left corner. Click any point in the 3D view — typically a vertex of the base face — to set the grid origin at that point. The U and V offset fields are updated automatically and the alignment is switched to Custom.
+
+=== Match Working Plane ===
+
+The {{Button|Match Working Plane}} button sets the grid origin to the projection of the current FreeCAD working plane origin onto the base face, expressed as a U/V offset. This allows the tile grid to be aligned to a known reference point in the model.
+
+=== Known limitation: world-axis-aligned grid ===
+
+The tile grid coordinate system is currently derived from the world axes, not from the face edges. For faces that are aligned to the world axes this produces intuitive results. For faces rotated in plan — for example a slab at 30° — the grid still runs horizontally and vertically in world space, and preset alignment corners are computed from the world-axis bounding box of the face rather than from its physical corners. This makes preset alignment unreliable for rotated faces, and the user must resort to Custom alignment with a manually measured offset to achieve a visually correct result.
+
+A future iteration will derive the grid coordinate system from the face's own edge directions, so that tiles run parallel to the face edges by default and preset alignment corners correspond to the actual physical corners of the face regardless of orientation.
+
+== Texture Mapping ==
+
+Texture images are mapped onto the covering surface using a continuous linear projection with a period equal to {{Incode|TileLength + JointWidth}} in U and {{Incode|TileWidth + JointWidth}} in V. The texture repeats seamlessly across the entire surface with no gaps.
+
+Because Coin3D (FreeCAD's 3D renderer) does not support discontinuous texture mapping, it is not possible to leave the joint region genuinely empty in the texture. As a workaround, the texture origin is shifted by half the joint width, so the tile body is centred within its period and the texture image is centred on the physical tile. Since the joint region cuts off only the outermost border of the texture on each side, this is visually indistinguishable from a true gap for typical joint widths (5–10 mm with 300 mm tiles). For cases where the joint is large relative to the tile — and the cut-off edge is noticeable — the joint appearance can be incorporated directly into the texture image itself, for example by including a grout-coloured border.
+
+== Quantity Take-Off ==
+
+The following properties are computed automatically on every recompute and can be read from the object's Data panel or referenced in a FreeCAD spreadsheet:
+
+{| class="wikitable"
+! Property
+! Description
+|-
+| {{PropertyData|CountFullTiles}}
+| Number of tiles that fit entirely within the face boundary.
+|-
+| {{PropertyData|CountPartialTiles}}
+| Number of tiles that are cut by the boundary.
+|-
+| {{PropertyData|NetArea}}
+| Surface area of the base face (the area to be covered).
+|-
+| {{PropertyData|GrossArea}}
+| Total area of material consumed, including partial tiles ordered as full units.
+|-
+| {{PropertyData|WasteArea}}
+| GrossArea − NetArea: the area of cut-off material that is discarded.
+|-
+| {{PropertyData|TotalJointLength}}
+| Sum of all joint centre-line lengths.
+|-
+| {{PropertyData|PerimeterLength}}
+| Perimeter of the base face.
+|}
+
+=== Physical vs analytical calculation ===
+
+When the tile count is within normal limits (up to 10,000 tiles) and the joint width is at least 0.1 mm, quantities are derived from the actual computed geometry ('''physical mode'''): tile counts are obtained by counting the resulting solids, and areas are measured from their faces. This is the most accurate method.
+
+When the tile count exceeds 10,000, or the joint is too narrow for stable boolean operations (< 0.1 mm), the engine switches to '''analytical mode''': the geometry falls back to a single monolithic solid, and counts and areas are computed mathematically from the tile dimensions and face area. The QTO values remain valid and usable in schedules; only the 3D representation is simplified.
+
+At counts above 100,000 ('''extreme count''' mode), layout lines are additionally hidden to prevent display freezes.
+
+A status message is printed to the Report View whenever the engine falls back from physical to analytical mode.
+
+=== Using QTO data in a spreadsheet ===
+
+To reference a Covering's quantities in a FreeCAD spreadsheet, use the standard expression syntax. For example, to read the net area of a covering named {{Incode|Covering}}:
+
+{{Code|code=
+=Covering.NetArea
+}}
+
+== Properties ==
+
+=== Data ===
+
+An Arch Covering object shares the common properties and behaviors of all [[Arch_Component|Arch Components]].
+
+{{TitleProperty|Covering}}
+
+* {{PropertyData|Base}}: The face or object the covering is applied to.
+* {{PropertyData|FinishMode}}: Geometry generation strategy: Solid Tiles, Parametric Pattern, Monolithic, or Hatch Pattern.
+* {{PropertyData|TileAlignment}}: Grid anchor preset or Custom.
+* {{PropertyData|Rotation}}: Rotation of the tile grid around the face normal (degrees).
+
+{{TitleProperty|Tiles}}
+
+* {{PropertyData|TileLength}}: Tile body length in the U direction.
+* {{PropertyData|TileWidth}}: Tile body width in the V direction.
+* {{PropertyData|TileThickness}}: Tile extrusion depth (or slab thickness).
+* {{PropertyData|JointWidth}}: Width of the gap between tiles.
+* {{PropertyData|StaggerType}}: Running bond type: Stacked, Half, Third, Quarter, or Custom.
+* {{PropertyData|StaggerCustom}}: Custom running bond offset (active when StaggerType is Custom).
+* {{PropertyData|AlignmentOffset}}: Grid origin offset from face centre (X=U, Y=V).
+
+{{TitleProperty|Boundaries}}
+
+* {{PropertyData|BorderSetback}}: Inward setback from the face perimeter.
+
+{{TitleProperty|Quantities}}
+
+* {{PropertyData|CountFullTiles}}: Number of uncut tiles.
+* {{PropertyData|CountPartialTiles}}: Number of cut tiles.
+* {{PropertyData|NetArea}}: Surface area of the base face.
+* {{PropertyData|GrossArea}}: Total material area consumed.
+* {{PropertyData|WasteArea}}: Cut-off material area (Gross − Net).
+* {{PropertyData|TotalJointLength}}: Total joint centre-line length.
+* {{PropertyData|PerimeterLength}}: Base face perimeter length.
+
+{{TitleProperty|Visual}}
+
+* {{PropertyData|TextureImage}}: Embedded image file for texture mapping.
+* {{PropertyData|TextureScale}}: Texture repeat multiplier (X=U, Y=V).
+
+{{TitleProperty|Pattern}}
+
+* {{PropertyData|PatternFile}}: Embedded {{FileName|.PAT}} file for Hatch Pattern mode.
+* {{PropertyData|PatternName}}: Name of the pattern within the PAT file.
+* {{PropertyData|PatternScale}}: Scale factor for the hatch pattern.
+
+{{TitleProperty|IFC}}
+
+* {{PropertyData|IfcType}}: Fixed to "Covering" for IFC export.
+* {{PropertyData|IfcPredefinedType}}: IFC subtype: FLOORING, CLADDING, ROOFING, MOLDING, SKIRTINGBOARD, CEILING, WRAPPING, or NOTDEFINED.
+
+=== View ===
+
+Standard FreeCAD ViewProvider properties (Visibility, ShapeColor, Transparency, etc.) are inherited from the Arch Component base class.
+
+== Notes ==
+
+* '''Corner alignment and joint bleed:''' For the TopLeft, TopRight, and BottomRight presets, the tile body corner sits flush with the face corner and the joint bleeds slightly outside the face boundary. This is intentional and physically correct — grout at a wall or floor edge is cut at the edge, not inset from it.
+
+* '''Edge clicks in the 3D view:''' When picking a base face interactively, clicking an edge instead of a face surface clears the current selection. If the selection field reverts to "No selection" unexpectedly, or if you are trying to select a base object with no faces (e.g. a Draft Rectangle), either select the object in the Tree View or double-click one of its edges on the 3D view to select the full object.
+
+== Scripting ==
+
+Covering objects can be created from Python using {{Incode|Arch.makeCovering()}}.
+
+{{Code|code=
+import Arch
+
+# Create a covering on a specific face of an object
+box = FreeCAD.ActiveDocument.addObject("Part::Box", "Box")
+FreeCAD.ActiveDocument.recompute()
+
+covering = Arch.makeCovering((box, ["Face6"]))
+covering.TileLength = 300.0   # mm
+covering.TileWidth  = 300.0
+covering.TileThickness = 10.0
+covering.JointWidth = 5.0
+covering.TileAlignment = "Center"
+covering.FinishMode = "Solid Tiles"
+
+FreeCAD.ActiveDocument.recompute()
+}}
+
+The {{Incode|makeCovering}} function accepts:
+* A single object: {{Incode|Arch.makeCovering(obj)}} — applies to the most visible face.
+* A {{Incode|(object, [face_name])}} tuple: {{Incode|Arch.makeCovering((obj, ["Face6"]))}} — applies to a specific face.
+* {{Incode|None}}: creates an unbound covering to be configured later.
+
+{{Docnav
+|[[Arch_Window|Window]]
+|[[Arch_Pipe|Pipe]]
+|[[BIM_Workbench|BIM]]
+|IconL=Arch_Window.svg
+|IconR=Arch_Pipe.svg
+|IconC=Workbench_BIM.svg
+}}
+
+</translate>
+{{BIM_Tools_navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
