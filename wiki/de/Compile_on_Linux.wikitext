@@ -283,119 +283,29 @@ Weitere Informationen, [https://forum.freecad.org/viewtopic.php?f=42&t=37458&sta
 
 <div class="mw-collapsible-content">
 
-Es gibt einen Fehler in den CMake-Dateien von OpenCascade, der dazu führt, dass CMake die OpenCascade-Bibliotheken unter Fedora nicht finden kann. Dies lässt sich leicht beheben, indem man eine kleine Änderung an der obersten CMake-Datei von OpenCascade vornimmt, das unter Fedora installiert ist. Details findet man hier:
-https://bugzilla.redhat.com/show_bug.cgi?id=2083568.
-
-Nahe dem Anfang der Datei OpenCASCADEConfig.cmake die folgende Zeile ändern, um {{Incode|REAL_PATH()}} zu verwenden. Dadurch wird ein Fehler behoben, der durch die Verwendung eines Symlinks von {{Incode|/lib}} zu {{Incode|/usr/lib}} von Fedora ausgelöst wird, den das cmake-Skript nicht korrekt verarbeiten kann. Dies liegt daran, dass zu enge Annahmen darüber getroffen werden, wo sich die Include-Dateien unter Linux normalerweise befinden, und dass nicht auf ein gültiges Ergebnis geprüft wird. 
-
-Diese Datei wird normalerweise unter {{FileName|/usr/lib64/cmake/opencascade/OpenCASCADEConfig.cmake}} installiert.
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The easy way to get the dependencies on fedora is to use this command from FreeCAD source folder:
+</div>
 
 {{Code|lang=bash|code=
-get_filename_component (OpenCASCADE_INSTALL_PREFIX "${OpenCASCADE_INSTALL_PREFIX}" PATH)
+sudo dnf builddep package/fedora/freecad.spec
 }}
 
-ändere dies zu:
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To create an installable rpm package use one of the following commands:
+</div>
 
 {{Code|lang=bash|code=
-file (REAL_PATH ${OpenCASCADE_INSTALL_PREFIX} OpenCASCADE_INSTALL_PREFIX)
+sudo dnf install packit
+packit build locally 
 }}
 
-Diese geringfügige Änderung muss im Build-Verzeichnis vorgenommen werden, nachdem cmake ausgeführt wurde und fehlgeschlagen ist. Bei erneuter Ausführung von cmake werden die OCCT-Bibliotheken dann auf normale Weise korrekt erkannt. 
-
-<span id="Fedora40"></span>
-====Fedora40====
-
-Fedora ermöglicht die gleichzeitige Installation von Qt5- und Qt6-Bibliotheken. Das Hinzufügen der für FreeCAD relevanten Qt6-Bibliotheken kann mit dnf erfolgen:
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Or more suited for development without rebuild from scratch:
+</div>
 
 {{Code|lang=bash|code=
-dnf install python3-shiboken6 python3-shiboken6-devel python3-pyside6 python3-pyside6-devel\
- pyside6-tools qt6-qtsvg qt6-qtsvg-devel qt6-qttools-devel python3-pyqt6-devel
-}}
-
-'''VORSICHT:''' Im März 2025 wurde eine neue Funktion namens PCL eingeführt. Diese erfordert zwei zusätzliche Pakete: pcl und pcl-devel. Allerdings schlägt die Erstellung unter Fedora fehl, wenn Qt6-Bibliotheken verwendet werden. Folgendes zur cmake-Befehlszeile hinzufügen, um diesen Code zu deaktivieren.
-
-{{Code|lang=bash|code=
--DFREECAD_USE_PCL=Off 
-}}
-
-Einige Remote-Google-Codes für automatische Tests der Codierungspraxis sind nun standardmäßig enthalten. Wenn man diesen externen Code, der ohne vorherige Ankündigung geändert werden kann, nicht einbinden möchten, verwendet man die cmake-Option:
-
-{{Code|lang=bash|code=
--DENABLE_DEVELOPER_TESTS=Off
-}}
-
-Der folgende cmake-Befehl sollte für Fedora 40 mit Qt6 funktionieren:
-
-{{Code|lang=bash|code=
-cmake -DCMAKE_BUILD_TYPE=Release -DFREECAD_QT_VERSION=6 -Wno-dev -DENABLE_DEVELOPER_TESTS=Off -DFREECAD_USE_PCL=Off  ../FreeCAD
-}}
-
-Passe das endgültige Verzeichnis so an, dass es auf das FreeCAD-Quellcodeverzeichnis verweist.
-
-<span id="Fedora38/39"></span>
-====Fedora38/39====
-
-Nun installiert man Python 3.11. Dies beinhaltet eine bemerkenswerte Änderung in der Art und Weise, wie Python beim Ausführen eines Programms initialisiert wird. Infolgedessen kann FreeCAD OpenCamLib nicht finden, was bedeutet, dass [[CAM_Surface/de|3D-Oberfläche]] und [[CAM_Waterline/de|Wasserlinie]] im [[CAM_Workbench/de|Arbeitsbereich CAM]] nicht verfügbar sind. Dies wurde am 20. März 2024 im Master-Zweig behoben ([https://github.com/FreeCAD/FreeCAD/pull/13059 Pull-Anfrage #13059]).
-
-Folgende Pakete werden benötigt:
-
-*{{Incode|gcc-c++}} (or possibly another C++ compiler?)
-*{{Incode|cmake}}
-*{{Incode|doxygen}}
-*{{Incode|swig}}
-*{{Incode|gettext}}
-*{{Incode|dos2unix}}
-*{{Incode|desktop-file-utils}}
-*{{Incode|libXmu-devel}}
-*{{Incode|freeimage-devel}}
-*{{Incode|mesa-libGLU-devel}}
-*{{Incode|opencascade-devel}}
-*{{Incode|openmpi-devel}}
-*{{Incode|python3}}
-*{{Incode|python3-devel}}
-*{{Incode|python3-pyside2}}
-*{{Incode|python3-pyside2-devel}}
-*{{Incode|pyside2-tools}}
-*{{Incode|boost-devel}}
-*{{Incode|tbb-devel}}
-*{{Incode|eigen3-devel}}
-*{{Incode|qt-devel}}
-*{{Incode|qt5-qtwebengine-devel}}
-*{{Incode|qt5-qtxmlpatterns}}
-*{{Incode|qt5-qtxmlpatterns-devel}}
-*{{Incode|qt5-qtsvg-devel}}
-*{{Incode|qt5-qttools-static}}
-*{{Incode|ode-devel}}
-*{{Incode|xerces-c}}
-*{{Incode|xerces-c-devel}}
-*{{Incode|opencv-devel}}
-*{{Incode|smesh-devel}}
-*{{Incode|Coin3}}
-*{{Incode|Coin3-devel}}
-*{{Incode|yaml-cpp}}
-
-(April 2021, Coin4 und Coin4-devel sind verfügbar )
-(wenn coin2 die neueste verfügbare Version für deine Fedora Version ist, verwende Pakete von http://www.zultron.com/rpm-repo/)
-
-*{{Incode|SoQt-devel}}
-*{{Incode|freetype}}
-*{{Incode|freetype-devel}}
-*{{Incode|vtk}}
-*{{Incode|vtk-devel}}
-*{{Incode|med}}
-*{{Incode|med-devel}}
-
-Und optional: 
-
-*{{Incode|libspnav-devel}} (für die Unterstützung von 3Dconnexion-Geräten wie Space-Navigator oder Space-Pilot)
-*{{Incode|python3-pivy}} (https://bugzilla.redhat.com/show_bug.cgi?id=458975 Pivy ist nicht zwingend erforderlich, wird aber für den Arbeitsbereich Draft benötigt)
-*{{Incode|python3-markdown}} (für den Addon-Manager, zum Anzeigen von nativem Markdown-Code)
-*{{Incode|python3-GitPython}} (für den Addon-Manager, um Git zum Auschecken und Aktualisieren von Arbeitsbereichen und Makros zu nutzen)
-
-Um alle Abhängigkeiten auf einmal zu installieren (gestestet unter Fedora 36 und 37)
-
-{{Code|lang=bash|code=
-sudo dnf install gcc-c++ cmake doxygen swig gettext dos2unix desktop-file-utils libXmu-devel freeimage-devel mesa-libGLU-devel opencascade-devel openmpi-devel python3 python3-devel python3-pyside2 python3-pyside2-devel pyside2-tools boost-devel tbb-devel eigen3-devel qt-devel qt5-qtwebengine-devel qt5-qtxmlpatterns qt5-qtxmlpatterns-devel qt5-qtsvg-devel qt5-qttools-static ode-devel xerces-c xerces-c-devel opencv-devel smesh-devel Coin3 Coin3-devel SoQt-devel freetype freetype-devel vtk vtk-devel med med-devel libspnav-devel python3-pivy python3-markdown python3-GitPython yaml-cpp
+rpmbuild  --noclean --build-in-place -bb package/fedora/freecad.spec
 }}
 
 </div>
