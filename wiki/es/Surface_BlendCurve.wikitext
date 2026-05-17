@@ -1,0 +1,113 @@
+<languages/>
+
+{{Docnav
+|[[Surface_CurveOnMesh|Curva sobra Malla]]
+|
+|[[Surface_Workbench|Superficie]]
+|IconL=Surface_CurveOnMesh.svg
+|IconR=
+|IconC=Workbench_Surface.svg
+}}
+
+{{GuiCommand/es
+|Name=Sperficie: Mezcla de Curvas
+|MenuLocation=Supercie → Mezclar Curva
+|Workbenches=[[Surface_Workbench|Surface]]
+|Version=0.21
+}}
+
+<span id="Description"></span>
+== Descripción ==
+
+La herramienta [[File:Surface_BlendCurve.svg|24px]] [[Surface_BlendCurve|Mezcla de Curvas]] crea una curva de Bezier entre dos bordes, con la continuidad deseada.
+
+La geometría base puede pertenecer a curvas creadas con el [[Draft_Workbench|Bocetador]] o el [[Sketcher_Workbench|Croquizador]], pero también puede pertenecer a objetos sólidos como los creados con el [[Part_Workbench|Entorno de Trabajo Pieza]].
+
+[[File:Surface_BlendCurve_G3_example.png|400px]]
+[[File:Surface_BlendCurve_Comb.png|400px]]
+{{Caption|Curva de fusión de superficie que une 2 aristas con continuidad G3. El polígono naranja representa los puntos de control. El peine de curvatura (del complemento [[Curves_Workbench|Curvas]]) es suave en los puntos de contacto.}}
+
+<span id="Usage"></span>
+== Uso ==
+
+# Seleccione dos aristas en la [[3D_View|Vista 3D]]
+# Hay varias maneras de usar la herramienta:
+#* Pulse el botón {{Button|[[Image:Surface_BlendCurve.svg|16px]] [[Surface_BlendCurve|Curva de fusión]]}}.
+#* Seleccione la opción {{MenuCommand|Superficie → [[Image:Surface_BlendCurve.svg|16px]] Mezcla de Curvas}} del menú.
+# Ajuste la forma de la curva en las propiedades de datos del objeto o {{Version|1.1}}: haga doble clic en el objeto y use el panel de tareas.
+
+<span id="Properties"></span>
+== Propiedades ==
+
+Un objeto [[Surface_BlendCurve|Mezcla de Curvas]] se deriva de la [[Part_Feature|Característica de Pieza]] básica (clase {{incode|Part::Feature}}, a través de la subclase {{incode|Part::Spline}}), por lo tanto comparte todas las propiedades de esta última.
+
+Además de las propiedades descritas en [[Part_Feature|Característica de Pieza]], el objeto Surface BlendCurve tiene las siguientes propiedades en la [[Property_View|Vista de Propiedades]].
+
+<span id="Data"></span>
+=== Datos ===
+
+{{TitleProperty|Mecla de Curvas}}
+
+* {{PropertyData|Start Edge|LinkSub}}: Primera arista de entrada.
+* {{PropertyData|Start Continuity|Integer}}: Valor de continuidad geométrica.
+* {{PropertyData|Start Parameter|Float}}: Parámetro normalizado a lo largo de la arista; desde {{Value|0.0}} (inicio de la arista) hasta {{Value|1.0}} (final de la arista).
+* {{PropertyData|Start Size|Float}}: Tamaño de la tangente.
+* {{PropertyData|End Edge|LinkSub}}: Segunda arista de entrada.
+* {{PropertyData|End Continuity|Integer}}: Valor de continuidad geométrica.
+* {{PropertyData|End Parameter|Float}}: Parámetro normalizado a lo largo de la arista; desde {{Value|0.0}} (inicio de la arista) hasta {{Value|1.0}} (final de la arista).
+* {{PropertyData|End Size|Float}}: Tamaño de la tangente.
+
+<span id="View"></span>
+=== Vistas ===
+
+{{TitleProperty|Base}}
+
+* {{PropertyView|Puntos de Control|Booleno}}: por defecto es {{FALSE}}; si se establece en {{TRUE}}, mostrará una superposición con los puntos de control de la curva.
+
+<span id="Scripting"></span>
+== Programación de Scripts ==
+
+Véase también: [[FreeCAD_Scripting_Basics|Conceptos Básicos de Programación en FreeCAD]].
+
+La herramienta Curva de fusión se puede usar en [[Macros|Macros]] y desde la [[Python_Console|Python Console]] agregando el objeto {{incode|Surface::FeatureBlendCurve}}.
+
+* Los bordes que se usarán para definir la curva deben asignarse como [[FeaturePython_Custom_Properties#App::PropertyLinkSub|Propiedades Personalizadas de la Aplicación]] a las propiedades {{incode|StartEdge}} y {{incode|EndEdge}} del objeto.
+
+* Todos los objetos con bordes deben calcularse antes de poder usarlos como entrada para las propiedades de la Curva de fusión.
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+points1 = [App.Vector(-20, -20, 0), App.Vector(-20, -8, 0), App.Vector(-17, 7, 0), App.Vector(-18, 25, 0)]
+obj1 = Draft.make_bspline(points1)
+
+points2 = [App.Vector(60, 26, 0), App.Vector(37, 4, 0), App.Vector(33, -20, 0)]
+obj2 = Draft.make_bspline(points2)
+
+doc.recompute()
+
+bcurve = doc.addObject("Surface::FeatureBlendCurve","BlendCurve")
+bcurve.StartEdge = (obj1, 'Edge1')
+bcurve.EndEdge = (obj2, 'Edge1')
+bcurve.EndParameter = 1.00
+bcurve.StartSize = -5.00
+bcurve.EndSize = -5.00
+
+doc.recompute()
+}}
+
+
+{{Docnav
+|[[Surface_CurveOnMesh|Curva sobre Malla]]
+|
+|[[Surface_Workbench|Superficie]]
+|IconL=Surface_CurveOnMesh.svg
+|IconR=
+|IconC=Workbench_Surface.svg
+}}
+
+{{Surface Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
