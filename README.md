@@ -11,6 +11,8 @@ Because of the large amount of data stored
 within this repository, we recommend to edit    
 files directly in GitHub for common changes.
 
+Do not add T tags yourself; only modify the files in the wiki root directory, do not touch the translation files.
+
 [» Read GitHub's guide on how to edit files.][Edit-Files]
 
 <br/>
