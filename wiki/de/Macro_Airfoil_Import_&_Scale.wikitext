@@ -5,8 +5,8 @@
 |Icon=Macro_Airfoil_Import_&_Scale.png
 |Description=Wenn das Makro gestartet wird, wird das Konfigurationsfenster angezeigt. Eine chord length eingegeben und die gewünschte Linienart, DWire oder BSpline auswählen und die Schaltfläche OK drücken, um das Explorer-Fenster anzuzeigen und die Datei zum Erstellen des Profils auszuwählen. Wenn ein Profil ausgewählt wurde, führt man das im Konfigurationsfenster angezeigte Makro aus und die Save-Schaltfläche steht zur Verfügung. Wenn die Save-Schaltfläche gedrückt wurde, öffnet sich das Explorer-Fenster für die Auswahl von Dateipfad und Dateiname, um die Datei auf der Festplatte zu speichern; chord length und type of wire werden ignoriert und nur die X- und Y-Koordinaten werden in der Datei gespeichert.
 |Author=quick61
-|Version=3.0.0
-|Date=2024-11-27
+|Version=3.1.0
+|Date=20264-05-19
 |FCVersion=Alle
 |Download=[https://www.freecad.org/wiki/images/0/0c/Macro_Airfoil_Import_%26_Scale.png Werkzeugleisten-Symbol]
 }}
@@ -42,6 +42,8 @@ Wenn das Tragflächenprofil in der 3D-Ansicht ausgewählt wurde, das Makro ausf�
 <span id="Airfoil_saved"></span>
 === Tragflächenprofil gespeichert===
 
+Zum Speichern des naca-Profils das Profil auswählen und das Makro ausführen.
+
 Wenn das Kontrollkästchen {{RadioButton|TRUE|Speichern}} aktiviert ist, wird das Dateifenster angezeigt.
 
 [[File:Import Airfoil Scale Save Enter V3.png|Die .dat-Datei speichern]]
@@ -64,6 +66,15 @@ Die Datei wird im Format „Titel und Koordinaten X Y durch Komma getrennt“ ge
 
 [[File:Import Airfoil Scale Format.png|Format einer NACA-Datei]]
 
+===Create sketch===
+
+[[File:Import_Airfoil_Scale_Sketcher_V3-1.png|Create sketch]]
+
+If the {{CheckBox|TRUE|Create Sketch}} is checked one sketch is created of the profile 
+
+If the profile is thickness the two profiles are created in a single sketch
+
+
 <span id="The_Macro"></span>
 ==Das Makro==
 
@@ -71,7 +82,7 @@ Die Datei wird im Format „Titel und Koordinaten X Y durch Komma getrennt“ ge
 
 {{MacroCode|code=
 <nowiki>
-# This Macro, when run, will first provide the user with a file browser to
+# This Macro, when run, will first provide the user with a file browser to##:Bookmark line 1
 # locate and select a .dat airfoil text file. Once selected, a chord length is
 # entered and upon pressing the OK button, a properly scaled airfoil is
 # produced. There are two versions provided here. Version 1.5 should work on
@@ -85,8 +96,8 @@ Die Datei wird im Format „Titel und Koordinaten X Y durch Komma getrennt“ ge
 __Name__ = 'Airfoil Import and Scale'
 __Comment__ = 'Imports and scales an Airfoil in the form of a Draft Wire (DWire) or Basic Spline (BSpline)'
 __Author__ = "quick61"
-__Version__ = '3.0.0'
-__Date__ = '2024-11-27'
+__Version__ = '3.1.0'
+__Date__ = '2026-05-19'
 __License__ = 'CC-BY-3.0'
 __Web__ = "https://forum.freecad.org/viewtopic.php?f=22&t=5554"
 __Wiki__ = "https://www.freecad.org/wiki/Macro_Airfoil_Import_%26_Scale"
@@ -105,6 +116,7 @@ import PySide
 from PySide import QtCore, QtGui
 from PySide.QtGui import QLineEdit, QRadioButton
 import Draft
+import Part
 import importAirfoilDAT
 import os
 
@@ -121,19 +133,31 @@ class AirfoilImporterAndScaler():
 
         # Make dialog box and get the scale size
         self.dialog = QtGui.QDialog()
-        self.dialog.resize(350,100)
+        self.dialog.resize(600,200)
         self.dialog.setWindowTitle("Airfoil Import & Scale")
         la = QtGui.QVBoxLayout(self.dialog)
-        t1 = QtGui.QLabel("Chord Length")
+        
+        t1 = QtGui.QLabel("Chord length")
         la.addWidget(t1)
-
         self.s1 = QtGui.QDoubleSpinBox()
         self.s1.setDecimals(5)
         self.s1.setMinimum(-9999999.9999999)
         self.s1.setMaximum(9999999.9999999)
-        self.s1.setSuffix(" mm (Length)")
-        self.s1.setValue(1.0)
+        self.s1.setSuffix(" mm (length)")
+        self.s1.setValue(200.0)
         la.addWidget(self.s1)
+        
+        # Make dialog box and get sheeting thickness
+        t2 = QtGui.QLabel("Sheeting thickness")
+        la.addWidget(t2)
+        self.s2 = None
+        self.s2 = QtGui.QDoubleSpinBox()
+        self.s2.setDecimals(2)
+        self.s2.setMinimum(0)
+        self.s2.setMaximum(9.99)
+        self.s2.setSuffix(" mm (Sheeting Thickness, a negative 2D offset)")
+        self.s2.setValue(0.0)
+        la.addWidget(self.s2)
 
         ####
         self.FreeCAD_ParamGetSet = FreeCAD.ParamGet(u"User parameter:BaseApp/Preferences/Macros/Airfoil_Import_and_Scale")
@@ -144,16 +168,18 @@ class AirfoilImporterAndScaler():
         # Add radio buttons to select between DWire and BSpline
         self.radio1 = QtGui.QRadioButton("Make DWire")
         self.radio2 = QtGui.QRadioButton("Make BSpline")
-        self.radio3 = QtGui.QRadioButton("Save")
+        #Skip the Save button
+        self.radio3 = QtGui.QRadioButton("Save the selected airfoil")
+        #self.radio3.setVisible(False)
 
         # set default to DWire & make radio buttons - Change self.radio1.setChecked(True) to
         # self.radio2.setChecked(True) to set BSpline as default
 
-        self.radio1.setChecked(True)
         la.addWidget(self.radio1)
         self.radio1.setToolTip("Create DWire Airfoil")
         la.addWidget(self.radio2)
         self.radio2.setToolTip("Create BSplinee Airfoil")
+        self.radio2.setChecked(True)
         #### save button
         la.addWidget(self.radio3)
         self.numberCut = self.FreeCAD_ParamGetSet.GetInt("numberCut")       # number of coordinates
@@ -167,6 +193,11 @@ class AirfoilImporterAndScaler():
         selected = FreeCADGui.Selection.getSelection()
         if len(selected) != 0:
             self.radio3.setEnabled(True)
+
+        self.CB01 = QtGui.QCheckBox()
+        self.CB01.setText(u"Create Sketch")
+        la.addWidget(self.CB01)
+
         ####
         # Add OK / Cancel buttons
         okbox = QtGui.QDialogButtonBox(self.dialog)
@@ -177,7 +208,7 @@ class AirfoilImporterAndScaler():
         QtCore.QObject.connect(okbox, QtCore.SIGNAL("rejected()"), self.close)
         QtCore.QMetaObject.connectSlotsByName(self.dialog)
         self.dialog.show()
-        self.dialog.exec_()
+        self.dialog.exec()
 
     def proceed(self):
         global filename
@@ -218,6 +249,45 @@ class AirfoilImporterAndScaler():
                         nacaDWire = Draft.scale([points], scale=FreeCAD.Vector(scalefactor,scalefactor,scalefactor), center=FreeCAD.Vector(0.0, 0.0, 0.0), copy=True)
                         nacaDWire.MakeFace = False
                         nacaDWire.Label = nameFile + "_(DWire)(" + str(scalefactor) + ")"
+                        if self.s2.value() > 0:
+                           # https://wiki.freecad.org/Draft_BSpline
+                           # https://wiki.freecad.org/Draft_Scale
+                           # https://wiki.freecad.org/Draft_Offset
+                           # https://wiki.freecad.org/Vector_API
+                           # http://airfoiltools.com/airfoil/index, .dat file format
+                           # x 0.0 to 1.0, y -1.0 to +1.0
+                           thickNess = self.s2.value()
+                           print("Offset2D thickNess used is ", -thickNess)
+                           try:
+                               f = App.ActiveDocument.addObject("Part::Offset2D", "Offset2D")
+                               f.Source = nacaDWire
+                               f.Value = thickNess
+                               f.Mode = "Skin"
+                               f.Join = "Arc"
+                               f.Intersection = True
+                               f.Label = nameFile + "_(DWire)(" + str(scalefactor) + " offset2D -" + str(thickNess) + ")"
+
+                               if self.CB01.isChecked():
+                                   sk = Draft.make_sketch([f, nacaDWire], autoconstraints=True)
+                                   sk.Label = nameFile + "_(DWire Sketch)(" + str(scalefactor) + ")"
+                                   App.ActiveDocument.recompute()
+
+                           except Exception: 
+                               app.Console.PrintError("Error, offset2D handling\n")
+
+                        else:
+                            if self.CB01.isChecked():
+                                sk = Draft.make_sketch([nacaDWire], autoconstraints=True)
+                                sk.Label = nameFile + "_(DWire Sketch)(" + str(scalefactor) + ")"
+                                App.ActiveDocument.recompute()
+
+                        try:
+                            App.getDocument('Unnamed').removeObject(nameFile)
+                            App.getDocument('Unnamed').removeObject("Wire")
+                            App.getDocument('Unnamed').recompute()
+                        except Exception:
+                            None
+                        App.activeDocument().recompute(None,True,True)
                     except Exception:
                         app.Console.PrintError("Error, not a valid .dat file\n")
 
@@ -233,21 +303,54 @@ class AirfoilImporterAndScaler():
                         nacaBSpline = Draft.scale(bspline, scale=FreeCAD.Vector(scalefactor,scalefactor,scalefactor), center=FreeCAD.Vector(0.0, 0.0, 0.0), copy=True)
                         nacaBSpline.MakeFace = False
                         nacaBSpline.Label = nameFile + "_(BSpline)(" + str(scalefactor) + ")"
-                        App.activeDocument().removeObject(bspline.Name)
+                        if self.s2.value() > 0:
+                           # https://wiki.freecad.org/Draft_BSpline
+                           # https://wiki.freecad.org/Draft_Scale
+                           # https://wiki.freecad.org/Draft_Offset
+                           # https://wiki.freecad.org/Vector_API
+                           # http://airfoiltools.com/airfoil/index, .dat file format
+                           # x 0.0 to 1.0, y -1.0 to +1.0
+                           thickNess = self.s2.value()
+                           print("Offset2D thickNess used is ", -thickNess)
+                           try:
+                               f = App.ActiveDocument.addObject("Part::Offset2D", "Offset2D")
+                               f.Source = nacaBSpline
+                               f.Value = -thickNess
+                               f.Mode = "Skin"
+                               f.Join = "Arc"
+                               f.Intersection = True
+                               f.Label = nameFile + "_(BSpline)(" + str(scalefactor) + " offset2D -" + str(thickNess) + ")"
+                               App.ActiveDocument.recompute()
+
+                               if self.CB01.isChecked():
+                                   sk = Draft.make_sketch([f, nacaBSpline], autoconstraints=True)
+                                   sk.Label = nameFile + "_(BSpline Sketch)(" + str(scalefactor) + ")"
+                                   App.ActiveDocument.recompute()
+
+                           except Exception: 
+                               app.Console.PrintError("Error, offset2D handling\n")
+
+                        else:
+                            if self.CB01.isChecked():
+                                sk = Draft.make_sketch([nacaBSpline], autoconstraints=True)
+                                sk.Label = nameFile + "_(BSpline)(" + str(scalefactor) + ")"
+                                App.ActiveDocument.recompute()
+
+                        try:    
+                            App.getDocument('Unnamed').removeObject(nameFile)
+                            App.getDocument('Unnamed').removeObject("Wire")
+                            App.getDocument('Unnamed').removeObject(bspline.Name)
+                        except Exception:
+                            None
+
+                        App.activeDocument().recompute(None,True,True)
                     except Exception:
                         app.Console.PrintError("Error, not a valid .dat file\n")
-
-                try:    
-                    App.getDocument("Unnamed").getObject(nameFile).removeObjectsFromDocument()
-                    App.getDocument('Unnamed').removeObject(nameFile)
-                    App.getDocument('Unnamed').recompute()
-                except Exception:
-                    None
 
                 Gui.SendMsgToActiveView("ViewFit")
             self.close()    # close the window
 
-        if self.radio3.isChecked():
+        if self.radio3 != None and self.radio3.isChecked():
 
             SaveName, Filter = QtGui.QFileDialog.getSaveFileName(None, "Save An Airfoil File", filePath, "*.dat")
             if SaveName != "":
@@ -287,6 +390,7 @@ class AirfoilImporterAndScaler():
         self.dialog.hide()
 
 AirfoilImporterAndScaler()
+
 
 </nowiki>
 }}
