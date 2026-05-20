@@ -21,7 +21,10 @@
 ==Description== <!--T:2-->
 
 <!--T:41-->
-The [[Image:CAM_Drilling.svg|16px]] [[CAM_Drilling|Drilling]] tool generates a drilling Operation in the Job. 
+The [[Image:CAM_Drilling.svg|16px]] [[CAM_Drilling|Drilling]] tool generates a hole-making operation in the Job.
+
+<!--T:46-->
+{{Version|1.2}}: the operation can use {{MenuCommand|Drilling}} or {{MenuCommand|Tapping}} strategies.
 
 </translate>
 [[Image:Path_Drilling_Sample.png|400px]]
@@ -35,15 +38,19 @@ The [[Image:CAM_Drilling.svg|16px]] [[CAM_Drilling|Drilling]] tool generates a d
 # There are several ways to invoke the command:
 #* Press the {{Button|[[Image:CAM_Drilling.svg|16px]] [[CAM_Drilling|CAM Drilling]]}} button.
 #* Select the {{MenuCommand|CAM → [[Image:CAM_Drilling.svg|16px]] Drilling}} option from the menu.
-#* Currently, any faces or edges selected before invoking the Drilling operation are ignored during initial hole selection.
+#* Faces or edges selected before invoking the command are used as the initial base geometry. If no geometry is selected, use the task panel's {{Button|Auto-select}} tool or add geometry manually.
 #* It is best to ensure a suitable drill is already included in the Job Tools before starting. This improves initial hole selection.
 # In the {{MenuCommand|Operation}} section:
+#* Select a {{MenuCommand|Strategy}}.
 #* Select a {{MenuCommand|ToolController}}.
 #* Select a {{MenuCommand|Coolant Mode}}.
 #* Optionally enable and adjust the following:
 #** {{MenuCommand|Peck}} set the {{MenuCommand|Depth}}.
 #** {{MenuCommand|Dwell}} set the {{MenuCommand|Time}} in seconds.
-#** {{MenuCommand|Extended Depth}}.
+#** {{MenuCommand|Keep tool down}}.
+#** {{MenuCommand|Chip break}}.
+#** {{MenuCommand|Feed retract}}.
+#** {{MenuCommand|Extend depth}}.
 # In the {{MenuCommand|Base Geometry}} section confirm that the list matches the holes that are intended for processing, and adjust add, enable, or disable, as necessary. Holes can be added by selecting the wall faces of the Holes.
 # In the {{MenuCommand|Depths}} section check, and if required adjust, the {{MenuCommand|Start Depth}} and {{MenuCommand|Final Depth}}.
 # In the {{MenuCommand|Heights}} section check, and if required adjust, the {{MenuCommand|Safe Height}} and the {{MenuCommand|Clearance Height}}.
@@ -52,10 +59,12 @@ The [[Image:CAM_Drilling.svg|16px]] [[CAM_Drilling|Drilling]] tool generates a d
 ==Notes== <!--T:13-->
 
 <!--T:14-->
-*When using edges for Base Geometry, always select the bottom edge of the hole.
-*Always verify the tool chosen is the correct diameter for the hole(s) selected.
-*'''Peck disabled''' generates (G81 canned drill cycles). '''Peck enabled''' generates (G83 canned drill cycles).
-*'''Dwell enabled''' is currently unsupported, but is intended to generate (G82 canned drill cycles).
+* When using edges for Base Geometry, always select the bottom edge of the hole.
+* Always verify the tool chosen is the correct diameter for the hole(s) selected.
+* For the {{MenuCommand|Tapping}} strategy, use a tap tool with a {{PropertyData|Pitch}} value and a Tool Controller with a non-zero spindle speed.
+* Old Tapping operations are migrated to Drilling operations with the {{MenuCommand|Tapping}} strategy.
+* '''Peck disabled''' generates (G81 canned drill cycles). '''Peck enabled''' generates (G83 canned drill cycles).
+* '''Dwell enabled''' is currently unsupported, but is intended to generate (G82 canned drill cycles).
 
 ==Properties== <!--T:15-->
 
@@ -96,12 +105,15 @@ Note: It is suggested that you do not edit the Placement property of path operat
 
 <!--T:22-->
 * {{PropertyData|Add Tip Length}}: Calculate the tip length and subtract from final depth
+* {{PropertyData|Chip Break Enabled}}: Use chip breaking with pecking
 * {{PropertyData|Dwell Enabled}}: Enable dwell
 * {{PropertyData|Dwell Time}}: The time to dwell between peck cycles
+* {{PropertyData|Extra Offset}}: Drilling depth extension: {{Value|None}}, {{Value|Drill Tip}}, or {{Value|2x Drill Tip}}
+* {{PropertyData|Feed Retract Enabled}}: Use a G85 boring cycle and retract from the hole at the feed rate
+* {{PropertyData|Keep Tool Down}}: Apply G99 retraction, only retracting to the Start Depth between holes
 * {{PropertyData|Peck Depth}}: Incremental Drill depth before retracting to clear chips
 * {{PropertyData|Peck Enabled}}: Enable pecking
-* {{PropertyData|Retract Height}}: The height where feed starts and height during retract tool when path is finished
-* {{PropertyData|Return Level}}: Controls how tool retracts Default=G98
+* {{PropertyData|Strategy}}: Hole-making strategy: {{Value|Drilling}} or {{Value|Tapping}}
 
 <!--T:23-->
 {{TitleProperty|Path}}
@@ -159,13 +171,18 @@ This section is simply a layout map of the settings in the window editor for the
 ===Operation=== <!--T:37-->
 
 <!--T:38-->
+* '''Strategy''':
 * '''Tool Controller''':
-* '''Retract Height''':
+* '''Coolant mode''':
+* '''Keep tool down''':
+* '''Edit Tool Controller''':
 * '''Peck''':
 * '''Peck Depth''':
+* '''Chip break''':
+* '''Feed retract''':
 * '''Dwell''':
 * '''Dwell Time''':
-* '''Use Tip Length''':
+* '''Extend depth''':
 
 ==Scripting== <!--T:43-->
 
