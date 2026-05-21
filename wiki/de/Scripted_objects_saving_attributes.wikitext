@@ -5,14 +5,14 @@
 <span id="Introduction"></span>
 == Einleitung ==
 
-[[Scripted_objects/de|Geskriptete Objekte]] werden jedes Mal neu aufgebaut, wenn ein [[File_Format_FCStd/de|FCStd Dokument]] geöffnet wird. Zu diesem Zweck behält das Dokument eine Referenz auf das Modul und die Python Klasse, die zur Erstellung des Objekts verwendet wurden, zusammen mit seinen Eigenschaften.
+[[Scripted_objects/de|Skriptgenerierte Objekte]] werden jedes Mal neu aufgebaut, wenn ein [[File_Format_FCStd/de|FCStd-Dokument]] geöffnet wird. Zu diesem Zweck behält das Dokument einen Bezug zu dem Modul und der Python-Klasse, die zur Erstellung des Objekts verwendet wurden, zusammen mit seinen Eigenschaften.
 
-Attribute der Klasse, die zur Erstellung des Objekts verwendet wurde, können ebenfalls gespeichert, d.h. "serialisiert" werden. Dies kann weiter durch die Methoden {{incode|dumps}} und {{incode|loads}} der Klasse gesteuert werden.
+Attribute der Klasse, die zur Erstellung des Objekts verwendet wurden, können ebenfalls gespeichert werden. Dies kann darüber hinaus durch die Methoden {{incode|dumps}} und {{incode|loads}} der Klasse gesteuert werden.
 
 <span id="Saving_all_attributes"></span>
-== Speichern aller Attribute ==
+==Alle Attribute speichern==
 
-Standardmäßig werden in einer Objektklasse die Attribute aus dem {{incode|__dict__}} Wörterbuch der Klasse gespeichert.
+Standardmäßig werden die Attribute in einer Objektklasse gesichert, die sich in dem Wörterbuch {{incode|__dict__}} der Klasse befinden.
 
 {{Code|code=
 # various_states.py
@@ -36,7 +36,7 @@ class VariousStates:
         pass
 }}
 
-Mit dieser Klasse kann ein Objekt erstellt und unter {{FileName|mein_Dokument.FCstd}} gespeichert werden. Wenn dem neuen Objekt kein bestimmter [[viewprovider/de|Ansichtsanbieter]] zugewiesen ist, wird seine Proxy Klasse einfach auf einen anderen Wert als {{incode|None}} gesetzt, in diesem Fall auf {{incode|1}}.
+Mit dieser Klasse kann ein Objekt erstellt und unter {{FileName|my_document.FCstd}} gespeichert werden. Wenn dem neuen Objekt kein bestimmter [[viewprovider/de|Viewprovider]] zugewiesen ist, wird seine Proxy-Klasse einfach auf einen anderen Wert als {{incode|None}} gesetzt, in diesem Fall auf {{incode|1}}.
 {{Code|code=
 import FreeCAD as App
 import various_states
@@ -63,12 +63,12 @@ Wenn wir die Datei erneut öffnen, können wir das Wörterbuch der Klasse des Ob
 {'Type': {'Version': 'Custom', 'Release': 'production'}, 'ver': '0.18', 'color': [0, 0, 1], 'width': 2.5}
 }}
 
-Wir sehen, dass alle Attribute, die in der Klasse mit {{incode|self}} beginnen, gespeichert wurden. Diese können von unterschiedlichem Typ sein, einschließlich Zeichenfolge, Liste, Fließkommazahl und Wörterbuch. Das ursprüngliche Tupel für {{incode|self.color}} wurde in eine Liste konvertiert, aber ansonsten wurden alle Attribute gleich geladen.
+Wir sehen, dass alle Attribute der Klasse, die mit {{incode|self}} beginnen, gespeichert wurden. Diese können unterschiedlicher Art sein, einschließlich Zeichenfolge, Liste, Fließkommazahl und Wörterbuch. Das ursprüngliche Tupel für {{incode|self.color}} wurde in eine Liste umgewandelt, aber ansonsten sind alle geladenen Attribute dieselben.
 
 <span id="Saving_specific_attributes"></span>
-== Speichern besonderer Attribute ==
+==Bestimmte Attribute speichern==
 
-Wir können eine Klasse ähnlich der ersten definieren, die bestimmte Attribute zum Speichern implementiert.
+Wir können eine Klasse ähnlich der ersten definieren, die bestimmte zu speichernde Attribute implementiert.
 {{Code|code=
 # various_states.py
 class CustomStates:
@@ -121,11 +121,11 @@ Das ursprüngliche Tupel für {{incode|self.color}} wurde in eine Liste konverti
 <span id="Identifying_the_type"></span>
 === Identifizieren des Typs ===
 
-Normalerweise sollten [[Scripted_objects/de|Skriptgenerierte Objekte]] [[Property/de|Eigenschaften]] zum Speichern von Informationen verwenden, da diese beim Öffnen des Dokuments automatisch wiederhergestellt werden.
+Normalerweise sollten [[Scripted_objects/de|skriptgenerierte Objekte]] [[Property/de|Eigenschaften]] zum Speichern von Informationen verwenden, da diese beim Öffnen des Dokuments automatisch wiederhergestellt werden.
 
 Manchmal stellt die Klasse jedoch interne Informationen wieder her, die nicht geändert werden sollen, deren Überprüfung jedoch hilfreich ist.
 
-Beispielsweise richten die meisten Objekte des [[Draft_Workbench|Arbeitsbereichs Draft]] ein {{incode|Type}}-Attribut ein, mit dem der Typ des verwendeten Objekts bestimmt werden kann.
+Beispielsweise richten die meisten Objekte des Arbeitsbereichs [[Draft_Workbench/de|Draft]] ein Attribut {{incode|Type}} ein, mit dem der Typ des verwendeten Objekts bestimmt werden kann.
 
 {{Code|code=
 class DraftObject:
@@ -140,7 +140,7 @@ class DraftObject:
             self.Type = state
 }}
 
-Alle Objekte haben eine {{incode|TypeId}}-Eigenschaft, aber für [[scripted_objects/de|skriptgenerierte Objekte]] ist diese Eigenschaft nicht nützlich, da sie sich immer auf die übergeordnete C++-Klasse bezieht, zum Beispiel [[Part_Part2DObject/de|{{incode|Part::Part2DObjectPython}}]] oder [[Part_Feature/de|{{incode|Part::FeaturePython}}]] verweist. Daher ist es sinnvoll, dieses zusätzliche Attribut {{incode|Proxy.Type}} in der Klasse zu haben, um jedes Objekt auf eine bestimmte Weise zu behandeln.
+Alle Objekte haben eine Eigenschaft {{incode|TypeId}}, aber für [[scripted_objects/de|skriptgenerierte Objekte]] ist diese Eigenschaft nicht nützlich, da sie sich immer auf die übergeordnete C++-Klasse bezieht, zum Beispiel auf [[Part_Part2DObject/de|{{incode|Part::Part2DObjectPython}}]] oder [[Part_Feature/de|{{incode|Part::FeaturePython}}]]. Daher ist es sinnvoll, dieses zusätzliche Attribut {{incode|Proxy.Type}} in der Klasse zu haben, um jedes Objekt auf eine bestimmte Weise zu bearbeiten.
 
 <span id="Migrating_the_object"></span>
 === Das Objekt migrieren ===
@@ -178,16 +178,12 @@ class CustomObject:
 <span id="Links"></span>
 == Verweise ==
 
-<div class="mw-translate-fuzzy">
 * [[Scripted_objects/de|Skriptgenerierte Objekte]]
-* [[Scripted_objects_migration/de|Migration geskripteter Objekte]]
-* [https://forum.freecadweb.org/viewtopic.php?f=10&t=49120 FreeCAD Forums-Diskussion: Skriptbasierte Objektserialisierung: json oder pickle?]
-</div>
+* [[Scripted_objects_migration/de|Migration skriptgenerierter Objekte]]
+* [https://forum.freecad.org/viewtopic.php?f=10&t=49120 FreeCAD Forums-Diskussion: Skriptbasierte Objektserialisierung: json oder pickle?]
 
-<div class="mw-translate-fuzzy">
-* [https://forum.freecadweb.org/viewtopic.php?f=18&t=44009 obj.Proxy.Type ist ein Dict, kein String], Erklärung von {{incode|dumps}} und {{incode|loads}} im Forum.
+* [https://forum.freecad.org/viewtopic.php?f=18&t=44009 obj.Proxy.Type ist ein Dict, kein String], Erklärung von {{incode|dumps}} und {{incode|loads}} im Forum.
 * [https://docs.python.org/3/library/pickle.html#object.__getstate__ Das Pickle-Modul] in der Python-Dokumentation.
-</div>
 
 {{Powerdocnavi{{#translation:}}}}
 [[Category:Developer Documentation{{#translation:}}]]
