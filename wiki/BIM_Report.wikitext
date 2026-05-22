@@ -85,8 +85,8 @@ This section appears at the bottom of the Task Panel when you select a statement
 
 <!--T:23-->
 * The '''SQL Query Editor''' is a text box with syntax highlighting. Autocompletion for SQL keywords and property names from your model is automatically enabled. Use the {{KEY|↑}} and {{KEY|↓}} keys as needed, and press the {{KEY|Tab}} to apply the chosen suggestion.
-* Below the editor, a '''Live Validation''' status label gives you immediate feedback, indicating if your syntax is valid and showing a live count of matching objects.
-* The {{Button|[[Image:Std_ToggleVisibility.svg|16px]] Show Preview}} button will run the current query on-demand and display the full data results in a temporary table, allowing you to test your query without closing the editor.
+* Below the editor, a '''Live Validation''' status label gives you immediate feedback, indicating if your syntax is valid and showing a live count of matching objects. For pipelined statements, the count is calculated from the previous pipeline results.
+* The {{Button|[[Image:Std_ToggleVisibility.svg|16px]] Show Preview}} button will run the current query on-demand and display the full data results in a temporary table, allowing you to test your query without closing the editor. Quantity values in this preview follow the user's decimal precision preference.
 * The {{Button|[[Image:Help-browser.svg|16px]] Help}} button opens a dialog with a "cheatsheet" of all supported SQL clauses and functions.
 * The '''Display Options''' group contains checkboxes for controlling the final formatting in the spreadsheet:
 ** {{CheckBox|Use as Pipeline Step}}: When checked, this statement will use the results of the previous statement as its data source instead of querying the entire document. This is the key control for enabling pipeline workflows.
@@ -138,7 +138,7 @@ SELECT 'Total Usable Area', SUM(Area) FROM document WHERE IfcType = 'Space'
 === Step 4: Pipelining for advanced queries === <!--T:33-->
 
 <!--T:34-->
-Pipelining allows you to chain queries together, where the output of one becomes the input for the next. This is essential for complex hierarchical selections, such as when using the {{Incode|CHILDREN()}} function. Since it is not recursive, it only finds direct descendants.
+Pipelining allows you to chain queries together, where the output of one becomes the input for the next. This is essential for complex hierarchical selections, such as when using the {{Incode|CHILDREN()}} function. Since it is not recursive, it only finds direct descendants. Direct descendants are determined from object {{Incode|Host}} and {{Incode|Hosts}} relationships, so hosted elements such as doors in walls can be used in these queries.
 
 <!--T:35-->
 For example, to find all doors located on the "Ground Floor," you must perform a multi-step query, because doors are children of walls, which are in turn children of the floor.
@@ -504,7 +504,7 @@ An Arch Report object exposes the following properties to the user.
 {{TitleProperty|Report}}
 
 <!--T:92-->
-* {{PropertyData|AutoUpdate}}: This property, True by default, controls whether the report automatically re-runs every time the document is recomputed. When enabled, the report spreadsheet will always be in sync with the model. For example, if a wall's length is changed, a {{Incode|SUM(Length)}} value in the report will update automatically after the recompute. On very large models, it may be desirable to disable this for performance reasons while making many changes. If AutoUpdate is set to False, the report can be updated manually at any time by right-clicking the Report object in the Tree View and selecting Recompute, or by pressing the global Recompute button.
+* {{PropertyData|AutoUpdate}}: This property, True by default, controls whether the report automatically re-runs every time the document is recomputed. When enabled, the report spreadsheet will always be in sync with the model. For example, if a wall's length is changed, a {{Incode|SUM(Length)}} value in the report will update automatically after the recompute. On very large models, it may be desirable to disable this for performance reasons while making many changes. If AutoUpdate is set to False, document recomputes skip rewriting the target spreadsheet, so manual edits remain until you explicitly recompute the report. With AutoUpdate enabled, report refreshes preserve spreadsheet column widths. The report can be updated manually at any time by right-clicking the Report object in the Tree View and selecting Recompute, or by pressing the global Recompute button.
 * {{PropertyData|Target}}: holds a link to the Spreadsheet object where the report's results will be written. When creating a new report, a new spreadsheet is automatically created and linked here. This property can be changed to target a different, existing spreadsheet in the current document if so desired.
 
 == Scripting == <!--T:93-->
