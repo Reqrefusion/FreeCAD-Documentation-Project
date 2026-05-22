@@ -13,7 +13,7 @@ files directly in GitHub for common changes.
 
 [» Read GitHub's guide on how to edit files.][Edit-Files]
 
-Do not add T tags yourself; only modify the files in the wiki root directory, do not touch the translation files. Please check the latest version and ensure that the information you are adding has not been added previously. Also, be sure to cite the source of your change.
+Do not add T tags yourself; only modify the files in the wiki root directory, do not touch the translation files. Please check the latest version and ensure that the information you are adding has not been added previously. Also, be sure to cite the source of your change. Regression corrections should not be added to the documentation.
 
 
 <br/>
