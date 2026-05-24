@@ -38,3 +38,8 @@ it's the most famous knot in history, it's probably okay.
 
 [GitHub-Wiki]: https://github.com/Reqrefusion/FreeCAD-Documentation-Project/wiki
 [Edit-Files]: https://docs.github.com/en/repositories/working-with-files/managing-files/editing-files#editing-files-in-your-repository
+
+
+## Bounty Program
+
+This project offers bounties for documentation improvements. See the [Issues](https://github.com/Reqrefusion/FreeCAD-Documentation-Project/issues) page for open bounty opportunities labeled with , , , or .
