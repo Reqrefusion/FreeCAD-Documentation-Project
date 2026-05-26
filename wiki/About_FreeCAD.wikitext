@@ -1,65 +1,48 @@
-// ==========================================================
-// 水烟碗 3D 实体模型数模工程代码 (Kaloud尺寸 + 粗砂陶工艺补偿版)
-// 修正说明：优化了内部气道贯通性、螺旋线截断、标识贴合度
-// ==========================================================
+<languages/>
+<translate>
 
-$fn = 100; // 提高3D曲面渲染精细度
-shrinkage_compensation = 1.11; // 11% 粗砂陶高温烧结收缩补偿系数
+<!--T:1-->
+FreeCAD is a free and open-source [[parametric_modeling|parametric]] 3D [[CAD|computer-aided design]] (CAD) modeler, licensed under the [[LGPL|LGPLv2+]] license. It is primarily made for mechanical engineering design, but also serves a wide range of uses wherever you need to model 3D objects with precision and control over modeling history.
 
-scale([shrinkage_compensation, shrinkage_compensation, shrinkage_compensation]) {
-    difference() {
-        // 【1. 外轮廓实体构建】
-        union() {
-            // 下半部分：光面微锥形把柄 (高度59mm，底44mm，顶45mm)
-            cylinder(h=59, r1=22, r2=22.5); 
-            
-            // 把柄与碗体衔接的顺滑圆角过渡区
-            translate([0, 0, 54]) 
-                cylinder(h=10, r1=22.5, r2=32);
-                
-            // 上半部分：碗体基础外轮廓 (高度37mm，总高101mm)
-            translate([0, 0, 64])
-                cylinder(h=37, r1=32, r2=45.5);
-                
-            // 外部螺旋线条（增加外轮廓交集保护，防止螺旋线刺破烟仓内壁）
-            intersection() {
-                translate([0, 0, 64]) cylinder(h=37, r1=32, r2=45.5);
-                translate([0, 0, 64])
-                    for (a = [0 : 30 : 360]) {
-                        rotate([0, 0, a])
-                        translate([29, 0, 0]) // 微调外移，保证凸起质感
-                        linear_extrude(height = 36, twist = -60, scale = 1.3)
-                        circle(r = 3.5, $fn = 6);
-                    }
-            }
-        }
+<!--T:2-->
+FreeCAD has been under development since 2002, with the project founded by Jürgen Riegel, Werner Mayer, and Yorik van Havre. The current stable version is '''1.1.x''' (released March 2026), with active development towards version 1.2. FreeCAD runs on Windows, macOS, and Linux, and is available in over 20 languages.
 
-        // 【2. 内部烟仓与气流通道掏空 (保证壁厚不低于 5mm)】
-        // 顶部烟草仓：深21mm，完美适配 Kaloud 碳盒路径
-        translate([0, 0, 80])
-            cylinder(h=22, r1=28, r2=38); 
-            
-        // 中央漏斗孔 (Funnel Spire)：上下完全贯通主气道
-        // 原高度50~85mm有断层，现修正为45~82mm，与底部孔和烟仓完美交汇
-        translate([0, 0, 45])
-            cylinder(h=37, r1=5, r2=6); 
-            
-        // 底部连接孔：带 1.5° 拔模斜度，深度扩展到 55mm 确保与中心气道重叠贯通
-        translate([0, 0, -1])
-            cylinder(h=56, r1=12.5, r2=11); 
+<!--T:3-->
+FreeCAD features a modern, comprehensive [[Workbenches|workbench-based]] interface built on the Qt framework. Its core geometry engine is powered by [[Open_CASCADE|Open CASCADE Technology]] (OCCT), which provides robust support for [[B-rep|Boundary Representation]] (BRep), [[NURBS|Non-uniform rational basis spline]] (NURBS) curves and surfaces, complex boolean operations, and native support for industry-standard formats like [[STEP|STEP]] and [[IGES|IGES]].
 
-        // 【3. 品牌标识圆圈 U 凹刻加工 (深度 0.5mm)】
-        // 原 Y=-45 悬空无法切削，现修正为 Y=-40 并增加 14° 倾角贴合碗体斜面
-        translate([0, -40, 82]) 
-            rotate([104, 0, 0]) { // 90度 + 14度外壁倾斜角
-                // 外圈圆形边框
-                difference() {
-                    cylinder(h=2, r=9, center=true);
-                    cylinder(h=3, r=7.5, center=true);
-                }
-                // 内圈大写字母 "U"
-                linear_extrude(height=2, center=true)
-                    text("U", size=9, font="Liberation Serif:style=Bold", halign="center", valign="center");
-            }
-    }
-}
+<!--T:4-->
+Unlike many commercial CAD packages, FreeCAD is completely free — both as in "free speech" and "free beer". Its development is driven by a global community of volunteers and supported by the FreeCAD Project Association (FPA). The source code is hosted on [https://github.com/FreeCAD/FreeCAD GitHub].
+
+<!--T:5-->
+=== Key Capabilities ===
+
+* '''Parametric Modeling:''' All objects in FreeCAD are natively parametric. Their shapes can be driven by [[Property|properties]], formulas via the [[Expressions|expressions engine]], or even depend on other objects. Changes propagate automatically through the model tree.
+
+* '''Assembly Workbench:''' Since version 1.0 (November 2024), FreeCAD includes a built-in [[Assembly_Workbench|Assembly Workbench]] based on the Ondsel Solver, allowing 3D constraints between parts, assembly of components, and animation.
+
+* '''Sketcher:''' The [[Sketcher_Workbench|Sketcher]] provides a state-of-the-art 2D constraint-based sketching environment that serves as the foundation for most part design workflows.
+
+* '''Part Design:''' The [[PartDesign_Workbench|PartDesign Workbench]] enables a feature-based modeling workflow (pads, pockets, revolutions, grooves, fillets, chamfers, etc.).
+
+* '''BIM:''' The [[BIM_Workbench|BIM Workbench]] (merged from the former Arch and BIM workbenches in version 1.0) provides full [[Building_Information_Modeling|Building Information Modeling]] capabilities with [[IFC|IFC]] compatibility.
+
+* '''CAM:''' The [[CAM_Workbench|CAM Workbench]] (formerly Path Workbench) generates machine instructions ([[G-code|G-code]]) for [[CNC|CNC]] machining, 3D printing, and other computer-aided manufacturing operations.
+
+* '''TechDraw:''' The [[TechDraw_Workbench|TechDraw Workbench]] creates production-ready 2D technical drawings from 3D models, with support for dimensions, section views, detail views, and more.
+
+* '''FEM:''' The [[FEM_Workbench|FEM Workbench]] performs [[Finite_Element_Method|Finite Element Method]] (FEM) analysis using integrated solvers such as CalculiX, Elmer, and Z88.
+
+* '''Import/Export:''' FreeCAD supports a wide range of file formats including STEP, IGES, OBJ, STL, DXF, DWG, SVG, DAE, IFC, OFF, NASTRAN, VRML, and OpenSCAD CSG, in addition to its native [[FCStd|FCStd]] format.
+
+<!--T:6-->
+FreeCAD has a large and active community. Help and support can be found on the [https://forum.freecad.org FreeCAD Forum], [https://discord.com/invite/w2cTKGzccC Discord], and [https://www.reddit.com/r/FreeCAD Reddit]. The project welcomes contributions of all kinds — code, documentation, translations, and financial support through the [https://fpa.freecad.org FreeCAD Project Association].
+
+<!--T:7-->
+{{Docnav
+|[[Main_Page|Main Page]]
+|[[Feature_list|Feature list]]
+}}
+
+</translate>
+{{Userdocnavi{{#translation:}}}}
+[[Category:User Documentation{{#translation:}}]]
