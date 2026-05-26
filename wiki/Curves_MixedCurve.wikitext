@@ -1,5 +1,4 @@
 <languages/>
-{{UnfinishedDocu{{#translation:}}}}
 <translate>
 
 <!--T:1-->
@@ -22,63 +21,103 @@
 ==Description== <!--T:3-->
 
 <!--T:4-->
-The [[Image:Curves_MixedCurve.svg|24px]] '''Curves MixedCurve''' tool creates a 3D intersection curve of two projected curves.
+The [[Image:Curves_MixedCurve.svg|24px]] '''Curves MixedCurve''' tool builds a 3D curve that satisfies two simultaneous projection constraints: when viewed along {{PropertyData|Direction1}} the result looks exactly like {{PropertyData|Shape1}}, and when viewed along {{PropertyData|Direction2}} it looks exactly like {{PropertyData|Shape2}}.
 
-==Usage== <!--T:5-->
+<!--T:5-->
+This is the classical [[https://en.wikipedia.org/wiki/Descriptive_geometry|descriptive geometry]] construction: given a front view and a top view of an object, reconstruct the 3D edge or silhouette that produces both views simultaneously. The tool is therefore useful whenever you can specify what a curve should look like from two directions, but cannot or do not want to model it directly in 3D.
 
-<!--T:6-->
-# Select two curves.
+==Usage== <!--T:6-->
+
+<!--T:7-->
+# Select the first curve or shape (e.g. a [[Sketcher_Workbench|Sketcher]] sketch, a Part edge, or a wire). The 3D viewport camera direction at the moment of selection is recorded as a candidate projection direction.
+# Select the second curve or shape. Its camera direction is also recorded.
 # There are several ways to invoke the tool:
 #* Press the {{Button|[[Image:Curves_MixedCurve.svg|16px]] [[Curves_MixedCurve|Mixed curve]]}} button.
 #* Select the {{MenuCommand|Curves → [[Image:Curves_MixedCurve.svg|16px]] Mixed curve}} option from the menu.
-# A '''Mixed_Curve''' object is created.
-# In the [[Property_editor|Property editor]] edit the {{PropertyData|Direction1}} and {{PropertyData|Direction2}} properties to set the projection directions.<br>This is optional if both selected curves were made with the [[Image:Workbench_Sketcher.svg|16px]] [[Sketcher_Workbench|Sketcher Workbench]].
+# A '''Mixed_Curve''' object is created and both input shapes are hidden.
+# If the automatically detected directions produce no result, open the [[Property_editor|Property editor]] and set {{PropertyData|Direction1}} and {{PropertyData|Direction2}} explicitly (see [[#Notes|Notes]] below).
 
-==Notes== <!--T:7-->
-
-<!--T:8-->
-* Projection directions are automatically detected if possible. In case of [[Sketcher_Workbench|Sketcher]] curves the normal of the sketch plane is used.
-* The {{PropertyData|Direction1}} and {{PropertyData|Direction2}} properties override automatically detected directions. It is mandatory to enter values manually if it is not possible to detect a direction automatically.
-
-==Properties== <!--T:10-->
-
-<!--T:11-->
-See also: [[Property_editor|Property editor]].
-
-<!--T:12-->
-A '''Mixed_Curve''' object is derived from a [[Part_Feature|Part Feature]] object and inherits all its properties. It also has the following additional properties:
-
-===Data=== <!--T:13-->
-
-<!--T:14-->
-{{TitleProperty|Mixed Curve}}
-
-<!--T:15-->
-* {{PropertyData|Direction1|Vector}}: Projection direction of the first shape. If vector is null the shape's placement is used.
-* {{PropertyData|Direction2|Vector}}: Projection direction of the second shape. If vector is null the shape's placement is used.
-* {{PropertyData|Fill Face1|Bool}}: Builds ruled surfaces between shape1 and resulted Mixed_Curve.
-* {{PropertyData|Fill Face2|Bool}}: Builds ruled surfaces between shape2 and resulted Mixed_Curve.
-* {{PropertyData|Shape1|Link}}: First shape.
-* {{PropertyData|Shape2|Link}}: Second shape.
-
-<!--T:16-->
-{{TitleProperty|Shape Approximation}}
-
-<!--T:17-->
-* {{PropertyData|Active|Bool}}: Use Approximation.
-* {{PropertyData|Approx Tolerance|Float}}: Approximation tolerance.
-* {{PropertyData|Continuity|Enumeration}}: Desired continuity of the curves.
-* {{PropertyData|Degree Max|Integer}}: Maximum degree of the curve.
-* {{PropertyData|Degree Min|Integer}}: Minimum degree of the curve.
-* {{PropertyData|Extension Proxy|PythonObject}}: Proxy object of the approximation extension.
-** {{Value|ChordLength}}:
-** {{Value|Centripetal}}:
-** {{Value|Uniform}}:
-* {{PropertyData|Parametrization|Enumeration}}: Parametrization type.
-* {{PropertyData|Samples|Integer}}: Number of samples.
-
+==How it works== <!--T:8-->
 
 <!--T:9-->
+Understanding the underlying construction makes the tool predictable and helps diagnose problems.
+
+<!--T:10-->
+'''Shadow surfaces.''' Each input shape is extruded infinitely far along its projection direction, forming a surface that contains every 3D point whose projection onto the perpendicular plane is a point on that shape. Think of it as the shape's "shadow volume" cast by a light source at infinity aimed along the projection direction.
+
+<!--T:11-->
+'''Intersection.''' The Mixed Curve is the set of 3D points that lie on ''both'' shadow surfaces simultaneously. Geometrically, this is a surface–surface intersection. The tool extends each shadow surface to ±10,000 km along the projection axis before intersecting, so depth differences between the two shapes do not prevent the surfaces from meeting.
+
+<!--T:12-->
+'''Assembly.''' The raw intersection may consist of several edge segments. These are filtered for degenerate or near-zero-length pieces, sorted into connected chains, and assembled into one or more wires.
+
+<!--T:13-->
+The practical consequence is: Mixed Curve is not a ''blend'' between two curves. It does not produce something "in between" {{PropertyData|Shape1}} and {{PropertyData|Shape2}}. It produces the curve whose two silhouettes ''are'' those shapes. The input shapes constrain the result from two orthogonal (or at least non-parallel) directions; there is no averaging.
+
+==Notes== <!--T:14-->
+
+<!--T:15-->
+'''Automatic direction detection.''' When a direction property is left as (0, 0, 0) the tool attempts to determine the projection direction automatically, in this order:
+# If the shape defines a plane (e.g. a closed planar wire or a Sketcher sketch), the normal of that plane is used.
+# If the shape has a face attachment (a Support property), the normal of the support face at its centre is used.
+# The Z-axis of the shape's Placement coordinate system is used.
+Sketches created in the standard XY, XZ, or YZ planes always satisfy rule 1 or 3, so no manual direction entry is needed for typical Sketcher-based workflows.
+
+<!--T:16-->
+'''Camera direction capture.''' When using the Curves workbench selection mode, the 3D viewport camera direction at the moment each shape is selected is offered as the projection direction. If both shapes were viewed from nearly the same camera angle, the captured directions are discarded and auto-detection is used instead.
+
+<!--T:17-->
+'''Parallel directions always fail.''' If {{PropertyData|Direction1}} and {{PropertyData|Direction2}} are parallel or anti-parallel, the two shadow surfaces are parallel and never intersect. The result will be empty. Choose two directions that are not collinear — orthogonal directions (e.g. Z and Y) are the most reliable choice.
+
+<!--T:18-->
+'''Multiple output wires.''' If the shadow surfaces intersect in more than one connected region (for example, if one input shape has multiple loops), the result is a Compound containing several wires rather than a single wire. Downstream tools that expect a single wire may need a [[Curves_JoinCurves|Join Curves]] step.
+
+<!--T:19-->
+'''No intersection found.''' If the tool reports "Unable to find intersection — Set Direction properties explicitly", the most common causes are:
+* Directions are parallel or nearly parallel.
+* The two shapes' extruded volumes do not overlap in 3D. Move them closer together, or ensure their projected footprints overlap.
+* A direction vector was left at (0, 0, 0) and auto-detection returned (0, 0, 0) because the shape has no detectable plane.
+
+<!--T:20-->
+'''Shape Approximation.''' The raw intersection output is a piecewise collection of OCCT surface–surface intersection curves. These are geometrically exact but may be discontinuous at join points or consist of many short segments. Enabling {{PropertyData|Active}} in the '''Shape Approximation''' group re-fits the result as a smooth B-spline using the parameters described in the [[#Properties|Properties]] section. This trades a small amount of geometric accuracy for a single, smooth, parametric curve. Approximation is disabled by default.
+
+==Properties== <!--T:21-->
+
+<!--T:22-->
+See also: [[Property_editor|Property editor]].
+
+<!--T:23-->
+A '''Mixed_Curve''' object is derived from a [[Part_Feature|Part Feature]] object and inherits all its properties. It also has the following additional properties:
+
+===Data=== <!--T:24-->
+
+<!--T:25-->
+{{TitleProperty|Mixed Curve}}
+
+<!--T:26-->
+* {{PropertyData|Shape1|Link}}: The first input shape. Any Part shape is accepted; in practice a Sketcher sketch, an edge, or a wire.
+* {{PropertyData|Shape2|Link}}: The second input shape.
+* {{PropertyData|Direction1|Vector}}: Projection direction for {{PropertyData|Shape1}}. The shape is extruded along this vector to form its shadow surface. If the vector is (0, 0, 0) the direction is detected automatically from the shape's plane or placement (see [[#Notes|Notes]]).
+* {{PropertyData|Direction2|Vector}}: Projection direction for {{PropertyData|Shape2}}. Same rules as {{PropertyData|Direction1}}.
+* {{PropertyData|Fill Face1|Bool}}: When {{TRUE}}, a ruled surface is constructed between {{PropertyData|Shape1}} and the resulting Mixed Curve. Useful for visualising or using the surface that connects the input profile to the 3D result.
+* {{PropertyData|Fill Face2|Bool}}: When {{TRUE}}, a ruled surface is constructed between {{PropertyData|Shape2}} and the resulting Mixed Curve.
+
+<!--T:27-->
+{{TitleProperty|Shape Approximation}}
+
+<!--T:28-->
+* {{PropertyData|Active|Bool}}: When {{TRUE}}, the raw intersection edges are discretised and re-fitted as a B-spline curve using the parameters below. When {{FALSE}} (default), the exact intersection geometry is returned without modification.
+* {{PropertyData|Samples|Integer}}: Number of points sampled along each raw intersection edge when building the point cloud for B-spline fitting. Higher values improve accuracy at the cost of fitting time. Default: 100.
+* {{PropertyData|Degree Min|Integer}}: Minimum polynomial degree of the fitted B-spline. Default: 3.
+* {{PropertyData|Degree Max|Integer}}: Maximum polynomial degree of the fitted B-spline. The fitter may choose any degree in the range [Degree Min, Degree Max]. Default: 5.
+* {{PropertyData|Approx Tolerance|Float}}: Maximum allowed distance between the fitted B-spline and the sampled points, in mm. Smaller values yield a more accurate fit but may require a higher degree or more knots. Default: 0.001 × bounding box diagonal.
+* {{PropertyData|Continuity|Enumeration}}: Desired continuity of the fitted B-spline at internal knots. Options: {{Value|C0}}, {{Value|C1}}, {{Value|G1}}, {{Value|C2}}, {{Value|G2}}, {{Value|C3}}, {{Value|CN}}. Default: {{Value|C3}}.
+* {{PropertyData|Parametrization|Enumeration}}: Method used to assign parameter values to the sampled points before fitting. Affects the spacing of knots and the shape of the resulting spline.
+** {{Value|ChordLength}}: Parameter increments are proportional to the straight-line distance between consecutive sample points. Best general-purpose choice; preserves arc-length relationships. (Default)
+** {{Value|Centripetal}}: Parameter increments are proportional to the square root of the chord length. Tends to reduce oscillation for highly curved regions.
+** {{Value|Uniform}}: Samples are assigned equally spaced parameters regardless of spacing in 3D. May cause over-shooting in unequally spaced point clouds.
+
+<!--T:29-->
 {{Docnav
 |[[Curves_EditableSpline|EditableSpline]]
 |[[Curves_ExtendCurve|ExtendCurve]]
