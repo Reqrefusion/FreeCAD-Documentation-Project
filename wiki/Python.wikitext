@@ -138,6 +138,53 @@ Structure = Arch.make_structure(Wire, name="Big pillar")
 <translate>
 
 </translate>
+
+import FreeCAD as App
+ <code>import Part
+ import Sketcher
+ 
+ # Create a new document
+ doc = App.newDocument("Flanged_Mount")
+ 
+ # 1. CREATE THE BASE SKETCH
+ sketch = doc.addObject('Sketcher::SketchObject', 'BaseSketch')
+ sketch.Support = (doc.getObject('XYZ_Axis'), ['WZ_Plane'])
+ sketch.MapMode = 'FlatFace'
+ 
+ # Draw the outer rectangle (100mm x 60mm)
+ sketch.addGeometry(Part.LineSegment(App.Vector(-50, -30, 0), App.Vector(50, -30, 0)), False)
+ sketch.addGeometry(Part.LineSegment(App.Vector(50, -30, 0), App.Vector(50, 30, 0)), False)
+ sketch.addGeometry(Part.LineSegment(App.Vector(50, 30, 0), App.Vector(-50, 30, 0)), False)
+ sketch.addGeometry(Part.LineSegment(App.Vector(-50, 30, 0), App.Vector(-50, -30, 0)), False)
+ 
+ # Constrain the rectangle symmetrically
+ sketch.addConstraint(Sketcher.Constraint('Horizontal', 0))
+ sketch.addConstraint(Sketcher.Constraint('Vertical', 1))
+ sketch.addConstraint(Sketcher.Constraint('Horizontal', 2))
+ sketch.addConstraint(Sketcher.Constraint('Vertical', 3))
+ sketch.addConstraint(Sketcher.Constraint('Symmetric', 0, 1, 1, 2, doc.getObject('XYZ_Axis'), 1))
+ 
+ # 2. FEATURE 1: EXTRUDE BASE FLANGE (10mm)
+ pad1 = doc.addObject('PartDesign::Pad', 'BasePad')
+ pad1.Profile = sketch
+ pad1.Length = 10.0
+ 
+ # 3. FEATURE 2: EXTRUDE CENTER BOSS (30mm)
+ boss_sketch = doc.addObject('Sketcher::SketchObject', 'BossSketch')
+ boss_sketch.addGeometry(Part.Circle(App.Vector(0,0,0), App.Vector(0,0,1), 25.0), False) # 50mm Diameter
+ pad2 = doc.addObject('PartDesign::Pad', 'BossPad')
+ pad2.Profile = boss_sketch
+ pad2.Length = 30.0
+ 
+ # 4. FEATURE 3: CUT THROUGH-HOLE (30mm)
+ hole_sketch = doc.addObject('Sketcher::SketchObject', 'HoleSketch')
+ hole_sketch.addGeometry(Part.Circle(App.Vector(0,0,0), App.Vector(0,0,1), 15.0), False) # 30mm Diameter
+ pocket = doc.addObject('PartDesign::Pocket', 'ThruHole')
+ pocket.Profile = hole_sketch
+ pocket.Length = 50.0
+ 
+ # Refresh the document to build geometry visually
+ doc.recompute()</code>
 {{Powerdocnavi{{#translation:}}}}
 [[Category:Developer Documentation{{#translation:}}]]
 [[Category:API{{#translation:}}]]
