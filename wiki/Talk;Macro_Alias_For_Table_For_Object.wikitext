@@ -1,3 +1,761 @@
 == Does not create aliases on freecad 1.1.1 ==
 
 The gui shows up, but no visible changes are made [[User:DonnerWolfBach|DonnerWolfBach]] ([[User talk:DonnerWolfBach|talk]]) 04:26, 28 May 2026 (UTC)
+
+== Broken in Freecad 1.1.1, vibe coded rewrite ==
+
+The pop up showed up for me, but nothing happened 
+
+Vibe coded this with claude:
+
+```
+
+<nowiki>#</nowiki>!/usr/bin/env python
+
+<nowiki>#</nowiki> -*- coding: utf-8 -*-
+
+<nowiki>#</nowiki> ========================================================================
+
+<nowiki>#</nowiki> Macro Alias for table for object
+
+<nowiki>#</nowiki> file name : Alias_For_Table_For_Object.FCMacro
+
+<nowiki>#</nowiki> Updated for FreeCAD 1.1.1 — uses SheetViewPy.selectedCells() API
+
+<nowiki>#</nowiki> ========================================================================
+
+__Name__    = "Alias for table for object"
+
+__Comment__ = "Automatically creates aliases in a two-dimensional table using the names of the rows and columns"
+
+__Author__  = "2cv001 (updated for FreeCAD 1.1.1)"
+
+__Title__   = "Alias For Table For Object"
+
+__Date__    = "2024/02/20"
+
+__Version__ = __Date__
+
+__License__ = "Apache-2.0"
+
+__Wiki__    = "<nowiki>https://wiki.freecad.org/Macro_Alias_For_Table_For_Object</nowiki>"
+
+import FreeCAD as App
+
+import FreeCADGui as Gui
+
+import re
+
+try:
+
+    from PySide2 import QtWidgets
+
+except ImportError:
+
+    try:
+
+        from PySide6 import QtWidgets
+
+    except ImportError:
+
+        from PySide import QtGui as QtWidgets
+
+<nowiki>#</nowiki> ========================================================================
+
+<nowiki>#</nowiki> User-adjustable parameters
+
+<nowiki>#</nowiki> ========================================================================
+
+addNumberIfOther            = True   # append _2, _3 … on alias name conflicts
+
+separateur                  = " "    # word separator in source cell text
+
+nouveauCaract               = <nowiki>''</nowiki>     # replaces separator in alias (e.g. "_")
+
+majuscule                   = True   # capitalise each word after a separator
+
+premierCaractereEnMinuscule = False  # force first character lower-case
+
+caracEquivalents = [
+
+    ['é','e'], ['è','e'], ['ê','e'], ['à','a'], ['@','a'], ['&','e'],
+
+    ['ç','c'], ['²','2'], ["'",<nowiki>''</nowiki>],  ['?',<nowiki>''</nowiki>],  ['"',<nowiki>''</nowiki>],  ['(',<nowiki>''</nowiki>],
+
+    [')',<nowiki>''</nowiki>],  ['#',<nowiki>''</nowiki>],  ['.',<nowiki>''</nowiki>],  [',',<nowiki>''</nowiki>],  [';',<nowiki>''</nowiki>],  ['$',<nowiki>''</nowiki>],
+
+    ['+',<nowiki>''</nowiki>],  ['-',<nowiki>''</nowiki>],  ['*',<nowiki>''</nowiki>],  ['/',<nowiki>''</nowiki>],  ['\\',<nowiki>''</nowiki>],
+
+    ['[',<nowiki>''</nowiki>],  [']',<nowiki>''</nowiki>],
+
+]
+
+<nowiki>#</nowiki> ========================================================================
+
+<nowiki>#</nowiki> Cell address utilities
+
+<nowiki>#</nowiki> ========================================================================
+
+def cell_to_rowcol(cell):
+
+    """'AB12' -> (row=11, col=27)  — both zero-based."""
+
+    m = re.match(r'^([A-Z]+)(\d+)$', cell.upper())
+
+    if not m:
+
+        raise ValueError(f"Invalid cell address: {cell!r}")
+
+    col_str, row_str = m.group(1), m.group(2)
+
+    col = 0
+
+    for ch in col_str:
+
+        col = col * 26 + (ord(ch) - ord('A') + 1)
+
+    col -= 1   # make 0-based
+
+    row = int(row_str) - 1
+
+    return row, col
+
+def rowcol_to_cell(row, col):
+
+    """(row=11, col=27) -> 'AB12'  — both zero-based."""
+
+    col_index = col
+
+    col_str   = <nowiki>''</nowiki>
+
+    while True:
+
+        col_str   = chr(col_index % 26 + ord('A')) + col_str
+
+        col_index = col_index // 26 - 1
+
+        if col_index < 0:
+
+            break
+
+    return col_str + str(row + 1)
+
+<nowiki>#</nowiki> ========================================================================
+
+<nowiki>#</nowiki> Active sheet + selection helpers
+
+<nowiki>#</nowiki> ========================================================================
+
+def get_active_sheet():
+
+    """Return the active Spreadsheet::Sheet or None."""
+
+    try:
+
+        sheet = Gui.ActiveDocument.ActiveView.getSheet()
+
+        if sheet and sheet.TypeId == 'Spreadsheet::Sheet':
+
+            return sheet
+
+    except Exception:
+
+        pass
+
+    for obj in Gui.Selection.getSelection():
+
+        if getattr(obj, 'TypeId', <nowiki>''</nowiki>) == 'Spreadsheet::Sheet':
+
+            return obj
+
+    if App.ActiveDocument:
+
+        for obj in App.ActiveDocument.Objects:
+
+            if obj.TypeId == 'Spreadsheet::Sheet':
+
+                return obj
+
+    App.Console.PrintError(
+
+        "Alias_For_Table: No spreadsheet found. "
+
+        "Please open a spreadsheet first.\n"
+
+    )
+
+    return None
+
+def get_selected_cells():
+
+    """
+
+    Return selected cell addresses as a list of strings, e.g. ['A1','B2',...].
+
+    Uses SheetViewPy.selectedCells() — the native API in FreeCAD 1.1.1.
+
+    """
+
+    try:
+
+        cells = Gui.ActiveDocument.ActiveView.selectedCells()
+
+        if cells:
+
+            return cells
+
+    except Exception as e:
+
+        App.Console.PrintError(f"Alias_For_Table: selectedCells() failed: {e}\n")
+
+    App.Console.PrintError(
+
+        "Alias_For_Table: No cells selected. "
+
+        "Select a range in the spreadsheet and run the macro again.\n"
+
+    )
+
+    return []
+
+def safe_get_contents(sheet, cell):
+
+    """Return raw cell content as str, or <nowiki>''</nowiki> — handles API name variation."""
+
+    for method_name in ('getContents', 'getContent'):
+
+        fn = getattr(sheet, method_name, None)
+
+        if fn is not None:
+
+            try:
+
+                return str(fn(cell))
+
+            except Exception:
+
+                pass
+
+    return <nowiki>''</nowiki>
+
+<nowiki>#</nowiki> ========================================================================
+
+<nowiki>#</nowiki> Alias-string processing
+
+<nowiki>#</nowiki> ========================================================================
+
+def traitementChaineSource(text):
+
+    """Build a valid alias string from cell text.
+
+    e.g. "Diametre du cylindre" -> "DiametreDuCylindre"
+
+    """
+
+    def replaceEquiv(ch):
+
+        for pair in caracEquivalents:
+
+            if pair[0] == ch:
+
+                return pair[1]
+
+        return ch
+
+    def cleanWord(word):
+
+        return <nowiki>''</nowiki>.join(replaceEquiv(c) for c in word)
+
+    result = <nowiki>''</nowiki>
+
+    first  = True
+
+    for word in text.split(separateur):
+
+        word = cleanWord(word)
+
+        if first:
+
+            result = word
+
+            first  = False
+
+        else:
+
+            if majuscule:
+
+                result += nouveauCaract + word[:1].upper() + word[1:]
+
+            else:
+
+                result += nouveauCaract + word
+
+    if premierCaractereEnMinuscule:
+
+        result = result[:1].lower() + result[1:]
+
+    return result
+
+<nowiki>#</nowiki> ========================================================================
+
+<nowiki>#</nowiki> PART 1 – Create aliases
+
+<nowiki>#</nowiki> ========================================================================
+
+def create_alias_for_table_cells_Selected():
+
+    sheet     = get_active_sheet()
+
+    if sheet is None:
+
+        return
+
+    sel_cells = get_selected_cells()
+
+    if not sel_cells:
+
+        return
+
+    # Convert to (row, col) pairs and find the top-left origin
+
+    rc_list = [cell_to_rowcol(c) for c in sel_cells]
+
+    min_row  = min(r for r, c in rc_list)
+
+    min_col  = min(c for r, c in rc_list)
+
+    changed = 0
+
+    for (row, col) in rc_list:
+
+        # Skip header row and header column
+
+        if row == min_row or col == min_col:
+
+            continue
+
+        cellName      = rowcol_to_cell(row, col)
+
+        rowHeaderCell = rowcol_to_cell(row,     min_col)   # left edge
+
+        colHeaderCell = rowcol_to_cell(min_row, col)       # top edge
+
+        # Read each header independently so one empty header is allowed.
+
+        # An empty/missing cell returns <nowiki>''</nowiki> rather than causing a skip.
+
+        def read_header(cell):
+
+            try:
+
+                val = sheet.get(cell)
+
+                return str(val) if val is not None else <nowiki>''</nowiki>
+
+            except Exception:
+
+                return <nowiki>''</nowiki>
+
+        textRow = read_header(rowHeaderCell)
+
+        textCol = read_header(colHeaderCell)
+
+        # Skip only if BOTH headers are empty (nothing to name the alias with)
+
+        if not textRow and not textCol:
+
+            continue
+
+        # Build alias: if one side is empty, omit it and the separator
+
+        if textRow and textCol:
+
+            rawAlias = textRow + '_' + textCol
+
+        elif textRow:
+
+            rawAlias = textRow
+
+        else:
+
+            rawAlias = textCol
+
+        textAlias = traitementChaineSource(rawAlias)
+
+        if not textAlias:
+
+            continue
+
+        if addNumberIfOther:
+
+            for i in range(1, 201):
+
+                candidate = textAlias if i == 1 else f"{textAlias}_{i - 1}"
+
+                try:
+
+                    sheet.setAlias(cellName, candidate)
+
+                    changed += 1
+
+                    break
+
+                except Exception:
+
+                    continue
+
+        else:
+
+            try:
+
+                sheet.setAlias(cellName, textAlias)
+
+                changed += 1
+
+            except Exception as e:
+
+                App.Console.PrintWarning(
+
+                    f"Alias_For_Table: Could not set alias '{textAlias}' "
+
+                    f"on {cellName}: {e}\n"
+
+                )
+
+    if changed:
+
+        App.ActiveDocument.recompute()
+
+        App.Console.PrintMessage(
+
+            f"Alias_For_Table: {changed} alias(es) created/updated.\n"
+
+        )
+
+    else:
+
+        App.Console.PrintWarning(
+
+            "Alias_For_Table: No aliases were created. "
+
+            "Check that your selection includes both header row/column and data cells.\n"
+
+        )
+
+<nowiki>#</nowiki> ========================================================================
+
+<nowiki>#</nowiki> PART 2 – Table to object
+
+<nowiki>#</nowiki> ========================================================================
+
+dico = {
+
+    "posx"            : "Placement.Base.x",
+
+    "posy"            : "Placement.Base.y",
+
+    "posz"            : "Placement.Base.z",
+
+    "posX"            : "Placement.Base.x",
+
+    "posY"            : "Placement.Base.y",
+
+    "posZ"            : "Placement.Base.z",
+
+    "angle"           : "Placement.Rotation.Angle",
+
+    "ang"             : "Placement.Rotation.Angle",
+
+    "axisx"           : "Placement.Rotation.Axis.x",
+
+    "axisy"           : "Placement.Rotation.Axis.y",
+
+    "axisz"           : "Placement.Rotation.Axis.z",
+
+    "axeX"            : "Placement.Rotation.Axis.x",
+
+    "axeY"            : "Placement.Rotation.Axis.y",
+
+    "axeZ"            : "Placement.Rotation.Axis.z",
+
+    "attachementX"    : "AttachmentOffset.Base.x",
+
+    "attachementY"    : "AttachmentOffset.Base.y",
+
+    "attachementZ"    : "AttachmentOffset.Base.z",
+
+    "attachementAngle": "AttachmentOffset.Rotation.Angle",
+
+    "attachementAxisX": "AttachmentOffset.Rotation.Axis.x",
+
+    "attachementAxisY": "AttachmentOffset.Rotation.Axis.y",
+
+    "attachementAxisZ": "AttachmentOffset.Rotation.Axis.z",
+
+    "Length"          : "Length",
+
+    "Length2"         : "Length2",
+
+    "Radius"          : "Radius",
+
+    "Height"          : "Height",
+
+    "FirstAngle"      : "FirstAngle",
+
+    "SecondAngle"     : "SecondAngle",
+
+    "Angle1"          : "Angle1",
+
+    "Angle2"          : "Angle2",
+
+    "Angle3"          : "Angle3",
+
+}
+
+def set_constraint_expression(sketchLabel, constraint_name, expression):
+
+    found    = False
+
+    sketches = App.ActiveDocument.getObjectsByLabel(sketchLabel)
+
+    if len(sketches) > 1:
+
+        App.Console.PrintWarning(
+
+            f"Alias_For_Table: Multiple sketches share label '{sketchLabel}'.\n"
+
+        )
+
+    for sketch in sketches:
+
+        for i in range(sketch.ConstraintCount):
+
+            if sketch.Constraints[i].Name == constraint_name:
+
+                sketch.setExpression(f'Constraints[{i}]', expression)
+
+                found = True
+
+                break
+
+    return found
+
+def set_property_based_on_alias(sheet, cell):
+
+    alias = sheet.getAlias(cell)
+
+    if safe_get_contents(sheet, cell) == <nowiki>''</nowiki>:
+
+        return
+
+    if alias is None:
+
+        App.Console.PrintWarning(
+
+            f"Alias_For_Table: Cell {cell} has no alias – skipping.\n"
+
+        )
+
+        return
+
+    parts = alias.rsplit('_', 1)
+
+    if len(parts) != 2:
+
+        App.Console.PrintWarning(
+
+            f"Alias_For_Table: Alias '{alias}' is not 'ObjectLabel_Property' – skipping.\n"
+
+        )
+
+        return
+
+    objLabel, property_keyword = parts
+
+    matches = App.ActiveDocument.getObjectsByLabel(objLabel)
+
+    if not matches:
+
+        App.Console.PrintWarning(
+
+            f"Alias_For_Table: No object with label '{objLabel}'.\n"
+
+        )
+
+        return
+
+    obj           = matches[0]
+
+    property_name = dico.get(property_keyword, property_keyword)
+
+    expression    = f"<<{sheet.Label}>>.{alias}"
+
+    if obj.TypeId == 'Sketcher::SketchObject':
+
+        if set_constraint_expression(objLabel, property_keyword, expression):
+
+            return
+
+    top_level = property_name.split('.')[0]
+
+    if hasattr(obj, top_level):
+
+        try:
+
+            obj.setExpression(property_name, expression)
+
+        except Exception as e:
+
+            App.Console.PrintError(
+
+                f"Alias_For_Table: Cannot set expression on "
+
+                f"'{objLabel}.{property_name}': {e}\n"
+
+            )
+
+    else:
+
+        App.Console.PrintWarning(
+
+            f"Alias_For_Table: Object '{objLabel}' has no property '{property_name}'.\n"
+
+        )
+
+def tableToObject():
+
+    sheet     = get_active_sheet()
+
+    if sheet is None:
+
+        return
+
+    sel_cells = get_selected_cells()
+
+    if not sel_cells:
+
+        return
+
+    changed = 0
+
+    for cell in sel_cells:
+
+        if safe_get_contents(sheet, cell) != <nowiki>''</nowiki>:
+
+            set_property_based_on_alias(sheet, cell)
+
+            changed += 1
+
+    if changed:
+
+        App.ActiveDocument.recompute()
+
+        App.Console.PrintMessage(
+
+            f"Alias_For_Table: Expressions set for {changed} cell(s).\n"
+
+        )
+
+<nowiki>#</nowiki> ========================================================================
+
+<nowiki>#</nowiki> Dialog
+
+<nowiki>#</nowiki> ========================================================================
+
+class CheckBoxDialog(QtWidgets.QDialog):
+
+    def __init__(self, parent=None):
+
+        super().__init__(parent)
+
+        self.setWindowTitle("Alias For Table For Object")
+
+        self.createAliasCheckBox = QtWidgets.QCheckBox("Create aliases")
+
+        self.createAliasCheckBox.setToolTip(
+
+            "Creates an alias in each selected cell based on\n"
+
+            "the first selected row and column.\n"
+
+            "Format: 'RowHeader_ColumnHeader'"
+
+        )
+
+        self.tableToObjectCheckBox = QtWidgets.QCheckBox("Fill object properties from aliases")
+
+        self.tableToObjectCheckBox.setToolTip(
+
+            "Sets expressions on object properties\n"
+
+            "based on aliases in the format 'ObjectLabel_Property'."
+
+        )
+
+        buttons = QtWidgets.QDialogButtonBox(
+
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+
+        )
+
+        buttons.accepted.connect(self.accept)
+
+        buttons.rejected.connect(self.reject)
+
+        layout = QtWidgets.QVBoxLayout()
+
+        layout.addWidget(self.createAliasCheckBox)
+
+        layout.addWidget(self.tableToObjectCheckBox)
+
+        layout.addWidget(buttons)
+
+        self.setLayout(layout)
+
+<nowiki>#</nowiki> ========================================================================
+
+<nowiki>#</nowiki> Entry point
+
+<nowiki>#</nowiki> ========================================================================
+
+def main():
+
+    App.Console.PrintMessage(
+
+        f"Alias_For_Table: Running on FreeCAD "
+
+        f"{'.'.join(str(v) for v in App.Version()[:3])}\n"
+
+    )
+
+    if App.ActiveDocument is None:
+
+        QtWidgets.QMessageBox.warning(
+
+            None, "Alias For Table",
+
+            "No document is open. Please open a FreeCAD document first."
+
+        )
+
+        return
+
+    dialog = CheckBoxDialog()
+
+    result = dialog.exec()
+
+    if result == QtWidgets.QDialog.Accepted:
+
+        if dialog.createAliasCheckBox.isChecked():
+
+            create_alias_for_table_cells_Selected()
+
+        if dialog.tableToObjectCheckBox.isChecked():
+
+            tableToObject()
+
+if __name__ == '__main__':
+
+    main()
+
+``` [[User:DonnerWolfBach|DonnerWolfBach]] ([[User talk:DonnerWolfBach|talk]]) 04:55, 28 May 2026 (UTC)
