@@ -16,7 +16,11 @@ Das Werkzeug [[Image:Cables_CableConnector.svg|24px]] [[Cables_CableConnector/de
 
 Die individuelle Leitungsverbindung sollte in einem dem Benutzer zugeordneten Ordner erstellt werden. Die integrierte Bibliothek des Arbeitsbereichs Cables sollte als schreibgeschützte Referenz behandelt werden. Jede zusätzliche Datei in der integrierten Bibliothek würde bei einer nachfolgenden Aktualisierung des Arbeitsbereiches verlorengehen.
 
-Diese Anleitung stellt eine Methode vor, für das manuelle Erstellen einer selbserstellten Leitungsverbindung, in diesem Falle ein Steckverbinder, der [[Cables_CableTerminal/de|Anschlüsse]] (CableTerminals) und ein [[Cables_SuppLines/de|Anschlusskreuz]] (SuppLines) beinhaltet.
+In dieser Anleitung wird eine Methode zum manuellen Erstellen einer benutzerdefinierten Leitungsverbindung, in diesem Falle ein Steckverbinder, vorgestellt, der [[Cables_CableTerminal/de|Anschlüsse]] (CableTerminals) und [[Cables_SnapLines/de|Einrastlinien]] (SuppLines) enthält.
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''NOTE''': Starting with version 0.3.6, the [[Cables_SnapLines|SnapLines]] name has been changed from '''SuppLines'''. This change is backward compatible. All models built in the past according to this guide using the old name will continue to function properly.
+</div>
 
 Der neu erstellte Steckverbinder wird während der Erstellung einer [[Cables_CableConnector/de#Anwendung|Leitungsverbindung]] in der Liste '''Voreinstellung''' im Aufgaben-Fenster bereitgestellt. FreeCAD muss dafür nicht neu gestartet werden.
 
@@ -88,7 +92,9 @@ HINWEIS: Da jetzt ein Name für den Steckverbinder vergeben wurde, muss er konse
 
 <div class="mw-collapsible-content">
 
+<div class="mw-translate-fuzzy">
 Jedes STEP-Modell, das zum Erstellen einer [[Cables_CableConnector/de|Leitungsverbindung]] verwendet wird, sollte seine eigene CSV-Beschreibungsdatei besitzen. Diese Datei enthält zusätzliche Informationen über die Positionierung des Modells sowie über [[Cables_CableTerminal/de|Anschlüsse]] (CableTerminal-Objekte) und [[Cables_SuppLines/de|Anschlusskreuze]] (SuppLines-Objekte), die an dem Modell befestigt sind. In dieser Anleitung ist der Name der CSV-Beschreibungsdatei {{FileName|Micro-Fit3_DualRow-PME-2.csv}}.
+</div>
 
 Die Datei [https://github.com/sargo-devel/Cables/blob/master/freecad/cables/resources/presets/lib/Connector_Dummy.csv Connector_Dummy.csv] aus dem Quellcode des Arbeitsbereichs '''Cables''' wird herunterladen und in dem Ordner {{Incode|$FREECAD_USER_DIR/Cables/lib/}} abgeleg. Ihr Name wird zu {{FileName|Micro-Fit3_DualRow-PME-2.csv}} geändert.
 
@@ -108,7 +114,7 @@ Die Datei {{FileName|connectorpresets.csv}} wird noch einmal bearbeitet. Dafür 
 
 {{Code|lang=bash|code=
 # Fixed Preset Type
-# Name,Fixed,Connector Class,StepFileName,NrOfTerminals,NrOfSuppLines
+# Name,Fixed,Connector Class,StepFileName,NrOfTerminals,NrOfSnapLines
 }}
 
 und ein Text wie der folgende hinzugefügt:
@@ -117,7 +123,9 @@ und ein Text wie der folgende hinzugefügt:
 DualRow-PME-2,Fixed,Micro-Fit3,Micro-Fit3_DualRow-PME-2.step,2,1
 }}
 
+<div class="mw-translate-fuzzy">
 Er enthält die Informationen darüber, dass dieser Steckverbinder 2 [[Cables_CableTerminal/de|Anschlüsse]] (CableTerminal-Objekte) und 1 [[Cables_SuppLines/de|Anschlusskreuz]] (SuppLines-Objekt) enthält. Um mehr über die Regeln dieser Zeile zu erfahren, siehe [[Cables_CableConnector/de#More_details_about_Fixed_PresetType_in_connectorpresets.csv_file|Leitungsverbindung, Weitere Einzelheiten über die Voreinstellungsart Fixed in der Datei connectorpresets.csv]].
+</div>
 
 Dann wird die Datei {{FileName|Micro-Fit3_DualRow-PME-2.csv}} bearbeitet. Dafür wird eine neue Zeile unter den folgenden Zeilen erstellt:
 
@@ -149,14 +157,14 @@ Pin002,Terminal,Terminal,10.0,0.0,0.0,0.0,0.0,0.0,1,10.0,1.0
 und schließlich unter den folgenden Zeilen:
 
 {{Code|lang=bash|code=
-# SupportLines Element Type
-# Name,SupportLines,Class,Offset X,Offset Y,Offset Z,Rotation Yaw(Z),Rotation Pitch(Y), Rotation Roll(X)
+# SnapLines ElementType
+# Name,SnapLines,Class,Offset X,Offset Y,Offset Z,Rotation Yaw(Z),Rotation Pitch(Y), Rotation Roll(X)
 }}
 
 1 Zeile hinzufügen:
 
 {{Code|lang=text|code=
-SuppLines001,SupportLines,SupportLines,0,0,30.0,0,0,0
+SnapLines001,SnapLines,SnapLines,0,0,30.0,0,0,0
 }}
 
 Die oben hinzugefügten Zeilen legen die Ausgangspositionen des Steckverbinderkörpers, der 2 Anschlüsse und eines Anschlusskreuzes fest. In den folgenden Schritten werden die endgültigen Positionen aller Elemente bestimmt.
@@ -173,17 +181,20 @@ Wenn die vorherigen Schritte richtig ausgeführt wurden, sollte es jetzt möglic
 
 {{Caption|Steckverbinder '''Micro-Fit3_DualRow-PME-2''' mit den Ausgangsdaten für die Positionierung.}}
 
+<div class="mw-translate-fuzzy">
 In folgenden Schritten werden die Positionierungen von Steckverbinderkörper, Anschlüssen und Anschlusskreuz angepasst.
+</div>
 <div class="mw-collapsible mw-collapsed toccolours">
 
 <span id="Adjusting_position_of_connector_body"></span>
 ===Position des Steckverbinderkörpers anpassen===
 
 <div class="mw-collapsible-content">
-
 Die Positionierung der importierten STEP-Form kann anders ausfallen, als erwartet. Stellen wir uns vor, dass der Steckverbinder in diesem Beispiel aufrecht stehen soll, mit dem Leitungsabgang nach oben und seine Unterseite soll den Punkt (0,0,0) berühren.
 
+<div class="mw-translate-fuzzy">
 Vergessen wir für eine Weile die Anschlüsse und das Anschlusskreuz, wählen  den Steckverbinder in der [[Tree_View/de|Baumansicht]] aus und drehen ihn mit dem Werkzeug [[Std_TransformManip|Std Bewegen]].
+</div>
 
 Seine Positionierung kann in der [[Property_View/de|Eigenschaften-Ansicht]] oder in der [[Python_Console/de|Python-Konsole]] überprüft werden. Einzelheiten zur Ausführung sind unter [[Placement/de|Positionierung]] beschrieben. Im Aufgaben-Fenster die Werte im Abschnitt mit Gieren, Nicken, Rollen (Yaw, Pitch, Roll) ablesen. Diese stellen die Ergebnisse der Drehung besser dar. Die genauen Werte können manuell eingegeben werden.
 
@@ -256,35 +267,43 @@ Alle Objekte aus dem aktuellen FreeCAD-Dokument löschen und den Steckverbinder 
 
 <div class="mw-collapsible mw-collapsed toccolours">
 
-<span id="Adjusting_position_of_SuppLines"></span>
+<span id="Adjusting_position_of_SnapLines"></span>
+<div class="mw-translate-fuzzy">
 ===Position des Anschlusskreuzes anpassen===
+</div>
 
 <div class="mw-collapsible-content">
 
+<div class="mw-translate-fuzzy">
 Das einzelne Anschlusskreuz, das SuppLines-Objekt ('''CableConnector_SuppLines001''' in diesem Beispiel) hat die Form eines Kreuzes und eine voreingestellte Größe. Dieses Objekt kann als Befestigungspunkt verwendet werden, um eine Leitung an dem Steckverbinder zu befestigen. Es steht dem Anwender frei es zu nutzen oder auch nicht.
+</div>
 
+<div class="mw-translate-fuzzy">
 Die Ausgangsposition des Anschlusskreuzes in dieser Anleitung ist zu hoch. Lasst uns seine Positionierung ändern, indem wir die im vorherigen Schritt beschriebenen Methoden verwenden.
+</div>
 
+<div class="mw-translate-fuzzy">
 Die endgültige Positionierung des Anschlusskreuzes könnte so aussehen:
 '''CableConnector_SuppLines001''': {{Incode|Placement [Pos{{:=}}(0,0,25), Yaw-Pitch-Roll{{:=}}(0,0,0)]}}
+</div>
 
 Diese Werte werden in die Datei {{FileName|Micro-Fit3_DualRow-PME-2.csv}} übertragen, indem die Zeile
 
 {{Code|lang=text|code=
-SuppLines001,SupportLines,SupportLines,0,0,30.0,0,0,0
+SnapLines001,SnapLines,SnapLines,0,0,30.0,0,0,0
 }}
 
 mit dieser Zeile überschrieben wird:
 
 {{Code|lang=text|code=
-SuppLines001,SupportLines,SupportLines,0,0,25.0,0,0,0
+SnapLines001,SnapLines,SnapLines,0,0,25.0,0,0,0
 }}
 
 Noch einmal alle Objekte aus dem aktuellen FreeCAD-Dokument löschen und den Steckverbinder erneut mit der Voreinstellung '''Micro-Fit3_DualRow-PME-2''' preset. erstellen. Das Ergebnis sollte allen endgültigen Anpassungen der erstellten Objekte entsprechen.
 
 Die Voreinstellung des Steckverbinders '''Micro-Fit3_DualRow-PME-2''' ist jetzt bereit für den Einsatz in Projekten.
 
-</div> <!-- End of collapsible element for Adjusting position of SuppLines section. Do not remove! -->
-</div> <!-- End of collapsible element for Adjusting position of SuppLines section. Do not remove! -->
+</div> <!-- End of collapsible element for Adjusting position of SnapLines section. Do not remove! -->
+</div> <!-- End of collapsible element for Adjusting position of SnapLines section. Do not remove! -->
 
 {{Userdocnavi{{#translation:}}}}
