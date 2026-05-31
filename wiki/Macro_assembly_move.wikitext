@@ -15,4 +15,879 @@
 '''assembly_move.FCMacro'''
 
 </translate>
-{{Codeextralink|https://codeberg.org/onekk/freecad-macro/raw/branch/main/assembly_move/assembly_move.FCMacro}}
+
+==Script== 
+
+'''Macro_assembly_move.FCMacro'''
+
+{{MacroCode|code=
+
+"""Animator.
+
+Name: assembly_move.FCMacro
+
+See Changelog after import statements.
+
+Author: Carlo Dormeletti (onekk)
+Copyright: 2026
+Licence: LGPL2.1
+"""
+__version__ = "20260529_1138"
+__revision__ = "01"
+
+__Title__ = "Title_Of_macro"
+__Author__ = "Carlo Dormeletti (onekk)"
+__Version__ = "0.4"
+__Date__ = "2026-05-23"
+__Comment__ = "Animate an Assembly object"
+__Web__ = "https://forum.freecad.org/viewtopic.php?t=105451"
+__Wiki__ = "https://wiki.freecad.org/Macro_Move_Assembly"
+__Icon__ = "https://www.freecad.org/wiki/images/2/2c/Text-x-python.png"
+__IconW__ = ""
+__Help__ = "Animate and Assembly Object, see https://forum.freecad.org/viewtopic.php?t=105451"
+__Status__ = "stable"
+__Requires__ = "freecad 1.1"
+__Communication__ = ""
+
+import FreeCAD as App
+import FreeCADGui as Gui
+
+# Assembly imports
+import UtilsAssembly
+import JointObject
+
+from PySide import QtGui, QtCore  # noqa  # QtWidgets
+from PySide.QtWidgets import (  # noqa
+    QApplication, QCheckBox, QGroupBox, QLabel, QLineEdit, QPushButton, QSpinBox,
+    QTextEdit, QGraphicsView, QMdiSubWindow,  # Widgets
+    QDialog, QFileDialog, QInputDialog, QMessageBox,  # Dialogs
+    QGridLayout, QVBoxLayout, QSizePolicy)  # Layouts and Policy
+
+from PySide.QtCore import QObject, Qt  # noqa
+
+"""
+----------------------------------------
+Changelog:
+----------------------------------------
+v0.1 - Initial version
+v0.2 - Header changed to prepare for inserting in the macro page
+       Introducing the reading of joints limits
+v0.3 - Changed the extension to FCMacro
+v0.4 - Added some check to reset only "Revolute" and "Slider" joints.
+"""
+
+fcl_err = App.Console.PrintError
+fcl_msg = App.Console.PrintMessage
+fcl_warn = App.Console.PrintWarning
+mw = Gui.getMainWindow()
+
+V3 = App.Vector
+Rotation = App.Rotation
+Placement = App.Placement
+
+VEC0 = V3(0, 0, 0)
+ROT0 = Rotation(0, 0, 0)
+
+ap_clr = {
+    "Black": [(0.0, 0.0, 0.0), "#000000"],
+    "Grey75": [(0.25, 0.25, 0.25), "#404040"],
+    "White": [(1.0, 1.0, 1.0), "#FFFFFF"],
+    # Vibrant
+    "V_Blue": [(0.0, 0.467, 0.733), "#0077BB"],
+    "V_Cyan": [(0.20, 0.733, 0.933), "#33BBEE"],
+    "V_Teal": [(0.0, 0.6, 0.533), "#009988"],
+    "V_Orange": [(0.933, 0.467, 0.2), "#EE7733"],
+    "V_Red": [(0.8, 0.2, 0.67), "#CC3311"],
+    "V_Magenta": [(0.933, 0.2, 0.467), "#EE3377"],
+    "V_Grey": [(0.733, 0.733, 0.733), "#BBBBBB"],
+    # Bright
+    "B_Blue": [(0.267, 0.467, 0.667), "#4477AA"],
+    "B_Cyan": [(0.4, 0.8, 0.933), "#66CCEE"],
+    "B_Green": [(0.133, 0.533, 0.200), "#228833"],
+    "B_Yellow": [(0.8, 0.733, 0.267), "#CCBB44"],
+    "B_Red": [(0.933, 0.4, 0.467), "#EE6677"],
+    "B_Purple": [(0.667, 0.2, 0.467), "#AA3377"],
+    # High Contrast
+    "HC_Yellow": [(0.867, 0.667, 0.2), "#DDAA33"],
+    "HC_Red": [(0.733, 0.333, 0.4), "#BB5566"],
+    "HC_Blue": [(0.0, 0.267, 0.533), "#004488"],
+    # Additional
+    "Aqua": [(0.0, 1.0, 1.0), "#00FFFF"],
+    "Orange": [(1.0, 0.647, 0.0), "#FFA500"],
+}
+
+
+# ------------------------------------------------
+#                  General Service
+# ------------------------------------------------
+
+def clear_doc(doc_name):
+    """Clear the document deleting all the objects.
+
+    Args:
+    doc_name  (str): document name
+    """
+    doc = App.getDocument(doc_name)
+    try:
+        while len(doc.Objects) > 0:
+            doc.removeObject(doc.Objects[0].Name)
+    except Exception as e:
+        fcl_msg(f"Exception:  {e}\n")
+
+
+def ensure_document(doc_name, action=0, dbg_l=0):
+    """Ensure existence of document with doc_name and clear the doc.
+
+    Args:
+        doc_name (string): document name
+        action (int): clear action if document exist
+              0: do nothing
+              1: close and reopen the document with the same name
+              2: delete all objects
+        dbg_l (int):
+
+    Returns:
+        doc_name (string): Document name from obj.Name
+    """
+    doc_root = App.listDocuments()
+    doc_exist = False
+
+    for d_name, doc in doc_root.items():
+
+        if dbg_l > 0:
+            fcl_msg(f"ED: doc name = {d_name}\n")
+
+        if d_name == doc_name:
+            if dbg_l > 0:
+                fcl_msg(f"ED: Match name: {doc_name} action: {action}\n")
+
+            if action == 1:
+                # when using clear_doc() is not possible like in Part.Design
+                App.closeDocument(doc_name)
+                doc_exist = False
+            elif action == 2:
+                # debug info do not delete
+                # print("action 2")  # kp
+                doc_exist = True
+                clear_doc(doc_name)
+                App.setActiveDocument(d_name)
+                return App.getDocument(d_name).Name
+            else:
+                doc_exist = True
+                App.setActiveDocument(d_name)
+                return App.getDocument(d_name).Name
+
+    if doc_exist is False:
+        if dbg_l > 0:
+            fcl_msg(f"ED: Create = {doc_name}\n")
+
+        new_doc = App.newDocument(doc_name)
+        return new_doc.Name
+
+
+def setview(doc_name, t_v=0):
+    """Set viewport in 3D view."""
+    App.setActiveDocument("")
+    App.ActiveDocument = None
+    Gui.ActiveDocument = None
+
+    """
+    ViewAxo, ViewFit, ViewSelection, ViewFront, ViewRear,
+    ViewLeft, ViewRight, ViewTop, ViewBottom
+    """
+    switch_document(doc_name)
+    VIEW = Gui.ActiveDocument.ActiveView
+    
+    fcl_msg(f"View: {VIEW}\n")  # DBG
+
+    if t_v == 0:
+        Gui.SendMsgToActiveView("ViewTop")
+    elif t_v == 1:
+        Gui.SendMsgToActiveView("ViewFront")
+    elif t_v == 99:
+        VIEW.setCameraOrientation(
+            Rotation(0.0, 0.0, -0.7071067811865475, 0.7071067811865475))
+
+    else:
+        Gui.SendMsgToActiveView("ViewAxo")
+
+    VIEW.setAxisCross(True)  # it create problems
+    Gui.SendMsgToActiveView("ViewFit")
+    # Gui.updateGui()
+
+
+def switch_document(doc_name):
+    """Switch a FreeCAD document."""
+
+    def hasGraphicsView(w):
+        return bool(w.findChild(QGraphicsView))
+
+    def sanitize_title(w):
+        s = w.windowTitle()
+        return s.split(':')[0].strip()
+
+    available = App.listDocuments()
+
+    if doc_name not in available:
+        return
+
+    fcl_msg(f"available: {available}\n")
+    App.setActiveDocument(doc_name)
+    App.ActiveDocument = App.getDocument(doc_name)
+    Gui.ActiveDocument = Gui.getDocument(doc_name)
+
+    # wmdi = mw.findChildren(QMdiSubWindow)
+    # has_gv = {sanitize_title(w): w for w in wmdi if hasGraphicsView(w)}
+    # fcl_msg(f"has_gv = {has_gv}\n")
+    # mdig = has_gv.get(doc_name)  # DBG
+    # fcl_msg(f"mdig: {mdig}\n")  # DBG
+    # # print(dir(mdig))
+    # if mdig:
+    #     fcl_msg("change focus\n")  # DBG
+    #     mdig.setFocus()
+    #     mdig.activateWindow()  # DBG test code
+    #     App.setActiveDocument(doc_name)
+    #     App.ActiveDocument = App.getDocument(doc_name)
+    #     Gui.ActiveDocument = Gui.getDocument(doc_name)
+
+
+def set_txt_color(txt, col):
+    """Set text color using html syntax."""
+    if col == "o":
+        f_clr = ap_clr['B_Green'][1]
+    elif col == "w":
+        f_clr = ap_clr['Orange'][1]
+    elif col == "e":
+        f_clr = ap_clr['B_Red'][1]
+    else:
+        f_clr = "black"
+
+    return f"<span style='color: {f_clr}'> {txt} </span>"
+
+
+# ------------------------------------------------
+#               Service functions
+# ------------------------------------------------
+
+def roundvec(r_vec, prec=6):
+    """Round value in vectors."""
+    vlist = [round(r_vec.x, prec), round(r_vec.y, prec), round(r_vec.z, prec)]
+    return vlist
+
+
+def roundrot(r_rot, prec=6):
+    """Round value in vectors."""
+    vlist = [round(r_rot[0], prec), round(r_rot[1], prec), round(r_rot[2], prec)]
+    return vlist
+
+
+# ------------------------------------------------
+#                   UI functions
+# ------------------------------------------------
+
+def cm_gbx(parent, gb_nm, gb_lbl, gbl_nm="", style="bold", blay=0):
+    """Create a groupbox container and return it."""
+    gpbx = QGroupBox(gb_lbl)
+    gpbx.setObjectName(f"{gb_nm}_wd")
+
+    if style == "bold":
+        gpbx_style = (
+            "QGroupBox{"
+            "    font-weight: bold;"
+            "    font-style: normal;"
+            "    text-decoration: none;"
+            "}")
+        gpbx.setStyleSheet(gpbx_style)
+
+    if blay == 0:
+        gpbxl = QGridLayout()
+    else:
+        gpbxl = QVBoxLayout()
+
+    if gbl_nm == "":
+        gpbxl.setObjectName(f"{gb_nm}_l")
+    else:
+        gpbxl.setObjectName(gbl_nm)
+
+    return gpbx, gpbxl
+
+
+def cm_btn(parent, b_nm, b_txt, b_fnt, b_tfm):
+    """Create a styled QPushButton."""
+    button = QPushButton()
+    button.setObjectName(b_nm)
+    button.setFont = b_fnt
+    button.setAutoDefault(False)
+
+    if b_tfm == 1:
+        button.setTextFormat(Qt.RichText)
+    else:
+        pass
+
+    button.setText(b_txt)
+
+    if parent is None:
+        pass
+    else:
+        button.setParent(parent)
+
+    button.setAutoDefault(False)
+
+    return button
+
+
+def cm_lbl(parent, l_nm, l_txt, l_fnt, l_tfm, l_aln=0):
+    """Create a styled QLabel.
+
+       l_tfm (int): text format 0: Auto 1: RichText 2: bold
+       l_aln (int): alignment 0: Standard  1: Center H and V
+    """
+    #
+    label = QLabel()
+    label.setObjectName(l_nm)
+    label.setFont(l_fnt)
+    label.setWordWrap(False)
+
+    lab_txt = l_txt
+
+    if l_tfm in (1, 2):
+        label.setTextFormat(Qt.RichText)
+        if l_tfm == 2:
+            lab_txt = f"<b>{l_txt}</b>"
+
+    if l_aln == 1:
+        label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+    elif l_aln == 2:
+        label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+    else:
+        pass
+
+    label.setText(lab_txt)
+
+    if parent is None:
+        pass
+    else:
+        label.setParent(parent)
+
+    return label
+
+
+def cm_ledit(parent, t_nm, t_fnt, t_hei):
+    """Create a styled QLineEdit.
+
+       t_hei (int): text field height
+    """
+    #
+    text_f = QLineEdit()
+    text_f.setObjectName(t_nm)
+    text_f.setFont(t_fnt)
+
+    if t_hei > 0:
+        text_f.setFixedHeight(t_hei)
+
+    if parent is None:
+        pass
+    else:
+        text_f.setParent(parent)
+
+    return text_f
+
+
+def get_dir(parent, fnt, pre_dir=""):
+    """Get a directory from a file dialog."""
+    f_name = None
+    cf_dia = QFileDialog(parent)
+    cf_dia.setFileMode(QFileDialog.Directory)
+    #
+    if pre_dir != "":
+        cf_dia.setDirectory(pre_dir)
+
+    if cf_dia.exec():
+        f_nms = cf_dia.selectedFiles()
+        if len(f_nms) != 1:
+            msg_box(
+                parent, "WARNING", fnt, "You must select only one file.", "w")
+            f_name = None
+        else:
+            f_name = f_nms[0]
+
+    return f_name
+
+
+def get_file(parent, fnt, ftype="fcstd", pre_dir=""):
+    """Get a file from a file dialog."""
+    f_name = ""
+    cf_dia = QFileDialog(parent)
+
+    if ftype == "wrl":
+        cf_dia.setNameFilter("wrl (*.wrl *.WRL)")
+    elif ftype == "csv":
+        cf_dia.setNameFilter("csv (*.csv *.CSV)")
+    elif ftype == "def":
+        cf_dia.setNameFilter("json (*_def.json  *_DEF.JSON)")
+    else:
+        # cf_dia.setNameFilter("")
+        # no namefilter
+        pass
+
+    cf_dia.setFileMode(QFileDialog.ExistingFile)
+    cf_dia.setViewMode(QFileDialog.Detail)  # or List
+    if pre_dir != "":
+        cf_dia.setDirectory(pre_dir)
+
+    if cf_dia.exec():
+        f_nms = cf_dia.selectedFiles()
+        if len(f_nms) != 1:
+            msg_box(
+                parent, "WARNING:", fnt, "You must select only one file.", "w")
+        else:
+            f_name = f_nms[0]
+
+    return f_name
+
+
+def msg_box(parent, title, fnt, msg, icon="", head="", hc=""):
+    """Create a minimal message box."""
+    msg_box = QMessageBox(parent)
+    msg_box.setFont(fnt)
+    msg_box.setWindowTitle(title)
+
+    if icon == "e":
+        m_icon = QMessageBox.Icon.Critical
+    elif icon == "w":
+        m_icon = QMessageBox.Icon.Warning
+    elif icon == "i":
+        m_icon = QMessageBox.Icon.Information
+    else:
+        m_icon = QMessageBox.Icon.NoIcon
+
+    msg_box.setIcon(m_icon)
+    if head != "":
+        s_msg = f"{set_txt_color(head, hc)}<br><br>" + msg
+    else:
+        s_msg = msg
+
+    msg_box.setText(s_msg)
+
+    msg_box.exec()
+
+
+def getObjByName(parent, btn_nm):
+    """Return a button from its name."""
+    wid = parent.findChild(QObject, btn_nm)
+    if wid is None:
+        return None
+    else:
+        return wid
+
+
+def set_wid_text(parent, obj_nm, txt):
+    """Find an object and set it text."""
+    # print(parent.children())  # DBG
+    wid = parent.findChild(QLineEdit, obj_nm)
+    if wid is None:
+        return
+    else:
+        wid.setText(txt)
+
+# ------------------------------------------------
+#                 Module functions
+# ------------------------------------------------
+
+
+def create_link_row(dlg, gbx_l, row, fnt, jr, joint_nm):
+    """Create a link of buttons for a link."""
+    txt_wd = cm_lbl(dlg, f"lbl_j{jr}", joint_nm, fnt, 0)
+    gbx_l.addWidget(txt_wd, row, 0, 1, 1)
+
+    txt_jnt = cm_ledit(dlg, f"txt_jnt{jr}", fnt, 0)
+    gbx_l.addWidget(txt_jnt, row, 1, 1, 1)
+
+    txt_jntt = cm_ledit(dlg, f"txt_jntt{jr}", fnt, 0)
+    gbx_l.addWidget(txt_jntt, row, 2, 1, 1)
+
+    txt_jnta = cm_ledit(dlg, f"txt_jnta{jr}", fnt, 0)
+    txt_jnta.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+    gbx_l.addWidget(txt_jnta, row, 3, 1, 1)
+
+    txt_jntu = cm_ledit(dlg, f"txt_jntu{jr}", fnt, 0)
+    gbx_l.addWidget(txt_jntu, row, 4, 1, 1)
+
+    btn_jnt_m = cm_btn(dlg, f"btn_jnt_m{jr}", "-", fnt, 0)
+    btn_jnt_m.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+    gbx_l.addWidget(btn_jnt_m, row, 5, 1, 1)
+
+    btn_jnt_p = cm_btn(dlg, f"btn_jnt_p{jr}", "+", fnt, 0)
+    btn_jnt_p.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+    gbx_l.addWidget(btn_jnt_p, row, 6, 1, 1)
+
+    gbx_l.setColumnStretch(0, 1)
+    gbx_l.setColumnStretch(1, 3)
+    gbx_l.setColumnStretch(2, 1)
+    gbx_l.setColumnStretch(3, 0)
+    gbx_l.setColumnStretch(4, 1)
+    gbx_l.setColumnStretch(5, 1)
+
+
+def print_joints(obj):
+    """Show joints info on Report View."""
+    for joint in obj.Joints:
+        # print(dir(joint))
+        if joint.JointType == "Revolute":
+            jref1 = joint.Reference1
+            jpl1 = joint.Placement1
+            jpl1_b = roundvec(jpl1.Base)
+            jpl1_r = roundrot(jpl1.Rotation.toEuler())
+            jref2 = joint.Reference2
+            jpl2 = joint.Placement2
+            jpl2_b = roundvec(jpl2.Base)
+            jpl2_r = roundrot(jpl2.Rotation.toEuler())
+            msg = (
+                f"-- Joint {joint.Name} \n"
+                f"- Type = {joint.JointType}\n"
+                f"- Reference1 = {jref1}\n"
+                f"- Placement1.Base = {jpl1_b}\n"
+                f"- Placement1.Rot = {jpl1_r}\n"
+                f"- Reference2 = {jref2}\n"
+                f"- Placement2.Base = {jpl2_b}\n"
+                f"- Placement2.Rot = {jpl2_r}\n"
+                "\n"
+                )
+            fcl_msg(msg)
+
+
+def find_joint(obj, name):
+    for joint in obj.Joints:
+        if joint.Name == name:
+            return joint
+    return None
+
+
+class MainDia(QDialog):
+    """Show a dialog for RobotAnimator."""
+
+    wk_asm = None
+    # Default values for testing
+    j_num = 6
+    j_vals = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    j_refs = []
+    doc_obj_nm = ""
+    grb_ss = (
+        ""
+        "QGroupBox{"
+        "    font-weight: bold;"
+        "    font-style: normal;"
+        "    text-decoration: none;"
+        "}"
+    )
+    step_lin = 0.5
+    step_ang = 0.5
+
+    def __init__(self, parent=Gui.getMainWindow()):
+        """Canonical Init."""
+        super().__init__(parent)
+        self.initUI()
+
+    def initUI(self):
+        """Init UI."""
+        global work_dir
+        # get dimensions for available space on screen
+        av_wid = QtGui.QGuiApplication.primaryScreen().availableGeometry().width()
+        av_hei = QtGui.QGuiApplication.primaryScreen().availableGeometry().height()
+        w_wid = av_wid * 0.25
+        w_hei = av_hei * 0.50
+        x_loc = (av_wid - w_wid) * 0.5
+        y_loc = (av_hei - w_hei) * 0.5
+        # define window xLoc,yLoc,xDim,yDim
+        self.setGeometry(x_loc, y_loc, w_wid, w_hei)
+        self.setWindowTitle(f"Move - v{__version__}")
+        self.setWindowFlags(
+            self.windowFlags() | Qt.WindowStaysOnTopHint
+        )
+
+        fnt = QApplication.font("QMessageBox")
+        self.fnt = fnt
+        self.form_lay = QGridLayout(self)
+
+        row = 0
+        self.txt_rbnm = cm_ledit(self, "txt_rbnm", fnt, 0)
+        self.form_lay.addWidget(self.txt_rbnm, row, 0, 1, 2)
+        #
+        self.btn_sel_asm = cm_btn(self, "btn_seldir", "Select", fnt, 0)
+        self.form_lay.addWidget(self.btn_sel_asm, row, 2, 1, 2)
+
+        self.btn_sel_asm.clicked.connect(self.set_working_asm)
+
+        row += 1
+        self.btn_set_pre = cm_btn(self, "btn_setpre", "Set Pref", fnt, 0)
+        self.form_lay.addWidget(self.btn_set_pre, row, 1, 1, 2)
+
+        self.btn_set_pre.clicked.connect(self.set_preferences)
+
+        row += 1
+
+        tp_gb0, tp_gb0l = cm_gbx(self, "tp_gb0", "Control")
+        tp_gb0.setStyleSheet(self.grb_ss)
+        brow = 0
+
+        tp_gb0.setLayout(tp_gb0l)
+        self.form_lay.addWidget(tp_gb0, row, 0, 1, 4)
+
+        row += 1
+        self.form_lay.setRowStretch(row, 1)
+
+        self.set_defaults()
+
+        self.show()
+
+    def change_jnt_pos(self):
+        dbg_s = False
+        # dbg_s = True
+        call_id = self.sender().objectName()
+        # print(f"{call_id} button clicked")  # DBG
+
+        wid = self.findChild(QGroupBox, "tp_gb0_wd")
+        idx = int(call_id[-1])
+        jn_name = self.j_refs[idx - 1]
+        jnt = find_joint(self.wk_asm, jn_name)
+        obj = getObjByName(wid, f"txt_jnta{idx}")
+        if obj is not None and jnt is not None:
+            pass
+        else:
+            return
+
+        dir = 1 if call_id[-2:-1] == 'p' else -1
+        step = jnt.move_pref_step
+        value = self.j_vals[idx - 1] + (dir * step)
+        fcl_msg(
+            (f"Cid: {call_id}, ids: {idx},"
+             f" Step: {step}, dir; {dir}, val: {value}\n"))
+
+        j_t = jnt.JointType
+        # validate position
+        if j_t == "Slider":
+            if dbg_s:
+                fcl_msg((
+                    f"EnableLengthMin = {jnt.EnableLengthMin}\n"
+                    f"EnableLengthMax = {jnt.EnableLengthMax}\n"
+                    f"LengthMin = {jnt.LengthMin}\n"
+                    f"LengthMax = {jnt.LengthMax}\n"
+                ))
+            if jnt.EnableLengthMax:
+                if value > jnt.LengthMax.Value:
+                    value = jnt.LengthMax.Value
+            #
+            if jnt.EnableLengthMin:
+                if value < jnt.LengthMin.Value:
+                    value = jnt.LengthMin.Value
+
+        elif j_t == "Revolute":
+            if dbg_s:
+                fcl_msg((
+                    f"EnableAngleMin = {jnt.EnableAngleMin}\n"
+                    f"EnableAngleMax = {jnt.EnableAngleMax}\n"
+                    f"AngleMin = {jnt.AngleMin}\n"
+                    f"AngleMax = {jnt.AngleMax}\n"
+                ))
+            #
+            if jnt.EnableAngleMax:
+                fcl_msg(f"LengthMin = {jnt.LengthMin}\n")
+                if value > jnt.AngleMax.Value:
+                    value = jnt.AngleMax.Value
+            #
+            if jnt.EnableAngleMin:
+                if value < jnt.AngleMin.Value:
+                    value = jnt.AngleMin.Value
+        else:
+            return
+
+        self.j_vals[idx - 1] = value
+        obj.setText(f"{value:.03f}")
+        self.setJointPos(jnt, value, dbg_s)
+
+    def check_prefs(self, jnt):
+        """Check the presence of the move preferences."""
+        j_t = jnt.JointType
+        if j_t == "Slider":
+            if 'move_pref_step' in jnt.PropertiesList:
+                pass
+            else:
+                jnt.addProperty(
+                    'App::PropertyFloat', 'move_pref_step', 'move_pref', '')
+                jnt.move_pref_step = self.step_lin
+        if j_t == "Revolute":
+            if 'move_pref_step' in jnt.PropertiesList:
+                pass
+            else:
+                jnt.addProperty(
+                    'App::PropertyFloat', 'move_pref_step', 'move_pref', '')
+                jnt.move_pref_step = self.step_ang
+
+    def read_joints(self):
+        """Read joint."""
+        wid = self.findChild(QGroupBox, "tp_gb0_wd")
+        lay = self.findChild(QGridLayout, "tp_gb0_l")
+        if wid is None:
+            return
+        else:
+            # print(wid.children())  # DBG
+            pass
+
+        self.j_refs = []
+        row = 1
+        for j_n, jnt in enumerate(self.wk_asm.Joints):
+            j_t = jnt.JointType
+            j_l = jnt.Label
+            fcl_msg(f"{j_n} {j_l} {j_t}\n")
+            if j_t == "Slider":
+                j_ts = "S"
+                j_u = "mm"
+            elif j_t == "Revolute":
+                j_ts = "R"
+                j_u = "deg"
+            else:
+                fcl_msg(f"Joint {j_l} type {j_t} Not supported yet!\n!")
+                continue
+            #
+            create_link_row(self, lay, row, self.fnt, j_n + 1, jnt.Name)
+            set_wid_text(wid, f"txt_jnt{j_n + 1}", j_l)
+            set_wid_text(wid, f"txt_jntt{j_n + 1}", j_ts)
+            set_wid_text(wid, f"txt_jntu{j_n + 1}", j_u)
+            btn_p = getObjByName(self, f"btn_jnt_p{j_n + 1}")
+            btn_m = getObjByName(self, f"btn_jnt_m{j_n + 1}")
+            btn_p.clicked.connect(self.change_jnt_pos)
+            btn_m.clicked.connect(self.change_jnt_pos)
+            self.check_prefs(jnt)
+            self.j_refs.append(jnt.Name)
+            row += 1
+
+        # Service buttons: (Reset joints)
+        btn_jnts_res = cm_btn(self, "btn_jnts_res", "Reset Joints", self.fnt, 0)
+        lay.addWidget(btn_jnts_res, row, 0, 1, 2)
+
+        btn_jnts_res.clicked.connect(self.reset_joints)
+        #
+        fcl_msg(f"Joints References: {self.j_refs}\n")  # DBG
+
+    def reset_joints(self):
+        """Reset joints value to 0"""
+        asm_obj = self.wk_asm
+        wid = self.findChild(QGroupBox, "tp_gb0_wd")
+        value = 0.0
+        if asm_obj is None:
+            return
+
+        for j_n, jnt in enumerate(asm_obj.Joints):
+            fl_nm = f"txt_jnta{j_n + 1}"
+            jnt_o2 = jnt.Offset2
+            fcl_msg(f"{j_n} {jnt.Label}\n")
+            fcl_msg(f"OF2:  {jnt_o2}\n")
+            if jnt.JointType in ("Revolute", "Slider"):
+                jnt.Offset2 = Placement(VEC0, Rotation())
+            else:
+                continue
+            asm_obj.recompute()
+            obj = getObjByName(wid, fl_nm)
+            fcl_msg(f"Field name: {fl_nm}, obj: {obj}\n")  # DBG
+            obj.setText(str(value))
+            self.j_vals[j_n - 1] = value
+
+    def set_defaults(self):
+        """Set defaults value in the Control group."""
+        wid = self.findChild(QGroupBox, "tp_gb0_wd")
+        for idx in range(1, self.j_num + 1):
+            obj = getObjByName(wid, f"txt_jnta{idx}")
+            if obj is not None:
+                obj.setText(str(self.j_vals[idx - 1]))
+
+    def set_labels(self):
+        lay = self.findChild(QGridLayout, "tp_gb0_l")
+        lbl_1_wd = cm_lbl(self, "lbl_c0", "<b>Joint</b>", self.fnt, 0)
+        lay.addWidget(lbl_1_wd, 0, 0, 1, 1)
+
+        lbl_2_wd = cm_lbl(self, "lbl_c1", "<b>Joint name</b>", self.fnt, 0)
+        lay.addWidget(lbl_2_wd, 0, 1, 1, 1)
+
+        lbl_3_wd = cm_lbl(self, "lbl_c2", "<b>Type</b>", self.fnt, 0)
+        lay.addWidget(lbl_3_wd, 0, 2, 1, 1)
+
+        lbl_4_wd = cm_lbl(self, "lbl_c3", "<b>Value</b>", self.fnt, 0)
+        lay.addWidget(lbl_4_wd, 0, 3, 1, 1)
+
+        lbl_5_wd = cm_lbl(self, "lbl_c4", "<b>Unit</b>", self.fnt, 0)
+        lay.addWidget(lbl_5_wd, 0, 4, 1, 1)
+
+        lbl_6_wd = cm_lbl(self, "lbl_c5", "<b>Decrease</b>", self.fnt, 0)
+        lay.addWidget(lbl_6_wd, 0, 5, 1, 1)
+
+        lbl_7_wd = cm_lbl(self, "lbl_c6", "<b>Increase</b>", self.fnt, 0)
+        lay.addWidget(lbl_7_wd, 0, 6, 1, 1)
+
+    def set_preferences(self):
+        """Set preferences."""
+        if self.wk_asm:
+            if self.wk_asm is not None:
+                pass
+            else:
+                return
+        else:
+            return
+
+        for j_n, jnt in enumerate(self.wk_asm.Joints):
+            fcl_msg(f"{jnt.Name} | {jnt.Label} = {jnt.move_pref_step}\n")
+
+    def set_working_asm(self):
+        """Set working asm."""
+        self.wrk_asm = None
+        raw_sel = Gui.Selection.getSelection("", 2, True)
+        esn = len(raw_sel)
+        fcl_msg(f"Raw Selection: {raw_sel}\n")  # DBG
+
+        if esn == 0:
+            msg_box(
+                self, "Move", self.fnt,
+                ("<b>Move Selection</b><br><br>You must select at least one "
+                 "element"), "w")
+            return
+        elif esn == 1:
+            obj = raw_sel[0]
+            obj_typ = obj.TypeId
+            if obj_typ == "Assembly::AssemblyObject":
+                switch_document(obj.Document.Name)
+                setview(obj.Document.Name, 1)
+                self.wk_asm = obj
+                self.txt_rbnm.setText(obj.Label)
+                self.set_labels()
+                self.read_joints()
+                self.reset_joints()
+
+            else:
+                msg_box(
+                    self, "Move", self.fnt,
+                    ("<b>Move Selection</b><br><br>"
+                     "You must select an Assembly element"), "w")
+                return
+
+    def setJointPos(self, jnt, value, dbg_s=False):
+        """Set joint position."""
+        # print(idx, value)  # DBG
+        fcl_msg(f"Joint: {jnt.Label}, Offset2; {jnt.Offset2} \n")
+        j_t = jnt.JointType
+        if j_t == "Slider":
+            jnt.Offset2 = Placement(V3(0, 0, value), Rotation())
+        elif j_t == "Revolute":
+            jnt.Offset2 = Placement(VEC0, Rotation(value, 0, 0))
+        jnt.recompute()
+
+
+def run():
+    dialog = MainDia()
+    dialog.show()
+
+# Executed if not imported as module
+
+
+if __name__ == "__main__":
+    dialog = MainDia()
+
+}}
