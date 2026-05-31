@@ -1,65 +1,67 @@
-// ==========================================================
-// 水烟碗 3D 实体模型数模工程代码 (Kaloud尺寸 + 粗砂陶工艺补偿版)
-// 修正说明：优化了内部气道贯通性、螺旋线截断、标识贴合度
-// ==========================================================
+<languages/>
+<translate>
 
-$fn = 100; // 提高3D曲面渲染精细度
-shrinkage_compensation = 1.11; // 11% 粗砂陶高温烧结收缩补偿系数
+<!--T:1-->
+{{TOCright}}
 
-scale([shrinkage_compensation, shrinkage_compensation, shrinkage_compensation]) {
-    difference() {
-        // 【1. 外轮廓实体构建】
-        union() {
-            // 下半部分：光面微锥形把柄 (高度59mm，底44mm，顶45mm)
-            cylinder(h=59, r1=22, r2=22.5); 
-            
-            // 把柄与碗体衔接的顺滑圆角过渡区
-            translate([0, 0, 54]) 
-                cylinder(h=10, r1=22.5, r2=32);
-                
-            // 上半部分：碗体基础外轮廓 (高度37mm，总高101mm)
-            translate([0, 0, 64])
-                cylinder(h=37, r1=32, r2=45.5);
-                
-            // 外部螺旋线条（增加外轮廓交集保护，防止螺旋线刺破烟仓内壁）
-            intersection() {
-                translate([0, 0, 64]) cylinder(h=37, r1=32, r2=45.5);
-                translate([0, 0, 64])
-                    for (a = [0 : 30 : 360]) {
-                        rotate([0, 0, a])
-                        translate([29, 0, 0]) // 微调外移，保证凸起质感
-                        linear_extrude(height = 36, twist = -60, scale = 1.3)
-                        circle(r = 3.5, $fn = 6);
-                    }
-            }
-        }
+== Introduction == <!--T:2-->
 
-        // 【2. 内部烟仓与气流通道掏空 (保证壁厚不低于 5mm)】
-        // 顶部烟草仓：深21mm，完美适配 Kaloud 碳盒路径
-        translate([0, 0, 80])
-            cylinder(h=22, r1=28, r2=38); 
-            
-        // 中央漏斗孔 (Funnel Spire)：上下完全贯通主气道
-        // 原高度50~85mm有断层，现修正为45~82mm，与底部孔和烟仓完美交汇
-        translate([0, 0, 45])
-            cylinder(h=37, r1=5, r2=6); 
-            
-        // 底部连接孔：带 1.5° 拔模斜度，深度扩展到 55mm 确保与中心气道重叠贯通
-        translate([0, 0, -1])
-            cylinder(h=56, r1=12.5, r2=11); 
+<!--T:3-->
+[[Image:Workbench_Start.svg|24px]] [[Start_Workbench|FreeCAD]] is a general-purpose parametric 3D CAD modeler and BIM (Building Information Modeling) application. It is primarily designed for mechanical engineering product design but also extends to a wider range of engineering uses such as architecture, electrical engineering, and more.
 
-        // 【3. 品牌标识圆圈 U 凹刻加工 (深度 0.5mm)】
-        // 原 Y=-45 悬空无法切削，现修正为 Y=-40 并增加 14° 倾角贴合碗体斜面
-        translate([0, -40, 82]) 
-            rotate([104, 0, 0]) { // 90度 + 14度外壁倾斜角
-                // 外圈圆形边框
-                difference() {
-                    cylinder(h=2, r=9, center=true);
-                    cylinder(h=3, r=7.5, center=true);
-                }
-                // 内圈大写字母 "U"
-                linear_extrude(height=2, center=true)
-                    text("U", size=9, font="Liberation Serif:style=Bold", halign="center", valign="center");
-            }
-    }
-}
+<!--T:4-->
+FreeCAD is free and open-source software (FOSS) licensed under the [[License|LGPL-2.1-or-later license]]. The source code is hosted on [https://github.com/FreeCAD/FreeCAD GitHub] and development is community-driven.
+
+<!--T:5-->
+FreeCAD is available on all major operating systems including Windows, macOS, and Linux. See the [[Download|Download]] page for installation instructions.
+
+== Key Features == <!--T:6-->
+
+<!--T:7-->
+* '''Parametric modeling''': All objects are natively parametric, meaning their shape can be driven by properties, expressions, or constraints at any time.
+* '''Workbench architecture''': Tools are organized into workbenches. You can switch workbenches depending on the task at hand (Part, PartDesign, Sketcher, Arch, Draft, TechDraw, FEM, and more).
+* '''Standard data formats''': FreeCAD supports STEP, IGES, OBJ, STL, SVG, DXF, IFC, and many more formats for import and export.
+* '''Python scripting''': Every aspect of FreeCAD can be driven from Python. Macros and external scripts can automate repetitive tasks or extend functionality.
+* '''Assembly support''': The integrated [[Assembly_Workbench|Assembly Workbench]] (introduced in FreeCAD 1.0) enables creating multi-body assemblies with joints and constraints.
+* '''BIM tools''': The [[BIM_Workbench|BIM Workbench]] provides tools for architectural design and building information modeling.
+* '''FEM (Finite Element Analysis)''': Built-in FEM tools allow structural, thermal, and fluid analysis using solvers such as CalculiX and Elmer.
+* '''Technical drawings''': The [[TechDraw_Workbench|TechDraw Workbench]] generates 2D technical drawings from 3D models.
+
+== Current Version == <!--T:8-->
+
+<!--T:9-->
+The current stable version of FreeCAD is '''1.1.1''', released on 2026-04-15. For details on what's new, see the [[Release_notes_1.1|release notes for FreeCAD 1.1]].
+
+<!--T:10-->
+For older release notes, consult the [[Feature_list#Release_notes|Feature list]].
+
+== Community == <!--T:11-->
+
+<!--T:12-->
+FreeCAD has an active community of users and developers. You can participate through:
+
+* The [https://forum.freecad.org FreeCAD Forum] for discussions, questions, and sharing projects.
+* The [https://wiki.freecad.org FreeCAD Wiki] (this documentation) for learning and reference.
+* The [https://github.com/FreeCAD/FreeCAD GitHub repository] for bug reports, feature requests, and code contributions.
+* The [https://discord.gg/2vztQgWvTQ FreeCAD Discord] for real-time chat.
+
+== Getting Started == <!--T:13-->
+
+<!--T:14-->
+If you are new to FreeCAD, consider starting with these resources:
+
+* [[Getting_started|Getting started]] — a walkthrough of the basic concepts and interface.
+* [[Tutorials_for_beginners|Tutorials for beginners]] — hands-on tutorials to learn core workflows.
+* [[Sketcher_Workbench|Sketcher Workbench]] — learn about 2D sketching, which is the foundation of most 3D modeling in FreeCAD.
+* [[PartDesign_Workbench|PartDesign Workbench]] — build solid bodies from sketches using feature-based modeling.
+
+== See Also == <!--T:15-->
+
+* [[Feature_list|Feature list]]
+* [[Release_notes_1.1|Release notes 1.1]]
+* [[Workbenches|Workbenches]]
+* [[Installing_on_Windows|Installing on Windows]]
+* [[Installing_on_Linux|Installing on Linux]]
+* [[Installing_on_Mac|Installing on Mac]]
+
+</translate>
