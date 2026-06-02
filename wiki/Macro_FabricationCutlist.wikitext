@@ -12,15 +12,15 @@
 
 This macro generates a cutlist for fabrication projects where parts are made from rectangular tubing, round bar, or angle iron. It reads all {{incode|Part::Box}} and {{incode|Part::Cylinder}} objects in the active document and outputs a CSV-formatted cutlist to the Report View.
 
-For Box objects, the macro reports the two smaller dimensions as the profile size and the largest dimension as the length. For Cylinder objects, it reports the diameter and height. Objects must have a non-empty {{incode|Label2}} to be included in the cutlist; the macro uses Label2 to indicate the material profile (e.g., "roundbar", "squaretube").
+For Box objects, the macro sorts the three dimensions (Length, Width, Height) and outputs them from smallest to largest: the smallest and middle values represent the profile dimensions, and the largest represents the cut length. For Cylinder objects, it reports the diameter (2 * Radius) and height. Objects must have a non-empty {{incode|Label2}} to be included in the cutlist; the macro uses Label2 to indicate the material profile (e.g., "roundbar", "squaretube").
 
 == How To Use ==
 
 # Model your fabrication design using {{incode|Part::Box}} primitives for square/rectangular stock and {{incode|Part::Cylinder}} primitives for round bar.
 # Set the {{incode|Label}} of each part to indicate its role in the design (e.g., "top_rail", "leg").
 # Set the {{incode|Label2}} of each part to indicate the profile type (e.g., "25x25_square", "16mm_round").
-# Run the macro from {{MenuCommand|Macro → Macros... → FabricationCutlist}}.
-# The CSV cutlist appears in the Report View ({{MenuCommand|View → Panels → Report View}}).
+# Run the macro from {{MenuCommand|Macro -> Macros... -> FabricationCutlist}}.
+# The CSV cutlist appears in the Report View ({{MenuCommand|View -> Panels -> Report View}}).
 
 == Output Format ==
 
@@ -30,9 +30,11 @@ The output is a CSV with these columns:
 | Timestamp | Can be discarded |
 | Label | Part label (role in design) |
 | Label2 | Profile type |
-| Dim1 | For cylinders: diameter. For boxes: smaller profile dimension |
-| Dim2 | For cylinders: blank. For boxes: larger profile dimension |
-| Length | Cut length of the piece |
+| Dim1 | Smallest dimension of the profile (for cylinders: diameter) |
+| Dim2 | Middle dimension of the profile (for cylinders: blank) |
+| Length | Largest dimension = cut length (for cylinders: height) |
+
+For Box objects, the three dimensions are sorted ascending, so Dim1 < Dim2 < Length. For Cylinder objects, Dim1 is the diameter and Length is the height; Dim2 is blank.
 
 Objects without a Label2 value are skipped with a warning. Objects that are neither Box nor Cylinder are also skipped with a warning.
 
@@ -40,7 +42,7 @@ Objects without a Label2 value are skipped with a warning. Objects that are neit
 
 * Only {{incode|Part::Box}} and {{incode|Part::Cylinder}} objects are considered.
 * Each object must have a non-empty {{incode|Label2}} field.
-* Box dimensions are sorted so the two smallest values are treated as the profile and the largest as the length.
+* Box dimensions are sorted ascending; the macro does not distinguish between profile dimensions and length dimensions beyond sorting by size.
 * Angle iron is not directly supported, but can be modeled as a Box with appropriate dimensions.
 
 == Source ==
