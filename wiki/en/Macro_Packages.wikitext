@@ -40,485 +40,13 @@ ToolBar icon
 # thanks to forum member hasecilu for help with setting pyside6 icons
 # a utility to install Python packages in FreeCAD
 
+__Name__ = 'Packages'
+__Comment__ = 'This macro will install pypi packages into a special folder called AdditionalPythonPackages.'
+__Author__ = 'TheMarkster'
+__Version__ = '0.4'
+__License__ = 'LGPL-2.1-or-later'
+__Wiki__ = 'https://wiki.freecad.org/index.php?title=Macro_Packages'
 __version__ = "0.4"
-
-from PySide import QtWidgets, QtGui, QtCore
-QDialog = QtWidgets.QDialog
-QVBoxLayout = QtWidgets.QVBoxLayout
-QHBoxLayout = QtWidgets.QHBoxLayout
-QLabel = QtWidgets.QLabel
-QLineEdit = QtWidgets.QLineEdit
-QSpinBox = QtWidgets.QSpinBox
-QPushButton = QtWidgets.QPushButton
-QListWidget = QtWidgets.QListWidget
-QMessageBox = QtWidgets.QMessageBox
-QCheckBox = QtWidgets.QCheckBox
-QApplication = QtGui.QApplication
-QFileDialog = QtGui.QFileDialog
-Qt = QtCore.Qt
-
-import requests
-import re
-import webbrowser
-import subprocess, sys, platform
-import freecad.utils as utils
-import addonmanager_utilities as amutils
-import shutil
-import json
-import importlib
-
-class Packages:
-    def __init__(self):
-        self.python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-        self.pg = FreeCAD.ParamGet(f"User parameter:Plugins/Packages_Macro/{self.python_version}")
-        layout = QVBoxLayout()
-        self.mw = FreeCADGui.getMainWindow()
-        self.pathEdit = QLineEdit()
-        self.pathEdit.setToolTip("Path to python executable.")
-        self.pathEdit.setText(self.findExecutable())
-        self.form = QtWidgets.QWidget()
-        self.form.setLayout(layout)
-        self.mode = "install" # can also be "uninstall"
-        filterLayout = QHBoxLayout()
-        self.filterEdit = QLineEdit()
-        self.filterEdit.setPlaceholderText("Filter packages")
-        self.filterEdit.returnPressed.connect(self.applyFilter)
-        self.filterEdit.textChanged.connect(self.enableButtons)
-        filterLayout.addWidget(QLabel("Filter:"))
-        filterLayout.addWidget(self.filterEdit)
-        self.sortedCheckBox = QCheckBox("Sort")
-        self.sortedCheckBox.setToolTip("""
-Default is sorting by popularity in terms of most downloads in the last 30 days.
-Checked = sort A to Z.
-Note toggling applies the filter.""")
-        self.sortedCheckBox.setChecked(False)
-        self.sortedCheckBox.stateChanged.connect(self.applyFilter)
-        # this is to initialize stateChanged, otherwise first toggle does not update
-        checked = self.sortedCheckBox.isChecked()
-        filterLayout.addWidget(self.sortedCheckBox)
-        
-        self.filterButton = QPushButton("Apply Filter")
-        self.filterButton.clicked.connect(self.applyFilter)
-        filterLayout.addWidget(self.filterButton)
-        
-        self.searchButton = QPushButton("Search")
-        self.searchButton.setIcon(FreeCADGui.getIcon("internet-web-browser"))
-        self.searchButton.setToolTip("Search for filter on pypi.org in default browser")
-        self.searchButton.setEnabled(False)
-        filterLayout.addWidget(self.searchButton)
-        self.searchButton.clicked.connect(self.search)
-        
-        self.packageList = QListWidget()
-        self.packageList.itemSelectionChanged.connect(self.enableButtons)
-
-        self.fetchButton = QPushButton("Fetch summary")
-        self.fetchButton.setIcon(FreeCADGui.getIcon("internet-web-browser"))
-        self.fetchButton.setEnabled(False)
-        self.fetchButton.clicked.connect(self.fetchSummary)
-
-        layout.addLayout(filterLayout)
-
-        layout.addWidget(self.packageList)
-        buttonLayout = QHBoxLayout()
-        buttonLayout.addWidget(self.fetchButton)
-        
-        self.installButton = QPushButton("Install / Update")
-        self.installButton.clicked.connect(self.install)
-        self.installButton.setEnabled(False)
-        self.installButton.setToolTip("""
-If this is disabled with an active selection it means the package is a base package.
-You are allowed to install again an added package because there might be an update
-available for it.""")
-        buttonLayout.addWidget(self.installButton)
-        
-        self.uninstallButton = QPushButton("Uninstall")
-        style = self.form.style()
-        try:
-            trashIcon = style.standardIcon(style.SP_TrashIcon)
-        except:
-            trashIcon = style.standardIcon(style.StandardPixmap.SP_TrashIcon)
-        self.uninstallButton.setIcon(trashIcon)
-        self.uninstallButton.clicked.connect(self.uninstall)
-        self.uninstallButton.setEnabled(False)
-        self.uninstallButton.setToolTip("""
-If this is disabled with an active selection it means the selected package is
-either not already installed or it is a base package included with the packaging
-or distribution.""")
-        buttonLayout.addWidget(self.uninstallButton)
-        
-        self.openUrlButton = QPushButton("Open Url")
-        self.openUrlButton.setIcon(FreeCADGui.getIcon("internet-web-browser"))
-        self.openUrlButton.clicked.connect(self.openUrl)
-        self.openUrlButton.setEnabled(False)
-        buttonLayout.addWidget(self.openUrlButton)
-        
-        layout.addLayout(buttonLayout)
-        
-        pathLayout = QHBoxLayout()
-        layout.addLayout(pathLayout)
-
-        self.pathEdit.setPlaceholderText("Path to python executable")
-        pathLayout.addWidget(QLabel("Python:"))
-        pathLayout.addWidget(self.pathEdit)
-        self.pathButton = QPushButton("...")
-        try:
-            self.pathButton.setIcon(style.standardIcon(style.SP_FileDialogStart))
-        except:
-            self.pathButton.setIcon(style.standardIcon(style.StandardPixmap.SP_FileDialogStart))
-        self.pathButton.setFixedWidth(self.pathButton.sizeHint().width())
-        self.pathButton.setToolTip("Click to browse for python executable.")
-        self.pathButton.clicked.connect(self.setupPath)
-        pathLayout.addWidget(self.pathButton)
-        
-        additionalLayout = QHBoxLayout()
-        layout.addLayout(additionalLayout)
-        additionalLayout.addWidget(QLabel("AdditionalPythonPackages folder:"))
-        self.additionalEdit = QLineEdit()
-        self.additionalEdit.setPlaceholderText("AdditionalPythonPackages folder goes here")
-        pathToPackages = self.pg.GetString("PathToPackages","")
-        if not pathToPackages:
-            pathToPackages = amutils.get_pip_target_directory()
-            if not os.path.exists(pathToPackages):
-                os.makedirs(pathToPackages)
-                self.pg.SetString("PathToPackages", pathToPackages)
-                FreeCAD.Console.PrintMessage("AdditionalPythonPackages folder has been created.  You will likely need to restart FreeCAD to use any newly installed packages.\n")
-        self.additionalEdit.setText(pathToPackages)
-        self.additionalEdit.setReadOnly(True)
-        additionalLayout.addWidget(self.additionalEdit)
-        self.additionalButton = QPushButton("Open")
-        try:
-            self.additionalButton.setIcon(style.standardIcon(style.SP_DirOpenIcon))
-        except:
-            self.additionalButton.setIcon(style.standardIcon(style.StandardPixmap.SP_DirOpenIcon))
-        self.additionalButton.clicked.connect(self.openAdditional)
-        self.additionalButton.setToolTip("""
-Opens the AdditionalPythonPackages folder.  Note that the only things
-that should be in this folder are things installed using this macro
-or additional dependencies installed via the addon manager.  It should
-be relatively safe to remove things from here.  You should take note
-of what extra folders were added when you install something.  These
-dependencies are not being tracked as pip doesn't support tracking
-packages added to custom folders.  When we uninstall something we
-only install what we added, not the additional dependencies pip might
-have added.""")
-        additionalLayout.addWidget(self.additionalButton)
-        
-        self.packages = self.loadPackageData()
-        title = f"Packages {__version__} ({len(self.packages)} packages)"
-        self.form.setWindowTitle(title)
-        self.applyFilter()
-
-        self.form.setWindowIcon(self.QIconFromXPMString(__icon__))
-
-    def loadPackageData(self):
-        # would be faster to cache this locally, but this way it's always up to date
-        url = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages-30-days.json"
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            data = response.json()
-            return data["rows"]
-        except requests.RequestException as e:
-            QMessageBox.critical(self.mw, "Error", f"Could not load data: {e}")
-            return []
-            
-    def openAdditional(self):
-        """
-        open the addtional python packages folder.  note that this is a different
-        folder for each version of python used by various freecad installations, 
-        for example if the user has multiple versions in simultaneous use.  this
-        folder is really for the addon manager to install dependencies when installing
-        various addons, so we do not have exclusive use of it.  but the advantage
-        is the addon manager can also update these for use when updates are available.
-        this folder is made available to python via initGui,py in src/App, which
-        is how addons are able to import the packages installed here.
-        """
-        sys = platform.system()
-        userFolder = self.additionalEdit.text()
-        if 'Windows' in sys:
-            subprocess.Popen('start explorer.exe '+userFolder, shell=True)
-        elif 'Linux' in sys:
-            os.system("xdg-open '%s'" % userFolder)
-        elif 'Darwin' in sys:
-            subprocess.Popen(["open", userFolder])
-        else:
-            msgBox = QtGui.QMessageBox()
-            msg = "We were unable to determine your platform, and thus cannot open your '+userFolder+' for you, but you can still do it manually.\n"
-            msgBox.exec_()
-                    
-    def getStandardButtons(self):
-        return (QtWidgets.QDialogButtonBox.Close)
-        
-    def setupPath(self):
-        """
-        This is for the user to bre able to set a python that he wants to use
-        rather than the default found with the freecad.utils function
-        """
-        path, ok = QFileDialog.getOpenFileName(self.mw, 
-                "Select Python Executable",
-                "",
-                "Python Executable (python*);;All Files (*)")
-        if path:
-            self.pathEdit.setText(path)
-            self.pg.SetString("PathToPython", path)
-
-
-    def applyFilter(self):
-        """
-        This is called when the user clicks the Apply filters button, and also
-        when the user toggles the sort checkbox, and when the enter key is pressed
-        in the filter line edit widget.  If sorting is active, then the filtered
-        packages are sorted alphabetically, otherwise they are sorted based on the 
-        popularity as measured by the number of downloads in the last 30 days.
-        """
-        filter = self.filterEdit.text()
-        try:
-            filtered = [pkg for pkg in self.packages if re.search(filter, pkg["project"], re.IGNORECASE)]
-            exactMatch = False
-            self.packageList.clear()
-            for pkg in filtered:
-                self.packageList.addItem(pkg["project"])
-                if pkg == filter:
-                    exactMatch = True
-            self.packageList.setSortingEnabled(self.sortedCheckBox.isChecked())
-            if filter and not exactMatch:
-                description, version = self.getInfo(filter)
-                if description:
-                    self.packageList.insertItem(0, filter + " (not in top 8000)")
-
-        except re.error as e:
-            QMessageBox.warning(self.mw, "Invalid Regex", f"Error in regular expression: {e}")
-            self.form.setWindowTitle(f"Packages {__version__}")
-
-    def enableButtons(self):
-        """enables or disables buttons based on whether a package is selected
-        in the list widget and whether that package is already installed."""
-        hasSelection = bool(self.packageList.selectedItems())
-        self.openUrlButton.setEnabled(hasSelection)
-        self.fetchButton.setEnabled(hasSelection)
-        hasFilter = bool(self.filterEdit.text())
-        self.searchButton.setEnabled(hasFilter)
-            
-        added, base = (False, False)
-        if hasSelection:
-            added, base = self.isInstalled()
-        self.installButton.setEnabled(not base)
-        self.uninstallButton.setEnabled(added)
-
-    def install(self):
-        self.mode = "install"
-        self.managePackages()
-        
-    def uninstall(self):
-        self.mode = "uninstall"
-        self.managePackages()
-        
-    def findExecutable(self):
-        """
-        find the python executable in use, luckily there is a function for this
-        already in FreeCAD, but we still want to allow the user the flexibility
-        of setting a different python executable if the function gets it wrong
-        """
-        
-        path = self.pg.GetString("PathToPython","")
-        if path:
-            return path
-        
-        pyEx = utils.get_python_exe()
-    
-        if os.path.exists(pyEx):
-            self.pg.SetString("PathToPython", pyEx)
-            return pyEx
-        else:
-            FreeCAD.Console.PrintError(f"Python executable not found.  You may try to find it manually by clicking the '...' button at the bottom of the dialog.\n")
-            return "Path to python executable"
-
-    def managePackages(self):
-        """
-        Here is where the installing and uninstalling happens.  We track which
-        packages we have installed and which dependencies were installed along
-        with them.  The caveat here is the AddonManager might also install stuff
-        in our folder, but I don't think the AM tracks extra dependencies.
-        """
-        package = self.packageList.currentItem().text().replace(" (not in top 8000)", "")
-        python_exe = self.pathEdit.text()
-        vendor_path = self.additionalEdit.text()
-        if "APPIMAGE" in os.environ:
-            
-            os.environ['PYTHONHOME'] = '/usr'
-            os.environ['PYTHONPATH'] = f"/usr/lib/python{self.python_version}/site-packages" 
-
-        if self.mode == "uninstall":
-            added = self.loadAddedSubfolders(package)
-            self.pg.RemString(f"{package}_Subfolders")
-
-            for subfolder in added:
-                item_path = os.path.join(vendor_path, subfolder)
-                if os.path.exists(item_path):
-                    shutil.rmtree(item_path)
-                    print(f"{subfolder} removed\n")
-
-            self.enableButtons()
-            return
-
-        existing = set(os.listdir(vendor_path))
-
-        command = [python_exe, "-m", "pip", self.mode, "--target", vendor_path, package]
-
-        try:
-            result = subprocess.run(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                check=True
-            )
-            FreeCAD.Console.PrintMessage(f"{result.stdout}\n")
-
-
-            new_folders = set(os.listdir(vendor_path)) - existing
-            added = list(new_folders)
-
-            self.saveAddedSubfolders(package, added)
-
-        except subprocess.CalledProcessError as e:
-            FreeCAD.Console.PrintError(f"Error: {e.stderr}\n")
-        except Exception as e:
-            FreeCAD.Console.PrintError(f"An unexpected error occurred: {e}\n")
-        finally:
-            self.enableButtons()
-
-    def saveAddedSubfolders(self, package, added):
-        """
-        Here we track the folders that we added to this AdditionalPythonPackages
-        folder and removed them during uninstallation.  The complication is that
-        sometimes additional dependencies are also added, and when they are, we 
-        should also track them and remove them.  Further complicating this is other
-        packages might have also added the same dependencies.  These we reconcile
-        in the loadAddedSubfolders() method below.
-        """
-        json_string = json.dumps(added)
-        self.pg.SetString(f"{package}_Subfolders", json_string)
-
-    def loadAddedSubfolders(self, package):
-        """
-        We get all of the packages that were added by all installations, this is
-        in allPackages list.  The added list only includes the new subfolders that
-        were added when this package was installed.  Anything in added that is not
-        also in allPackages can be safely removed during uninstallation.
-        """
-        json_string = self.pg.GetString(f"{package}_Subfolders", "")
-        added = json.loads(json_string) if json_string else []
-
-        allPackages = []
-        for key in self.pg.GetStrings():
-            if key.endswith("_Subfolders") and key != f"{package}_Subfolders":
-                other_json = self.pg.GetString(key, "")
-                try:
-                    otherPackages = json.loads(other_json)
-                    allPackages.extend(otherPackages)
-                except json.JSONDecodeError:
-                    print(f"Error decoding subfolder list for {key}.")
-
-        unique = [folder for folder in added if folder not in allPackages]
-        return unique
-
-    def isInstalled(self):
-        """
-        Called only by the enable buttons function.  We return a tuple (added, base)
-        added = True means this was something we added to the additional packages 
-        folder.  base = True means this is installed, but as a base package either
-        through the packaging or user installed into the system environment, either
-        way we don't try to install or uninstall anything we didn't add or that the
-        addon manager didn't add as an additional dependency in our user addon folder
-        """
-        added = False
-        base = False
-        package = self.packageList.currentItem().text().replace(" (not in top 8000)", "")
-        python_exe = self.pathEdit.text()
-        vendor_path = amutils.get_pip_target_directory()
-        if not os.path.exists(vendor_path):
-            os.makedirs(vendor_path)
-        fullpath = os.path.join(vendor_path,package)
-        if os.path.exists(fullpath):
-            added = True
-        try:
-            importlib.import_module(package)
-            if not added: # we didn't add this
-                base = True
-        except ImportError:
-            # added might or might not be false because this might not yet be
-            # available to import if the additionalpythonpackages folder was
-            # only just created this FreeCAD session, so we don't set it False
-            # here, but instead rely on the above test
-            base = False
-
-        return (added, base)
-
-    def fetchSummary(self):
-        selectedItem = self.packageList.currentItem()
-        if not selectedItem:
-            return
-        
-        package = selectedItem.text().replace(" (not in top 8000)","")
-        description, version = self.getInfo(package)
-        
-        QMessageBox.information(self.mw, "Package Summary", 
-                                f"{package} (v{version}): {description}")
-        
-
-    def getInfo(self, package):
-        """
-        called by fetchSummary(), pops up a very brief description of the package
-        in a message box.  User can use the OpenUrl button to get more details.
-        We also use this to check if a custom entered package is available outside
-        the top 8000 list.
-        """
-        
-        url = f"https://pypi.org/pypi/{package}/json"
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            data = response.json()
-            description = data["info"].get("summary", "No description available.")
-            version = data["info"].get("version", "Unknown version")
-            return description, version
-        except requests.RequestException:
-            return "", "Unknown version"
-
-    def search(self):
-        filter = self.filterEdit.text()
-        if not filter:
-            return
-        url = f"https://pypi.org/search/?q={filter}"
-        try:
-            webbrowser.open(url)
-        except Exception as e:
-            QMessageBox.critical(self.mw, "Error", 
-                                f"Unable to open the browser. Error: {e}")
-
-    def openUrl(self):
-        package = self.packageList.currentItem().text().replace(" (not in top 8000)", "")
-        url = f"https://pypi.org/pypi/{package}"
-        try:
-            webbrowser.open(url)
-        except Exception as e:
-            QMessageBox.critical(self.mw, "Error", 
-                                f"Unable to open the browser. Error: {e}")
-
-    def QIconFromXPMString(self, xpm_string):
-        if "/*pixels*/" in xpm_string:
-            xpm = xpm_string.replace("\"","").replace(',','').splitlines()[4:]
-        else:
-            xpm = xpm_string.replace("\"","").replace(',','').splitlines()[3:]
-        for line in reversed(xpm):
-            if line.startswith("/*") and line.endswith("*/"):
-                xpm.pop(xpm.index(line))
-        pixmap = QtGui.QPixmap(xpm)
-        icon = QtGui.QIcon(pixmap)
-        return icon
-
-
 __icon__ = """
 /* XPM */
 static char *dummy[]={
@@ -1638,6 +1166,483 @@ static char *dummy[]={
 "QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtojokolomonlyooopoqgZorosbrQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt",
 "QtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtotouovgNowoxmLQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQtQt"};
 """
+
+
+from PySide import QtWidgets, QtGui, QtCore
+QDialog = QtWidgets.QDialog
+QVBoxLayout = QtWidgets.QVBoxLayout
+QHBoxLayout = QtWidgets.QHBoxLayout
+QLabel = QtWidgets.QLabel
+QLineEdit = QtWidgets.QLineEdit
+QSpinBox = QtWidgets.QSpinBox
+QPushButton = QtWidgets.QPushButton
+QListWidget = QtWidgets.QListWidget
+QMessageBox = QtWidgets.QMessageBox
+QCheckBox = QtWidgets.QCheckBox
+QApplication = QtGui.QApplication
+QFileDialog = QtGui.QFileDialog
+Qt = QtCore.Qt
+
+import requests
+import re
+import webbrowser
+import subprocess, sys, platform
+import freecad.utils as utils
+import addonmanager_utilities as amutils
+import shutil
+import json
+import importlib
+
+class Packages:
+    def __init__(self):
+        self.python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+        self.pg = FreeCAD.ParamGet(f"User parameter:Plugins/Packages_Macro/{self.python_version}")
+        layout = QVBoxLayout()
+        self.mw = FreeCADGui.getMainWindow()
+        self.pathEdit = QLineEdit()
+        self.pathEdit.setToolTip("Path to python executable.")
+        self.pathEdit.setText(self.findExecutable())
+        self.form = QtWidgets.QWidget()
+        self.form.setLayout(layout)
+        self.mode = "install" # can also be "uninstall"
+        filterLayout = QHBoxLayout()
+        self.filterEdit = QLineEdit()
+        self.filterEdit.setPlaceholderText("Filter packages")
+        self.filterEdit.returnPressed.connect(self.applyFilter)
+        self.filterEdit.textChanged.connect(self.enableButtons)
+        filterLayout.addWidget(QLabel("Filter:"))
+        filterLayout.addWidget(self.filterEdit)
+        self.sortedCheckBox = QCheckBox("Sort")
+        self.sortedCheckBox.setToolTip("""
+Default is sorting by popularity in terms of most downloads in the last 30 days.
+Checked = sort A to Z.
+Note toggling applies the filter.""")
+        self.sortedCheckBox.setChecked(False)
+        self.sortedCheckBox.stateChanged.connect(self.applyFilter)
+        # this is to initialize stateChanged, otherwise first toggle does not update
+        checked = self.sortedCheckBox.isChecked()
+        filterLayout.addWidget(self.sortedCheckBox)
+        
+        self.filterButton = QPushButton("Apply Filter")
+        self.filterButton.clicked.connect(self.applyFilter)
+        filterLayout.addWidget(self.filterButton)
+        
+        self.searchButton = QPushButton("Search")
+        self.searchButton.setIcon(FreeCADGui.getIcon("internet-web-browser"))
+        self.searchButton.setToolTip("Search for filter on pypi.org in default browser")
+        self.searchButton.setEnabled(False)
+        filterLayout.addWidget(self.searchButton)
+        self.searchButton.clicked.connect(self.search)
+        
+        self.packageList = QListWidget()
+        self.packageList.itemSelectionChanged.connect(self.enableButtons)
+
+        self.fetchButton = QPushButton("Fetch summary")
+        self.fetchButton.setIcon(FreeCADGui.getIcon("internet-web-browser"))
+        self.fetchButton.setEnabled(False)
+        self.fetchButton.clicked.connect(self.fetchSummary)
+
+        layout.addLayout(filterLayout)
+
+        layout.addWidget(self.packageList)
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addWidget(self.fetchButton)
+        
+        self.installButton = QPushButton("Install / Update")
+        self.installButton.clicked.connect(self.install)
+        self.installButton.setEnabled(False)
+        self.installButton.setToolTip("""
+If this is disabled with an active selection it means the package is a base package.
+You are allowed to install again an added package because there might be an update
+available for it.""")
+        buttonLayout.addWidget(self.installButton)
+        
+        self.uninstallButton = QPushButton("Uninstall")
+        style = self.form.style()
+        try:
+            trashIcon = style.standardIcon(style.SP_TrashIcon)
+        except:
+            trashIcon = style.standardIcon(style.StandardPixmap.SP_TrashIcon)
+        self.uninstallButton.setIcon(trashIcon)
+        self.uninstallButton.clicked.connect(self.uninstall)
+        self.uninstallButton.setEnabled(False)
+        self.uninstallButton.setToolTip("""
+If this is disabled with an active selection it means the selected package is
+either not already installed or it is a base package included with the packaging
+or distribution.""")
+        buttonLayout.addWidget(self.uninstallButton)
+        
+        self.openUrlButton = QPushButton("Open Url")
+        self.openUrlButton.setIcon(FreeCADGui.getIcon("internet-web-browser"))
+        self.openUrlButton.clicked.connect(self.openUrl)
+        self.openUrlButton.setEnabled(False)
+        buttonLayout.addWidget(self.openUrlButton)
+        
+        layout.addLayout(buttonLayout)
+        
+        pathLayout = QHBoxLayout()
+        layout.addLayout(pathLayout)
+
+        self.pathEdit.setPlaceholderText("Path to python executable")
+        pathLayout.addWidget(QLabel("Python:"))
+        pathLayout.addWidget(self.pathEdit)
+        self.pathButton = QPushButton("...")
+        try:
+            self.pathButton.setIcon(style.standardIcon(style.SP_FileDialogStart))
+        except:
+            self.pathButton.setIcon(style.standardIcon(style.StandardPixmap.SP_FileDialogStart))
+        self.pathButton.setFixedWidth(self.pathButton.sizeHint().width())
+        self.pathButton.setToolTip("Click to browse for python executable.")
+        self.pathButton.clicked.connect(self.setupPath)
+        pathLayout.addWidget(self.pathButton)
+        
+        additionalLayout = QHBoxLayout()
+        layout.addLayout(additionalLayout)
+        additionalLayout.addWidget(QLabel("AdditionalPythonPackages folder:"))
+        self.additionalEdit = QLineEdit()
+        self.additionalEdit.setPlaceholderText("AdditionalPythonPackages folder goes here")
+        pathToPackages = self.pg.GetString("PathToPackages","")
+        if not pathToPackages:
+            pathToPackages = amutils.get_pip_target_directory()
+            if not os.path.exists(pathToPackages):
+                os.makedirs(pathToPackages)
+                self.pg.SetString("PathToPackages", pathToPackages)
+                FreeCAD.Console.PrintMessage("AdditionalPythonPackages folder has been created.  You will likely need to restart FreeCAD to use any newly installed packages.\n")
+        self.additionalEdit.setText(pathToPackages)
+        self.additionalEdit.setReadOnly(True)
+        additionalLayout.addWidget(self.additionalEdit)
+        self.additionalButton = QPushButton("Open")
+        try:
+            self.additionalButton.setIcon(style.standardIcon(style.SP_DirOpenIcon))
+        except:
+            self.additionalButton.setIcon(style.standardIcon(style.StandardPixmap.SP_DirOpenIcon))
+        self.additionalButton.clicked.connect(self.openAdditional)
+        self.additionalButton.setToolTip("""
+Opens the AdditionalPythonPackages folder.  Note that the only things
+that should be in this folder are things installed using this macro
+or additional dependencies installed via the addon manager.  It should
+be relatively safe to remove things from here.  You should take note
+of what extra folders were added when you install something.  These
+dependencies are not being tracked as pip doesn't support tracking
+packages added to custom folders.  When we uninstall something we
+only install what we added, not the additional dependencies pip might
+have added.""")
+        additionalLayout.addWidget(self.additionalButton)
+        
+        self.packages = self.loadPackageData()
+        title = f"Packages {__version__} ({len(self.packages)} packages)"
+        self.form.setWindowTitle(title)
+        self.applyFilter()
+
+        self.form.setWindowIcon(self.QIconFromXPMString(__icon__))
+
+    def loadPackageData(self):
+        # would be faster to cache this locally, but this way it's always up to date
+        url = "https://hugovk.github.io/top-pypi-packages/top-pypi-packages-30-days.json"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+            return data["rows"]
+        except requests.RequestException as e:
+            QMessageBox.critical(self.mw, "Error", f"Could not load data: {e}")
+            return []
+            
+    def openAdditional(self):
+        """
+        open the addtional python packages folder.  note that this is a different
+        folder for each version of python used by various freecad installations, 
+        for example if the user has multiple versions in simultaneous use.  this
+        folder is really for the addon manager to install dependencies when installing
+        various addons, so we do not have exclusive use of it.  but the advantage
+        is the addon manager can also update these for use when updates are available.
+        this folder is made available to python via initGui,py in src/App, which
+        is how addons are able to import the packages installed here.
+        """
+        sys = platform.system()
+        userFolder = self.additionalEdit.text()
+        if 'Windows' in sys:
+            subprocess.Popen('start explorer.exe '+userFolder, shell=True)
+        elif 'Linux' in sys:
+            os.system("xdg-open '%s'" % userFolder)
+        elif 'Darwin' in sys:
+            subprocess.Popen(["open", userFolder])
+        else:
+            msgBox = QtGui.QMessageBox()
+            msg = "We were unable to determine your platform, and thus cannot open your '+userFolder+' for you, but you can still do it manually.\n"
+            msgBox.exec_()
+                    
+    def getStandardButtons(self):
+        return (QtWidgets.QDialogButtonBox.Close)
+        
+    def setupPath(self):
+        """
+        This is for the user to bre able to set a python that he wants to use
+        rather than the default found with the freecad.utils function
+        """
+        path, ok = QFileDialog.getOpenFileName(self.mw, 
+                "Select Python Executable",
+                "",
+                "Python Executable (python*);;All Files (*)")
+        if path:
+            self.pathEdit.setText(path)
+            self.pg.SetString("PathToPython", path)
+
+
+    def applyFilter(self):
+        """
+        This is called when the user clicks the Apply filters button, and also
+        when the user toggles the sort checkbox, and when the enter key is pressed
+        in the filter line edit widget.  If sorting is active, then the filtered
+        packages are sorted alphabetically, otherwise they are sorted based on the 
+        popularity as measured by the number of downloads in the last 30 days.
+        """
+        filter = self.filterEdit.text()
+        try:
+            filtered = [pkg for pkg in self.packages if re.search(filter, pkg["project"], re.IGNORECASE)]
+            exactMatch = False
+            self.packageList.clear()
+            for pkg in filtered:
+                self.packageList.addItem(pkg["project"])
+                if pkg == filter:
+                    exactMatch = True
+            self.packageList.setSortingEnabled(self.sortedCheckBox.isChecked())
+            if filter and not exactMatch:
+                description, version = self.getInfo(filter)
+                if description:
+                    self.packageList.insertItem(0, filter + " (not in top 8000)")
+
+        except re.error as e:
+            QMessageBox.warning(self.mw, "Invalid Regex", f"Error in regular expression: {e}")
+            self.form.setWindowTitle(f"Packages {__version__}")
+
+    def enableButtons(self):
+        """enables or disables buttons based on whether a package is selected
+        in the list widget and whether that package is already installed."""
+        hasSelection = bool(self.packageList.selectedItems())
+        self.openUrlButton.setEnabled(hasSelection)
+        self.fetchButton.setEnabled(hasSelection)
+        hasFilter = bool(self.filterEdit.text())
+        self.searchButton.setEnabled(hasFilter)
+            
+        added, base = (False, False)
+        if hasSelection:
+            added, base = self.isInstalled()
+        self.installButton.setEnabled(not base)
+        self.uninstallButton.setEnabled(added)
+
+    def install(self):
+        self.mode = "install"
+        self.managePackages()
+        
+    def uninstall(self):
+        self.mode = "uninstall"
+        self.managePackages()
+        
+    def findExecutable(self):
+        """
+        find the python executable in use, luckily there is a function for this
+        already in FreeCAD, but we still want to allow the user the flexibility
+        of setting a different python executable if the function gets it wrong
+        """
+        
+        path = self.pg.GetString("PathToPython","")
+        if path:
+            return path
+        
+        pyEx = utils.get_python_exe()
+    
+        if os.path.exists(pyEx):
+            self.pg.SetString("PathToPython", pyEx)
+            return pyEx
+        else:
+            FreeCAD.Console.PrintError(f"Python executable not found.  You may try to find it manually by clicking the '...' button at the bottom of the dialog.\n")
+            return "Path to python executable"
+
+    def managePackages(self):
+        """
+        Here is where the installing and uninstalling happens.  We track which
+        packages we have installed and which dependencies were installed along
+        with them.  The caveat here is the AddonManager might also install stuff
+        in our folder, but I don't think the AM tracks extra dependencies.
+        """
+        package = self.packageList.currentItem().text().replace(" (not in top 8000)", "")
+        python_exe = self.pathEdit.text()
+        vendor_path = self.additionalEdit.text()
+        if "APPIMAGE" in os.environ:
+            
+            os.environ['PYTHONHOME'] = '/usr'
+            os.environ['PYTHONPATH'] = f"/usr/lib/python{self.python_version}/site-packages" 
+
+        if self.mode == "uninstall":
+            added = self.loadAddedSubfolders(package)
+            self.pg.RemString(f"{package}_Subfolders")
+
+            for subfolder in added:
+                item_path = os.path.join(vendor_path, subfolder)
+                if os.path.exists(item_path):
+                    shutil.rmtree(item_path)
+                    print(f"{subfolder} removed\n")
+
+            self.enableButtons()
+            return
+
+        existing = set(os.listdir(vendor_path))
+
+        command = [python_exe, "-m", "pip", self.mode, "--target", vendor_path, package]
+
+        try:
+            result = subprocess.run(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True
+            )
+            FreeCAD.Console.PrintMessage(f"{result.stdout}\n")
+
+
+            new_folders = set(os.listdir(vendor_path)) - existing
+            added = list(new_folders)
+
+            self.saveAddedSubfolders(package, added)
+
+        except subprocess.CalledProcessError as e:
+            FreeCAD.Console.PrintError(f"Error: {e.stderr}\n")
+        except Exception as e:
+            FreeCAD.Console.PrintError(f"An unexpected error occurred: {e}\n")
+        finally:
+            self.enableButtons()
+
+    def saveAddedSubfolders(self, package, added):
+        """
+        Here we track the folders that we added to this AdditionalPythonPackages
+        folder and removed them during uninstallation.  The complication is that
+        sometimes additional dependencies are also added, and when they are, we 
+        should also track them and remove them.  Further complicating this is other
+        packages might have also added the same dependencies.  These we reconcile
+        in the loadAddedSubfolders() method below.
+        """
+        json_string = json.dumps(added)
+        self.pg.SetString(f"{package}_Subfolders", json_string)
+
+    def loadAddedSubfolders(self, package):
+        """
+        We get all of the packages that were added by all installations, this is
+        in allPackages list.  The added list only includes the new subfolders that
+        were added when this package was installed.  Anything in added that is not
+        also in allPackages can be safely removed during uninstallation.
+        """
+        json_string = self.pg.GetString(f"{package}_Subfolders", "")
+        added = json.loads(json_string) if json_string else []
+
+        allPackages = []
+        for key in self.pg.GetStrings():
+            if key.endswith("_Subfolders") and key != f"{package}_Subfolders":
+                other_json = self.pg.GetString(key, "")
+                try:
+                    otherPackages = json.loads(other_json)
+                    allPackages.extend(otherPackages)
+                except json.JSONDecodeError:
+                    print(f"Error decoding subfolder list for {key}.")
+
+        unique = [folder for folder in added if folder not in allPackages]
+        return unique
+
+    def isInstalled(self):
+        """
+        Called only by the enable buttons function.  We return a tuple (added, base)
+        added = True means this was something we added to the additional packages 
+        folder.  base = True means this is installed, but as a base package either
+        through the packaging or user installed into the system environment, either
+        way we don't try to install or uninstall anything we didn't add or that the
+        addon manager didn't add as an additional dependency in our user addon folder
+        """
+        added = False
+        base = False
+        package = self.packageList.currentItem().text().replace(" (not in top 8000)", "")
+        python_exe = self.pathEdit.text()
+        vendor_path = amutils.get_pip_target_directory()
+        if not os.path.exists(vendor_path):
+            os.makedirs(vendor_path)
+        fullpath = os.path.join(vendor_path,package)
+        if os.path.exists(fullpath):
+            added = True
+        try:
+            importlib.import_module(package)
+            if not added: # we didn't add this
+                base = True
+        except ImportError:
+            # added might or might not be false because this might not yet be
+            # available to import if the additionalpythonpackages folder was
+            # only just created this FreeCAD session, so we don't set it False
+            # here, but instead rely on the above test
+            base = False
+
+        return (added, base)
+
+    def fetchSummary(self):
+        selectedItem = self.packageList.currentItem()
+        if not selectedItem:
+            return
+        
+        package = selectedItem.text().replace(" (not in top 8000)","")
+        description, version = self.getInfo(package)
+        
+        QMessageBox.information(self.mw, "Package Summary", 
+                                f"{package} (v{version}): {description}")
+        
+
+    def getInfo(self, package):
+        """
+        called by fetchSummary(), pops up a very brief description of the package
+        in a message box.  User can use the OpenUrl button to get more details.
+        We also use this to check if a custom entered package is available outside
+        the top 8000 list.
+        """
+        
+        url = f"https://pypi.org/pypi/{package}/json"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+            description = data["info"].get("summary", "No description available.")
+            version = data["info"].get("version", "Unknown version")
+            return description, version
+        except requests.RequestException:
+            return "", "Unknown version"
+
+    def search(self):
+        filter = self.filterEdit.text()
+        if not filter:
+            return
+        url = f"https://pypi.org/search/?q={filter}"
+        try:
+            webbrowser.open(url)
+        except Exception as e:
+            QMessageBox.critical(self.mw, "Error", 
+                                f"Unable to open the browser. Error: {e}")
+
+    def openUrl(self):
+        package = self.packageList.currentItem().text().replace(" (not in top 8000)", "")
+        url = f"https://pypi.org/pypi/{package}"
+        try:
+            webbrowser.open(url)
+        except Exception as e:
+            QMessageBox.critical(self.mw, "Error", 
+                                f"Unable to open the browser. Error: {e}")
+
+    def QIconFromXPMString(self, xpm_string):
+        if "/*pixels*/" in xpm_string:
+            xpm = xpm_string.replace("\"","").replace(',','').splitlines()[4:]
+        else:
+            xpm = xpm_string.replace("\"","").replace(',','').splitlines()[3:]
+        for line in reversed(xpm):
+            if line.startswith("/*") and line.endswith("*/"):
+                xpm.pop(xpm.index(line))
+        pixmap = QtGui.QPixmap(xpm)
+        icon = QtGui.QIcon(pixmap)
+        return icon
 
 if __name__ == "__main__":
     dlg = Packages()
