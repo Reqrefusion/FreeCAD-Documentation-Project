@@ -1,4 +1,3 @@
-
 # Gordian Knot
 
 The FreeCAD documentation project.
@@ -14,6 +13,9 @@ files directly in GitHub for common changes.
 [» Read GitHub's guide on how to edit files.][Edit-Files]
 
 Do not add T tags yourself; only modify the files in the wiki root directory, do not touch the translation files. Please check the latest version and ensure that the information you are adding has not been added previously. Also, be sure to cite the source of your change. Regression corrections should not be added to the documentation. And it should never contain information that the end user shouldn't know. "It's working as it should" isn't enough to be included. The reasons for each change made, along with their sources, should be explained individually.
+
+## Macros
+To maintain an up-to-date list of macros, please refer to the [Macros Wiki Page][Macros-Wiki]. This page will be used to track and document new macros as they are released.
 
 <br/>
 
@@ -35,6 +37,6 @@ it's the most famous knot in history, it's probably okay.
 
 <br/>
 
-
 [GitHub-Wiki]: https://github.com/Reqrefusion/FreeCAD-Documentation-Project/wiki
 [Edit-Files]: https://docs.github.com/en/repositories/working-with-files/managing-files/editing-files#editing-files-in-your-repository
+[Macros-Wiki]: https://github.com/Reqrefusion/FreeCAD-Documentation-Project/wiki/Macros
