@@ -1,4 +1,3 @@
-
 # Gordian Knot
 
 The FreeCAD documentation project.
@@ -14,6 +13,9 @@ files directly in GitHub for common changes.
 [» Read GitHub's guide on how to edit files.][Edit-Files]
 
 Do not add T tags yourself; only modify the files in the wiki root directory, do not touch the translation files. Please check the latest version and ensure that the information you are adding has not been added previously. Also, be sure to cite the source of your change. Regression corrections should not be added to the documentation. And it should never contain information that the end user shouldn't know. "It's working as it should" isn't enough to be included. The reasons for each change made, along with their sources, should be explained individually.
+
+### Draft Workbench Updates
+To ensure the documentation stays up-to-date, contributors should review recent PRs related to the Draft Workbench and add the relevant information to the documentation. This includes new features and updates that have not been previously documented.
 
 <br/>
 
