@@ -1,0 +1,145 @@
+<languages/>
+
+{{Docnav/es
+|[[Draft_Wire|Cable]]
+|[[Draft_Arc|Arco]]
+|[[Draft_Workbench|Entorno de Borrador]]
+|IconL=Draft_Wire.svg
+|IconR=Draft_Arc.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{GuiCommand/es
+|Name=Borrador: Redondeo
+|MenuLocation=Dibujar → Redondeo<br>Dibujar en 2D → Redondeo
+|Workbenches=[[Draft_Workbench|Entorno Borrador]], [[BIM_Workbench|Entorno de Trabajo BIM]]
+|Shortcut={{KEY|F}} {{KEY|I}}
+|Version=0.19
+|SeeAlso=[[Draft_Line|Línea]], [[Draft_Wire|Cable]]
+}}
+
+<span id="Description"></span>
+== Descripción ==
+
+El comando [[Image:Draft_Fillet.svg|24px]] '''redondeo''' crea un empalme, una esquina redondeada, o un chaflán, un borde recto, entre dos bordes seleccionados.
+
+En {{VersionMinus|0.21}} el comando solo funciona correctamente si ambos bordes seleccionados son rectos.
+
+En {{VersionMinus|1.0}} si los objetos seleccionados tienen múltiples aristas, se utilizará la primera. Esta puede no ser la arista que se seleccionó en la [[3D_View|Vista 3D]]. 
+
+[[Image:Draft_Fillet_example.png|400px]]
+{{Caption|Varios redondeos y chaflanes creados entre dos bordes}}
+
+<span id="Usage"></span>
+== Uso ==
+
+# Seleccione dos aristas que se unan en un solo punto.
+# Hay varias maneras de ejecutar el comando:
+#* Pulse el botón {{Button|[[Image:Draft_Fillet.svg|16px]] [[Draft_Fillet|Redondeo]]}}.
+#* [[Draft_Workbench|Entorno Borrador]]: Seleccione la opción {{MenuCommand|Dibujar → [[Image:Draft_Fillet.svg|16px]] Redondeo}} del menú.
+#* [[BIM_Workbench|Entorno de Trabajo BIM]]: Seleccione la opción {{MenuCommand|Dibujar en 2D → [[Image:Draft_Fillet.svg|16px]] Redondeo}} del menú.
+#* Utilice el atajo de teclado: {{KEY|F}} seguido de {{KEY|I}}.
+# Introduzca el radio de redondeo ({{MenuCommand|Radio de Redondeo}}). Tenga en cuenta que el comando no se ejecutará si el radio es demasiado grande para los objetos de borde seleccionados.
+# De manera optativa, marque la opción {{MenuCommand|Eliminar Objetos Originales}}.
+# Otra alternativa es marcar la opción {{MenuCommand|Crear Chaflán}}.
+# Si ha seleccionado una de las dos opciones anteriores: Haga clic en el cuadro de texto {{MenuCommand|Radio de Redondeo}}.
+# Pulse {{KEY|Intro}}.
+
+<span id="Options"></span>
+== Opciones ==
+
+* Pulse {{KEY|Esc}} o el botón {{Button|Cerrar}} para cancelar el comando.
+
+<span id="Notes"></span>
+== Notas ==
+
+* Un Redondeo no se puede editar ni está vinculado a las aristas que se usaron para crearlo.
+
+* Un [[Draft_Wire|Alambre]] con al menos tres puntos se puede redondear o chaflanar modificando su {{PropertyData|Radio de redondeo}} o {{PropertyData|Tamaño Chaflán}}, respectivamente. Dado que las [[Draft_Line| Líneas]] y los [[Draft_Wire|Alambres]] se pueden unir con los comandos correspondientes, como el comando [[Draft_Join|Unión]] o el comando [[Draft_Upgrade|Actualizar]], esto proporciona un método alternativo para crear redondeos y chaflanes.
+
+<span id="Properties"></span>
+== Propiedades ==
+
+Véase también: [[Property_View|Vista de Propiedades]].
+
+Un objeto Draft Fillet se deriva de un [[Part_Part2DObject|Part Part2DObject]] y hereda todas sus propiedades. También tiene las siguientes propiedades adicionales:
+
+<span id="Data"></span>
+=== Datos ===
+
+{{TitleProperty|Borrador}}
+
+* {{PropertyData|Final|Vector Distancia}}: (solo lectura) especifica el punto final del redondeo.
+
+* {{PropertyData|Radio Redondeo|Longitud}} (solo lectura):Radio con el que se creó el redondeo.
+
+* {{PropertyData|Longitud|Longitud}} (solo lectura): Especifica la longitud total del redondeo.
+
+* {{PropertyData|Comienzo|Vector Distancia}} (solo lectura): Especifica el punto de inicio del redondeo.
+
+<span id="View"></span>
+=== Vista ===
+
+{{TitleProperty|Borrador}}
+
+* {{PropertyView|Tamaño Flecha|Longitud}}: Especifica el tamaño del símbolo que se muestra al final del filete.
+
+* {{PropertyView|Tipo Flecha|Enumeración}}: especifica el tipo de símbolo que se muestra al final del filete, que puede ser {{value|Punto}}, {{value|Circulo}}, {{value|Flecha}}, {{value|Tick}} o {{value|Tick-2}}.
+
+* {{PropertyView|Final Flecha|Boolenao}}: Especifica si se debe mostrar un símbolo al final del filete, para que pueda usarse como línea de anotación.
+
+* {{PropertyView|Patrón|Enumeración}}: no se utiliza.
+
+* {{PropertyView|Tamaño Patrón|Float}}: no se utiliza.
+
+<span id="Scripting"></span>
+== Programación de Scripts ==
+
+Véase también: [https://freecad.github.io/SourceDoc/ Documentación de la API autogenerada] y [[FreeCAD Scripting Basics|Conceptos Básicos de scripting en FreeCAD]].
+
+Para crear un redondeo, utilice el método {{incode|make_filet}} del módulo Draft:
+
+{{Code|code=
+fillet = make_fillet([edge1, edge2], radius=100, chamfer=False, delete=False)
+}}
+
+* Crea un objeto {{incode|Fillet}} entre los objetos de borde {{incode|edge1}} y {{incode|edge2}}, utilizando {{incode|radius}} para la curvatura.
+
+* Si {{incode|chamfer}} es {{incode|True}}, creará un borde recto en lugar de uno redondeado.
+
+* Si {{incode|delete}} es {{incode|True}}, eliminará los objetos {{incode|edge1}} y {{incode|edge2}}, dejando solo el nuevo objeto.
+
+Ejemplo:
+
+{{Code|code=
+import FreeCAD as App
+import Draft
+
+doc = App.newDocument()
+
+p1 = App.Vector(0, 0, 0)
+p2 = App.Vector(1000, 1000, 0)
+p3 = App.Vector(2000, 0, 0)
+
+edge1 = Draft.make_line(p1, p2)
+edge2 = Draft.make_line(p2, p3)
+
+doc.recompute()
+
+fillet = Draft.make_fillet([edge1, edge2], radius=500)
+
+doc.recompute()
+}}
+
+
+{{Docnav/es
+|[[Draft_Wire|Cable]]
+|[[Draft_Arc|Arco]]
+|[[Draft_Workbench|Entorno Borrador]]
+|IconL=Draft_Wire.svg
+|IconR=Draft_Arc.svg
+|IconC=Workbench_Draft.svg
+}}
+
+{{Draft Tools navi{{#translation:}}}}
+{{Userdocnavi{{#translation:}}}}
