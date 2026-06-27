@@ -28,11 +28,76 @@ It is not available in {{VersionPlus|1.0}}.}}
 <!--T:4-->
 {{Emphasis|This command is currently not in use.}} It will serve to generate flat, shape-based views from a [[Mesh_Workbench|Mesh]] based object, to be used by the {{KEY|[[Image:Arch Equipment.svg|24px]] [[Arch_Equipment|Arch Equipment]]}} tool.
 
-==Usage== <!--T:3--> 
+import FreeCAD as App
+import Part
+import math
 
-<!--T:5-->
-# Select a Mesh object.
-# Select the {{KEY|[[Image:Arch 3Views.svg|16px]]}} button, or {{KEY|Arch}} → {{KEY|Utilities}} → {{KEY|[[Image:Arch 3Views.svg|16px]] [[Arch_3Views|3Views]]}} from the top menu.
+doc = App.newDocument("Professional_Isotope_Separation_System")
+
+# =========================
+# PARAMETERS (قابل تنظیم)
+# =========================
+L = 140      # length
+W = 60       # width
+H = 60       # height
+
+channel_r = 4
+helix_r = 10
+helix_pitch = 15
+helix_turns = 5
+
+# =========================
+# 1) MAIN CHAMBER (18)
+# =========================
+chamber = Part.makeBox(L, W, H)
+
+# =========================
+# 2) STRAIGHT FLOW CHANNEL
+# =========================
+channel = Part.makeCylinder(channel_r, L)
+channel.translate(App.Vector(0, W/2, H/2))
+
+# =========================
+# 3) REAL HELICAL CHIRAL BED (12)
+# =========================
+points = []
+steps = 200
+
+for i in range(steps):
+    t = float(i) / steps
+    angle = helix_turns * 2 * math.pi * t
+    x = t * L
+    y = (W/2) + helix_r * math.cos(angle)
+    z = (H/2) + helix_r * math.sin(angle)
+    points.append(App.Vector(x, y, z))
+
+helix_wire = Part.makePolygon(points)
+helix_edge = Part.Wire(helix_wire)
+helix_solid = helix_edge.extrude(App.Vector(0,0,1))
+
+# =========================
+# 4) MAGNETIC FIELD REGION (13)
+# =========================
+mag_region = Part.makeBox(L*0.6, W, H)
+mag_region.translate(App.Vector(L*0.2, 0, 0))
+
+# =========================
+# 5) ACOUSTIC FIELD REGION (14)
+# =========================
+acoustic_region = Part.makeBox(L, W*0.5, H)
+acoustic_region.translate(App.Vector(0, W*0.25, 0))
+
+# =========================
+# BUILD SYSTEM
+# =========================
+system = chamber.cut(channel)
+system = system.fuse(helix_solid)
+system = system.fuse(mag_region)
+system = system.fuse(acoustic_region)
+
+Part.show(system)
+
+doc.recompute()
 
 == Scripting == <!--T:12-->
 
