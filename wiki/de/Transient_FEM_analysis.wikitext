@@ -1,5 +1,4 @@
 <languages/>
-{{UnfinishedDocu{{#translation:}}}}
 
 {{TutorialInfo/de
 |Topic= Transiente FEM Analyse
@@ -10,12 +9,17 @@
 |Files=
 }}
 
-<span id="Background"></span>
-== Hintergrund ==
+<span id="Introduction"></span>
+== Einleitung ==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This example shows how to perform a transient thermomechanical analysis of a [https://en.wikipedia.org/wiki/Bimetallic_strip bimetallic strip].
+</div>
 
 <span id="Creating_the_model"></span>
 == Erstellung des Modells ==
 
+<div class="mw-translate-fuzzy">
 # Ausgehend von einem leeren FreeCAD-Projekt erstellen wir unseren Bimetallstreifen im [[Image:Workbench_Part.svg|24px]] [[Part_Workbench|Arbeitsbereich Part]].
 # Einen [[File:Part_Box.svg|24px]] [[Part Box/de|Quader]]-Festkörper zeichnen und ihn in {{incode|Aluminium}} umbenennen. 
 # Ihm die Abmessungen 100 x 10 x 2 mm (Länge x Breite x Höhe) geben. 
@@ -24,6 +28,7 @@
 # Beide Festkörper (mittels der {{KEY|Umschalt}}-Taste + Mausklick) auswählen und aus diesen [[Image:Part_BooleanFragments.svg|24px]] [[Part BooleanFragments/de|Boolesche Bestandteile]] erzeugen 
 # Diese Booleschen Bestandteile in {{incode|Bimetallstreifen}} umbenennen 
 # In der [[Property editor/de|Eigenschaften-Ansicht]] ändern wir den Modus von {{PropertyView|Standard}} zu {{PropertyView|CompSolid}}. (Es sollte auch funktionieren, wenn man den Befehl [[Part Compound/de|Part Verbund]] anstelle von [[Image:Part_BooleanFragments.svg|24px]] [[Part BooleanFragments/de|BoolescheBestandteile]] benutzt, jedoch kann es bei komplexeren sich überschneidenden Formen später zu Problemen mit der FEM-Analyse kommen. Daher ist es besser, sich von vornherein an die Verwendung von Booleschen Fragmenten zu gewöhnen.) Das Ergebnis sollte wie folgt aussehen:
+</div>
 
 [[File:Transient FEM Bimetal (1).JPG|700px]]
 
@@ -33,57 +38,77 @@
 <span id="Assigning_the_materials"></span>
 === Zuweisung der Materialien ===
 
+<div class="mw-translate-fuzzy">
 Im Arbeitsbereich FEM erstellen wir eine neue [[File:FEM_Analysis.svg|20px]]-Analyse und fügen der Analyse ein neues [[File:FEM_MaterialSolid.svg|20px]]-Material hinzu. Im sich öffnenden Aufgaben-Fenster wählen wir eine der vordefinierten Aluminiumlegierungen aus. Unter „Geometrie-Referenzauswahl“ weisen wir das Material dem unteren Streifen unseres Modells zu, indem wir den Auswahlmodus auf „Volumenkörper“ setzen, auf „Hinzufügen“ klicken und eine Fläche oder Kante des unteren Streifens auswählen. In der Listenansicht sollte „BooleanFragments:Solid1“ angezeigt werden.
+</div>
 
 [[File:Transient FEM Bimetal (2).JPG|700px]]
 
+<div class="mw-translate-fuzzy">
 Wir schließen das Aufgaben-Fenster und wiederholen die Schritte, um ein zweites Material 'Stahl' (Materialkarte 'CalculiX-Steel') zu erstellen und es dem oberen Streifen ('BooleanFragments:Solid2') zuzuweisen.
+</div>
 
 <span id="Creating_the_mesh"></span>
 == Erstellung des Polygonnetzes ==
 
 Da eine Finite-Elemente-Analyse natürlich Elemente benötigt, um zu funktionieren, müssen wir unser Modell in ein sogenanntes Netz zerlegen. Der Arbeitsbereich FEM bietet zwei Vernetzungswerkzeuge: Netgen und GMSH. Wir entscheiden uns hier für Netgen: Nachdem wir das Boolesche Fragmentobjekt „Bimetallstreifen” ausgewählt haben, klicken wir auf das [[File:FEM_MeshNetgenFromShape.svg|20px]] Netgen-Symbol im Arbeitsbereich FEM. Im daraufhin angezeigten Aufgaben-Fenster müssen wir verschiedene Auswahlen treffen, beginnend von oben:
 
+<div class="mw-translate-fuzzy">
 * Max. Größe ist die maximale Größe (in Millimetern) eines Elements. Je kleiner die maximale Elementgröße, desto mehr Elemente erhalten wir – in der Regel wird das Ergebnis präziser, allerdings mit einem dramatischen Anstieg der Rechenzeit. Wir setzen diesen Wert auf 10.
 * Zweite Ordnung bedeutet, dass in jedem Element zusätzliche Knoten erstellt werden. Dies erhöht die Rechenzeit, ist aber in der Regel eine gute Wahl, wenn es wie in unserer Analyse um Biegungen geht. Wir lassen diese Option aktiviert.
 * Feinheit: Wählen Sie aus, wie fein das Modell in Elemente unterteilt werden soll. Bei komplexeren Modellen mit Krümmungen und Schnittpunkten können wir die Elementanzahl in diesen Bereichen erhöhen, um bessere Ergebnisse zu erzielen (natürlich auf Kosten einer längeren Rechenzeit). Erfahrene Benutzer können auch Benutzerdefiniert auswählen und die folgenden Parameter festlegen. Für unser einfaches rechteckiges Modell hat die Auswahl der Feinheit keinen großen Einfluss, daher belassen wir sie auf einem moderaten Niveau.
 * Optimieren: Eine Art Nachbearbeitung nach der Vernetzung. Wir lassen diese Option aktiviert.
+</div>
 
+<div class="mw-translate-fuzzy">
 Ein Klick auf "Anwenden" startet den Mesher, und – je nach Leistung des Computers – erscheint ein Drahtgittermodell auf unserem Modell. Der Mesher sollte etwa 4.000 Knoten erstellt haben.
+</div>
 
 [[File:Transient FEM Bimetal (3).JPG|700px]]
 
 <span id="Assigning_boundary_conditions"></span>
 === Zuweisen von Randbedingungen ===
 
-Eine FEM-Analyse würde jetzt zu keinem Ergebnis führen, da mit unserem Modell noch nichts passiert. Fügen wir also etwas Temperatur hinzu: Man verwendet die [[File:FEM_ConstraintInitialTemperature.svg|20px]] Anfangstemperatur aus dem Arbeitsbereich FEM und stellt die Temperatur auf 300 K ein. Hier können keine Teile des Modells ausgewählt werden, da diese Einstellung für das gesamte Modell gilt. 
+<div class="mw-translate-fuzzy">
+Eine FEM-Analyse würde jetzt zu keinem Ergebnis führen, da mit unserem Modell noch nichts passiert. Fügen wir also etwas Temperatur hinzu: Man verwendet die [[File:FEM_ConstraintInitialTemperature.svg|20px]] Anfangstemperatur aus dem Arbeitsbereich FEM und stellt die Temperatur auf 300 K ein. Hier können keine Teile des Modells ausgewählt werden, da diese Einstellung für das gesamte Modell gilt.
+</div> 
 
+<div class="mw-translate-fuzzy">
 Als Nächstes verwenden wir [[File:FEM_ConstraintTemperature.svg|20px]] Temperatur, die auf eine Fläche wirkt. Wir wählen die beiden Flächen an einem Ende des Streifens aus (Strg + linke Maustaste) und klicken im Aufgaben-Fenster auf Hinzufügen. Zwei Flächen des Objekts Boolesche Fragmente sollten in der Liste und kleine Temperatursymbole auf dem Modell erscheinen. Wir stellen die Temperatur auf 400 K ein und schließen das Aufgaben-Fenster. Zu Beginn der Analyse wird die Temperatur der ausgewählten Flächen sofort von 300 auf 400 K ansteigen. Die Wärme wird entlang der Metallstreifen geleitet und bewirkt eine Biegung des Streifens.
+</div>
 
 [[File:Transient FEM Bimetal (4).JPG|700px]]
 
+<div class="mw-translate-fuzzy">
 Bevor wir die Analyse durchführen können, muss eine zusätzliche Randbedingung festgelegt werden: Die Analyse kann nur durchgeführt werden, wenn unser Modell an einer Stelle im Raum fixiert ist. Mit [[File:FEM_ConstraintFixed.svg|20px]] wählen wir dieselben beiden Flächen wie oben bei 400 K aus und fügen sie der Liste hinzu. Auf dem Modell erscheinen rote Balken, die visualisieren, dass diese Flächen im Raum fixiert sind und sich während der Analyse nicht bewegen können.
+</div>
 
 [[File:Transient FEM Bimetal (5).JPG|700px]]
 
 <span id="Running_the_analysis"></span>
 === Durchführung der Analyse ===
 
+<div class="mw-translate-fuzzy">
 Die Analyse sollte bereits ein Löser-Objekt  '[[FEM_SolverCalculixCcxtools/de|CalculiXccx-Werkzeuge]]' enthalten. Wenn nicht, fügen wir eines hinzu, indem wir das [[File:FEM_SolverCalculixCcxtools.svg|20px]] Löser-Symbol aus der Symbolleiste verwenden. (Es gibt zwei identische Symbole, der experimentelle Löser sollte ebenfalls funktionieren.) Das Löser-Objekt verfügt über eine Liste von Eigenschaften, die unten im linken Bereich des Fensters angezeigt wird. Hier wählen wir die folgenden Optionen aus (die nicht erwähnten Optionen lassen wir unverändert):
+</div>
 
+<div class="mw-translate-fuzzy">
 * Analysis Type: Wir möchten eine thermomechanische Analyse durchführen. Andere Optionen wären nur statisch (ohne Temperatureinflüsse), frequenzabhängig (Oszillationen) oder nur zur Überprüfung der Modellgültigkeit.
 * Thermo Mech Steady State: Steady State bedeutet, dass der Löser ein einziges Ergebnis zurückgibt, bei dem die Physik ein Gleichgewicht erreicht hat. Das möchten wir NICHT, sondern wir möchten mehrere zeitaufgelöste Ergebnisse erhalten (transiente Analyse). Diese Option daher auf false setzen.
 * Time end: Wir möchten, dass unsere Analyse nach 60 Sekunden beendet wird (d. h. Simulationszeit, nicht Echtzeit).
+</div>
 
 [[File:Transient FEM Bimetal (6).JPG|700px]]
 
+<div class="mw-translate-fuzzy">
 Nach einem Doppelklick auf das Löser-Objekt überprüfen wir, ob 'thermomechanisch' ausgewählt ist, und führen '.inp-Datei schreiben' aus. Dies dauert in der Regel einige Sekunden (bei größeren Modellen auch deutlich länger) und es erscheint die Meldung 'Schreiben abgeschlossen' im Feld darunter. Nun starten wir die Berechnung mit 'CalculiX ausführen'. Nach einiger Zeit sollten die letzten Meldungen 'CalculiX done without error!' und 'Loading result sets...' erscheinen. Wenn der Timer unten angehalten hat, schließen wir das Aufgaben-Fenster. (Bei größeren Modellen und/oder langsameren Computern kann FreeCAD einfrieren und wir sehen den Timer nicht laufen. Aber man muss Geduld haben, in den meisten Fällen läuft CalculiX weiterhin im Hintergrund und liefert schließlich Ergebnisse.)
  
 Wir sollten nun mehrere [[File:FEM_ResultShow.svg|20px]] FEM-Ergebnisobjekte aufgelistet haben. Durch Doppelklicken können wir jedes einzelne davon öffnen und die berechneten Temperaturen, Verschiebungen und Spannungen visualisieren. Wir können die Biegung visualisieren, indem wir im Abschnitt 'Verschiebung' die Option 'Anzeigen' auswählen. Da die absoluten Verschiebungen gering sind, verwenden wir den 'Faktor', um die Werte zu übertreiben.
+</div>
 
-[[File:Transient FEM Bimetal (7).JPG|700px]]
-
-In FreeCAD können wir [[File:FEM_PostPipelineFromResult.svg|20px]] [[FEM_PostPipelineFromResult/de|Pipelines]] verwenden, um die Ergebnisse nachzubearbeiten. Alternativ können wir die Ergebnisse im VTK-Format exportieren und in spezielle Nachbearbeitungsprogramme wie ParaView importieren. Für den Export mehrerer Ergebnisse (wie bei dieser Analyse) steht ein [[Makro zum Exportieren transienter FEM-Ergebnisse|Makro]] zur Verfügung.
+<div lang="en" dir="ltr" class="mw-content-ltr">
+We should now have a "SolverCalculiXResult" [[File:FEM_PostPipelineFromResult.svg|20px]] [[FEM PostPipelineFromResult|pipeline]] object with multiple frames. By default, temperature distribution should be shown. We can double-click on the pipeline and switch to Displacement Magnitude. Then we can add [[FEM_PostFilterWarp|Warp Filter]] to visualize scaled deformation. Alternatively, we could export the results in the VTK format and import them into dedicated post-processor such as ParaView.
+</div>
 
 <span id="Downloads"></span>
 ==Herunterladen==
