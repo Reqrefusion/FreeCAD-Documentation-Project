@@ -1,0 +1,151 @@
+== Panel ==
+
+import FreeCAD
+
+import Part
+
+import Draft
+
+import math
+
+<nowiki>#</nowiki> ========== تنظیمات ابعاد ==========
+
+width = 200.0
+
+height = 120.0
+
+panel_thickness = 3.0
+
+frame_thickness = 2.5
+
+frame_offset = 3.0
+
+box_depth = 10.0
+
+hole_diameter = 5.0
+
+<nowiki>#</nowiki> ========== ایجاد سند جدید ==========
+
+doc = FreeCAD.newDocument("OLED_Enclosure")
+
+doc.recompute()
+
+<nowiki>#</nowiki> ========== 1. صفحه جلویی ==========
+
+front_panel = Part.makeBox(width, height, panel_thickness)
+
+Part.show(front_panel)
+
+<nowiki>#</nowiki> ========== 2. قاب جلو ==========
+
+frame_outer = Part.makeBox(width, height, frame_thickness)
+
+frame_inner = Part.makeBox(width - 2*frame_offset, height - 2*frame_offset, frame_thickness)
+
+frame_inner.translate(FreeCAD.Vector(frame_offset, frame_offset, 0))
+
+frame = frame_outer.cut(frame_inner)
+
+Part.show(frame)
+
+<nowiki>#</nowiki> ========== 3. تابع ساخت سوراخ‌های LED ==========
+
+def create_hole_pattern(cx, cy, radius, count, hole_diameter):
+
+    holes = []
+
+    for i in range(count):
+
+        angle = i * (2 * math.pi / count)
+
+        x = cx + radius * math.cos(angle)
+
+        y = cy + radius * math.sin(angle)
+
+        hole = Part.makeCylinder(hole_diameter/2, panel_thickness)
+
+        hole.translate(FreeCAD.Vector(x, y, 0))
+
+        holes.append(hole)
+
+    return holes
+
+<nowiki>#</nowiki> OLED 1: 16 LED
+
+holes_oled1 = create_hole_pattern(55, 60, 30, 16, hole_diameter)
+
+<nowiki>#</nowiki> OLED 2: 4 rings of 8 LEDs
+
+holes_oled2 = []
+
+holes_oled2.extend(create_hole_pattern(145, 60, 18, 8, hole_diameter))
+
+holes_oled2.extend(create_hole_pattern(145, 100, 18, 8, hole_diameter))
+
+holes_oled2.extend(create_hole_pattern(110, 60, 18, 8, hole_diameter))
+
+holes_oled2.extend(create_hole_pattern(180, 60, 18, 8, hole_diameter))
+
+<nowiki>#</nowiki> ========== 4. ایجاد سوراخ‌ها روی صفحه ==========
+
+all_holes = holes_oled1 + holes_oled2
+
+for hole in all_holes:
+
+    front_panel = front_panel.cut(hole)
+
+<nowiki>#</nowiki> ========== 5. نشانگرهای OLED ==========
+
+oled1 = Part.makeBox(40, 20, 0.5)
+
+oled1.translate(FreeCAD.Vector(35, 50, panel_thickness))
+
+oled2 = Part.makeBox(40, 20, 0.5)
+
+oled2.translate(FreeCAD.Vector(125, 50, panel_thickness))
+
+front_panel = front_panel.fuse(oled1)
+
+front_panel = front_panel.fuse(oled2)
+
+<nowiki>#</nowiki> ========== 6. سوراخ‌های پیچ (M3) ==========
+
+screw_positions = [(10, 10), (190, 10), (10, 110), (190, 110)]
+
+for pos in screw_positions:
+
+    screw = Part.makeCylinder(1.5, panel_thickness)
+
+    screw.translate(FreeCAD.Vector(pos[0], pos[1], 0))
+
+    front_panel = front_panel.cut(screw)
+
+<nowiki>#</nowiki> ========== 7. باکس داخلی ==========
+
+box_inner = Part.makeBox(width - 16, height - 16, box_depth)
+
+box_inner.translate(FreeCAD.Vector(8, 8, panel_thickness - box_depth))
+
+front_panel = front_panel.cut(box_inner)
+
+<nowiki>#</nowiki> ========== 8. درپوش پشتی ==========
+
+lid = Part.makeBox(width - 10, height - 10, 2.5)
+
+lid.translate(FreeCAD.Vector(5, 5, -2.5))
+
+Part.show(lid)
+
+<nowiki>#</nowiki> ========== نمایش نهایی ==========
+
+Part.show(front_panel)
+
+doc.recompute()
+
+print("✅ طراحی کامل شد!")
+
+print("📁 برای خروجی STL:")
+
+print("   1. روی قطعه کلیک راست کنید")
+
+print("   2. Export → STL را انتخاب کنید") [[Special:Contributions/212.115.103.145|212.115.103.145]] 18:48, 4 July 2026 (UTC)
