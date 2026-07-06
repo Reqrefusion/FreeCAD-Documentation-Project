@@ -1,40 +1,17 @@
+# Macro Documentation Maintenance
 
-# Gordian Knot
+This directory contains a script (`update_macros.py`) that automatically fetches the latest FreeCAD macros from the official repository and generates a markdown listing (`macros_list.md`).
 
-The FreeCAD documentation project.
+## Usage
 
-<br/>
+1. Ensure Python 3 and `requests` library are installed: `pip install requests`
+2. Run the script: `python update_macros.py`
+3. The file `macros_list.md` will be created/updated.
 
-## Editing
+## Integration
 
-Because of the large amount of data stored  
-within this repository, we recommend to edit    
-files directly in GitHub for common changes.
+This script can be scheduled as a cron job or GitHub Actions workflow to keep the macros documentation up-to-date.
 
-[» Read GitHub's guide on how to edit files.][Edit-Files]
+## Note
 
-Do not add T tags yourself; only modify the files in the wiki root directory, do not touch the translation files. Please check the latest version and ensure that the information you are adding has not been added previously. Also, be sure to cite the source of your change. Regression corrections should not be added to the documentation. And it should never contain information that the end user shouldn't know. "It's working as it should" isn't enough to be included. The reasons for each change made, along with their sources, should be explained individually.
-
-<br/>
-
-## Backstory
-
-While I was thinking about what the project did,  
-I thought it would be nice to name it Gordian Knot. 
-
-Because in my opinion, APIs are a thread and  
-this project connects these APIs together. 
-
-Unlike other projects, it does it  
-without separating it into threads. 
-
-Actually, this idiom is about using brute force, but since  
-it's the most famous knot in history, it's probably okay.
-
-[» Check out the technical details on the repo wiki.][GitHub-Wiki]
-
-<br/>
-
-
-[GitHub-Wiki]: https://github.com/Reqrefusion/FreeCAD-Documentation-Project/wiki
-[Edit-Files]: https://docs.github.com/en/repositories/working-with-files/managing-files/editing-files#editing-files-in-your-repository
+The script expects the JSON data from the macro repository to be a list of macro objects or a dict with a "macros" key. Adjust the parsing if the source format changes.
