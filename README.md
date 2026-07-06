@@ -1,40 +1,21 @@
+# FreeCAD Macros Documentation Maintenance
 
-# Gordian Knot
+This folder contains scripts and templates to maintain the FreeCAD Macros documentation.
 
-The FreeCAD documentation project.
+## Files
 
-<br/>
+- `maintain_macros.py` - Python script to fetch the macros list and generate a markdown file.
+- `Macros_list.md` - Output file (generated).
 
-## Editing
+## Usage
 
-Because of the large amount of data stored  
-within this repository, we recommend to edit    
-files directly in GitHub for common changes.
+Run the script:
+```
+python maintain_macros.py
+```
 
-[» Read GitHub's guide on how to edit files.][Edit-Files]
+The script will attempt to fetch the macros JSON from the configured URL. If that fails, it uses a placeholder list.
 
-Do not add T tags yourself; only modify the files in the wiki root directory, do not touch the translation files. Please check the latest version and ensure that the information you are adding has not been added previously. Also, be sure to cite the source of your change. Regression corrections should not be added to the documentation. And it should never contain information that the end user shouldn't know. "It's working as it should" isn't enough to be included. The reasons for each change made, along with their sources, should be explained individually.
+## Notes
 
-<br/>
-
-## Backstory
-
-While I was thinking about what the project did,  
-I thought it would be nice to name it Gordian Knot. 
-
-Because in my opinion, APIs are a thread and  
-this project connects these APIs together. 
-
-Unlike other projects, it does it  
-without separating it into threads. 
-
-Actually, this idiom is about using brute force, but since  
-it's the most famous knot in history, it's probably okay.
-
-[» Check out the technical details on the repo wiki.][GitHub-Wiki]
-
-<br/>
-
-
-[GitHub-Wiki]: https://github.com/Reqrefusion/FreeCAD-Documentation-Project/wiki
-[Edit-Files]: https://docs.github.com/en/repositories/working-with-files/managing-files/editing-files#editing-files-in-your-repository
+Ensure you have network access to fetch the macros list. The URLs and format may need adjustment as the FreeCAD macros repository evolves.
