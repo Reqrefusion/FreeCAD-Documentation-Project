@@ -5,36 +5,87 @@
 {{Macro
 |Name=Macro Get Global Placement
 |Icon=Macro_GetGlobalPlacement.png
-|Description=Gets the global placement of selected objects, respecting links, link arrays, and link scales
+|Description=Retrieves and displays the global (world) placement of selected objects, fully respecting Part containers, links, link arrays, and link scales. Essential for working with complex nested assemblies where local and global coordinates differ.
 |Author=galou_breizh, Jolbas
 |Version=1.1.2
 |Date=2023-02-27
-|FCVersion=All
+|FCVersion=0.19 and above
 |Download=[https://raw.githubusercontent.com/FreeCAD/FreeCAD-macros/master/Information/GetGlobalPlacement.FCMacro Script]
+|SeeAlso=[[Macro_FCInfo|Macro FCInfo]], [[Macro_SimpleProperties|Macro SimpleProperties]], [[Placement|Placement]]
 }}
 
 ==Description== <!--T:2-->
 
 <!--T:3-->
-This macro retrieves the global placement of selected objects in the 3D view, taking into account links, link arrays, and link scales. The result is displayed in the Report View. This is useful when working with complex assemblies where objects are nested inside multiple links and you need to determine their absolute position in world coordinates.
+When working with complex assemblies in FreeCAD, objects are often nested inside Part containers, link arrays, or linked across documents. Each nesting level applies its own placement transformation, making it difficult to determine the absolute (world) coordinates of a selected object.
 
-==Usage== <!--T:4-->
+This macro solves that problem by:
 
-<!--T:5-->
+* Traversing the full hierarchy of containers, links, and link arrays
+* Accumulating all placement transformations along the chain
+* Displaying the final global placement (position, rotation, and scale) in the Report View
+* Supporting link scales, which most other tools ignore
+
+</translate>
+[[File:GetGlobalPlacement_example.png|400px|thumb|left|Screenshot showing the macro output in the Report View]]
+<translate>
+
+<!--T:4-->
+{{clear}}
+
+==Usage== <!--T:5-->
+
+<!--T:6-->
 # Select one or more objects or sub-elements in the 3D view
-# Run the macro
-# The global placement information will be displayed in the Report View ({{MenuCommand|View → Panels → Report view}})
-# The output includes the X, Y, Z position and rotation for each selected object
+# Run the macro from {{MenuCommand|Macro → Macros → Get Global Placement → Execute}}
+# The results will appear in the {{MenuCommand|View → Panels → Report view}} panel
+# For each selected object, the output includes:
 
-==Script== <!--T:6-->
+===Output Format=== <!--T:7-->
 
-<!--T:7-->
-The latest version of the macro is available at: [https://raw.githubusercontent.com/FreeCAD/FreeCAD-macros/master/Information/GetGlobalPlacement.FCMacro GitHub]
+<!--T:8-->
+The Report View shows the global placement in the following format:
+{{Code|code=
+=== Object Name ===
+Placement: [X, Y, Z, Rotation Axis: (rx, ry, rz), Angle: deg]
+Global Scale: [sx, sy, sz]
+}}
+* **Position (X, Y, Z)**: World coordinates of the object's origin
+* **Rotation**: Rotation axis and angle in degrees
+* **Scale**: Global scale factor, accounting for link scale transformations
 
-==Links== <!--T:8-->
+===Example=== <!--T:9-->
 
-<!--T:9-->
+<!--T:10-->
+For an object nested inside a Part container with a placement of {{incode|App.Placement(App.Vector(100,0,0), App.Rotation()}} and inside a link with scale {{incode|2.0}}, the macro will output:
+{{Code|code=
+=== MyPart.MyObject ===
+Placement: [200.00, 0.00, 0.00, Rotation Axis: (0.00, 0.00, 1.00), Angle: 0.00°]
+Global Scale: [2.00, 2.00, 2.00]
+}}
+
+==Notes== <!--T:11-->
+
+<!--T:12-->
+* Works with all object types, including bodies, sketches, and datum geometry
+* Fully supports nested link arrays (App::LinkArray, App::LinkGroup)
+* The macro does NOT modify any object — it only reads and displays placement data
+* Results are read-only and output to the Report View; copy them from there as needed
+* If nothing appears in the Report View, ensure it is enabled: {{MenuCommand|View → Panels → Report view}}
+
+==Script== <!--T:13-->
+
+<!--T:14-->
+The latest version of the macro is available at:
+[https://raw.githubusercontent.com/FreeCAD/FreeCAD-macros/master/Information/GetGlobalPlacement.FCMacro GitHub]
+
+==Links== <!--T:15-->
+
+<!--T:16-->
 * [https://github.com/FreeCAD/FreeCAD-macros/tree/master/Information Official repository]
+* [[Macro_FCInfo|Macro FCInfo]] — for detailed object property inspection
+* [[Macro_SimpleProperties|Macro SimpleProperties]] — for basic object properties
+* [[Placement|Placement]] — FreeCAD documentation on object placement
 
 </translate>
 
