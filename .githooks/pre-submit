@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Pre-submit hook — runs quality gate before any submission goes out.
+Drop this file in any repo's .githooks/ or run manually before PR.
+Usage: python3 .githooks/pre-submit <rubric> [--checks check1,check2,...]
+       python3 .githooks/pre-submit documentation
+       python3 .githooks/pre-submit hackerone_report --checks reproducible,impact,evidence
+"""
+import json, os, sys, subprocess
+
+BASE = "/root/.hermes/profiles/bounty-brain"
+sys.path.insert(0, os.path.join(BASE, "home"))
+from quality_gate import validate_before_submit, RUBRICS
+
+HOOKS = {
+    "pre-commit": """
+# Quality Gate pre-commit hook
+# Installed by Bounty Brain to enforce 9+/10 before every submission
+CHECK_FILE=".githooks/pre-submit"
+if [ -f "$CHECK_FILE" ]; then
+    RUBRIC="${1:-documentation}"
+    python3 "$CHECK_FILE" "$RUBRIC" || exit 1
+fi
+"""
+}
+
+def install_hooks(repo_path):
+    """Install quality gate hooks into a repo"""
+    hooks_dir = os.path.join(repo_path, ".githooks")
+    os.makedirs(hooks_dir, exist_ok=True)
+    
+    hook_path = os.path.join(hooks_dir, "pre-submit")
+    with open(__file__) as f:
+        content = f.read()
+    with open(hook_path, "w") as f:
+        f.write(content)
+    os.chmod(hook_path, 0o755)
+    
+    print(f"✅ Installed pre-submit hook in {hooks_dir}")
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: .githooks/pre-submit <rubric> [check1,check2,...]")
+        print(f"Rubrics: {', '.join(RUBRICS.keys())}")
+        sys.exit(1)
+    
+    rubric = sys.argv[1]
+    checks_override = None
+    
+    if len(sys.argv) > 2:
+        check_ids = sys.argv[2].split(",")
+        checks_override = [{"id": cid, "check": True} for cid in check_ids]
+    
+    passed = validate_before_submit(rubric, checks_override)
+    sys.exit(0 if passed else 1)
+
+if __name__ == "__main__":
+    # If run with --install, install hooks
+    if len(sys.argv) > 1 and sys.argv[1] == "--install":
+        repo = sys.argv[2] if len(sys.argv) > 2 else os.getcwd()
+        install_hooks(repo)
+    else:
+        main()
