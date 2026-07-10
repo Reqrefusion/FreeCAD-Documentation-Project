@@ -1,0 +1,257 @@
+<languages/>
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{VeryImportantMessage|Robots are intrinsically dangerous as they can automatically do a lot of damage. Use with extreme care!}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Overview==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Repetitive tasks can be automated using robots or bots, i.e. software programs operating on the wiki by themselves.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The natural and most commonly used robots for wiki sites are provided by MediaWiki, under the package name Pywikibot. See [https://www.mediawiki.org/wiki/Manual:Pywikibot Manual:Pywikibot] for the full information.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In a nutshell, Pywikibot is a collection of Python scripts able to use the native wiki API to act on wiki sites. To see the API list for the FreeCAD wiki, visit https://wiki.freecad.org/api.php
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In order to use Pywikibot, you need to:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+# install the Pywikibot package
+# configure Pywikibot to work on the FreeCAD Wiki
+# launch the scripts you need for the task at hand
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+There is a wealth of information on how to install, configure and use Pywikibot. However, please be aware that this information, although useful, can be misleading, since it mixes instructions related to two different Pywikibot codebases, and different versions of the Pywikibot scripts collection.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the following, you will find the basic instructions to set up and use Pywikibot on the FreeCAD wiki. This will allow you to perform the most common tasks. For advanced usage, refer to the [https://www.mediawiki.org/wiki/Manual:Pywikibot Manual:Pywikibot], and to the Python source code.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Installation==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Go to https://web.archive.org/web/20250616133422/https://pywikibot.toolforge.org/ and download {{FileName|package/pywikipedia/core.zip}} (the project is also under github, gerrit, etc. but this is a simple way to get a full self-contained package).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Unzip the content in your preferred directory.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Unless you want to install the libraries into your Python libs, you are done (if you still want to install them, check the file {{FileName|INSTALL}} in the base directory).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Pywikibot works with Python 2.6 and 2.7 with no issues. Python 3 <s>has been not tested so far with FreeCAD wiki</s> works as well.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Configuration==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You must save the following Python code as a file with the name {{FileName|user-config.py}} in the base directory where you unzipped {{FileName|package/pywikipedia/core.zip}} (to be clear, in the same directory where you already find a file called {{FileName|user-config.py.sample}}).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Code|code=
+# -*- coding: cp437  -*-
+family = 'freecadwiki'
+mylang = 'en'
+usernames['freecadwiki']['en'] = u'<<yourWikiUserName>>'
+#usernames['freecadwiki']['freecadwiki'] = u'<<yourWikiUserName>>'
+console_encoding = 'cp437'
+}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the above code:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* replace ''<<yourWikiUserName>>'' with your Wiki user name
+* replace ''cp437'' with your ''console_encoding''. To find out what is your console encoding, for Windows and Linux, launch the Python interpreter, enter {{SystemInput|import sys}} followed by {{SystemInput|print sys.stdout.encoding}}. Python will write your {{SystemOutput|console_encoding}} on the screen.
+</div>
+
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Then you must save the following Python code as a file with the name {{FileName|freecadwiki_family.py}} under the sub-directory {{FileName|/pywikibot/families}} (together with the other {{FileName|family_xxx.py}} files).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Code|code=
+# -*- coding: utf-8  -*-
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+__version__ = '$Id: 7f3891c3bbbfbd69c0b005de953514803d783d92 $'
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+from pywikibot import family
+</div>
+
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+# The MediaWiki family
+# user-config.py: usernames['mediawiki']['mediawiki'] = 'User name'
+class Family(family.WikimediaFamily):
+    def __init__(self):
+        super(Family, self).__init__()
+        self.name = 'freecadwiki'
+</div>
+
+        <div lang="en" dir="ltr" class="mw-content-ltr">
+self.langs = {
+            'en': 'www.freecad.org',
+        }
+</div>
+
+    <div lang="en" dir="ltr" class="mw-content-ltr">
+def scriptpath(self, code):
+        return 'wiki'
+</div>
+
+    <div lang="en" dir="ltr" class="mw-content-ltr">
+def path(self, code):
+        return '/index.php' #The path of index.php, look at your wiki address. 
+	 
+    def apipath(self, code):
+        return '/api.php' #The path of api.php
+</div>
+
+    <div lang="en" dir="ltr" class="mw-content-ltr">
+def version(self, code):
+        # Replace with the actual version being run on your wiki
+        return '1.20.3'
+</div>
+
+    <div lang="en" dir="ltr" class="mw-content-ltr">
+def protocol(self, code):
+        """
+        Can be overridden to return 'https'. Other protocols are not supported.
+        """
+        return 'http'
+        #return 'https' # My server uses https
+}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Usage==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You are now all set to launch the Pywikibot scripts. The scripts themselves are contained in the {{FileName|/scripts}} subdirectory, from which you can know the names.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To launch the scripts, open a shell and move to the base directory (the installation one, NOT the {{FileName|/scripts}} subdirectory), and write
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{SystemInput|python pwb.py <<scriptname>>.py -<<parameter>>}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+where of course you replace ''<<scriptname>>'' with the name of the script you are interested in, and ''<<parameter>>'' with the parameter(s) required for the given script.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To have a description of the usage and parameters of any script, simply use the ''-help'' parameter. For instance, to have a description of the {{FileName|replace.py}} script (one of the most useful), type
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{SystemInput|python pwb.py replace.py -help}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+There is another very useful parameter, valid for all the scripts, called ''-simulate'', that allows you to test commands without harming the Wiki. Use it, before going 'live'.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Examples==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This command will log into the wiki
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{SystemInput|pwb.py login.py}}
+</div>
+
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This command will print a list of all the pages containing a link to SourceForge
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{SystemInput|pwb.py listpages.py -weblink:sourceforge.net}}
+</div>
+
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This command will replace all the links to the old SourceForge Forum with a link to the new freecad.org-hosted Forum
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{SystemInput|pwb.py replace.py -weblink:sourceforge.net/apps/phpbb/free-cad "sourceforge.net/apps/phpbb/free-cad" "forum.freecad.org"}}
+</div>
+
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This command will print a list of all the pages containing the word 'PartDesign', starting with the page titled "2d Drafting Module" and going on alphabetically
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{SystemInput|pwb.py listpages.py -start:"2d Drafting Module" -grep:PartDesign}}
+</div>
+
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This command will replace all the secure links to the old SourceForge Forum with a link to the new freecad.org-hosted Forum in the translated pages
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{SystemInput|pwb.py replace.py -start:Translations:! "https://sourceforge.net/apps/phpbb/free-cad" "https://forum.freecad.org"}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== FreeCAD Wiki Related Commands ==
+Count all pages that a specific wiki templates is used in
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{SystemInput|python3 pwb.py templatecount -count GuiCommand}}
+</div> 
+
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+List all pages that a specific wiki templates is used in
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{SystemInput|python3 pwb.py templatecount -list GuiCommand}}
+</div> 
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Replace a string in all the pages listed in the Arch category
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{SystemInput|python3 pwb.py replace.py -cat:Arch}}
+</div>
+[[Category:Administration{{#translation:}}]]
+[[Category:Developer{{#translation:}}]]
