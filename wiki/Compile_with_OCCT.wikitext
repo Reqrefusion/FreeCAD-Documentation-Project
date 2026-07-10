@@ -157,3 +157,55 @@ ninja
 }}
 
 If you start FreeCAD in this directory and you check the information and libraries, FreeCAD should report the version of OCCT of your particular commit in the OCCT source.
+
+== (Optional) Merge the compilation commands ==
+
+If you want to debug FreeCAD and OCCT at the same time, your tooling will need to be aware of the compilation commands of both FreeCAD and OCCT.
+
+Since you probably want to open the files from the FreeCAD source code directory {{incode|/home/user/freecad-occt-main}}, you can create a file {{incode|/home/user/freecad-occt-main/compile_commands.json}} that contains the compilation commands from both builds.
+
+The script below can be executed as follows:
+
+{{Code|lang=bash|code=
+cd /home/user/freecad-occt-main
+merge-compile-commands \
+  /scratch/build-occt-main/compile_commands.json \
+  /scratch/build-freecad-occt-main/compile_commands.json
+}}
+
+The script {{incode|merge-compile-commands}} should be accessible and executable:
+
+{{Code|lang=python|code=
+#!/bin/env python
+
+import json
+import os
+import sys
+
+
+def load(path):
+    with open(path, "r") as f:
+        return json.load(f)
+
+def merge(files):
+    merged = []
+    for p in files:
+        merged += load(p)
+    return merged
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: merge-compile-commands /build1/compile_commands.json /build2/compile_commands.json")
+        print("  Do this in the source tree from where you open files.")
+        sys.exit(1)
+    in_paths = sys.argv[1:]
+    OUT_PATH = "compile_commands.json"
+
+    if os.path.exists(OUT_PATH):
+        os.remove(OUT_PATH)
+    merged = merge(in_paths)
+    with open(OUT_PATH, "w") as f:
+        json.dump(merged, f, indent=2)
+    print(f"Wrote {len(merged)} entries to {OUT_PATH}")
+
+}}
