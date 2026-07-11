@@ -1,0 +1,284 @@
+<languages/>
+
+<span id="Overview"></span>
+== Présentation ==
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To build FreeCAD with a specific version of OpenCASCADE (OCCT), first make sure you can compile FreeCAD using the standard OCCT on your system. After that the steps are the following:
+# Getting the OCCT source code.
+# Configure OCCT.
+# Compile OCCT.
+# Create a distribution (installation) of OCCT.
+# Configure FreeCAD.
+# Compile FreeCAD linking to the distribution.
+# Optionally, merge the compilation commands for cross FreeCAD/OCCT debugging.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the rest, I will assume a Linux install, but the process is very similar for a Windows or MacOS build.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Getting the OCCT source code ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+For the remainder of this page, we assume that we store the OCCT source code in {{Incode|/home/user/occt-main}}. Given this, execute the following command.
+</div>
+
+{{Code|lang=bash|code=
+git clone https://github.com/Open-Cascade-SAS/OCCT.git /home/user/occt-main
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The source of OCCT will be in their main branch. From there you can easily make multiple worktrees.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Configure OCCT ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To build OCCT, it is useful to determine a build directory and an installation directory, for example:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{| class="wikitable"
+|-
+| source directory || {{Incode|/home/user/occt-main}}
+|-
+| build directory || {{Incode|/scratch/build-occt-main}}
+|-
+| install directory || {{Incode|/scratch/dist-occt-main}}
+|}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Once we have determined that, we can create a {{Incode|CMakeUserPresets.json}} file in the root of the source directory (note that we need to be explicit about the installation directory):
+</div>
+
+{{Code|lang=json|code=
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 19,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "debug",
+      "description": "Preset for a debug build",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "INSTALL_DIR": "/scratch/dist-occt-main",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "USE_RAPIDJSON": "ON"
+      }
+    }
+  ]
+}
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Now that we have configured OCCT, we can execute the following commands to compile it:
+</div>
+
+{{Code|lang=bash|code=
+mkdir /scratch/build-occt-main
+cd /scratch/build-occt-main
+cmake --preset debug /home/user/occt-main
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Compile OCCT ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+I typically simply compile with (assuming I'm still in the build directory):
+</div>
+
+{{Code|lang=bash|code=
+ninja
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Create a distribution ==
+</div> 
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To create a distribution and install it in the install directory, simply execute the following command, assuming that we're still in the build directory:
+</div>
+
+{{Code|lang=bash|code=
+ninja install
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+We have no successfully installed OCCT in such a way that FreeCAD can link to it.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Configure FreeCAD ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+It may be useful to create a worktree or a git repository that refers to the OCCT distribution that you're using, so let's assume that we have a worktree or git repository with FreeCAD's source and build directory as follows:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{| class="wikitable"
+|-
+| source directory || {{Incode|/home/user/freecad-occt-main}}
+|-
+| build directory || {{Incode|/scratch/build-freecad-occt-main}}
+|}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Note that we don't need an installation directory because we can directly run FreeCAD from the build directory.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Given this information, we can create a {{Incode|CMakeUserPresets.json}} that we store in FreeCAD's source code:
+</div>
+
+{{Code|lang=json|code=
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "occt",
+      "displayName": "Debug build with custom OCCT",
+      "description": "User-specific debug build with custom OCCT.",
+      "inherits": [
+	"common"
+      ],
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "FREECAD_USE_OCC_VARIANT": "Official Version",
+        "CMAKE_PREFIX_PATH": "/scratch/dist-occt-main",
+        "FREECAD_USE_PCL": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "FREECAD_QT_VERSION": "6",
+        "BUILD_FEM": "OFF",
+        "BUILD_OPENSCAD": "OFF",
+        "BUILD_REVERSEENGINEERING": "OFF",
+        "BUILD_ROBOT": "OFF",
+        "BUILD_POINTS": "OFF",
+        "BUILD_SMESH": "OFF",
+        "BUILD_WEB": "OFF",
+        "BUILD_SURFACE": "ON",
+        "BUILD_INSPECTION": "OFF"
+      }
+    }
+  ]
+}
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Note that we filled in the installation directory of OCCT. Some modules are turned off to diminish the compilation time as well.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Configuring FreeCAD boils down to:
+</div>
+
+{{Code|lang=bash|code=
+mkdir /scratch/build-freecad-occt-main
+cd /scratch/build-freecad-occt-main
+cmake --preset occt /home/user/freecad-occt-main
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Pay attention to the report regarding OCCT. It should have found OCCT in {{Incode|/scratch/dist-occt-main}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If all of this is correct, we can compile FreeCAD.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Compile FreeCAD ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Assuming we're still in the build directory, we can do:
+</div>
+
+{{Code|lang=bash|code=
+ninja
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you start FreeCAD in this directory and you check the information and libraries, FreeCAD should report the version of OCCT of your particular commit in the OCCT source.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== (Optional) Merge the compilation commands ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you want to debug FreeCAD and OCCT at the same time, your tooling will need to be aware of the compilation commands of both FreeCAD and OCCT.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Since you probably want to open the files from the FreeCAD source code directory {{Incode|/home/user/freecad-occt-main}}, you can create a file {{Incode|/home/user/freecad-occt-main/compile_commands.json}} that contains the compilation commands from both builds.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The script below can be executed as follows:
+</div>
+
+{{Code|lang=bash|code=
+cd /home/user/freecad-occt-main
+merge-compile-commands \
+  /scratch/build-occt-main/compile_commands.json \
+  /scratch/build-freecad-occt-main/compile_commands.json
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The script {{Incode|merge-compile-commands}} should be accessible and executable:
+</div>
+
+{{Code|lang=python|code=
+#!/bin/env python
+
+import json
+import os
+import sys
+
+
+def load(path):
+    with open(path, "r") as f:
+        return json.load(f)
+
+def merge(files):
+    merged = []
+    for p in files:
+        merged += load(p)
+    return merged
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: merge-compile-commands /build1/compile_commands.json /build2/compile_commands.json")
+        print("  Do this in the source tree from where you open files.")
+        sys.exit(1)
+    in_paths = sys.argv[1:]
+    OUT_PATH = "compile_commands.json"
+
+    if os.path.exists(OUT_PATH):
+        os.remove(OUT_PATH)
+    merged = merge(in_paths)
+    with open(OUT_PATH, "w") as f:
+        json.dump(merged, f, indent=2)
+    print(f"Wrote {len(merged)} entries to {OUT_PATH}")
+
+}}
+
+
+{{Userdocnavi{{#translation:}}}}
+[[Category:Developer_Documentation{{#translation:}}]]
+[[Category:Developer{{#translation:}}]]
