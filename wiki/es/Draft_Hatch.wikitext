@@ -126,8 +126,10 @@ Véase también: [https://freecad.github.io/SourceDoc/ Documentación de la API 
 Para crear un Sombreado, utilice el método {{incode|make_hatch}} del módulo Borrador.
 
 {{Code|code=
-hatch = make_hatch(baseobject, filename, pattern, scale, rotation)
+hatch = make_hatch(selection, filename, pattern, scale, rotation)
 }}
+
+Where {{Incode|selection}} can be a single object, a list of objects, a selection set with subelements: {{Incode|Gui.Selection.getSelectionEx("", 0)}} , or a LinkSubList-like iterable.
 
 Ejemplo: 
 
@@ -139,9 +141,16 @@ doc = App.newDocument()
 
 rectangle = Draft.make_rectangle(4000, 1000)
 rectangle.MakeFace = True
-filename = App.getHomePath() + "data/Mod/TechDraw/PAT/FCPAT.pat"
+filename = App.getResourceDir() + "Mod/TechDraw/PAT/FCPAT.pat"
 pattern = "Horizontal5"
-hatch = Draft.make_hatch(rectangle, filename, pattern, scale=50, rotation=45)
+hatch_rectangle = Draft.make_hatch(rectangle, filename, pattern, scale=50, rotation=45)
+
+box = doc.addObject("Part::Box")
+box.Length = 2000
+box.Width = 2000
+box.Height = 2000
+box.Placement.Base = App.Vector(5000, 0, 0)
+hatch_box = Draft.make_hatch([[box, ["Face3", "Face6"]]], filename, pattern, scale=75, rotation=45)
 
 doc.recompute()
 }}
