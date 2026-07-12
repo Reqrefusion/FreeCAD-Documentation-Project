@@ -52,9 +52,13 @@ Der Befehl [[Image:Draft_Hatch.svg|24px]] '''Draft Schraffur''' erzeugt Schraffu
 <span id="Pattern_alignment"></span>
 ==Schraffur-Ausrichtung==
 
+<div class="mw-translate-fuzzy">
 Wenn das Schraffurmuster für eine Fläche berechnet wird, wird es standardmäßig vorübergehend in die globale XY-Ebene übersetzt. Bei einer Fläche mit geraden Kanten bestimmt die erste gerade Kante, wie dies geschieht. Der erste Punkt dieser Kante wird auf den Ursprung gelegt und die Kante selbst wird an der X-Achse ausgerichtet. Wenn ein [[Draft_Wire/de|Draft-Linienzug]] in diesem Sinne erstellt wird, kann gesteuert werden, wie das Schraffurmuster an der Kontur der Fläche ausgerichtet wird.
+</div>
 
+<div class="mw-translate-fuzzy">
 Wenn alle Flächen des ausgewählten Objekts auf der globalen XY-Ebene liegen, kann dieses Standardverhalten ausgeschaltet werden, indem die Eigenschaft {{PropertyData/de|Translate}} der Draft-Schraffur auf {{FALSE}} gesetzt wird. Das Schraffurmuster wird dann mit dem Ursprung und der X-Achse des globalen Koordinatensystems ausgerichtet. Für Flächen auf der XY-Ebene mit geraden Kanten kann die Eigenschaft {{PropertyData/de|Translate}} verwendet werden, um zwischen absoluten (links im Bild) und relativen (rechts im Bild) Mustern zu wechseln.
+</div>
 
 [[Image:Draft_Hatch_alignment.png|400px]]
 {{Caption|
@@ -110,8 +114,10 @@ Siehe auch: [https://freecad.github.io/SourceDoc/ Autogenerierte API-Dokumentati
 Zum Erstellen einer Draft-Schraffur wird die Methode {{incode|make_hatch}} des Draft-Moduls verwendet:
 
 {{Code|code=
-hatch = make_hatch(baseobject, filename, pattern, scale, rotation)
+hatch = make_hatch(selection, filename, pattern, scale, rotation)
 }}
+
+Where {{Incode|selection}} can be a single object, a list of objects, a selection set with subelements: {{Incode|Gui.Selection.getSelectionEx("", 0)}} , or a LinkSubList-like iterable.
 
 Beispiel: 
 
@@ -123,9 +129,16 @@ doc = App.newDocument()
 
 rectangle = Draft.make_rectangle(4000, 1000)
 rectangle.MakeFace = True
-filename = App.getHomePath() + "data/Mod/TechDraw/PAT/FCPAT.pat"
+filename = App.getResourceDir() + "Mod/TechDraw/PAT/FCPAT.pat"
 pattern = "Horizontal5"
-hatch = Draft.make_hatch(rectangle, filename, pattern, scale=50, rotation=45)
+hatch_rectangle = Draft.make_hatch(rectangle, filename, pattern, scale=50, rotation=45)
+
+box = doc.addObject("Part::Box")
+box.Length = 2000
+box.Width = 2000
+box.Height = 2000
+box.Placement.Base = App.Vector(5000, 0, 0)
+hatch_box = Draft.make_hatch([[box, ["Face3", "Face6"]]], filename, pattern, scale=75, rotation=45)
 
 doc.recompute()
 }}
