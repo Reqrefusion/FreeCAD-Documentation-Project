@@ -1,0 +1,199 @@
+<languages/>
+
+== Overview ==
+
+This page is a cheat sheet for the OpenCASCADE Draw tool.  Important links:
+* [[#Cheat_sheet|The cheat sheet]]
+* The [https://dev.opencascade.org/doc/overview/html/occt_user_guides__test_harness.html OpenCASCADE Draw user guide]
+* [[#Background_information|Background information]]
+
+=== Cheat sheet ===
+
+==== Initialization ====
+
+Load all modules:
+
+{{Code|lang=tcl|code=
+pload ALL
+}}
+
+Load a Draw/tcl file (for example {{Incode|test.tcl}}):
+
+{{Code|lang=tcl|code=
+source test.tcl
+}}
+
+Find files in your system:
+
+{{Code|lang=tcl|code=
+pwd
+cd ..
+ls
+}}
+
+==== Restore a BREP file ====
+
+Restore file {{Incode|model.test}} into variable {{Incode|model}}:
+
+{{Code|lang=tcl|code=
+restore model.test model
+}}
+
+==== Display a model ====
+
+Display model {{Incode|model}}:
+
+{{Code|lang=tcl|code=
+vdisplay model
+vfit
+}}
+
+==== Find an edge or face in the model ====
+
+Display the model first.
+
+For edges, choose selection mode 2, for faces selection mode 4:
+
+{{Code|lang=tcl|code=
+vselmod 2 on
+}}
+
+Pick an edge or face in the window and find the number of the edge or face:
+
+{{Code|lang=tcl|code=
+vstate
+}}
+
+It will say something like this:
+
+{{Code|code=
+Locally selected sub-shapes within model:
+       Edge #4
+}}
+
+Explode model {{Incode|model}} with {{Incode|e}} for edges or {{Incode|f}} for faces:
+
+{{Code|lang=tcl|code=
+explode model e
+}}
+
+You can access edge #4 with {{Incode|model_4}}, for example displaying it:
+
+{{Code|lang=tcl|code=
+vdisplay model_4
+}}
+
+Get a subshape of a model {{Incode|model}} directly, face 3 and display it:
+
+{{Code|lang=tcl|code=
+subshape model f 3
+vdisplay model_3
+}}
+
+==== Checking shapes ====
+
+Various commands to check shape {{Incode|shape}}:
+
+{{Code|lang=tcl|code=
+checkshape shape
+bopcheck shape
+whatis shape
+nbshapes shape
+}}
+
+==== Tolerances ====
+
+Investigate the tolerances of shape {{Incode|shape}}:
+
+{{Code|lang=tcl|code=
+toler shape
+dump shape
+}}
+
+Set the tolerance of a shape {{Incode|shape}}:
+
+{{Code|lang=tcl|code=
+dset tolerance 0.0001
+settolerance shape tolerance
+}}
+
+==== Fillets and chamfers ====
+
+Create a fillet with radius 0.5 or a chamfer with distance 0.5 on the first edge of {{Incode|model}} and store it in shape {{Incode|result}}.  Notice that the position of the radius and distance is reversed for the two different calls, for fillet:
+
+{{Code|lang=tcl|code=
+blend result model 0.5 model_1
+}}
+
+For chamfer:
+
+{{Code|lang=tcl|code=
+chamf result model model_1 0.5
+}}
+
+==== Create a box ====
+
+Create a box {{Incode|b}}
+
+{{Code|lang=tcl|code=
+box b 0 0 0 1 2 3
+}}
+
+=== Background information ===
+
+==== Installation ====
+
+The Draw program is typically installed together with your OpenCASCADE distribution.  On Linux, you can typically find the program in your path under {{Incode|DRAWEXE}}.
+
+If you followed [[Compile with OCCT]], you can find the Draw tool of the custom version in your distribution directory, in the {{Incode|bin}} directory of your distribution.
+
+To make sure that I load an OCCT Draw from a particular distribution, I have the following function in my {{Incode|$HOME/.bashrc}}:
+
+{{Code|lang=tcl|code=
+function set-occt() {
+    if [ -z "$1" ]; then
+	echo "Usage: set-occt <dir>"
+	return 1
+    fi
+    if [ ! -d "$1" ]; then
+	echo "Error: Directory $1 does not exist"
+	return 1
+    fi
+    pushd "$1" > /dev/null
+    export CASROOT=
+    export CSF_OCCTResourcePath=$PWD/share/opencascade/resources
+    export LD_LIBRARY_PATH=$PWD/lib:$LD_LIBRARY_PATH
+    export PATH=$PWD/bin:$PATH
+    source ./bin/env.sh
+    popd > /dev/null
+}
+}}
+
+Suppose I want to make use of the OCCT version that is in the following installation directory {{Incode|/scratch/dist-occt-main}}, I execute the following in my bash shell:
+
+{{Code|lang=bash|code=
+set-occt /scratch/dist-occt-main
+}}
+
+I verify whether the correct Draw program is really in my path:
+
+{{Code|lang=bash|code=
+which DRAWEXE
+}}
+
+This should print:
+
+{{Code||code=
+/scratch/dist-occt-main/bin/DRAWEXE
+}}
+
+You can verify the version number with:
+
+{{Code|lang=bash|code=
+DRAWEXE --help
+}}
+
+
+{{Userdocnavi{{#translation:}}}}
+[[Category:Developer_Documentation{{#translation:}}]]
+[[Category:Developer{{#translation:}}]]
