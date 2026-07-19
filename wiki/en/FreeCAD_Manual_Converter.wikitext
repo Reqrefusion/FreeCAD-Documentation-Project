@@ -31,7 +31,7 @@ The [[Manual:Introduction|FreeCAD Manual]] is a living document that continuousl
 # Install GTK3 runtime
 # Open Command Prompt and install Python packages:
 
-{{MacroCode|code=
+{{Code|code=
 pip install requests weasyprint beautifulsoup4 PyPDF2 Pillow cairosvg ebooklib
 }}
 
@@ -82,8 +82,9 @@ class FreeCADManualConverter:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+             "User-Agent": ("FreeCAD Manual Converter/1.0 " "(MediaWiki API client)" )
         })
+        self.api_url = "https://wiki.freecad.org/api.php"
         self.toc_entries = []  # Store chapter titles, subchapters, and hierarchy
         self.chapters_html = []  # Store HTML content for EPUB creation
         self.image_cache = {}  # Cache for deduplicating images
@@ -119,64 +120,128 @@ class FreeCADManualConverter:
         })
         self.toc_entries = []  # Store chapter titles, subchapters, and hierarchy
         self.chapters_html = []  # Store HTML content for EPUB creation
-
-    def extract_manual_links(self, base_url="https://wiki.freecad.org/Manual"):
-        """Extract all manual links and subchapters from the main Manual page."""
-        print(f"Fetching manual links from {base_url}...")
-        html_content = self.fetch_page(base_url)
-        if not html_content:
-            return []
-
-        soup = BeautifulSoup(html_content, 'html.parser')
+    
+    def extract_manual_links(self):
         links = {}
-        seen = set()
+        url = "https://wiki.freecad.org/Manual:Introduction"
+        visited = set()
 
-        # Define unwanted languages
-        excluded_languages = ['fr', 'de', 'es', 'hr', 'it', 'ko', 'pl', 'pt', 'ro', 'ru', 'zh']
+        while url and url not in visited:
+            visited.add(url)
+            links[url] = []
+            page = self.fetch_page(url)
+            url = self.find_next_page(
+                page["html"]
+            )
+            print(f"Next page: {url}") 
 
-        for a_tag in soup.find_all('a', href=True):
-            href = a_tag['href']
-            if any(f"/{lang}" in href for lang in excluded_languages):
-                continue
-
-            if href.startswith('/Manual:'):
-                full_url = f"https://wiki.freecad.org{href}"
-                base_chapter = full_url.split('#')[0]
-                subchapter = full_url.split('#')[1] if '#' in full_url else None
-
-                if base_chapter not in seen:
-                    links[base_chapter] = []
-                    seen.add(base_chapter)
-
-                if subchapter:
-                    links[base_chapter].append(subchapter)
-
-        print(f"Found {len(links)} unique manual links with subchapters.")
         return links
 
     def fetch_page(self, url):
-        """Fetch the HTML content of a given URL."""
-        if url.startswith('/'):
-            url = f"https://wiki.freecad.org{url}"
+        """
+        Fetch rendered HTML through the MediaWiki API.
+        """
+
+        if url.startswith("https://wiki.freecad.org/"):
+            title = url.replace(
+                "https://wiki.freecad.org/",
+                ""
+            )
+        else:
+            title = url
+
+        params = {
+            "action": "parse",
+            "page": title,
+            "prop": "text",
+            "format": "json",
+            "formatversion": "2"
+        }
 
         try:
-            response = self.session.get(url)
-            if response.status_code != 200:
-                print(f"Failed to fetch {url}. HTTP status code: {response.status_code}")
+            response = self.session.get(
+                self.api_url,
+                params=params,
+                timeout=30
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+            if "error" in data:
+                print(data["error"])
                 return None
-            return response.text
+        
+            parsed_title = data["parse"]["title"]
+            html = data["parse"]["text"]
+
+            # Check if this is a redirect page
+            soup = BeautifulSoup(html, "html.parser")
+
+            redirect = soup.find("div", class_="redirectMsg")
+
+            if redirect:
+                link = redirect.find("a", href=True)
+
+                if link:
+                    new_title = link["href"].replace("/Manual:", "Manual:")
+
+                    print(f"Redirect found: {title} -> {new_title}")
+
+                    return self.fetch_page(
+                        "https://wiki.freecad.org/" + new_title
+                    )
+
+            return {
+                "title": parsed_title,
+                "html": html
+            }
+
         except Exception as e:
-            print(f"Error fetching {url}: {e}")
+            print(f"Error fetching {title}: {e}")
             return None
+        
+    def find_next_page(self, html):  
+        soup = BeautifulSoup(html, "html.parser")
+        nav = soup.find("div", class_="docnav")
+
+        if nav is None:
+            print("DOCNAV NOT FOUND")
+            return None
+
+        links = []
+
+        for a in nav.find_all("a", href=True):
+            href = a["href"]
+
+            if href.startswith("/Manual:") and a.get_text(strip=True) != "Manual start":
+                links.append(href)
+
+        if len(links) == 0:
+            return None
+
+        # On a normal page:
+        # links[0] = previous
+        # links[1] = next
+        #
+        # On the start page:
+        # links[0] = next
+
+        if len(links) == 1:
+            return "https://wiki.freecad.org" + links[0]
+
+        return "https://wiki.freecad.org" + links[1]
 
     def extract_main_content(self, html_content, base_url, chapter_title, chapter_id, subchapters):
         """Extract content within the 'mw-parser-output' div, fix links, and process image paths."""
         soup = BeautifulSoup(html_content, 'html.parser')
 
         # Remove unwanted elements
-        for class_name in ['mw-pt-languages noprint', 'docnav', 'NavFrame', 'manualtoc']:
-            for element in soup.find_all(class_=class_name):
-                element.decompose()
+        for element in soup.select(
+            ".mw-pt-languages, .docnav, .NavFrame, .manualtoc, .mw-editsection"
+        ):
+            element.decompose()
 
         main_content = soup.find('div', class_='mw-parser-output')
         if not main_content:
@@ -233,13 +298,12 @@ class FreeCADManualConverter:
         print(f"Processing {url}...")
         os.makedirs(output_dir, exist_ok=True)
 
-        html_content = self.fetch_page(url)
-        if not html_content:
+        page_data = self.fetch_page(url)
+        if not page_data:
             return None
+        html_content = page_data["html"]
 
-        soup = BeautifulSoup(html_content, 'html.parser')
-        chapter_title = soup.title.string.split(" - ")[0] if soup.title else "Chapter"
-        chapter_title = chapter_title.replace("Manual:", "").strip()
+        chapter_title = page_data["title"].replace("Manual:", "").strip()
 
         base_url = "https://wiki.freecad.org"
         main_content = self.extract_main_content(html_content, base_url, chapter_title, chapter_id, subchapters)
@@ -541,7 +605,18 @@ class FreeCADManualConverter:
         # First create PDF as before
         pdf_files = []
         for chapter_number, (chapter_url, subchapters) in enumerate(links.items(), start=1):
-            chapter_id = re.sub(r'[<>:"/\\?*]', '_', chapter_url.split('/')[-1])
+            
+            chapter_title = chapter_url.replace(
+                "https://wiki.freecad.org/",
+                ""
+            )
+
+            chapter_id = re.sub(
+                r'[<>:"/\\?*]',
+                '_',
+                chapter_title
+            )
+
             pdf_file = self.convert_to_pdf(chapter_url, chapter_number, chapter_id, subchapters, output_dir)
             if pdf_file:
                 pdf_files.append(pdf_file)
