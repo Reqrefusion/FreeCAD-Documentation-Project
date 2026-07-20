@@ -6,8 +6,8 @@
 |Icon=Packages_icon.svg
 |Description=Gui front end for pip for installing/removing pypi packages in the FreeCAD Python environment.
 |Author=TheMarkster
-|Version=0.4
-|Date=2025.01.18
+|Version=0.6
+|Date=2026.07.19
 |FCVersion=1.0
 |Download=[https://wiki.freecad.org/images/c/c7/Packages_icon.svg ToolBar Icon]
 }}
@@ -55,7 +55,7 @@ ToolBar icon
 '''packages.py'''
 
 {{MacroCode|code=
-# packages.py
+# packages.FCMacro
 # 2024, <TheMarkster> LGPL 2.1 or later
 # thanks to forum member hasecilu for help with setting pyside6 icons
 # a utility to install Python packages in FreeCAD
@@ -63,10 +63,10 @@ ToolBar icon
 __Name__ = 'Packages'
 __Comment__ = 'This macro will install pypi packages into a special folder called AdditionalPythonPackages.'
 __Author__ = 'TheMarkster'
-__Version__ = '0.4'
+__Version__ = '0.6'
 __License__ = 'LGPL-2.1-or-later'
 __Wiki__ = 'https://wiki.freecad.org/index.php?title=Macro_Packages'
-__version__ = "0.4"
+__version__ = "0.6"
 __icon__ = """
 /* XPM */
 static char *dummy[]={
@@ -1321,13 +1321,10 @@ or distribution.""")
         additionalLayout.addWidget(QLabel("AdditionalPythonPackages folder:"))
         self.additionalEdit = QLineEdit()
         self.additionalEdit.setPlaceholderText("AdditionalPythonPackages folder goes here")
-        pathToPackages = self.pg.GetString("PathToPackages","")
-        if not pathToPackages:
-            pathToPackages = amutils.get_pip_target_directory()
-            if not os.path.exists(pathToPackages):
-                os.makedirs(pathToPackages)
-                self.pg.SetString("PathToPackages", pathToPackages)
-                FreeCAD.Console.PrintMessage("AdditionalPythonPackages folder has been created.  You will likely need to restart FreeCAD to use any newly installed packages.\n")
+        pathToPackages = amutils.get_pip_target_directory()
+        if not os.path.exists(pathToPackages):
+            os.makedirs(pathToPackages)
+            FreeCAD.Console.PrintMessage("AdditionalPythonPackages folder has been created.  You will likely need to restart FreeCAD to use any newly installed packages.\n")
         self.additionalEdit.setText(pathToPackages)
         self.additionalEdit.setReadOnly(True)
         additionalLayout.addWidget(self.additionalEdit)
@@ -1667,6 +1664,7 @@ have added.""")
 if __name__ == "__main__":
     dlg = Packages()
     if not FreeCADGui.Control.activeDialog():
+        doc = FreeCAD.ActiveDocument if FreeCAD.ActiveDocument else FreeCAD.newDocument()
         FreeCADGui.Control.showDialog(dlg)
     else:
         FreeCAD.Console.PrintError("Already there is an active task dialog.\n")
