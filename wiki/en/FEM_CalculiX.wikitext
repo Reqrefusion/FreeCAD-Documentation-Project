@@ -27,9 +27,10 @@ The input file that CalculiX uses can be prepared and edited before the solver i
 * force: N,
 * mass: tonne,
 * time: s,
-* stress: MPa,
+* pressure: MPa,
 * energy: mJ,
-* density: tonne/mm^3.
+* density: tonne/mm^3,
+* temperature: K.
 
 The CalculiX interface supports the following objects:
 
@@ -54,7 +55,7 @@ More details about the supported CalculiX elements can be found on the [[FEM_Mes
 * Frequency analysis
 * Linear buckling analysis
 * Coupled and uncoupled thermal-structural analysis, pure heat transfer analysis
-* Electrostatic analysis
+* Electrostatic analysis - only refactored CalculiX solver implementation
 
 === Materials ===
 
@@ -63,15 +64,58 @@ More details about the supported CalculiX elements can be found on the [[FEM_Mes
 
 == Postprocessing interface ==
 
-The FEM Workbench loads CalculiX results into a [[FEM_ResultShow|result object]] which will contain:
-* Displacements
-* Stresses
-* Strains
-* Equivalent plastic strain (PEEQ) – if nonlinear material was used
+The legacy CalculiX implementation ("SolverCcxTools" object created if the "Result object" [[FEM_Preferences#CalculiX|preference]] is disabled) in the FEM workbench loads the results into "CCX_Results" [[FEM_ResultShow|legacy result objects]] which will contain:
+* Displacements (components and magnitude)
+* Stresses: max/min principal, von Mises, max shear (Tresca)
+* Equivalent plastic strain – if nonlinear material was used
 * Temperature – for thermomechanical analysis
-FreeCAD reads results from {{FileName|*.frd}} file which was created by CalculiX. If these results contain multiple time steps, each time step is imported to FreeCAD as a new result object. Same behavior applies for Frequency or Buckling analysis with multiple eigenvalues.
+* Mass flow rate and network pressure - for 1D fluid networks
 
-Reaction forces can be found in ''ccx_dat_file'' which contains reaction force components (fx, fy, fz) for each fixed boundary condition and for each displacement boundary condition which constrains translation degrees of freedom.
+These objects show color maps without legend, but minimum and maximum values can be read from the task panel. Units shown there are adjusted based on the values (e.g. GPa for large stresses, mm for small displacements and so on). FreeCAD reads the results from the {{FileName|*.frd}} file which was created by CalculiX. If these results contain multiple time steps, each time step is imported to FreeCAD as a new result object. The same behavior applies for Frequency or Buckling analysis with multiple eigenvalues. Each result object contains the mode number or buckling factor value in its name and the {{PropertyData|Eigenmode Frequency}} property shows the corresponding natural frequency.
+
+The legacy CalculiX implementation also creates a multi-frame "Pipeline_CCX_Results" [[FEM_PostPipelineFromResult|results pipeline object]]. The units there are currently inconsistent - the input SI(mm) system is used for most outputs apart from displacements (meters) and stresses (Pascals). So, for example, heat flux units are mW/mm^2.
+
+Results available in the legacy CalculiX solver's pipeline object are:
+* Displacement [m]
+* Displacement magnitude [m]
+* Tresca stress [Pa]
+* Strain xx, xy, xz, yy, yz and zz components [-]
+* Stress xx, xy, xz, yy, yz and zz components [Pa]
+* Major, intermediate and minor principal stress [Pa]
+* Von Mises stress [Pa]
+* Critical strain ratio - for analyses with nonlinear (plastic) materials [-]
+* Equivalent plastic strain - for analyses with nonlinear (plastic) materials [-]
+* Major, intermediate and minor principal stress vector - for analyses with reinforced materials [-]
+* Mohr-Coulomb stress - for analyses with reinforced materials [Pa]
+* Reinforcement ratio x,y,z - for analyses with reinforced materials [-]
+* Mass flow rate - for 1D fluid networks [tonne/s]
+* Network pressure - for 1D fluid networks [Pa]
+* Heat flux - for thermomechanical analyses [mW/mm^2]
+* Temperature - for thermomechanical analyses [K]
+
+The refactored CalculiX implementation ("SolverCalculiX" object created if the "Result object" [[FEM_Preferences#CalculiX|preference]] is enabled) creates only a multi-frame "SolverCalculiXResult" [[FEM_PostPipelineFromResult|results pipeline object]]. The units there are consistent with input SI(mm) units so displacements are in mm, stresses in MPa, heat flux in mW/mm^2 and so on.
+
+Results available in the refactored CalculiX solver's pipeline object are:
+* Displacement components and magnitude [mm]
+* Stress components and magnitude [MPa]
+* Strain components and magnitude [-]
+* Error [-]
+* Major, intermediate and minor principal stress [MPa]
+* Major, intermediate and minor principal stress direction [-]
+* Von Mises stress [MPa]
+* Tresca stress [MPa]
+* Maximum absolute principal stress [MPa]
+* Heat flux components and magnitude - for thermomechanical analyses [mw/mm^2]
+* Temperature - for thermomechanical analyses [K]
+* Equivalent plastic strain - for analyses with nonlinear (plastic) materials [-]
+* Mass flow rate (MF) - for 1D fluid networks [tonne/s]
+* Network pressure (PS) - for 1D fluid networks [MPa]
+* Potential - for electrostatic analyses [mV]
+* Electric flux density - for electrostatic analyses [C/mm^2]
+
+Reaction forces can be found in ''ccx_dat_file'' which contains reaction force components (fx, fy, fz) for each fixed boundary condition and for each displacement boundary condition which constrains translation degrees of freedom. Displacements, reaction forces and moments are also printed there for degrees of freedom constrained at rigid body constraint reference nodes.
+
+The same file contains eigenvalue output for frequency analyses and buckling factor for buckling analyses.
 
 == Related ==
 
