@@ -532,11 +532,10 @@ class Line:
         """Print a short message when doing a recomputation, this method is mandatory"""
         fp.Shape = Part.makeLine(fp.p1,fp.p2)
 
-if __name__ == "main":
-    a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
-    Line(a)
-    a.ViewObject.Proxy=0 # just set it to something different from None (this assignment is needed to run an internal notification)
-    FreeCAD.ActiveDocument.recompute()
+a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
+Line(a)
+a.ViewObject.Proxy=0 # just set it to something different from None (this assignment is needed to run an internal notification)
+FreeCAD.ActiveDocument.recompute()
 }}
 <translate>
 
@@ -570,11 +569,10 @@ class ViewProviderLine:
       """Return the name of the default display mode. It must be defined in getDisplayModes."""
       return "Flat Lines"
 
-if __name__ == "main":
-    a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
-    Line(a)
-    ViewProviderLine(a.ViewObject)
-    App.ActiveDocument.recompute()
+a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
+Line(a)
+ViewProviderLine(a.ViewObject)
+App.ActiveDocument.recompute()
 }}
 <translate>
 
@@ -589,6 +587,7 @@ PartDesign scripted solid object features should be based on either PartDesign::
 <!--T:90-->
 Here is a simple example of making a Tube primitive, similar to the Tube primitive in Part Workbench except this one will be a PartDesign solid feature object.  For this we will 2 separate files: pdtube.FCMacro and pdtube.py. The .FCMacro file will be executed by the user to create the object. The .py file will hold the class definitions, imported by the .FCMacro. The reason for doing it this way is to maintain the parametric nature of the object after restarting FreeCAD and opening a document containing one of our Tubes.
 
+<!--T:111-->
 A single file solution is now also possible, see [[#Macro_based_parametric_objects|Macro based parametric objects]].
 
 <!--T:91-->
@@ -960,20 +959,25 @@ a,b = makeMolecule()
 }}
 <translate>
 
-== Macro based parametric objects ==
+== Macro based parametric objects == <!--T:112-->
 
+<!--T:113-->
 If you open an FCStd file containing parametric objects created by a macro in a new FreeCAD session, or on a different computer, they will not be modifiable via their properties unless the following conditions are met:
 
+<!--T:114-->
 * The macro file must be installed in the Python path, typically in the user's Macro directory.
 * The file must have a fixed filename and, to be recognized as a Python module, the .py extension.
 * The filename information must be saved in the FCStd file. See the examples below.
 
+<!--T:115-->
 Earlier versions of the Addon Manager changed .py extensions to .FCMacro when installing in the user's Macro directory. Since this extension is not recognized as an importable module, you will find various work-arounds in earlier macros.
 
+<!--T:116-->
 The examples are based on the [[#Working_with_simple_shapes|Line]] code given above.
 
-=== Example 1 ===
+=== Example 1 === <!--T:117-->
 
+<!--T:118-->
 A clean solution is to add to the {{Incode|__init__}} function:
 
 </translate>
@@ -987,13 +991,20 @@ class Line:
          obj.Proxy = self
          self.__module__ = "line"
 ...
+if __name__ == "main":
+    a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
+    Line(a)
+    ViewProviderLine(a.ViewObject)
+    App.ActiveDocument.recompute()
 }}
 <translate>
 
-where {{Incode|"line"}} is the filename of our macro.
+<!--T:119-->
+where {{Incode|"line"}} is the filename of our macro. In addition, so the creation code is not executed when the module is imported to restore objects, we need to make that code conditional with {{Incode|if __name__ == "main":}}.
 
-=== Example 2 ===
+=== Example 2 === <!--T:120-->
 
+<!--T:121-->
 Another way to correctly set the {{Incode|__module__}} attribute of the object's {{Incode|Proxy}} is to change the creation script to:
 
 </translate>
@@ -1007,6 +1018,7 @@ if ___name__ == "main":
 }}
 <translate>
 
+<!--T:122-->
 This is a less efficient (and a bit mysterious: a module importing itself!), but you will find it in use.
 
 == Available object types == <!--T:97-->
