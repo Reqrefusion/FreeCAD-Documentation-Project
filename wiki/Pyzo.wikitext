@@ -69,7 +69,7 @@ Otherwise, if there is no config with an empty "exe" textbox, press the button "
 : Or, in case of this error: ''Fatal Python error: take_gil: PyMUTEX(gil->mutex) failed'', try:
 : {{FileName|/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd}}
 ;gui
-: "PySide2" (for FreeCAD with Qt5) resp. "PySide6" (for Qt6)
+: "PySide6" (for newer FreeCAD versions with Qt6) resp. "PySide2" (for Qt5)
 ;pythonPath [for Windows and Linux]
 : [leave empty]
 ;pythonPath [for macOS]
@@ -86,10 +86,8 @@ QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts, True)
 
 # AFTER_GUI - code below runs after integrating the GUI
 import os, sys
-if sys.platform == 'linux': # ... and using the (extracted) AppImage
+if sys.platform == 'linux':  # ... and using the (extracted) AppImage
     sys.path.append(os.environ['PATH_TO_FREECAD_LIBDIR'])
-# some older Linux systems require the following line:
-# os.environ['FREECAD_USER_HOME'] = os.environ['HOME']
 
 sys._stdout_pyzo = sys.stdout
 import FreeCAD as App
@@ -103,6 +101,7 @@ sys.stdout = sys._stdout_pyzo
 : enter the following environment variables:
 : {{Code|lang=text|code=
 PYZO_PROCESS_EVENTS_WHILE_DEBUGGING=1
+PYZO_INTROSPECT_IN_MAIN_THREAD=1
 LC_NUMERIC=C
 }}
 
@@ -114,6 +113,7 @@ Run a new "freecad" shell via Pyzo's "Shell" menu. This will start the FreeCAD G
 On Linux, when not using an (extracted) AppImage, change {{Incode|sys.path.append(os.environ['PATH_TO_FREECAD_LIBDIR'])}} in the text field "startupScript" to e.g. {{Incode|sys.path.append('/builds/freecad-source/build/lib')}}, specifying the directory to the library files "FreeCAD.so" and "FreeCADGui.so". This library directory path could also be added to the field "pythonPath" in the Pyzo shell configuration dialog instead.
 
 The environment variable entry {{Incode|PYZO_PROCESS_EVENTS_WHILE_DEBUGGING&#61;1}} will tell Pyzo to periodically update FreeCAD's Qt-GUI while FreeCAD is stopped during a breakpoint.
+And the environment variable entry {{Incode|PYZO_INTROSPECT_IN_MAIN_THREAD&#61;1}} is necessary to access the attributes of a FreeCAD {{Incode|ViewObject}} via autocompletion since [https://github.com/FreeCAD/FreeCAD/pull/21292 fundamental changes in FreeCAD's GUI thread].
 
 Do not remove the {{Incode|# AFTER_GUI}} comment in the newly entered startup code -- this is a separator used by Pyzo to split the code into two blocks.
 
