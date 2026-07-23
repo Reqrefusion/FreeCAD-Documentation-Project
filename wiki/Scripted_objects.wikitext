@@ -532,10 +532,11 @@ class Line:
         '''"Print a short message when doing a recomputation, this method is mandatory" '''
         fp.Shape = Part.makeLine(fp.p1,fp.p2)
 
-a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
-Line(a)
-a.ViewObject.Proxy=0 # just set it to something different from None (this assignment is needed to run an internal notification)
-FreeCAD.ActiveDocument.recompute()
+if __name__ == "main":
+    a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
+    Line(a)
+    a.ViewObject.Proxy=0 # just set it to something different from None (this assignment is needed to run an internal notification)
+    FreeCAD.ActiveDocument.recompute()
 }}
 <translate>
 
@@ -569,13 +570,14 @@ class ViewProviderLine:
       ''' Return the name of the default display mode. It must be defined in getDisplayModes. '''
       return "Flat Lines"
 
-a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
-Line(a)
-ViewProviderLine(a.ViewObject)
-App.ActiveDocument.recompute()
+if __name__ == "main":
+    a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
+    Line(a)
+    ViewProviderLine(a.ViewObject)
+    App.ActiveDocument.recompute()
 }}
 <translate>
-If you open an FCStd file containing Line objects created by this Macro on a different computer, they will render properly, but will not be modifiable via their p1 and p2 properties unless, in addition, this Macro file is installed on its python path- typically in its Macro directory, with the same filename. This file must have a .py extension, so it is recognized as a python module.  For this filename information to be saved and restored in the FCStd file, additional code is required.  A clean solution is to add to Line's __init__ function.
+If you open an FCStd file containing Line objects created by this Macro on a different computer, they will render properly, but will not be modifiable via their p1 and p2 properties unless, in addition, this same Macro file is installed on its python path- typically in its Macro directory, with the same filename. This file must have a .py extension, so it is recognized as a python module.  For this filename information to be saved and restored in the FCStd file, additional code is required.  A clean solution is to add to Line's __init__ function.
 
 </translate>
 {{Code|code=
@@ -602,7 +604,7 @@ In addition, so the creation code is not executed when the line module is import
 '''Notes'''
 Earlier versions of the Addon Manager changed ''.py'' extensions to ''.FCMacro'' when installing in the user's Macro directory.  Since this extension is not recognized as an importable module, you will find various work-arounds in earlier Macros. Now a single ''line.py'' is all that is required for a working Macro.
 
-Another way to set the ''__module__'' property is to change the creation script to
+Another way to correctly set the ''__module__'' property is to change the creation script to
 </translate>
 {{Code|code =
 if ___name__ == 'main':
@@ -613,11 +615,9 @@ if ___name__ == 'main':
     App.ActiveDocument.recompute()
 }}
 <translate>
-This is a less efficient (and a bit mysterious - a file module importing itself!), but gets ''Line.__module__'' correctly set.
+This is a less efficient (and a bit mysterious - a file module importing itself!), but you will find it in use.
 
 This discussion applies to Macros, not Workbenches.
-
-
 
 == Scenegraph Structure == <!--T:86-->
 
