@@ -523,13 +523,13 @@ import FreeCAD
 import Part
 class Line:
     def __init__(self, obj):
-        '''"App two point properties" '''
+        """App two point properties"""
         obj.addProperty("App::PropertyVector","p1","Line","Start point")
         obj.addProperty("App::PropertyVector","p2","Line","End point").p2=FreeCAD.Vector(1,0,0)
         obj.Proxy = self
 
     def execute(self, fp):
-        '''"Print a short message when doing a recomputation, this method is mandatory" '''
+        """Print a short message when doing a recomputation, this method is mandatory"""
         fp.Shape = Part.makeLine(fp.p1,fp.p2)
 
 if __name__ == "main":
@@ -552,22 +552,22 @@ import Part
 
 class Line:
     def __init__(self, obj):
-         '''"App two point properties" '''
+         """App two point properties"""
          obj.addProperty("App::PropertyVector","p1","Line","Start point")
          obj.addProperty("App::PropertyVector","p2","Line","End point").p2=FreeCAD.Vector(100,0,0)
          obj.Proxy = self
 
     def execute(self, fp):
-        '''"Print a short message when doing a recomputation, this method is mandatory" '''
+        """Print a short message when doing a recomputation, this method is mandatory"""
         fp.Shape = Part.makeLine(fp.p1,fp.p2)
 
 class ViewProviderLine:
    def __init__(self, obj):
-      ''' Set this object to the proxy object of the actual view provider '''
+      """Set this object to the proxy object of the actual view provider"""
       obj.Proxy = self
 
    def getDefaultDisplayMode(self):
-      ''' Return the name of the default display mode. It must be defined in getDisplayModes. '''
+      """Return the name of the default display mode. It must be defined in getDisplayModes."""
       return "Flat Lines"
 
 if __name__ == "main":
@@ -577,47 +577,6 @@ if __name__ == "main":
     App.ActiveDocument.recompute()
 }}
 <translate>
-If you open an FCStd file containing Line objects created by this Macro on a different computer, they will render properly, but will not be modifiable via their p1 and p2 properties unless, in addition, this same Macro file is installed on its python path- typically in its Macro directory, with the same filename. This file must have a .py extension, so it is recognized as a python module.  For this filename information to be saved and restored in the FCStd file, additional code is required.  A clean solution is to add to Line's __init__ function.
-
-</translate>
-{{Code|code=
-...
-class Line:
-    def __init__(self, obj):
-         '''"App two point properties" '''
-         obj.addProperty("App::PropertyVector","p1","Line","Start point")
-         obj.addProperty("App::PropertyVector","p2","Line","End point").p2=FreeCAD.Vector(100,0,0)
-         obj.Proxy = self
-         self.__module__ = 'line'
-...
-if __name__ == 'main':
-    a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")     
-    Line(a)
-    ViewProviderLine(a.ViewObject)
-    App.ActiveDocument.recompute()
-}}
-
-<translate>
-where ''line.py'' is the filename of our macro. 
-In addition, so the creation code is not executed when the line module is imported to restore line objects, we needed to condition the execution code above.
-
-'''Notes'''
-Earlier versions of the Addon Manager changed ''.py'' extensions to ''.FCMacro'' when installing in the user's Macro directory.  Since this extension is not recognized as an importable module, you will find various work-arounds in earlier Macros. Now a single ''line.py'' is all that is required for a working Macro.
-
-Another way to correctly set the ''__module__'' property is to change the creation script to
-</translate>
-{{Code|code =
-if ___name__ == 'main':
-    a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
-    import line
-    line.Line(a)
-    ViewProviderLine(a.ViewObject)
-    App.ActiveDocument.recompute()
-}}
-<translate>
-This is a less efficient (and a bit mysterious - a file module importing itself!), but you will find it in use.
-
-This discussion applies to Macros, not Workbenches.
 
 == Scenegraph Structure == <!--T:86-->
 
@@ -998,6 +957,55 @@ else:
         body.addObject(tube) #optionally we can also use body.insertObject() for placing at particular place in tree
 }}
 <translate>
+
+== Macro based parametric objects ==
+
+If you open an FCStd file containing parametric objects created by a macro in a new FreeCAD session, or on a different computer, they will not be modifiable via their properties unless the following conditions are met:
+
+* The macro file must be installed in the python path, typically in the user's Macro directory.
+* The file must have a fixed filename and, to be recognized as a Python module, the {{FileName|.py}} extension.
+* The filename information must be saved in the FCStd file. See the 2 examples below.
+
+Earlier versions of the Addon Manager changed {{FileName|.py}} extensions to {{FileName|.FCMacro}} when installing in the user's Macro directory. Since this extension is not recognized as an importable module, you will find various work-arounds in earlier macros.
+
+The examples are based on the [[#Working_with_simple_shapes|Line]] code given above.
+
+=== Example 1 ===
+
+A clean solution is to add to the {{Incode|__init__}} function.
+
+</translate>
+{{Code|code=
+...
+class Line:
+    def __init__(self, obj):
+         """App two point properties"""
+         obj.addProperty("App::PropertyVector","p1","Line","Start point")
+         obj.addProperty("App::PropertyVector","p2","Line","End point").p2=FreeCAD.Vector(100,0,0)
+         obj.Proxy = self
+         self.__module__ = "line"
+...
+}}
+<translate>
+
+where {{Incode|"line"}} is the filename of our macro.
+
+=== Example 2 ===
+
+Another way to correctly set the {{Incode|__module__}} property is to change the creation script to:
+
+</translate>
+{{Code|code =
+if ___name__ == "main":
+    a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
+    import line
+    line.Line(a)
+    ViewProviderLine(a.ViewObject)
+    App.ActiveDocument.recompute()
+}}
+<translate>
+
+This is a less efficient (and a bit mysterious: a file module importing itself!), but you will find it in use.
 
 == Available object types == <!--T:97-->
 
