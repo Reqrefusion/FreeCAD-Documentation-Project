@@ -540,13 +540,13 @@ import FreeCAD
 import Part
 class Line:
     def __init__(self, obj):
-        '''"App two point properties" '''
+        """App two point properties"""
         obj.addProperty("App::PropertyVector","p1","Line","Start point")
         obj.addProperty("App::PropertyVector","p2","Line","End point").p2=FreeCAD.Vector(1,0,0)
         obj.Proxy = self
 
     def execute(self, fp):
-        '''"Print a short message when doing a recomputation, this method is mandatory" '''
+        """Print a short message when doing a recomputation, this method is mandatory"""
         fp.Shape = Part.makeLine(fp.p1,fp.p2)
 
 a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
@@ -565,28 +565,222 @@ import Part
 
 class Line:
     def __init__(self, obj):
-         '''"App two point properties" '''
+         """App two point properties"""
          obj.addProperty("App::PropertyVector","p1","Line","Start point")
          obj.addProperty("App::PropertyVector","p2","Line","End point").p2=FreeCAD.Vector(100,0,0)
          obj.Proxy = self
 
     def execute(self, fp):
-        '''"Print a short message when doing a recomputation, this method is mandatory" '''
+        """Print a short message when doing a recomputation, this method is mandatory"""
         fp.Shape = Part.makeLine(fp.p1,fp.p2)
 
 class ViewProviderLine:
    def __init__(self, obj):
-      ''' Set this object to the proxy object of the actual view provider '''
+      """Set this object to the proxy object of the actual view provider"""
       obj.Proxy = self
 
    def getDefaultDisplayMode(self):
-      ''' Return the name of the default display mode. It must be defined in getDisplayModes. '''
+      """Return the name of the default display mode. It must be defined in getDisplayModes."""
       return "Flat Lines"
 
 a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
 Line(a)
 ViewProviderLine(a.ViewObject)
 App.ActiveDocument.recompute()
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Part Design scripted objects ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+When making scripted objects in PartDesign the process is similar to the scripted objects discussed above, but with a few additional considerations. We must handle 2 shape properties, one for the shape we see in the 3D view and another for the shape used by the pattern tools, such as polar pattern features. The object shapes also needs to be fused to any existing material already in the Body (or cut from it in the case of Subtractive features). And we must account for the placement and attachment of our objects a little bit differently.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+PartDesign scripted solid object features should be based on either PartDesign::FeaturePython, PartDesign::FeatureAdditivePython, or PartDesign::FeatureSubtractivePython rather than Part::FeaturePython. Only the Additive and Subtractive variants can be used in pattern features, and if based on Part::FeaturePython when the user drops the object into a PartDesign Body it becomes a BaseFeature rather than being treated by the Body as a native PartDesign object. Note: all of these are expected to be solids, so if you are making a non-solid feature it should be based on Part::FeaturePython or else the next feature in the tree will attempt to fuse to as a solid and it will fail.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Here is a simple example of making a Tube primitive, similar to the Tube primitive in Part Workbench except this one will be a PartDesign solid feature object.  For this we will 2 separate files: pdtube.FCMacro and pdtube.py. The .FCMacro file will be executed by the user to create the object. The .py file will hold the class definitions, imported by the .FCMacro. The reason for doing it this way is to maintain the parametric nature of the object after restarting FreeCAD and opening a document containing one of our Tubes.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+A single file solution is now also possible, see [[#Macro_based_parametric_objects|Macro based parametric objects]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+First, the class definition file:
+</div>
+
+{{Code|code=
+# -*- coding: utf-8 -*-
+#classes should go in pdtube.py
+import FreeCAD, FreeCADGui, Part
+class PDTube:
+    def __init__(self,obj):
+        obj.addProperty("App::PropertyLength","Radius1","Tube","Radius1").Radius1 = 5
+        obj.addProperty("App::PropertyLength","Radius2","Tube","Radius2").Radius2 = 10
+        obj.addProperty("App::PropertyLength","Height","Tube","Height of tube").Height = 10
+        self.makeAttachable(obj)
+        obj.Proxy = self
+
+    def makeAttachable(self, obj):
+
+        if int(FreeCAD.Version()[1]) >= 19:
+            obj.addExtension('Part::AttachExtensionPython')
+        else:
+            obj.addExtension('Part::AttachExtensionPython', obj)
+
+        obj.setEditorMode('Placement', 0) #non-readonly non-hidden
+
+    def execute(self,fp):
+        outer_cylinder = Part.makeCylinder(fp.Radius2, fp.Height)
+        inner_cylinder = Part.makeCylinder(fp.Radius1, fp.Height)
+        if fp.Radius1 == fp.Radius2: #just make cylinder
+            tube_shape = outer_cylinder
+        elif fp.Radius1 < fp.Radius2:
+            tube_shape = outer_cylinder.cut(inner_cylinder)
+        else: #invert rather than error out
+            tube_shape = inner_cylinder.cut(outer_cylinder)
+
+        if not hasattr(fp, "positionBySupport"):
+            self.makeAttachable(fp)
+        fp.positionBySupport()
+        tube_shape.Placement = fp.Placement
+
+        #BaseFeature (shape property of type Part::PropertyPartShape) is provided for us
+        #with the PartDesign::FeaturePython and related classes, but it might be empty
+        #if our object is the first object in the tree.  it's a good idea to check
+        #for its existence in case we want to make type Part::FeaturePython, which won't have it
+
+        if hasattr(fp, "BaseFeature") and fp.BaseFeature != None:
+            if "Subtractive" in fp.TypeId:
+                full_shape = fp.BaseFeature.Shape.cut(tube_shape)
+            else:
+                full_shape = fp.BaseFeature.Shape.fuse(tube_shape)
+            full_shape.transformShape(fp.Placement.inverse().toMatrix(), True) #borrowed from gears workbench
+            fp.Shape = full_shape
+        else:
+            fp.Shape = tube_shape
+        if hasattr(fp,"AddSubShape"): #PartDesign::FeatureAdditivePython and
+                                      #PartDesign::FeatureSubtractivePython have this
+                                      #property but PartDesign::FeaturePython does not
+                                      #It is the shape used for copying in pattern features
+                                      #for example in making a polar pattern
+            tube_shape.transformShape(fp.Placement.inverse().toMatrix(), True)
+            fp.AddSubShape = tube_shape
+
+class PDTubeVP:
+    def __init__(self, obj):
+        '''Set this object to the proxy object of the actual view provider'''
+        obj.Proxy = self
+
+    def attach(self,vobj):
+        self.vobj = vobj
+
+    def updateData(self, fp, prop):
+        '''If a property of the handled feature has changed we have the chance to handle this here'''
+        pass
+
+    def getDisplayModes(self,obj):
+        '''Return a list of display modes.'''
+        modes=[]
+        modes.append("Flat Lines")
+        modes.append("Shaded")
+        modes.append("Wireframe")
+        return modes
+
+    def getDefaultDisplayMode(self):
+        '''Return the name of the default display mode. It must be defined in getDisplayModes.'''
+        return "Flat Lines"
+
+    def setDisplayMode(self,mode):
+        '''Map the display mode defined in attach with those defined in getDisplayModes.\
+                Since they have the same names nothing needs to be done. This method is optional'''
+        return mode
+
+    def onChanged(self, vp, prop):
+        '''Here we can do something when a single property got changed'''
+        #FreeCAD.Console.PrintMessage("Change property: " + str(prop) + "\n")
+        pass
+
+    def getIcon(self):
+        '''Return the icon in XPM format which will appear in the tree view. This method is\
+                optional and if not defined a default icon is shown.'''
+        return """
+            /* XPM */
+            static const char * ViewProviderBox_xpm[] = {
+            "16 16 6 1",
+            "   c None",
+            ".  c #141010",
+            "+  c #615BD2",
+            "@  c #C39D55",
+            "#  c #000000",
+            "$  c #57C355",
+            "        ........",
+            "   ......++..+..",
+            "   .@@@@.++..++.",
+            "   .@@@@.++..++.",
+            "   .@@  .++++++.",
+            "  ..@@  .++..++.",
+            "###@@@@ .++..++.",
+            "##$.@@$#.++++++.",
+            "#$#$.$$$........",
+            "#$$#######      ",
+            "#$$#$$$$$#      ",
+            "#$$#$$$$$#      ",
+            "#$$#$$$$$#      ",
+            " #$#$$$$$#      ",
+            "  ##$$$$$#      ",
+            "   #######      "};
+            """
+
+    def dumps(self):
+        '''When saving the document this object gets stored using Python's json module.\
+                Since we have some un-serializable parts here -- the Coin stuff -- we must define this method\
+                to return a tuple of all serializable objects or None.'''
+        return None
+
+    def loads(self,state):
+        '''When restoring the serialized object from document we have the chance to set some internals here.\
+                Since no data were serialized nothing needs to be done here.'''
+        return None
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+And now the macro file to create the object:
+</div>
+
+{{Code|code=
+# -*- coding: utf-8 -*-
+
+#pdtube.FCMacro
+import pdtube
+#above line needed if the class definitions above are place in another file: PDTube.py
+#this is needed if the tube object is to remain parametric after restarting FreeCAD and loading
+#a document containing the object
+
+body = FreeCADGui.ActiveDocument.ActiveView.getActiveObject("pdbody")
+if not body:
+    FreeCAD.Console.PrintError("No active body.\n")
+else:
+    from PySide import QtGui
+    window = FreeCADGui.getMainWindow()
+    items = ["Additive","Subtractive","Neither additive nor subtractive"]
+    item,ok =QtGui.QInputDialog.getItem(window,"Select tube type","Select whether you want additive, subtractive, or neither:",items,0,False)
+    if ok:
+        if item == items[0]:
+            className = "PartDesign::FeatureAdditivePython"
+        elif item == items[1]:
+            className = "PartDesign::FeatureSubtractivePython"
+        else:
+            className = "PartDesign::FeaturePython" #not usable in pattern features, such as polar pattern
+
+        tube = FreeCAD.ActiveDocument.addObject(className,"Tube")
+        pdtube.PDTube(tube)
+        pdtube.PDTubeVP(tube.ViewObject)
+        body.addObject(tube) #optionally we can also use body.insertObject() for placing at particular place in tree
 }}
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -788,194 +982,76 @@ a,b = makeMolecule()
 }}
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-== Part Design scripted objects ==
+== Macro based parametric objects ==
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-When making scripted objects in PartDesign the process is similar to the scripted objects discussed above, but with a few additional considerations. We must handle 2 shape properties, one for the shape we see in the 3D view and another for the shape used by the pattern tools, such as polar pattern features. The object shapes also needs to be fused to any existing material already in the Body (or cut from it in the case of Subtractive features). And we must account for the placement and attachment of our objects a little bit differently.
+If you open an FCStd file containing parametric objects created by a macro in a new FreeCAD session, or on a different computer, they will not be modifiable via their properties unless the following conditions are met:
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-PartDesign scripted solid object features should be based on either PartDesign::FeaturePython, PartDesign::FeatureAdditivePython, or PartDesign::FeatureSubtractivePython rather than Part::FeaturePython. Only the Additive and Subtractive variants can be used in pattern features, and if based on Part::FeaturePython when the user drops the object into a PartDesign Body it becomes a BaseFeature rather than being treated by the Body as a native PartDesign object. Note: all of these are expected to be solids, so if you are making a non-solid feature it should be based on Part::FeaturePython or else the next feature in the tree will attempt to fuse to as a solid and it will fail.
+* The macro file must be installed in the Python path, typically in the user's Macro directory.
+* The file must have a fixed filename and, to be recognized as a Python module, the .py extension.
+* The filename information must be saved in the FCStd file. See the examples below.
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-Here is a simple example of making a Tube primitive, similar to the Tube primitive in Part Workbench except this one will be a PartDesign solid feature object.  For this we will 2 separate files: pdtube.FCMacro and pdtube.py. The .FCMacro file will be executed by the user to create the object. The .py file will hold the class definitions, imported by the .FCMacro. The reason for doing it this way is to maintain the parametric nature of the object after restarting FreeCAD and opening a document containing one of our Tubes.
+Earlier versions of the Addon Manager changed .py extensions to .FCMacro when installing in the user's Macro directory. Since this extension is not recognized as an importable module, you will find various work-arounds in earlier macros.
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-First, the class definition file:
+The examples are based on the [[#Working_with_simple_shapes|Line]] code given above.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Example 1 ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+A clean solution is to add to the {{Incode|__init__}} function:
 </div>
 
 {{Code|code=
-# -*- coding: utf-8 -*-
-#classes should go in pdtube.py
-import FreeCAD, FreeCADGui, Part
-class PDTube:
-    def __init__(self,obj):
-        obj.addProperty("App::PropertyLength","Radius1","Tube","Radius1").Radius1 = 5
-        obj.addProperty("App::PropertyLength","Radius2","Tube","Radius2").Radius2 = 10
-        obj.addProperty("App::PropertyLength","Height","Tube","Height of tube").Height = 10
-        self.makeAttachable(obj)
-        obj.Proxy = self
-
-    def makeAttachable(self, obj):
-
-        if int(FreeCAD.Version()[1]) >= 19:
-            obj.addExtension('Part::AttachExtensionPython')
-        else:
-            obj.addExtension('Part::AttachExtensionPython', obj)
-
-        obj.setEditorMode('Placement', 0) #non-readonly non-hidden
-
-    def execute(self,fp):
-        outer_cylinder = Part.makeCylinder(fp.Radius2, fp.Height)
-        inner_cylinder = Part.makeCylinder(fp.Radius1, fp.Height)
-        if fp.Radius1 == fp.Radius2: #just make cylinder
-            tube_shape = outer_cylinder
-        elif fp.Radius1 < fp.Radius2:
-            tube_shape = outer_cylinder.cut(inner_cylinder)
-        else: #invert rather than error out
-            tube_shape = inner_cylinder.cut(outer_cylinder)
-
-        if not hasattr(fp, "positionBySupport"):
-            self.makeAttachable(fp)
-        fp.positionBySupport()
-        tube_shape.Placement = fp.Placement
-
-        #BaseFeature (shape property of type Part::PropertyPartShape) is provided for us
-        #with the PartDesign::FeaturePython and related classes, but it might be empty
-        #if our object is the first object in the tree.  it's a good idea to check
-        #for its existence in case we want to make type Part::FeaturePython, which won't have it
-
-        if hasattr(fp, "BaseFeature") and fp.BaseFeature != None:
-            if "Subtractive" in fp.TypeId:
-                full_shape = fp.BaseFeature.Shape.cut(tube_shape)
-            else:
-                full_shape = fp.BaseFeature.Shape.fuse(tube_shape)
-            full_shape.transformShape(fp.Placement.inverse().toMatrix(), True) #borrowed from gears workbench
-            fp.Shape = full_shape
-        else:
-            fp.Shape = tube_shape
-        if hasattr(fp,"AddSubShape"): #PartDesign::FeatureAdditivePython and
-                                      #PartDesign::FeatureSubtractivePython have this
-                                      #property but PartDesign::FeaturePython does not
-                                      #It is the shape used for copying in pattern features
-                                      #for example in making a polar pattern
-            tube_shape.transformShape(fp.Placement.inverse().toMatrix(), True)
-            fp.AddSubShape = tube_shape
-
-class PDTubeVP:
+...
+class Line:
     def __init__(self, obj):
-        '''Set this object to the proxy object of the actual view provider'''
-        obj.Proxy = self
-
-    def attach(self,vobj):
-        self.vobj = vobj
-
-    def updateData(self, fp, prop):
-        '''If a property of the handled feature has changed we have the chance to handle this here'''
-        pass
-
-    def getDisplayModes(self,obj):
-        '''Return a list of display modes.'''
-        modes=[]
-        modes.append("Flat Lines")
-        modes.append("Shaded")
-        modes.append("Wireframe")
-        return modes
-
-    def getDefaultDisplayMode(self):
-        '''Return the name of the default display mode. It must be defined in getDisplayModes.'''
-        return "Flat Lines"
-
-    def setDisplayMode(self,mode):
-        '''Map the display mode defined in attach with those defined in getDisplayModes.\
-                Since they have the same names nothing needs to be done. This method is optional'''
-        return mode
-
-    def onChanged(self, vp, prop):
-        '''Here we can do something when a single property got changed'''
-        #FreeCAD.Console.PrintMessage("Change property: " + str(prop) + "\n")
-        pass
-
-    def getIcon(self):
-        '''Return the icon in XPM format which will appear in the tree view. This method is\
-                optional and if not defined a default icon is shown.'''
-        return """
-            /* XPM */
-            static const char * ViewProviderBox_xpm[] = {
-            "16 16 6 1",
-            "   c None",
-            ".  c #141010",
-            "+  c #615BD2",
-            "@  c #C39D55",
-            "#  c #000000",
-            "$  c #57C355",
-            "        ........",
-            "   ......++..+..",
-            "   .@@@@.++..++.",
-            "   .@@@@.++..++.",
-            "   .@@  .++++++.",
-            "  ..@@  .++..++.",
-            "###@@@@ .++..++.",
-            "##$.@@$#.++++++.",
-            "#$#$.$$$........",
-            "#$$#######      ",
-            "#$$#$$$$$#      ",
-            "#$$#$$$$$#      ",
-            "#$$#$$$$$#      ",
-            " #$#$$$$$#      ",
-            "  ##$$$$$#      ",
-            "   #######      "};
-            """
-
-    def dumps(self):
-        '''When saving the document this object gets stored using Python's json module.\
-                Since we have some un-serializable parts here -- the Coin stuff -- we must define this method\
-                to return a tuple of all serializable objects or None.'''
-        return None
-
-    def loads(self,state):
-        '''When restoring the serialized object from document we have the chance to set some internals here.\
-                Since no data were serialized nothing needs to be done here.'''
-        return None
+         """App two point properties"""
+         obj.addProperty("App::PropertyVector","p1","Line","Start point")
+         obj.addProperty("App::PropertyVector","p2","Line","End point").p2=FreeCAD.Vector(100,0,0)
+         obj.Proxy = self
+         self.__module__ = "line"
+...
+if __name__ == "main":
+    a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
+    Line(a)
+    ViewProviderLine(a.ViewObject)
+    App.ActiveDocument.recompute()
 }}
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-And now the macro file to create the object:
+where {{Incode|"line"}} is the filename of our macro. In addition, so the creation code is not executed when the module is imported to restore objects, we need to make that code conditional with {{Incode|<nowiki>if __name__ == "main":</nowiki>}}.
 </div>
 
-{{Code|code=
-# -*- coding: utf-8 -*-
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Example 2 ===
+</div>
 
-#pdtube.FCMacro
-import pdtube
-#above line needed if the class definitions above are place in another file: PDTube.py
-#this is needed if the tube object is to remain parametric after restarting FreeCAD and loading
-#a document containing the object
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Another way to correctly set the {{Incode|__module__}} attribute of the object's {{Incode|Proxy}} is to change the creation script to:
+</div>
 
-body = FreeCADGui.ActiveDocument.ActiveView.getActiveObject("pdbody")
-if not body:
-    FreeCAD.Console.PrintError("No active body.\n")
-else:
-    from PySide import QtGui
-    window = FreeCADGui.getMainWindow()
-    items = ["Additive","Subtractive","Neither additive nor subtractive"]
-    item,ok =QtGui.QInputDialog.getItem(window,"Select tube type","Select whether you want additive, subtractive, or neither:",items,0,False)
-    if ok:
-        if item == items[0]:
-            className = "PartDesign::FeatureAdditivePython"
-        elif item == items[1]:
-            className = "PartDesign::FeatureSubtractivePython"
-        else:
-            className = "PartDesign::FeaturePython" #not usable in pattern features, such as polar pattern
-
-        tube = FreeCAD.ActiveDocument.addObject(className,"Tube")
-        pdtube.PDTube(tube)
-        pdtube.PDTubeVP(tube.ViewObject)
-        body.addObject(tube) #optionally we can also use body.insertObject() for placing at particular place in tree
+{{Code|code =
+if ___name__ == "main":
+    a=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Line")
+    import line
+    line.Line(a)
+    ViewProviderLine(a.ViewObject)
+    App.ActiveDocument.recompute()
 }}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+This is less efficient than Example 1 (and a bit mysterious: a module importing itself!), but you will find it in use.
+</div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 == Available object types ==
