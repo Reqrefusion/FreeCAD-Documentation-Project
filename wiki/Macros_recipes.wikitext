@@ -98,20 +98,106 @@ If you have written a macro and want to include it in one of the categories on t
 <div class="toccolours mw-collapsible mw-collapsed">
 <translate>
 
-===[[File:Workbench_Assembly.svg|32px]]  Assembly Workbench=== <!--T:419--> 
+import FreeCAD as App
+import Part
 
-</translate>
-<div class="mw-collapsible-content">
-<translate>
+# ==========================
+# DS3 RALLY MIRROR LEFT V1
+# Dimensions mm
+# ==========================
 
-<!--T:420-->
-* {{MacroLink|Icon=Text-x-python.png|Macro_Move_Assembly|Macro Move Assembly}}: Move an Assembly using a simple control panel.
+HEIGHT = 200
+WIDTH = 120
+DEPTH = 150
+WALL = 2.5
 
-</translate>
-</div>
-</div>
-<div class="toccolours mw-collapsible mw-collapsed">
-<translate>
+doc = App.newDocument("DS3_Rally_Miroir_Gauche_V1")
+
+# --------------------------
+# Coque extérieure (forme de base)
+# --------------------------
+
+outer = Part.makeBox(
+    WIDTH,
+    DEPTH,
+    HEIGHT,
+    App.Vector(0,0,0)
+)
+
+# Arrondi général
+outer = outer.makeFillet(
+    20,
+    outer.Edges
+)
+
+# --------------------------
+# Evidement intérieur
+# --------------------------
+
+inner = Part.makeBox(
+    WIDTH-2*WALL,
+    DEPTH-2*WALL,
+    HEIGHT-2*WALL,
+    App.Vector(WALL,WALL,WALL)
+)
+
+shell = outer.cut(inner)
+
+# --------------------------
+# Ouverture arrière miroir
+# --------------------------
+
+opening = Part.makeBox(
+    WIDTH-20,
+    10,
+    HEIGHT-40,
+    App.Vector(10,DEPTH-10,20)
+)
+
+shell = shell.cut(opening)
+
+
+# --------------------------
+# Pied support provisoire
+# --------------------------
+
+foot = Part.makeBox(
+    35,
+    25,
+    80,
+    App.Vector(
+        WIDTH/2-17.5,
+        -25,
+        40
+    )
+)
+
+foot = foot.makeFillet(
+    8,
+    foot.Edges
+)
+
+
+# Fusion
+mirror = shell.fuse(foot)
+
+# Objet FreeCAD
+obj = doc.addObject(
+    "PartDesign::Feature",
+    "DS3_Rally_Miroir_Gauche_V1"
+)
+
+obj.Shape = mirror
+
+doc.recompute()
+
+# Sauvegarde FreeCAD
+doc.recompute()
+doc.saveAs(
+    "DS3_Rally_Miroir_Gauche_V1.FCStd"
+)
+
+print("Modele cree : DS3_Rally_Miroir_Gauche_V1")
 
 ===[[File:Applications-python.svg|32px]] Code and scripting=== <!--T:101-->
 
