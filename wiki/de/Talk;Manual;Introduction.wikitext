@@ -1,0 +1,57 @@
+== Help on using FreeCAD" oder "Installation" ==
+
+
+= FreeCAD Manual Converter — Fixes für Windows/Python 3.14 (Stand: August 2026) =
+Das Script auf der Wiki-Seite läuft nicht "out of the box". Hier die Stolpersteine, die mich beim ersten Durchlauf gestoppt haben, plus Lösung. Getestet unter Windows 11, Python 3.14.6.
+
+== 1. <code>PyPDF2</code> ist tot ==
+Die Installationsanleitung nennt:
+ <code>pip install requests weasyprint beautifulsoup4 PyPDF2 Pillow cairosvg ebooklib</code>
+<code>PyPDF2</code> wird seit 2023 nicht mehr weiterentwickelt. Der Nachfolger heißt <code>pypdf</code>. Wer trotzdem <code>PyPDF2</code> installiert, bekommt nur die letzte tote Version (3.0.1) — technisch nutzbar, aber ohne jede Wartung/Sicherheitsfixes.
+
+'''Fix:''' <code>pypdf</code> statt <code>PyPDF2</code> installieren:
+ <code>pip install requests weasyprint beautifulsoup4 pypdf Pillow cairosvg ebooklib</code>
+
+== 2. Im Script: <code>PdfMerger</code> existiert in aktuellem <code>pypdf</code> nicht mehr ==
+Das Script importiert:
+ <code>from PyPDF2 import PdfMerger</code>
+und nutzt <code>PdfMerger()</code> in <code>merge_pdfs()</code>. In <code>pypdf</code> ab Version ~5.0 wurde diese Klasse entfernt — Ersatz ist <code>PdfWriter</code>, das dieselbe <code>.append()</code>/<code>.write()</code>/<code>.close()</code>- API hat.
+
+'''Fix:''' Zwei Stellen ändern.
+
+Import (Zeile 6):
+ <code>from pypdf import PdfWriter</code>
+<code>merge_pdfs()</code>-Methode:
+ <code>def merge_pdfs(self, pdf_files, output_file):
+     print(f"Merging PDFs into {output_file}...")
+     merger = PdfWriter()          # statt PdfMerger()
+     for pdf in pdf_files:
+         merger.append(pdf)
+     merger.write(output_file)
+     merger.close()
+     print(f"Successfully created {output_file}")</code>
+Sonst nichts am Code ändern — die Methodennamen sind identisch geblieben.
+
+== 3. GTK3-Runtime fehlt (WeasyPrint braucht sie zur Laufzeit) ==
+Die Anleitung erwähnt "GTK3 runtime" als Windows-Abhängigkeit, nennt aber keine Quelle. Ohne sie bricht WeasyPrint beim PDF-Rendern ab (fehlende Pango/Cairo-DLLs).
+
+'''Fix (am saubersten via winget, da man Updates/Deinstallation dann verwaltet bekommt):'''
+ <code>winget install -e --id tschoonj.GTKForWindows</code>
+Danach PowerShell/Terminal '''neu starten''', damit der PATH aktualisiert wird.
+
+'''Bekannter Zusatz-Stolperstein:''' WeasyPrint sucht <code>gobject-2.0-0.dll</code>, der Installer legt aber nur <code>libgobject-2.0-0.dll</code> ab (mit <code>lib</code>-Präfix). Führt sonst zu <code>OSError: cannot load library 'gobject-2.0-0'</code>.
+
+'''Fix:'''
+ <code>Copy-Item "C:\Program Files\GTK3-Runtime Win64\bin\libgobject-2.0-0.dll" `
+           "C:\Program Files\GTK3-Runtime Win64\bin\gobject-2.0-0.dll"</code>
+Danach den Rechner neu starten (nicht nur die Shell).
+
+'''Verifizieren, bevor man das Hauptscript startet:'''
+ <code>python -m weasyprint --info</code>
+Läuft das ohne <code>OSError</code>, ist die Kette komplett.
+
+== Ergebnis ==
+Mit diesen drei Fixes läuft der Converter unter Windows 11 + Python 3.14 sauber durch: 24 Kapitel-PDFs, Inhaltsverzeichnis, gemergtes Gesamt-PDF (172 Seiten bei mir) und EPUB — ohne weitere Fehler.
+
+== Vorschlag ==
+Wäre schön, wenn die Wiki-Seite entweder (a) auf <code>pypdf</code>/<code>PdfWriter</code> aktualisiert und den GTK3-Installer-Link + DLL-Hinweis ergänzt, oder (b) zumindest einen "bekannte Probleme"-Abschnitt bekommt. So wie es jetzt dasteht, scheitert jeder Windows-Einsteiger ohne Python-Erfahrung an Schritt 1. [[User:Jke-FreeCAD|Jke-FreeCAD]] ([[User talk:Jke-FreeCAD|talk]]) 23:34, 31 July 2026 (UTC)
