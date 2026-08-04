@@ -17,7 +17,7 @@
 In earlier chapters, we explored the various workbenches in FreeCAD and how each introduces its own set of tools and geometry types. The same principles apply when working with FreeCAD through Python scripting.
 
 <!--T:3-->
-We also observed that most FreeCAD workbenches rely on one foundational workbench: the [[File:Workbench_Part.svg|16px]] [[Part_Workbench|Part Workbench]]. Many other workbenches, such as the [[File:Workbench_Draft.svg|16px]] [[Draft_Workbench|Draft Workbench]], utilize the Part Workbench's tools and geometry, which is exactly what we will do in this chapter—use Python to create and manipulate Part geometry.
+We also observed that most FreeCAD workbenches rely on one foundational workbench: the [[File:Workbench_Part.svg|16px]] [[Part_Workbench|Part Workbench]]. Many other workbenches, such as the [[File:Workbench_Draft.svg|16px]] [[Draft_Workbench|Draft Workbench]] , utilize the Part Workbench's tools and geometry, which is exactly what we will do in this chapter—use Python to create and manipulate Part geometry.
 
 <!--T:4-->
 To begin working with Part geometry in Python, we need to perform the scripting equivalent of switching to the Part Workbench: importing the Part module.
@@ -42,7 +42,7 @@ Part.makeBox(3,5,7)
 <translate>
 
 <!--T:8-->
-This command creates a 3D box, also known as a rectangular prism, with specific dimensions. The first parameter, 3, defines the length of the box along the X-axis. The second parameter, 5, sets the width along the Y-axis, and the third parameter, 7, specifies the height along the Z-axis. While this function generates the geometry of the box, it does not automatically add it to the active FreeCAD document. In the Python console you will see the following:
+This command creates a 3D box, also known as a rectangular prism, with specific dimensions. The first parameter, 3, defines the length of the box along the X-axis. The second parameter, 5, sets the width along the Y-axis, and the third parameter, 7, specifies the height along the Z-axis. While this function generates the geometry of the box, it does not automatically add it to the active FreeCAD document. On the pythin console you will see the following:
 
 </translate>
 {{Code|code=
@@ -62,7 +62,7 @@ In this case, we manually created a shape using the '''Part.makeBox()''' functio
 <!--T:13-->
 This separation between shapes and document objects is what makes FreeCAD highly versatile, allowing users to manipulate shapes programmatically and integrate them into a parametric modeling workflow as needed.
 
-<!--T:64-->
+<!--T:11-->
 We can now easily create a "generic" document object in the current document (make sure you have at least one new document open), and give it a box shape like the one we just made:
 
 </translate>
@@ -74,19 +74,15 @@ FreeCAD.ActiveDocument.recompute()
 }}
 <translate>
 
-<!--T:65-->
+<!--T:13-->
 Here is a breakdown of the previous commands:
 
-<!--T:66-->
 *'''boxShape = Part.makeBox(3,5,7)''': Creates a 3D box with dimensions 3x5x7 (length, width, and height) and stores it as a Part Shape in the variable boxShape. This shape exists only in memory and is not yet part of the FreeCAD document.
 
-<!--T:67-->
 * '''myObj = FreeCAD.ActiveDocument.addObject("Part::Feature", "MyNewBox")''': Adds a new Part::Feature object named "MyNewBox" to the active FreeCAD document and assigns it to the variable myObj. The new object will appear in the FreeCAD document tree.
 
-<!--T:68-->
 * '''myObj.Shape = boxShape''': Links the boxShape geometry to the Shape property of myObj, integrating the geometry into the FreeCAD document.
 
-<!--T:69-->
 * '''FreeCAD.ActiveDocument.recompute()''': Updates the document to reflect the changes, ensuring that the new object and its geometry appear in the graphical interface.
 
 <!--T:15-->
@@ -95,7 +91,6 @@ Note how we handled '''myObj.Shape'''. It was done in the same way as in the pre
 <!--T:16-->
 For now, let's explore Part Shapes in more detail. In the chapter on traditional modeling with the Part Workbench, we introduced a table explaining how Part Shapes are constructed and the different components they consist of, such as '''vertexes''', '''edges''', and '''faces'''. These same components are available when working with Part Shapes in Python, allowing for detailed exploration and manipulation of geometry. Part Shapes in FreeCAD always have the following attributes:
 
-<!--T:70-->
 * '''Vertexes''': Points in 3D space that define the corners or endpoints of geometry.
 * '''Edges''': Straight or curved lines connecting two vertexes.
 * '''Wires''': Closed or open loops formed by one or more connected edges.
@@ -142,7 +137,7 @@ for e in boxShape.Edges:
 <translate>
 
 <!--T:20-->
-As you see, if our boxShape has a "Vertexes" attribute, each Edge of the boxShape also has a "Vertexes" attribute. As we can expect, the boxShape will have 8 vertices, while the edge will only have 2, which are both parts of the list of 8.
+As you see, if our boxShape has a "Vertexes" attribute, each Edge of the boxShape also has a "Vertexes" attribute. As we can expect, the boxShape will have 8 vertices, while the edge will only have 2, which are both part of the list of 8.
 
 <!--T:21-->
 We can always check what is the type of a shape:
@@ -159,10 +154,8 @@ print(boxShape.Vertexes[2].ShapeType)
 Here is a short explanation of the above commands:
 *'''print(boxShape.ShapeType)''': Displays the type of the top-level shape represented by '''boxShape'''. In this case, since '''boxShape''' was created as a box using '''Part.makeBox''', the output will be "Solid", indicating that the shape is a 3D solid object.
 
-<!--T:71-->
 *'''print(boxShape.Faces[0].ShapeType)''': Accesses the first face in the '''Faces''' list of '''boxShape''' (index 0) and prints its shape type. For a box, each face is a flat surface, so the output will be "Face".
 
-<!--T:72-->
 *'''print(boxShape.Vertexes[2].ShapeType)''': Accesses the third vertex in the '''Vertexes''' list of '''boxShape''' (index 2) and prints its shape type. Since this is a specific point in 3D space, the output will be "Vertex".
 
 <!--T:23-->
@@ -206,16 +199,16 @@ L2 = Part.LineSegment(V4,V3)
 <translate>
 
 <!--T:33-->
-Note that we didn’t need to create '''Vertexes''' explicitly. Instead, we could directly create '''Part.LineSegments''' using '''FreeCAD Vectors'''. This is because at this stage, we are working with base geometry, not actual '''Edges'''. A '''Part.LineSegment''', as well as '''Part.Circle''', '''Part.Arc''', '''Part.Ellipse''', or '''Part.BSpline''', defines the underlying geometry but does not generate an edge by itself. In FreeCAD, edges are always constructed from such base geometry, which is stored in the '''Curve''' attribute of the '''Edge'''. This means that an edge is essentially a wrapper around the base geometry, inheriting its properties. If you have an edge, you can access its underlying geometry by referring to the curve attribute. The following command:
+Note that we didn’t need to create '''Vertexes''' explicitly. Instead, we could directly create '''Part.LineSegments''' using '''FreeCAD Vectors'''. This is because at this stage, we are working with base geometry, not actual '''Edges'''. A '''Part.LineSegment''', as well as '''Part.Circle''', '''Part.Arc''', '''Part.Ellipse''', or '''Part.BSpline''', defines the underlying geometry but does not generate an edge by itself. In FreeCAD, edges are always constructed from such base geometry, which is stored in the '''Curve''' attribute of the '''Edge'''. This means that an edge is essentially a wrapper around the base geometry, inheriting its properties. If you have an edge, you can access its underlying geometry by referring to the curve attribute. The following code:
 
 </translate>
 {{Code|code=
-print(Edge.Curve) 
+print(E.Curve) 
 }}
 <translate>
 
 <!--T:35-->
-allows you to understand the underlying structure of the edge and how it was constructed. Now, let’s return to our exercise and proceed with building the arc segments. To create an arc, we need three points: a start point, an end point, and a midpoint that determines the curvature. For this purpose, we can use the convenient '''Part.Arc''' function, which takes these three points as input and generates the base geometry for an arc.
+allows you to understand the underlying structure of edge E and how it was constructed. Now, let’s return to our exercise and proceed with building the arc segments. To create an arc, we need three points: a start point, an end point, and a midpoint that determines the curvature. For this purpose, we can use the convenient '''Part.Arc''' function, which takes these three points as input and generates the base geometry for an arc.
 
 <!--T:36-->
 [[Image:Circel.png]]
@@ -298,7 +291,7 @@ print(P.ShapeType)
 <translate>
 
 <!--T:52-->
-This is because when we extrude a single face, we always get a solid. This wouldn't be the case, for example, if we had extruded the wire instead:
+This is because when we extrude a single wace, we always get a solid. This wouldn't be the case, for example, if we had extruded the wire instead:
 
 </translate>
 {{Code|code=
