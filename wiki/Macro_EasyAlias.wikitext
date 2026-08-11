@@ -7,8 +7,8 @@
 |Icon=easy-alias-icon.png
 |Description=Use this to quickly and easily create aliases for cells in your spreadsheets. It takes the text labels you will have already created in one column and uses those labels as aliases in the next column.
 |Author=TheMarkster
-|Version=2025.06.19
-|Date=2025-06-19
+|Version=2026.08.08
+|Date=2026-08-08
 |FCVersion=0.21
 |Download=[https://wiki.freecad.org/images/5/5e/Easy-alias-icon.png ToolBar Icon]
 }}
@@ -21,7 +21,7 @@ Use this to quickly and easily create aliases for cells in your spreadsheets. It
 ==Usage== <!--T:4-->
 
 <!--T:5-->
-Highlight the cells containing the text labels and run the macro. Adjacent cells in the next column will now contain aliases made from the text values from the highlighted cells.
+Highlight the cells containing the text labels and run the macro. Adjacent cells in the next column will now contain aliases made from the text values from the highlighted cells.  New for version 2026.08.08, row mode is supported where the adjacent cells in the next row get the aliases.  For row mode press the ALT on your keyboard while executing the macro.
 
 </translate>
 [[File:EasyAlias-scr1.png|600px]]
@@ -41,7 +41,7 @@ ToolBar icon [[Image:easy-alias-icon.png]]
 # -*- coding: utf-8 -*-
 import FreeCAD
 import re
-from PySide import QtGui
+from PySide import QtGui, QtCore
 
 """
 EasyAlias.FCMacro.py
@@ -91,9 +91,12 @@ __title__ = "EasyAlias"
 __author__ = "TheMarkster and rosta"
 __url__ = "https://wiki.freecad.org/Macro_EasyAlias"
 __Wiki__ = "https://wiki.freecad.org/Macro_EasyAlias"
-__date__ = "2025.06.19" #year.month.date
+__date__ = "2026.08.08" #year.month.date
 __version__ = __date__
 __icon__ = "https://wiki.freecad.org/images/5/5e/Easy-alias-icon.png"
+
+modifiers = QtGui.QApplication.keyboardModifiers()
+ROW_MODE = bool(modifiers & QtCore.Qt.AltModifier) #press ALT key for row mode (put alias in next row instead of next columnn)
 
 CELL_ADDR_RE = re.compile(r"([A-Za-z]+)([1-9]\d*)")
 CUSTOM_ALIAS_RE = re.compile(r".*\((.*)\)")
@@ -213,7 +216,7 @@ def main():
                 contents = spreadsheet.get(selectedCell)
                 alias = textToAlias(contents)
                 row, column = a1_to_rowcol(selectedCell)
-                nextCell = rowcol_to_a1(row, column + 1)
+                nextCell = rowcol_to_a1(row, column + 1) if not ROW_MODE else rowcol_to_a1(row + 1, column)
                 try:
                     spreadsheet.setAlias(nextCell, alias)
                 except:
