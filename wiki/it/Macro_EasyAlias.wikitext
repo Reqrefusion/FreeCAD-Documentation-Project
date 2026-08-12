@@ -1,5 +1,6 @@
 <languages/>
 
+<div class="mw-translate-fuzzy">
 {{Macro/it
 |Name=Macro EasyAlias
 |Icon=easy-alias-icon.png
@@ -10,6 +11,7 @@
 |FCVersion=0.21
 |Download=[https://wiki.freecad.org/images/5/5e/Easy-alias-icon.png ToolBar Icon]
 }}
+</div>
 
 <span id="Description"></span>
 ==Descrizione==
@@ -19,7 +21,9 @@ Utilizzare questa funzione per creare rapidamente e facilmente alias per le cell
 <span id="Usage"></span>
 ==Utilizzo==
 
+<div class="mw-translate-fuzzy">
 Evidenziare le celle contenenti le etichette di testo ed eseguire la macro. Le celle adiacenti nella colonna successiva ora conterranno gli alias creati con i valori di testo delle celle evidenziate.
+</div>
 
 [[File:EasyAlias-scr1.png|600px]]
 {{Caption|Screenshot 1 di EasyAlias, le etichette di testo della colonna A vengono utilizzate per creare gli alias nella colonna B.}}
@@ -34,7 +38,7 @@ Icona barra degli strumenti [[Image:easy-alias-icon.png]]
 # -*- coding: utf-8 -*-
 import FreeCAD
 import re
-from PySide import QtGui
+from PySide import QtGui, QtCore
 
 """
 EasyAlias.FCMacro.py
@@ -84,9 +88,12 @@ __title__ = "EasyAlias"
 __author__ = "TheMarkster and rosta"
 __url__ = "https://wiki.freecad.org/Macro_EasyAlias"
 __Wiki__ = "https://wiki.freecad.org/Macro_EasyAlias"
-__date__ = "2025.06.19" #year.month.date
+__date__ = "2026.08.08" #year.month.date
 __version__ = __date__
 __icon__ = "https://wiki.freecad.org/images/5/5e/Easy-alias-icon.png"
+
+modifiers = QtGui.QApplication.keyboardModifiers()
+ROW_MODE = bool(modifiers & QtCore.Qt.AltModifier) #press ALT key for row mode (put alias in next row instead of next columnn)
 
 CELL_ADDR_RE = re.compile(r"([A-Za-z]+)([1-9]\d*)")
 CUSTOM_ALIAS_RE = re.compile(r".*\((.*)\)")
@@ -206,7 +213,7 @@ def main():
                 contents = spreadsheet.get(selectedCell)
                 alias = textToAlias(contents)
                 row, column = a1_to_rowcol(selectedCell)
-                nextCell = rowcol_to_a1(row, column + 1)
+                nextCell = rowcol_to_a1(row, column + 1) if not ROW_MODE else rowcol_to_a1(row + 1, column)
                 try:
                     spreadsheet.setAlias(nextCell, alias)
                 except:
