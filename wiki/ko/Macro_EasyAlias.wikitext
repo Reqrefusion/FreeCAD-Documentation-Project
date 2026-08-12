@@ -9,7 +9,7 @@
 |Version=2023.11.06
 |Date=2023-11-06
 |FCVersion=0.21
-|Download=[https://www.freecadweb.org/wiki/images/5/5e/Easy-alias-icon.png ToolBar Icon]
+|Download=[https://www.freecad.org/wiki/images/5/5e/Easy-alias-icon.png ToolBar Icon]
 }}
 </div>
 
@@ -21,7 +21,9 @@
 <span id="Usage"></span>
 ==용법==
 
+<div class="mw-translate-fuzzy">
 텍스트 레이블이 포함된 셀을 선택하고 매크로를 실행합니다. 다음 열의 인접한 셀은 이제 선택된 셀의 텍스트 값에서 만든 별칭을 갖게 됩니다.
+</div>
 
 [[File:EasyAlias-scr1.png|600px]]
 {{Caption|EasyAlias screenshot1, 열 A의 텍스트 레이블은 열 B의 별칭을 만드는 데 사용됩니다.}}
@@ -37,7 +39,7 @@ ToolBar icon [[Image:easy-alias-icon.png]]
 # -*- coding: utf-8 -*-
 import FreeCAD
 import re
-from PySide import QtGui
+from PySide import QtGui, QtCore
 
 """
 EasyAlias.FCMacro.py
@@ -87,9 +89,12 @@ __title__ = "EasyAlias"
 __author__ = "TheMarkster and rosta"
 __url__ = "https://wiki.freecad.org/Macro_EasyAlias"
 __Wiki__ = "https://wiki.freecad.org/Macro_EasyAlias"
-__date__ = "2025.06.19" #year.month.date
+__date__ = "2026.08.08" #year.month.date
 __version__ = __date__
 __icon__ = "https://wiki.freecad.org/images/5/5e/Easy-alias-icon.png"
+
+modifiers = QtGui.QApplication.keyboardModifiers()
+ROW_MODE = bool(modifiers & QtCore.Qt.AltModifier) #press ALT key for row mode (put alias in next row instead of next columnn)
 
 CELL_ADDR_RE = re.compile(r"([A-Za-z]+)([1-9]\d*)")
 CUSTOM_ALIAS_RE = re.compile(r".*\((.*)\)")
@@ -209,7 +214,7 @@ def main():
                 contents = spreadsheet.get(selectedCell)
                 alias = textToAlias(contents)
                 row, column = a1_to_rowcol(selectedCell)
-                nextCell = rowcol_to_a1(row, column + 1)
+                nextCell = rowcol_to_a1(row, column + 1) if not ROW_MODE else rowcol_to_a1(row + 1, column)
                 try:
                     spreadsheet.setAlias(nextCell, alias)
                 except:
