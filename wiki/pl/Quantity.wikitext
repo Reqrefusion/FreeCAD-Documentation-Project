@@ -16,7 +16,7 @@ Parser danych wejściowych we FreeCAD obsługuje wiele jednostek i systemów jed
 Pełną listę wszystkich obsługiwanych jednostek można znaleźć [[Expressions/pl#Jednostki|tutaj]].
 
 Szczegółowe specyfikacje, które można znaleźć w kodzie:
-* [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/QuantityLexer.c Lexer wielkości]  
+* [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/Quantity.cpp#L544 Lexer wielkości]  
 * [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/Quantity.cpp#l167 Definicje wielkości]
 
 <span id="Internal_representation"></span>
@@ -177,11 +177,17 @@ Units.Quantity('1 MPa').getValueAs(Units.Quantity('N/m^2')) # a quantity
 <span id="User_facing_values"></span>
 === Wartości prezentowane użytkownikowi ===
 
-Zazwyczaj w skryptach można używać Quantity (wielkości) do wszelkiego rodzaju obliczeń i sprawdzeń, ale przychodzi moment, gdy trzeba wyświetlić informacje użytkownikowi. Można użyć getValueAs(), aby wymusić określoną jednostkę, ale zazwyczaj użytkownik ustawia w preferencjach swoje ulubione schematy jednostek. Ten schemat jednostek dokonuje wszystkich konwersji do formy, którą użytkownik chce zobaczyć. Obecnie zaimplementowano trzy schematy:
-* 1: Wewnętrzny (mm/kg/s)
-* 2: MKS (m/kg/s)
-* 3: System amerykański (in/lb)
-W przyszłości można łatwo dodać kolejne schematy...
+Zazwyczaj w skryptach można używać Quantity (wielkości) do wszelkiego rodzaju obliczeń i sprawdzeń, ale przychodzi moment, gdy trzeba wyświetlić informacje użytkownikowi. Można użyć getValueAs(), aby wymusić określoną jednostkę, ale zazwyczaj użytkownik ustawia w preferencjach swoje ulubione schematy jednostek. Ten schemat jednostek dokonuje wszystkich konwersji do formy, którą użytkownik chce zobaczyć. Obecnie zaimplementowano następujące schematy:
+# Standardowy (mm/kg/s)
+# MKS (m/kg/s)
+# Amerykański (in/lb)
+# Imperialny zmiennoprzecinkowy (in, lb)
+# Budowlany Euro (cm, m^2, m^3)
+# Budowlany US (ft-in, sqft, cft)
+# Metryczny do małych części i CNC (mm, mm/min)
+# Imperialny dla budownictwa (ft, lb, mph)
+# MES (mm, N, s)
+# Z metrami zmiennoprzecinkowy (m, m^2, m^3)
 
 Klasa Quantity ma dwie opcje użycia aktualnego schematu konwersji:
 
@@ -201,15 +207,14 @@ Units.Quantity('2  m').getUserPreferred() # Tuple: ('2000 mm', 1.0, 'mm')
 
 Tutaj otrzymujesz więcej informacji w postaci krotki (trzech elementów). Otrzymujesz łańcuch znaków jak wcześniej, dodatkowo współczynnik wartości oraz surowy łańcuch zawierający tylko jednostkę wybraną przez schemat konwersji. Dzięki tym informacjom możesz zaimplementować znacznie bogatszą interakcję z użytkownikiem.
 
-Kod schematów konwersji można znaleźć tutaj:
-* [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/UnitsSchemaInternal.cpp Internal]
-* [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/UnitsSchemaMKS.cpp MKS]
-* [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/UnitsSchemaImperial1.cpp Imperial]
+Kod schematów jednostek można znaleźć [https://github.com/FreeCAD/FreeCAD/blob/main/src/Base/UnitsSchemasData.h tutaj].
 
 <span id="Precision"></span>
 === Precyzja ===
 
+<div class="mw-translate-fuzzy">
 Precyzja wielkości w oknach dialogowych FreeCAD odpowiada liczbie miejsc po przecinku określonej [[Preferences_Editor/pl#Jednostki|w preferencjach]]. Aby użyć tych ustawień w swoim skrypcie (na przykład w oknach dialogowych), można je pobrać za pomocą następującego kodu:
+</div>
 {{Code|code=
 import FreeCAD
 
