@@ -227,6 +227,28 @@ $ FreeCADCmd create_box.py
 Box created and exported successfully to my_box_model.step
 }}
 
+=== Via the full GUI application under a virtual display ===
+
+The methods above ({{incode|FreeCADCmd}}, {{incode|FreeCAD -c}}, and using FreeCAD as an embedded Python library) are all, unable to create [[Viewprovider|view providers]]. If your script needs {{incode|ViewObject}} access (for example, properties like text style or font size), none of the methods above will work..
+
+To get a fully-initialized GUI session (including working view providers) without a physical monitor, under Linux you can run the actual {{incode|FreeCAD}} GUI executable under a virtual X server such as [https://en.wikipedia.org/wiki/Xvfb Xvfb]. Unlike the console modes, the GUI executable performs its normal startup (creating a {{incode|MainWindow}} and real view providers).
+
+On Linux, this can be achieved with {{incode|xvfb-run}}, which handles allocating a virtual display and cleanup automatically:
+
+{{Code|lang=bash|code=
+$ xvfb-run -a FreeCAD my_script.py
+}}
+
+As with the script-file invocation described in [[Start_up_and_Configuration|Start up and Configuration]], the file passed on the command line can have either a {{incode|.py}} or {{incode|.FCMacro}} extension; both are run the same way.
+
+'''The application does not exit on its own after the script finishes.''' Unlike {{incode|FreeCADCmd}}, the GUI executable always enters the normal Qt event loop and stays open, whether or not a display is visible to a user. The script itself must request the exit, for example:
+
+{{Code|lang=python|code=
+import FreeCADGui
+# ... script code ...
+FreeCADGui.getMainWindow().close()
+}}
+
 == Examples == <!--T:7-->
 
 === Searching FreeCAD modules === <!--T:8-->
