@@ -243,7 +243,7 @@ As with the script-file invocation described in [[Start_up_and_Configuration|Sta
 
 '''The application does not exit on its own after the script finishes.''' Unlike {{incode|FreeCADCmd}}, the GUI executable always enters the normal Qt event loop and stays open, whether or not a display is visible to a user. The script itself must request the exit.
 
-Calling {{incode|FreeCADGui.getMainWindow().close()}} alone is not reliable for this: it goes through the normal interactive close sequence, which includes FreeCAD's "save changes?" prompt for any document with unsaved modifications — a modal dialog with nobody available to dismiss it, which will hang the process indefinitely under a virtual display. Clear each document's modified flag first so there is nothing to prompt about:
+Calling {{incode|FreeCADGui.getMainWindow().close()}} alone is not reliable for this: it goes through the normal interactive close sequence, which includes FreeCAD's "save changes?" prompt for any document with unsaved modifications, which will hang the process indefinitely under a virtual display, since it requires human interation to dismiss it. Clear each document's modified flag first so there is nothing to prompt about:
 
 {{Code|lang=python|code=
 import FreeCAD as App
@@ -256,7 +256,7 @@ for doc in App.listDocuments().values():
 Gui.getMainWindow().close()
 }}
 
-If something else still keeps the process alive despite this (for example, another modal dialog unrelated to unsaved changes), a script can fall back to a hard exit that bypasses the Qt event loop entirely:
+If something else still keeps the process alive despite this (for instance, another modal dialog unrelated to unsaved changes), a script can fall back to a hard exit that bypasses the Qt event loop entirely:
 
 {{Code|lang=python|code=
 import os
