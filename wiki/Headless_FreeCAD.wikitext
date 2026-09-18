@@ -229,7 +229,7 @@ Box created and exported successfully to my_box_model.step
 
 === Via the full GUI application under a virtual display ===
 
-The methods above ({{incode|FreeCADCmd}}, {{incode|FreeCAD -c}}, and using FreeCAD as an embedded Python library) are all, unable to create [[Viewprovider|view providers]]. If your script needs {{incode|ViewObject}} access (for example, properties like text style or font size), none of the methods above will work..
+The methods above ({{incode|FreeCADCmd}}, {{incode|FreeCAD -c}}, and using FreeCAD as an embedded Python library) are all unable to create [[Viewprovider|view providers]]. If your script needs {{incode|ViewObject}} access (for example, properties like text style or font size), none of the methods above will work.
 
 To get a fully-initialized GUI session (including working view providers) without a physical monitor, under Linux you can run the actual {{incode|FreeCAD}} GUI executable under a virtual X server such as [https://en.wikipedia.org/wiki/Xvfb Xvfb]. Unlike the console modes, the GUI executable performs its normal startup (creating a {{incode|MainWindow}} and real view providers).
 
@@ -241,13 +241,30 @@ $ xvfb-run -a FreeCAD my_script.py
 
 As with the script-file invocation described in [[Start_up_and_Configuration|Start up and Configuration]], the file passed on the command line can have either a {{incode|.py}} or {{incode|.FCMacro}} extension; both are run the same way.
 
-'''The application does not exit on its own after the script finishes.''' Unlike {{incode|FreeCADCmd}}, the GUI executable always enters the normal Qt event loop and stays open, whether or not a display is visible to a user. The script itself must request the exit, for example:
+'''The application does not exit on its own after the script finishes.''' Unlike {{incode|FreeCADCmd}}, the GUI executable always enters the normal Qt event loop and stays open, whether or not a display is visible to a user. The script itself must request the exit.
+
+Calling {{incode|FreeCADGui.getMainWindow().close()}} alone is not reliable for this: it goes through the normal interactive close sequence, which includes FreeCAD's "save changes?" prompt for any document with unsaved modifications — a modal dialog with nobody available to dismiss it, which will hang the process indefinitely under a virtual display. Clear each document's modified flag first so there is nothing to prompt about:
 
 {{Code|lang=python|code=
-import FreeCADGui
+import FreeCAD as App
+import FreeCADGui as Gui
+
 # ... script code ...
-FreeCADGui.getMainWindow().close()
+
+for doc in App.listDocuments().values():
+    Gui.getDocument(doc.Name).Modified = False
+Gui.getMainWindow().close()
 }}
+
+If something else still keeps the process alive despite this (for example, another modal dialog unrelated to unsaved changes), a script can fall back to a hard exit that bypasses the Qt event loop entirely:
+
+{{Code|lang=python|code=
+import os
+# ... script code ...
+os._exit(0)
+}}
+
+Use this only as a last resort: it skips Qt's and FreeCAD's normal shutdown and cleanup, so anything that shutdown would otherwise remove (such as lock files) is left behind. Prefer clearing the modified flag and closing normally whenever possible.
 
 == Examples == <!--T:7-->
 
