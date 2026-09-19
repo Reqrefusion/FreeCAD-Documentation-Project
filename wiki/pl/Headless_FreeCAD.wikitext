@@ -47,7 +47,10 @@ print(f"The volume of the box is: {my_box.Volume}")
 print(f"The area of the box is: {my_box.Area}")
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 To run the example script, save the code into a file (e.g., {{incode|run_box.py}}) and execute it from your system's terminal with the Python interpreter:
+</div>
+
 {{Code|lang=bash|code=
 $ python run_box.py
 The volume of the box is: 6000.0
@@ -154,11 +157,25 @@ Pliki wykonywalne linii poleceń FreeCAD mogą również służyć jako wyspecja
 
 Możesz przekazać ciąg kodu Pythona bezpośrednio jako pojedynczy argument. Jest to przydatne do bardzo krótkich poleceń o jednym celu. Zauważ, że argument linii poleceń nie może być ścieżką do istniejącego pliku żeby to działało.
 
+<div class="mw-translate-fuzzy">
 * '''Tryb headless''': Używając {{incode|FreeCADCmd}} uruchamia kod a następnie natychmiast wychodzi. Jest to idealne do korzystania ze skryptów.
 {{Code|lang=bash|code=
 $ FreeCADCmd "import Part; print(Part.makeBox(10,5,15).Volume)"
 }}
 * '''Tryb interaktywny''': Używając {{incode|FreeCAD -c}} uruchamia kod a następnie otwiera sesję interaktywnej konsoli Pythona. Jest to przydatne do szybkich testów gdy chcesz sprawdzić stan po zastosowaniu kodu.
+{{Code|lang=bash|code=
+$ FreeCAD -c "import Part; my_box = Part.makeBox(10,5,15)"
+}}
+</div>
+
+{{Code|lang=bash|code=
+$ FreeCADCmd "import Part; print(Part.makeBox(10,5,15).Volume)"
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* '''Interactive Mode''': Using {{incode|FreeCAD -c}} executes the code and then opens an interactive Python console session. This is useful for quick tests where you may want to inspect the state afterwards.
+</div>
+
 {{Code|lang=bash|code=
 $ FreeCAD -c "import Part; my_box = Part.makeBox(10,5,15)"
 }}
@@ -173,23 +190,34 @@ $ FreeCADCmd /path/to/my_script.py
 
 Gdy skrypt jest uruchamiany w ten sposób, środowisko FreeCAD jest już skonfigurowane. Kluczową zaletą jest to, że skrypt '''nie''' potrzebuje szablonowego kodu {{incode|sys.path.append()}}. Moduły FreeCAD są natychmiast dostępne do importu.
 
+<div class="mw-translate-fuzzy">
 Przykładowo, plik nazwany {{incode|create_box.py}} mógłby zawierać:
 {{Code|lang=python|code=
 import Part
 # Moduł FreeCAD jest już dostępny, ale może być importowany jawnie
 import FreeCAD
+</div>
 
-# Utwórz nowy dokument i dodaj do niego kostkę
+{{Code|lang=python|code=
+import Part
+# The FreeCAD module is already available, but it can be imported explicitly
+import FreeCAD
+
+# Create a new document and add a box to it
 doc = FreeCAD.newDocument()
 box_obj = doc.addObject("Part::Box", "MyBox")
 doc.recompute()
 
-# Eksportuj część do pliku STEP
+# Export the part to a STEP file
 Part.export([box_obj], "my_box_model.step")
 
 print("Box created and exported successfully to my_box_model.step")
 }}
-Uruchomienie tego skryptu z terminala jest tak proste jak:
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Running this script from the terminal is as simple as:
+</div>
+
 {{Code|lang=bash|code=
 $ FreeCADCmd create_box.py
 Box created and exported successfully to my_box_model.step
@@ -211,11 +239,9 @@ To get a fully-initialized GUI session (including working view providers) withou
 On Linux, this can be achieved with {{incode|xvfb-run}}, which handles allocating a virtual display and cleanup automatically:
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {{Code|lang=bash|code=
 $ xvfb-run -a FreeCAD my_script.py
 }}
-</div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 As with the script-file invocation described in [[Start_up_and_Configuration|Start up and Configuration]], the file passed on the command line can have either a {{incode|.py}} or {{incode|.FCMacro}} extension; both are run the same way.
@@ -229,34 +255,26 @@ As with the script-file invocation described in [[Start_up_and_Configuration|Sta
 Calling {{incode|FreeCADGui.getMainWindow().close()}} alone is not reliable for this: it goes through the normal interactive close sequence, which includes FreeCAD's "save changes?" prompt for any document with unsaved modifications, which will hang the process indefinitely under a virtual display, since it requires human interation to dismiss it. Clear each document's modified flag first so there is nothing to prompt about:
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {{Code|lang=python|code=
 import FreeCAD as App
 import FreeCADGui as Gui
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 # ... script code ...
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 for doc in App.listDocuments().values():
     Gui.getDocument(doc.Name).Modified = False
 Gui.getMainWindow().close()
 }}
-</div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 If something else still keeps the process alive despite this (for instance, another modal dialog unrelated to unsaved changes), a script can fall back to a hard exit that bypasses the Qt event loop entirely:
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {{Code|lang=python|code=
 import os
 # ... script code ...
 os._exit(0)
 }}
-</div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 Use this only as a last resort: it skips Qt's and FreeCAD's normal shutdown and cleanup, so anything that shutdown would otherwise remove (such as lock files) is left behind. Prefer clearing the modified flag and closing normally whenever possible.
