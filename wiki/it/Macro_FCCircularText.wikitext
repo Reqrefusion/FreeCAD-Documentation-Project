@@ -6,8 +6,8 @@
 |Icon=FCCircularTextButtom.png
 |Description=Questa macro utilizza lo strumento [[Draft ShapeString]] per creare una riga di testo posizionata con diversi orientamenti circolari, inclusi circonferenza ed elica (alla maniera di una colonna Traiana). Può anche essere usata per creare un quadrante di orologio con numeri arabi ''1, 2, 3,'' ecc., o numeri romani ''I, II, III,'' ecc.
 |Author=Mario52
-|Version=0.22e
-|Date=2024/07/11
+|Version=0.23b
+|Date=2026/09/13
 |FCVersion=0.19 è più
 |Download=[https://www.freecad.org/wiki/images/c/c1/FCCircularTextButtom.png ToolBar Icon]
 }}
@@ -17,7 +17,7 @@
 
 Questa macro utilizza lo strumento [[Image:Draft_ShapeString.svg|24px|link=Draft ShapeString]] [[Draft ShapeString/it|Draft Forma da testo]] per creare una riga di testo posizionata con diversi orientamenti circolari, inclusi circonferenza ed elica alla maniera di una [http://en.wikipedia.org/wiki/Trajan%27s_Column Colonna di Traiano]. Può anche essere usata per creare un quadrante di orologio con numeri arabi ''1, 2, 3,'' ecc., o numeri romani ''I, II, III,'' ecc. Quest'ultimo utilizzo è stato ispirato dalla discussione del Forum [http://forum.freecad.org/viewtopic.php?f=22&t=5013&hilit=Clock Macro per creare il quadrante dell'orologio] del membro della comunità FC, cblt2l.
 
-{{Codeextralink|https://gist.githubusercontent.com/mario52a/a25e802498bae6959335/raw/3a7b030af1395ebe515b7ac7ff399636df55fbc8/Macro_FCCircularText.FCMacro}}
+{{Codeextralink|https://gist.githubusercontent.com/mario52a/a25e802498bae6959335/raw/cbfe2335ace5486f5e718acbdb5033d93b67e892/Macro_FCCircularText.FCMacro}}
 
 [[File:FCCircularText 01.png|400px|texte 360 degrees]]
 {{Caption|Esempio di macro che mostra il testo con un orientamento a 360 gradi}}
@@ -56,7 +56,8 @@ Panoramica
 {{clear}}
 
 * La finestra di modifica del testo, che consente di inserire il testo da visualizzare (cliccando su {{Button|Reset}}, nella finestra del titolo si può vedere quanti caratteri contiene la stringa di input)
-* Il pulsante {{Button|Reverse}} serve per invertire il testo
+* Il pulsante {{Button|Reverse}} serve per invertire il testo (ex: FreeCAD{{ColoredText|#ff0000|.}}the{{ColoredText|#ff0000|.}}best{{ColoredText|#ff0000|.}} → {{ColoredText|#ff0000|.}}tseb{{ColoredText|#ff0000|.}}eht{{ColoredText|#ff0000|.}}DACeerF)
+* Il pulsante {{Button|Inverse}} serve per invertire il testo word by word (ex: FreeCAD{{ColoredText|#ff0000|.}}the{{ColoredText|#ff0000|.}}best{{ColoredText|#ff0000|.}} → {{ColoredText|#ff0000|.}}best{{ColoredText|#ff0000|.}}the{{ColoredText|#ff0000|.}}FreeCAD)
 * {{CheckBox|Word}} se selezionata, questa opzione considera il testo come parola, il testo viene tagliato nello spazio e il testo viene scritto parola per parola (invece che carattere per carattere come nell'uso normale)
 * Il pulsante {{Button|Help}} visualizza la pagina wiki nel browser FreeCAD
 * LineEdit : mostra il percorso e il nome del file del font
@@ -183,6 +184,8 @@ Se il comando non viene utilizzato nell'opzione scelta, sarà visualizzato in gr
 * {{SpinBox|360 deg}} '''End angle'''        : Angolo finale dell'ultimo carattere del testo. (Predefinito 360)
 * {{SpinBox|10.0 deg}} '''Correction angle''' : Angolo di correzione per rendere il carattere tangente al cerchio. (Default 10°)
 * {{SpinBox|0.15 mm}} '''Correction radius''': Corregge il raggio del cerchio dei caratteri (optional). (Default 0.15)
+* {{ComboBox|Bottom-Center}} '''Justification''' : Justificatione dei caratteri
+* {{SpinBox|-0,30 mm (Tracking)}} '''Tracking''' : Tracking entra 2 caratteri solo disponibile con il modo {{CheckBox|TRUE|Word}} attivato
 *
 * {{CheckBox|'''Extrude Char'''}} : Estrusione dei caratteri. (di default è disattivato)
 * {{CheckBox|'''Placement'''}} : Posizione del testo nella vista 3D. (di default è disattivato)
@@ -280,6 +283,7 @@ Image:FCCircularText 36.png|'''Redress'''
 * Se '''Support number face''' è uguale a zero non c'è il supporto.
 * {{Button|Mode Roman}} : La scrittura è in cifre romane '''I II III IIII V VI VII VIII IX X XI XII'''
 * {{Button|Axial}} : I dati sono scritti assialmente.
+{{clear}}
 
 ===Path section===
 
@@ -293,11 +297,14 @@ Se si seleziona una polilinea, un arco, un cerchio, una linea o un bordo, la sez
 #{{RadioButton|Orthogonal}} il carattere è ortogonale alla vista
 #{{RadioButton|Tangent}} il carattere è tangente al percorso del punto sul filo
 
-#{{RadioButton|BB Base}} il punto base del carattere deve puntare il percorso sul filo
-#{{RadioButton|BB Center}} il centro del bounBox del personaggio deve indicare il percorso sul filo
-#{{RadioButton|BB Top}} il boundBox superiore del carattere deve indicare il percorso sulla linea
-
 l'ultimo pulsante di scelta utilizzato viene salvato nei parametri di FreeCAD
+
+===Options section===
+
+[[File:FCCircularText Options.png|left]]
+{{clear}}
+
+{{Button|Color of shape}} colore disponibile
 
 <span id="Command_section"></span>
 ===Sezione comandi===
@@ -305,10 +312,22 @@ l'ultimo pulsante di scelta utilizzato viene salvato nei parametri di FreeCAD
 [[File:FCCircularText 13.png]]
 {{clear}}
 
-* {{Button|Exit}} : Esce dalla macro.
-* {{Button|Reset}} : Ripristina tutti i valori e mostra il numero di caratteri visualizzati nella finestra.
-* {{Button|Run Comp}} : Lancia la macro e crea un oggetto Composto da tutti i caratteri.
+* {{CheckBox|Points}}: Crea uno Draft [[Image:Draft_Point.svg|24px]][[Draft_Point|Punto]] nel punto base del carattere (i punti in sequenza sono salvati in un gruppo separato)
+* {{CheckBox|Circle}}: Crea uno Draft [[Image:Draft_Circle.svg|24px]][[Draft_Circle|Cerchio]] con il raggio specificato.
+* {{CheckBox|BoundBox}}: Crea il bounding box per ogni caratteri.
+* {{CheckBox|Progression}}: Avanzamento nella creazione dei personaggi (la nuova versione rimane visibile?).
+
+
+* {{CheckBox|Free}}: Modo libero.
+* {{CheckBox|Reset}}: Il ripristino viene eseguito per ogni caratteri; se questa opzione è selezionata, non viene eseguito alcun ripristino.
+{{ColoredText|Se il risultato presenta errori o non è quello previsto (ovvero è corrotto): deseleziona la casella di controllo, fai clic sul pulsante {{Button|Reset}} oppure chiudi e riavvia la macro FCCircularText.}}
+* {{Button|Del}}: Elimina l'ultimo lavoro eseguito
+
+
 * {{Button|Run}} : Esegue la macro.
+* {{Button|Run + Comp}} : Lancia la macro e crea un oggetto Composto da tutti i caratteri.
+* {{Button|Reset}} : Ripristina tutti i valori e mostra il numero di caratteri visualizzati nella finestra.
+* {{Button|Exit}} : Esce dalla macro.
 
 <span id="Parameters_available"></span>
 ===Parametri disponibili===
@@ -496,15 +515,6 @@ Image:FCCircularText 59.png|Selezionare l'ellisse estrusa, il Cut (testo) e fond
 
 <center>
 <gallery widths="300" heights="200">
-Image:FCCircularText_Path_00_Orth_Base_000.png|Testo sulla base del BoundBox (normale)
-Image:FCCircularText_Path_00_Orth_Center_000.png|Testo col carattere centrato al bordo del BoundBox
-</gallery>
-</center>
-<br />
-
-<center>
-<gallery widths="300" heights="200">
-Image:FCCircularText_Path_00_Orth_Top_000.png|Testo allineato in alto al bordo del BoundBox
 Image:FCCircularText_Path_00_001_000_000.png|Testo sulla linea selezionata:<br />1: Ortogonale<br />2: Tangente
 </gallery>
 </center>
@@ -538,6 +548,10 @@ Scrittura di testo circolare su un percorso dell'oggetto di posizione selezionat
 
 <span id="Change_log"></span>
 ==Registro delle modifiche:==
+
+*ver 0.23b 2026/09/13 : corretto il legame delle immagine Path Base/orthogonal !!!
+
+*ver 0.23 2026/09/13 : aggiunte giustificazione, tracciatura, inversione, opzione colore
 
 *ver 0.22f 2025/09/25 : ritorno a PySide, aggiungendo informazioni per l'uso del font MONOSPACE
 

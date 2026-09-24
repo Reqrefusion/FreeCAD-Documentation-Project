@@ -9,6 +9,8 @@
 |IconC=Freecad.svg
 }}
 
+{{VeryImportantMessage|Diese Seite wurde für die FreeCAD-Version 26.3 aktualisiert.}}
+
 {{GuiCommand/de
 |Name=Std SendToPythonConsole
 |Name/de=Std AnPythonKonsoleSenden
@@ -21,51 +23,53 @@
 <span id="Description"></span>
 ==Beschreibung==
 
-Der Befehl '''Std AnPythonKonsoleSenden''' erstellt Variablen in der [[Python_console/de|Python-Konsole]], die auf ein ausgewähltes Objekt und auf seine ausgewählten Teilformen verweisen, zusammen mit ein paar nützlichen anderen Referenzen. Die Variablen und der dazugehörige Kode können zur Entwicklung von Python-Skripten verwendet werden.
+Der Befehl '''Std AnPythonKonsoleSenden''' erstellt Variablen in der [[Python_Console/de|Python-Konsole]], die auf ausgewählte Objekte und ausgewählte Teilobjekte verweisen, zusammen mit ein paar nützlichen anderen Variablen. Sie können für die Entwicklung von Python-Skripten verwendet werden.
 
-Abhängig von dem ausgewählten Objekt und seiner ausgewählten Teilformen, falls vorhanden, werden die folgenden Variablen erstellt:
+Die folgenden Variablen werden erstellt:
 
 {| class="wikitable"
 |-
-! Variablenname !! Referenzierte Objekte
+! Variable !! Referenzierte Objekte
+|-
+| {{Incode|sels}} || Eine Liste von Auswahlobjekten (eins für jedes ausgewählte Objekt)
+|-
+| {{Incode|sel}} || Das letzte Element in {{Incode|sels}} (gehört zum zuletzt ausgewählten Objekt)
 |-
 | {{Incode|doc}} || Das Dokument, das das ausgewählte Objekt enthält
 |-
-| {{Incode|lnk}} || Das ausgewählte Link-Objekt (wird nur erstellt, wenn das ausgewählte Objekt ein Link ist)
-|-
-| {{Incode|obj}} || Je nach ausgewähltem Objekt:<br>
+| {{Incode|objs}} || Eine Liste mit einem Element für jedes ausgewählte Objekt:<br>
 Das ausgewählte Objekt selbst (wenn das ausgewählte Objekt kein Link ist)<br>
-Das verknüpfte Objekt (wenn das ausgewählte Objekt ein Link ist)<br>
+Das verknüpfte Objekt (wenn das ausgewählte Objekt ein Link ist)
 |-
-| {{Incode|shp}} || Je nach Art des {{Incode|obj}}:<br>
-Die Eigenschaft {{Incode|Shape}} von {{Incode|obj}} (für Objekte, die von der Klasse {{Incode|Part::Feature}} abgeleitet sind)<br>
-Die Eigenschaft {{Incode|Mesh}} von {{Incode|obj}} (für Mesh-Objekte)<br>
-Die Eigenschaft {{Incode|Points}} von {{Incode|obj}} (für Punkteobjekte)
+| {{Incode|obj}} || Das letzte Element in {{Incode|objs}} (gehört zum zuletzt ausgewählten Objekt)
 |-
-| {{Incode|sub}} || Die erste ausgewählte Unterform (wird nur erstellt, wenn mindestens eine Unterform ausgewählt ist)
+| {{Incode|lnks}} || Eine Liste mit einem Element für jedes ausgewählte Objekt:<br>
+Das ausgewählte Objekt selbst (wenn das ausgewählte Objekt ein Link ist)<br>
+{{Incode|None}} (wenn das ausgewählte Objekt kein Link ist)
 |-
-| {{Incode|subs}} || Eine Liste mit allen Unterformen (wird nur erstellt, wenn zwei oder mehr Unterformen ausgewählt sind)
+| {{Incode|lnk}} || Das letzte Element in {{Incode|lnks}} (gehört zum zuletzt ausgewählten Objekt)
+|-
+| {{Incode|shps}} || Eine Liste mit einem Element für jedes {{Incode|obj}} in {{Incode|objs}}:<br>
+Die Eigenschaft {{Incode|Shape}} eines {{Incode|obj}} (für Objekte, die diese Eigenschaft besitzen)<br>
+The {{Incode|Mesh}} property of {{Incode|obj}} (for Mesh objects)<br>
+The {{Incode|Points}} property of {{Incode|obj}} (for Points objects)<br>
+{{Incode|None}} (for other objects)
+|-
+| {{Incode|shp}} || Das letzte Element in {{Incode|shps}} (gehört zum letzten Element in {{Incode|objs}})
+|-
+| {{Incode|subs}} || Eine Liste mit den Ausgewählten Teilobjekten. Die Liste ist leer, wenn kein Teilobjekt ausgewählt wurde.
+|-
+| {{Incode|sub}} || Das letzte Element in {{Incode|subs}} oder {{Incode|None}}, wenn {{Incode|subs}} leer ist.
+|-
+| {{Incode|names}} || Eine Liste mit einem Tupel für jedes ausgewählte Objekt. Jedes Tupel enthält die Namen der Teilobjekte, die zu dem Objekt gehören. Das Tupel ist leer, wenn keine Teilobjekte für das Objekt ausgewählt wurden.
+|-
+| {{Incode|name}} || Das letzte Element in {{Incode|names}} oder {{Incode|None}}, wenn das Tupel leer ist.
 |}
-
- >>> ### Begin command Std_SendToPythonConsole
- >>> try:
- >>>     del(doc,lnk,obj,shp,sub,subs)
- >>> except Exception:
- >>>     pass
- >>> 
- >>> doc = App.getDocument("Unnamed")
- >>> lnk = doc.getObject("Link")
- >>> obj = lnk.getLinkedObject()
- >>> shp = obj.Shape
- >>> sub = obj.getSubObject("Edge10")
- >>> subs = [obj.getSubObject("Edge10"),obj.getSubObject("Face3"),obj.getSubObject("Vertex5"),]
- >>> ### End command Std_SendToPythonConsole
-{{Caption|Beispielausgabe: Eine Kante, eine Fläche und ein Eckpunkt eines [[Part_Box/de|Part Quaders]] wurden ausgewählt}}
 
 <span id="Usage"></span>
 ==Anwendung==
 
-# Ein einzelnes Objekt oder eine bzw. mehrere Teilformen, die zu einem einzelnen Objekt gehören, auswählen.
+# Ein oder mehrere Objekte und/oder eine bzw. mehrere Teilobjekte, die zu einem oder mehreren Objekt gehören, auswählen.
 # Es gibt mehrere Möglichkeiten den Befehl aufzurufen:
 #* Den Menüeintrag {{MenuCommand|Bearbeiten → [[Image:Std_SendToPythonConsole.svg|16px]] An Python-Konsole senden}} auswählen.
 #* Den Menüeintrag {{MenuCommand|[[Image:Std_SendToPythonConsole.svg|16px]] An Python-Konsole senden}} im Kontextmenü der [[Tree_View/de|Baumansicht]] oder im Kontextmenü der [[3D_View/de|3D-Ansicht]] auswählen.
@@ -78,9 +82,12 @@ Die Eigenschaft {{Incode|Points}} von {{Incode|obj}} (für Punkteobjekte)
 
 * Jedes Mal, wenn der Befehl ausgeführt wird, werden alle vorher erzeugten Variablen gelöscht.
 
-* Wenn das ausgewählte Objekt ein Link ({{Incode|App::Link}}) ist und das verknüpfte Objekt von der {{Incode|Part::Feature}}-Klasse abgeleitet wird, ist die {{Incode|shp}}-Variable die Form des verknüpften Objekts. Wenn die Verknüpfung transformiert oder skaliert wurde und man auf die skalierte/transformierte Form zugreifen möchte, kann dies mit diesem Code getan werden:
+* Für ausgewählte Objekte, die Verknüpfungen ({{Incode|App::Link}}) sind und deren verknüpftes Objekt eine {{Incode|Form}} (Shape) besitzt, wird das Element in {{Incode|shps}} die Form des verknüpften Objekts sein. Wurden die Verknüpfungen bewegt oder skaliert und soll auf die bewegten bzw. skalierten Formen zugegriffen werden, kann dies mit diesem Code erfolgen:
 
-: {{Code|code=lnk_shp = Part.getShape(lnk)}}
+: {{Code|code=
+lnk_shps = [Part.getShape(l) if l else None for l in lnks]
+lnk_shp = Part.getShape(lnk) if lnk else None
+}}
 
 
 {{Docnav/de

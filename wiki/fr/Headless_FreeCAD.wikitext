@@ -46,7 +46,8 @@ print(f"The volume of the box is: {my_box.Volume}")
 print(f"The area of the box is: {my_box.Area}")
 }}
 
-To run the example script, save the code into a file (e.g., {{incode|run_box.py}}) and execute it from your system's terminal with the Python interpreter:
+Pour exécuter le script d'exemple, enregistrez le code dans un fichier (par exemple, {{incode|run_box.py}}) et exécutez-le depuis le terminal de votre système à l'aide de l'interpréteur Python :
+
 {{Code|lang=bash|code=
 $ python run_box.py
 The volume of the box is: 6000.0
@@ -153,11 +154,23 @@ Les exécutables en ligne de commande de FreeCAD peuvent également fonctionner 
 
 Vous pouvez transmettre une chaîne de code Python directement en tant qu'argument unique. Cela est utile pour les commandes très courtes et à usage unique. Notez que l'argument de ligne de commande ne doit pas être un chemin d'accès à un fichier existant pour que cela fonctionne.
 
+<div class="mw-translate-fuzzy">
 * '''Mode headless''': l'utilisation de {{incode|FreeCADCmd}} exécute le code puis quitte immédiatement. Ce mode est idéal pour les scripts.
 {{Code|lang=bash|code=
 $ FreeCADCmd "import Part; print(Part.makeBox(10,5,15).Volume)"
 }}
 * '''Mode interactif''': l'utilisation de {{incode|FreeCAD -c}} exécute le code puis ouvre une session interactive de console Python. Ceci est utile pour des tests rapides où vous souhaitez inspecter l'état après coup.
+{{Code|lang=bash|code=
+$ FreeCAD -c "import Part; my_box = Part.makeBox(10,5,15)"
+}}
+</div>
+
+{{Code|lang=bash|code=
+$ FreeCADCmd "import Part; print(Part.makeBox(10,5,15).Volume)"
+}}
+
+* '''Mode interactif''': l'utilisation de {{incode|FreeCAD -c}} exécute le code puis ouvre une session interactive de console Python. Ceci est utile pour des tests rapides où vous souhaitez inspecter l'état après coup.
+
 {{Code|lang=bash|code=
 $ FreeCAD -c "import Part; my_box = Part.makeBox(10,5,15)"
 }}
@@ -170,29 +183,80 @@ Une méthode plus puissante consiste à utiliser FreeCAD pour exécuter directem
 $ FreeCADCmd /path/to/my_script.py
 }}
 
-Lorsqu'un script est exécuté de cette manière, l'environnement FreeCAD est déjà configuré. L'avantage principal est que le script n'a pas besoin du code standard {{incode|sys.path.append()}}. Les modules FreeCAD sont immédiatement disponibles pour l'importation.
+Lorsqu'un script est exécuté de cette manière, l'environnement FreeCAD est déjà configuré. L'avantage principal est que le script '''n'a pas besoin''' du code standard {{incode|sys.path.append()}}. Les modules de FreeCAD sont immédiatement disponibles pour l'importation.
 
+<div class="mw-translate-fuzzy">
 Par exemple, un fichier nommé {{incode|create_box.py}} pourrait contenir :
 {{Code|lang=python|code=
 import Part
 # Le module FreeCAD est déjà disponible, mais il peut être importé explicitement.
 import FreeCAD
+</div>
 
-# Créer un nouveau document et y ajouter une boîte
+{{Code|lang=python|code=
+import Part
+# The FreeCAD module is already available, but it can be imported explicitly
+import FreeCAD
+
+# Create a new document and add a box to it
 doc = FreeCAD.newDocument()
 box_obj = doc.addObject("Part::Box", "MyBox")
 doc.recompute()
 
-# Exporter la pièce vers un fichier STEP
+# Export the part to a STEP file
 Part.export([box_obj], "my_box_model.step")
 
-print("Boîte créée et exportée avec succès vers my_box_model.step")
+print("Box created and exported successfully to my_box_model.step")
 }}
-Pour exécuter ce script depuis le terminal, il suffit de taper :
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Running this script from the terminal is as simple as:
+</div>
+
 {{Code|lang=bash|code=
 $ FreeCADCmd create_box.py
-Boîte créée et exportée avec succès vers my_box_model.step
+Box created and exported successfully to my_box_model.step
 }}
+
+<span id="Via_the_full_GUI_application_under_a_virtual_display"></span>
+=== Via l'application graphique complète sous un écran virtuel ===
+
+Les méthodes ci-dessus ({{incode|FreeCADCmd}}, {{incode|FreeCAD -c}} et l'utilisation de FreeCAD en tant que bibliothèque Python intégrée) ne permettent pas de créer des [[Viewprovider/fr|fournisseurs de vue]]. Si votre script nécessite un accès à {{incode|ViewObject}} (par exemple, pour des propriétés telles que le style de texte ou la taille de police), aucune des méthodes ci-dessus ne fonctionnera.
+
+Pour obtenir une session d'interface graphique entièrement initialisée (avec des fournisseurs de vues opérationnels) sans écran physique, sous Linux, vous pouvez exécuter l'exécutable de l'interface graphique {{incode|FreeCAD}} sous un serveur X virtuel tel que [https://fr.wikipedia.org/wiki/Xvfb Xvfb]. Contrairement aux modes console, l'exécutable de l'interface graphique effectue son démarrage normal (en créant {{incode|MainWindow}} et de véritables fournisseurs de vues).
+
+Sous Linux, cela peut être réalisé à l'aide de {{incode|xvfb-run}}, qui se charge automatiquement de l'allocation d'un écran virtuel et du nettoyage :
+
+{{Code|lang=bash|code=
+$ xvfb-run -a FreeCAD my_script.py
+}}
+
+Comme pour l'exécution d'un fichier de script décrite dans [[Start_up_and_Configuration/fr|Démarrage et configuration]], le fichier passé en ligne de commande peut avoir une extension {{incode|.py}} ou {{incode|.FCMacro}} ; les deux s'exécutent de la même manière.
+
+'''L'application ne se ferme pas automatiquement une fois le script terminé.''' Contrairement à {{incode|FreeCADCmd}}, l'exécutable de l'interface graphique entre toujours dans la boucle d'événements Qt normale et reste ouvert, que l'écran soit visible ou non pour l'utilisateur. C'est le script lui-même qui doit demander la fermeture.
+
+L'appel de {{incode|FreeCADGui.getMainWindow().close()}} seul n'est pas fiable dans ce cas : il suit la séquence interactive normale de fermeture, qui inclut la demande de FreeCAD « Enregistrer les modifications ? » pour tout document comportant des modifications non enregistrées, ce qui bloquera le processus indéfiniment sur un écran virtuel, car une intervention humaine est nécessaire pour fermer cette fenêtre. Effacez d'abord l'indicateur de modification de chaque document afin qu'il n'y ait plus rien à demander :
+
+{{Code|lang=python|code=
+import FreeCAD as App
+import FreeCADGui as Gui
+
+# ... script code ...
+
+for doc in App.listDocuments().values():
+    Gui.getDocument(doc.Name).Modified = False
+Gui.getMainWindow().close()
+}}
+
+Si, malgré cela, un autre élément maintient le processus actif (par exemple, une autre boîte de dialogue modale sans rapport avec des modifications non enregistrées), un script peut alors recourir à une fermeture forcée qui contourne complètement la boucle d'événements Qt :
+
+{{Code|lang=python|code=
+import os
+# ... script code ...
+os._exit(0)
+}}
+
+N'utilisez cette option qu'en dernier recours : elle contourne la procédure normale d'arrêt et de nettoyage de Qt et de FreeCAD, ce qui signifie que tout ce qui serait normalement supprimé lors de l'arrêt (comme les fichiers de verrouillage) reste en place. Privilégiez, dans la mesure du possible, la désactivation de l'indicateur de modification et la fermeture normale du programme.
 
 <span id="Examples"></span>
 == Exemples ==
@@ -209,7 +273,7 @@ Boîte créée et exportée avec succès vers my_box_model.step
 # Tapez {{incode|modules freecad}}.
 
 <span id="Scenegraph_representation"></span>
-== Représentation du graphe de scène ==
+=== Représentation du graphe de scène ===
 
 Comme il n'est pas possible de créer ou d'accéder au [[Viewprovider/fr|fournisseur de vues]] en mode headless, ce qui est possible, c'est de charger {{incode|FreeCADGui}} en mode headless, mais il n'y a aucun moyen d'accéder au document GUI car il ne sera pas créé et, par conséquent, il n'existe aucun fournisseur de vues.
 

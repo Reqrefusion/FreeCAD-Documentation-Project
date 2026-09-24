@@ -63,7 +63,10 @@ print(f"The volume of the box is: {my_box.Volume}")
 print(f"The area of the box is: {my_box.Area}")
 }}
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
 To run the example script, save the code into a file (e.g., {{incode|run_box.py}}) and execute it from your system's terminal with the Python interpreter:
+</div>
+
 {{Code|lang=bash|code=
 $ python run_box.py
 The volume of the box is: 6000.0
@@ -205,14 +208,19 @@ You can pass a string of Python code directly as a single argument. This is usef
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 * '''Headless Mode''': Using {{incode|FreeCADCmd}} executes the code and then immediately exits. This is ideal for scripting.
+</div>
+
 {{Code|lang=bash|code=
 $ FreeCADCmd "import Part; print(Part.makeBox(10,5,15).Volume)"
 }}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
 * '''Interactive Mode''': Using {{incode|FreeCAD -c}} executes the code and then opens an interactive Python console session. This is useful for quick tests where you may want to inspect the state afterwards.
+</div>
+
 {{Code|lang=bash|code=
 $ FreeCAD -c "import Part; my_box = Part.makeBox(10,5,15)"
 }}
-</div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 '''Executing a Script File'''
@@ -222,11 +230,9 @@ $ FreeCAD -c "import Part; my_box = Part.makeBox(10,5,15)"
 A more powerful method is to use FreeCAD to directly execute a Python script file. This is the recommended approach for any non-trivial headless task.
 </div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 {{Code|lang=bash|code=
 $ FreeCADCmd /path/to/my_script.py
 }}
-</div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 When a script is run this way, the FreeCAD environment is already configured. The key advantage is that the script '''does not''' need the {{incode|sys.path.append()}} boilerplate code. The FreeCAD modules are immediately available for import.
@@ -234,32 +240,88 @@ When a script is run this way, the FreeCAD environment is already configured. Th
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 For example, a file named {{incode|create_box.py}} could contain:
+</div>
+
 {{Code|lang=python|code=
 import Part
 # The FreeCAD module is already available, but it can be imported explicitly
 import FreeCAD
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 # Create a new document and add a box to it
 doc = FreeCAD.newDocument()
 box_obj = doc.addObject("Part::Box", "MyBox")
 doc.recompute()
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 # Export the part to a STEP file
 Part.export([box_obj], "my_box_model.step")
-</div>
 
-<div lang="en" dir="ltr" class="mw-content-ltr">
 print("Box created and exported successfully to my_box_model.step")
 }}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
 Running this script from the terminal is as simple as:
+</div>
+
 {{Code|lang=bash|code=
 $ FreeCADCmd create_box.py
 Box created and exported successfully to my_box_model.step
 }}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Via the full GUI application under a virtual display ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The methods above ({{incode|FreeCADCmd}}, {{incode|FreeCAD -c}}, and using FreeCAD as an embedded Python library) are all unable to create [[Viewprovider|view providers]]. If your script needs {{incode|ViewObject}} access (for example, properties like text style or font size), none of the methods above will work.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To get a fully-initialized GUI session (including working view providers) without a physical monitor, under Linux you can run the actual {{incode|FreeCAD}} GUI executable under a virtual X server such as [https://en.wikipedia.org/wiki/Xvfb Xvfb]. Unlike the console modes, the GUI executable performs its normal startup (creating a {{incode|MainWindow}} and real view providers).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+On Linux, this can be achieved with {{incode|xvfb-run}}, which handles allocating a virtual display and cleanup automatically:
+</div>
+
+{{Code|lang=bash|code=
+$ xvfb-run -a FreeCAD my_script.py
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+As with the script-file invocation described in [[Start_up_and_Configuration|Start up and Configuration]], the file passed on the command line can have either a {{incode|.py}} or {{incode|.FCMacro}} extension; both are run the same way.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''The application does not exit on its own after the script finishes.''' Unlike {{incode|FreeCADCmd}}, the GUI executable always enters the normal Qt event loop and stays open, whether or not a display is visible to a user. The script itself must request the exit.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Calling {{incode|FreeCADGui.getMainWindow().close()}} alone is not reliable for this: it goes through the normal interactive close sequence, which includes FreeCAD's "save changes?" prompt for any document with unsaved modifications, which will hang the process indefinitely under a virtual display, since it requires human interation to dismiss it. Clear each document's modified flag first so there is nothing to prompt about:
+</div>
+
+{{Code|lang=python|code=
+import FreeCAD as App
+import FreeCADGui as Gui
+
+# ... script code ...
+
+for doc in App.listDocuments().values():
+    Gui.getDocument(doc.Name).Modified = False
+Gui.getMainWindow().close()
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If something else still keeps the process alive despite this (for instance, another modal dialog unrelated to unsaved changes), a script can fall back to a hard exit that bypasses the Qt event loop entirely:
+</div>
+
+{{Code|lang=python|code=
+import os
+# ... script code ...
+os._exit(0)
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Use this only as a last resort: it skips Qt's and FreeCAD's normal shutdown and cleanup, so anything that shutdown would otherwise remove (such as lock files) is left behind. Prefer clearing the modified flag and closing normally whenever possible.
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
