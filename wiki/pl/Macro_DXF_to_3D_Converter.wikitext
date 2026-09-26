@@ -1,0 +1,223 @@
+<languages/>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Macro
+|Name=Macro DXF to 3D Converter
+|Description=Automated tool to convert DXF profiles into 3D objects by defining a custom length.
+|Author=Aris Drosiou
+|Version=1.0.0
+|Date=2026-04-26
+|FCVersion=0.19 or above
+|Download=
+}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Description==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Automated tool to convert DXF profiles into 3D objects by defining a custom length.
+</div>
+
+[[File:DXF_to_3D.png|600px]]
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Caption|The DXF to 3D Converter in action}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Script==
+</div>
+
+{{MacroCode|code=
+__Name__ = "Macro DXF to 3D Converter"
+__Comment__ = "Automated tool to convert DXF profiles into 3D objects by defining a custom length."
+__Author__ = "Aris Drosiou"
+__Version__ = "1.0.0"
+__License__ = "LGPL-2.1-or-later"
+__Web__ = "https://wiki.freecad.org/Macros"
+__Wiki__ = "https://wiki.freecad.org/DXF_to_3D_converter"
+__Icon__ = "" 
+__Help__ = "Select a DXF file, set the extrusion length, and click Create 3D."
+__Status__ = "Stable"
+__Requires__ = "FreeCAD >= 0.19"
+__Communication__ = "FreeCAD Forum"
+
+import FreeCAD as App
+import FreeCADGui as Gui
+import importDXF
+import Draft
+import Part
+import Sketcher
+import os
+from PySide import QtGui, QtCore
+
+class DXFTo3DPanel(QtGui.QWidget):
+    """
+    Main UI Class for the DXF to 3D converter tool.
+    Handles DXF selection, 2D preview, and 3D extrusion logic.
+    """
+    def __init__(self):
+        super(DXFTo3DPanel, self).__init__()
+        self.selected_file = None
+        self.initUI()
+        
+    def initUI(self):
+        self.setWindowTitle('DXF to 3D Converter')
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.resize(400, 250)
+        
+        main_layout = QtGui.QHBoxLayout()
+        
+        # --- Left Control Panel ---
+        left_panel = QtGui.QVBoxLayout()
+        
+        self.label_len = QtGui.QLabel('Length:')
+        self.label_len.setStyleSheet("font-weight: bold;")
+        left_panel.addWidget(self.label_len)
+        
+        self.length_input = QtGui.QLineEdit()
+        self.length_input.setText("100") 
+        self.length_input.setFixedHeight(30)
+        left_panel.addWidget(self.length_input)
+        
+        left_panel.addSpacing(15)
+        
+        self.dims_group = QtGui.QGroupBox("Profile Dimensions")
+        dims_layout = QtGui.QVBoxLayout()
+        self.width_label = QtGui.QLabel('Width: --')
+        self.height_label = QtGui.QLabel('Height: --')
+        dims_layout.addWidget(self.width_label)
+        dims_layout.addWidget(self.height_label)
+        self.dims_group.setLayout(dims_layout)
+        left_panel.addWidget(self.dims_group)
+        
+        left_panel.addSpacing(15)
+        
+        self.btn_select = QtGui.QPushButton('Select DXF')
+        self.btn_select.setFixedHeight(40)
+        self.btn_select.setStyleSheet("background-color: #2196F3; color: white; font-weight: bold; border-radius: 5px;")
+        self.btn_select.clicked.connect(self.select_dxf)
+        left_panel.addWidget(self.btn_select)
+        
+        self.file_label = QtGui.QLabel('No file selected')
+        self.file_label.setStyleSheet("font-style: italic; color: #666;")
+        left_panel.addWidget(self.file_label)
+        
+        left_panel.addStretch()
+        
+        self.btn_create = QtGui.QPushButton('Create 3D')
+        self.btn_create.setFixedHeight(45)
+        self.btn_create.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; font-size: 14px; border-radius: 8px;")
+        self.btn_create.clicked.connect(self.create_part)
+        left_panel.addWidget(self.btn_create)
+        
+        # --- Right Preview Panel ---
+        right_panel = QtGui.QVBoxLayout()
+        right_panel.addWidget(QtGui.QLabel('Cross Section Preview:'))
+        
+        self.scene = QtGui.QGraphicsScene()
+        self.view = QtGui.QGraphicsView(self.scene)
+        self.view.setBackgroundBrush(QtGui.QBrush(QtCore.Qt.black))
+        self.view.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.view.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        right_panel.addWidget(self.view)
+        
+        main_layout.addLayout(left_panel, 1)
+        main_layout.addLayout(right_panel, 2)
+        self.setLayout(main_layout)
+        
+        self.update_unit_label()
+
+    def update_unit_label(self):
+        q = App.Units.Quantity(1.0, App.Units.Length)
+        unit_str = q.UserString
+        symbol = "".join([c for c in unit_str if not c.isdigit() and c not in [".", ","]]).strip()
+        self.label_len.setText(f"Length ({symbol}):")
+
+    def resizeEvent(self, event):
+        super(DXFTo3DPanel, self).resizeEvent(event)
+        if not self.scene.itemsBoundingRect().isEmpty():
+            self.view.fitInView(self.scene.itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
+
+    def select_dxf(self):
+        file_path, _ = QtGui.QFileDialog.getOpenFileName(self, "Select DXF", "", "DXF Files (*.dxf)")
+        if file_path:
+            self.selected_file = file_path
+            self.file_label.setText(f"File: {os.path.basename(file_path)}")
+            self.draw_preview(file_path)
+
+    def draw_preview(self, path):
+        self.scene.clear()
+        original_doc = App.ActiveDocument
+        try:
+            temp_doc = App.newDocument("TempPreview")
+            importDXF.insert(path, temp_doc.Name)
+            pen = QtGui.QPen(QtCore.Qt.cyan, 1)
+            pen.setCosmetic(True) 
+            
+            all_shapes = []
+            for obj in temp_doc.Objects:
+                if hasattr(obj, "Shape"):
+                    all_shapes.append(obj.Shape)
+                    for edge in obj.Shape.Edges:
+                        if len(edge.Vertexes) >= 2:
+                            p1 = edge.Vertexes[0].Point
+                            p2 = edge.Vertexes[-1].Point
+                            self.scene.addLine(p1.x, -p1.y, p2.x, -p2.y, pen)
+            
+            if all_shapes:
+                comp = Part.Compound(all_shapes)
+                bbox = comp.BoundBox
+                w_q = App.Units.Quantity(bbox.XMax - bbox.XMin, App.Units.Length)
+                h_q = App.Units.Quantity(bbox.YMax - bbox.YMin, App.Units.Length)
+                self.width_label.setText(f"Width: {w_q.UserString}")
+                self.height_label.setText(f"Height: {h_q.UserString}")
+            
+            App.closeDocument(temp_doc.Name)
+            if original_doc: App.setActiveDocument(original_doc.Name)
+            QtCore.QTimer.singleShot(100, lambda: self.view.fitInView(self.scene.itemsBoundingRect(), QtCore.Qt.KeepAspectRatio))
+        except Exception as e:
+            self.file_label.setText(f"Error: {str(e)}")
+
+    def create_part(self):
+        if not self.selected_file: return
+        try:
+            val_txt = self.length_input.text().replace(',', '.')
+            unit_part = self.label_len.text().split('(')[1].split(')')[0]
+            q_len = App.Units.Quantity(f"{val_txt} {unit_part}")
+            internal_length = q_len.Value 
+
+            doc = App.ActiveDocument if App.ActiveDocument else App.newDocument("DXF_Conversion")
+            file_name = os.path.splitext(os.path.basename(self.selected_file))[0]
+            clean_name = "".join(x for x in file_name if x.isalnum())
+            
+            objs_before = doc.Objects[:]
+            importDXF.insert(self.selected_file, doc.Name)
+            doc.recompute()
+            
+            new_objs = [o for o in doc.Objects if o not in objs_before]
+            if new_objs:
+                sketch = doc.addObject('Sketcher::SketchObject', clean_name + "_Sketch")
+                Draft.make_sketch(new_objs, autoconstraints=True, addTo=sketch, delete=True)
+                extrude = doc.addObject("Part::Extrusion", clean_name + "_3D")
+                extrude.Base = sketch
+                extrude.Dir = App.Vector(0, 0, internal_length)
+                extrude.Solid = True
+                doc.recompute()
+                Gui.activeDocument().getObject(sketch.Name).Visibility = False
+                Gui.SendMsgToActiveView("ViewFit")
+        except Exception as e:
+            print(f"Error during extrusion: {e}")
+
+# --- UPDATED CLEANUP LOGIC ---
+for widget in QtGui.QApplication.allWidgets():
+    if widget.windowTitle() == 'DXF to 3D Converter':
+        widget.close()
+        widget.deleteLater()
+
+steel_panel = DXFTo3DPanel()
+steel_panel.show()
+}}
