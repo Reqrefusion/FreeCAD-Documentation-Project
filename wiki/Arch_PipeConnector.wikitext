@@ -32,10 +32,12 @@ The '''Arch PipeConnector''' tool allows to create corner or tee connection betw
 # Select 2 or 3 [[Arch_Pipe|Arch Pipes]]. If you are selecting 3 pipes, two of them must be exactly aligned.
 # Press the {{Button|[[Image:Arch_PipeConnector.svg|16px]] [[Arch_PipeConnector|Connector]]}} button, or press {{KEY|P}} then {{KEY|C}} keys.
 
+For a tee connection, the base wires of all three pipes must share an endpoint. The two aligned pipes form the main run and should have matching profiles. The third pipe forms the branch and can have a different profile ({{VersionPlus|26.3}}). For example, two circular pipes with a diameter of 100 mm can be connected to a branch with a diameter of 50 mm.
+
 == Properties == <!--T:6-->
 
 <!--T:7-->
-* {{PropertyData|Radius}}: The curvature radius of this connector
+* {{PropertyData|Radius}}: The curvature radius of this connector. For a tee, this is the distance from the shared endpoint to each end of the connector. The default at creation is the largest of these dimensions across all connected pipes: {{PropertyData|Diameter}} for circular profiles, and {{PropertyData|Height}} and {{PropertyData|Width}} for other profile types ({{VersionPlus|26.3}}). This value can be changed after creation.
 
 == Typical workflow == <!--T:8-->
 
@@ -94,6 +96,30 @@ FreeCAD.ActiveDocument.recompute()
 
 Conn3 = Arch.makePipeConnector([Pipe4, Pipe5], radius=400)
 FreeCAD.ActiveDocument.recompute()
+}}
+<translate>
+
+This example creates a tee with a 50 mm branch and two aligned 100 mm main pipes in a new document ({{VersionPlus|26.3}}). The pipes have a wall thickness of 5 mm. The connector's initial {{PropertyData|Radius}} is 100 mm; an explicit {{incode|radius}} argument can be used to choose another value.
+
+</translate>
+{{Code|code=
+import FreeCAD, Draft, Arch
+
+doc = FreeCAD.newDocument("ReducingTeeExample")
+origin = FreeCAD.Vector(0, 0, 0)
+left_line = Draft.make_wire([FreeCAD.Vector(-1000, 0, 0), origin])
+right_line = Draft.make_wire([origin, FreeCAD.Vector(1000, 0, 0)])
+branch_line = Draft.make_wire([origin, FreeCAD.Vector(0, 1000, 0)])
+
+left_pipe = Arch.makePipe(left_line, 100)
+right_pipe = Arch.makePipe(right_line, 100)
+branch_pipe = Arch.makePipe(branch_line, 50)
+for pipe in (left_pipe, right_pipe, branch_pipe):
+    pipe.WallThickness = 5
+doc.recompute()
+
+tee = Arch.makePipeConnector([left_pipe, right_pipe, branch_pipe])
+doc.recompute()
 }}
 <translate>
 
