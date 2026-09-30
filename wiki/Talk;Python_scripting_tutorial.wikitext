@@ -1,0 +1,98 @@
+[[User:Roy_043|Roy 043]]: thanks for the corrections and formatting!
+
+The one thing I would request is that one does need to either have a document already open, or do doc = App.newDocument ().  Otherwise it can be quite mysterious to click the Execute button and have nothing happen.
+
+The code I would suggest to cover both cases is:
+
+ doc = App.ActiveDocument
+ if not doc:
+     doc = App.newDocument ()
+
+--[[User:Dan kirshner|Dan kirshner]] ([[User talk:Dan kirshner|talk]]) 16:08, 28 May 2023 (UTC)
+
+: Hi Dan,
+
+: We almost never use these Talk pages. Whatever you write here will most likely not be noticed by other editors. it is better to use User_talk pages when you want to get in touch with another editor. The editor is then notified. Or write a PM in the forum.
+
+: What you are suggesting in terms of Python code does not make sense to me. You assume that a Python script will always interact with a document, but that need not be the case at all.
+
+: Example:
+
+: {{Code|code=
+import Part
+
+box = Part.makeBox(10, 10, 10)
+print(box.Volume)
+}}
+
+: BTW: If you have not done so already, please have a look at [[WikiPages]].
+
+: --[[User:Roy 043|Roy 043]] ([[User talk:Roy 043|talk]]) 22:51, 28 May 2023 (UTC)
+
+== some update suggestions ==
+
+First of all: thanks for providing this basic python scripting tutorial.
+
+Most of the steps work as described. I notices some small details. I am not sure how to best contribute, so let me share my observations:
+
+* in section "Writing Python code" the Python Interpreter is still V 2.5.1, while 3.11.14 is current
+* in section "Exploring FreeCAD" the "activeDocument()" seems to no longer exist:
+
+>>> doc = FreeCAD.newDocument()
+>>> # App.setActiveDocument("Unnamed2")
+>>> # App.ActiveDocument=App.getDocument("Unnamed2")
+>>> # Gui.ActiveDocument=Gui.getDocument("Unnamed2")
+>>> dir(doc)
+['ActiveObject', 'Comment', 'Company', 'Content', 'CreatedBy', 'CreationDate', 'DependencyGraph', 'FileName', 'HasPendingTransaction', 'Id', 'Importing', 'InList', 'Label', 'LastModifiedBy', 'LastModifiedDate', 'License', 'LicenseURL', 'Material', 'MemSize', 'Meta', 'Module', 'Name', 'Objects', 'OldLabel', 'OutList', 'Partial', 'PropertiesList', 'RecomputesFrozen', 'Recomputing', 'RedoCount', 'RedoNames', 'Restoring', 'RootObjects', 'RootObjectsIgnoreLinks', 'ShowHidden', 'Temporary', 'Tip', 'TipName', 'TopologicalSortedObjects', 'Transacting', 'TransientDir', 'TypeId', 'Uid', 'UndoCount', 'UndoMode', 'UndoNames', 'UndoRedoMemSize', 'UnitSystem', 'UseHasher', '__class__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', 'abortTransaction', 'addObject', 'addProperty', 'clearDocument', 'clearUndos', 'commitTransaction', 'copyObject', 'dumpContent', 'dumpPropertyContent', 'exportGraphviz', 'findObjects', 'getAllDerivedFrom', 'getDependentDocuments', 'getDocumentationOfProperty', 'getEditorMode', 'getEnumerationsOfProperty', 'getFileName', 'getGroupOfProperty', 'getLinksTo', 'getObject', 'getObjectsByLabel', 'getProgramVersion', 'getPropertyByName', 'getPropertyStatus', 'getPropertyTouchList', 'getTempFileName', 'getTypeIdOfProperty', 'getTypeOfProperty', 'getUniqueObjectName', 'importLinks', 'isAutoCreated', 'isClosable', 'isDerivedFrom', 'isSaved', 'isTouched', 'load', 'mergeProject', 'moveObject', 'mustExecute', 'openTransaction', 'purgeTouched', 'recompute', 'redo', 'removeObject', 'removeProperty', 'renameProperty', 'restore', 'restoreContent', 'restorePropertyContent', 'save', 'saveAs', 'saveCopy', 'setAutoCreated', 'setClosable', 'setDocumentationOfProperty', 'setEditorMode', 'setGroupOfProperty', 'setPropertyStatus', 'supportedTypes', 'undo']
+
+There is "ActiveObject"
+
+>>> help(doc.ActiveObject)
+Help on NoneType object:
+
+class NoneType(object)
+ |  Methods defined here:
+ |  
+ |  __bool__(self, /)
+ |      True if self else False
+ |  
+ |  __repr__(self, /)
+ |      Return repr(self).
+ |  
+ |  ----------------------------------------------------------------------
+ |  Static methods defined here:
+ |  
+ |  __new__(*args, **kwargs)
+ |      Create and return a new object.  See help(type) for accurate signature.
+
+see https://github.com/FreeCAD/FreeCAD/blob/180d8cfc323ebe98d0bf90b07285bc025c2df89f/src/App/Document.pyi#L20
+That is probably something different.
+
+ * adding a box
+When adding a box with:
+>>> box = doc.addObject("Part::Box", "myBox")
+
+the box appears in the ObjectTree, while the tutorial tells us "Nothing happens." and that we need to do a "doc.recompute()". 
+Question: is the recompute really (still) required?
+
+ * Vectors and placements
+in "Vectors and placements" the output seems incomplete: eg the "myvec.x" returns the x atrribute of the vector but it's not shown:
+>>> myvec = FreeCAD.Vector(2,0,0)
+>>> myvec.x
+2.0
+>>> myvec.y
+0.0
+>>> othervec = FreeCAD.Vector(0,3,0)
+>>> sumvec = myvec.add(othervec)
+>>> sumvec
+Vector (2.0, 3.0, 0.0)
+>>> myvec
+Vector (2.0, 0.0, 0.0)
+
+It also worth showing that the intuitive "+" also vorks:
+>>> myvec + othervec
+Vector (2.0, 3.0, 0.0)
+
+I understand that the long output of eg "doc.supportedTypes()" is ommited, but short outputs lihe the value of a vector would help to understand whats going on.
+
+For the following mesh example, I am also not sure if the recompute is required, because the sphre is already visible in the ObjectTree and rendered on the canvas. [[User:Joerg|Joerg]] ([[User talk:Joerg|talk]]) 09:26, 30 September 2026 (UTC)
