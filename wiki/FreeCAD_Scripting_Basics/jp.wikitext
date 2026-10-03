@@ -1,0 +1,85 @@
+ <code>import FreeCAD as App
+ import Part
+ 
+ # 新規ドキュメント
+ doc = App.newDocument("CircularPlate")
+ 
+ # =========================
+ # パラメータ [mm]
+ # =========================
+ outer_diameter = 300.0
+ thickness = 20.0
+ 
+ center_hole_diameter = 100.0
+ bolt_hole_diameter = 8.0
+ 
+ # M8穴の中心位置
+ # 円盤中心からX/Y方向に配置
+ bolt_offset = 100.0
+ 
+ # =========================
+ # 円盤本体
+ # =========================
+ outer_radius = outer_diameter / 2.0
+ 
+ plate = Part.makeCylinder(
+     outer_radius,
+     thickness
+ )
+ 
+ # =========================
+ # 中央のφ100貫通穴
+ # =========================
+ center_hole = Part.makeCylinder(
+     center_hole_diameter / 2.0,
+     thickness
+ )
+ 
+ plate = plate.cut(center_hole)
+ 
+ # =========================
+ # 四隅のM8貫通穴
+ # =========================
+ bolt_positions = [
+     (-bolt_offset, -bolt_offset),
+     (-bolt_offset,  bolt_offset),
+     ( bolt_offset, -bolt_offset),
+     ( bolt_offset,  bolt_offset)
+ ]
+ 
+ for x, y in bolt_positions:
+     hole = Part.makeCylinder(
+         bolt_hole_diameter / 2.0,
+         thickness,
+         App.Vector(x, y, 0)
+     )
+     plate = plate.cut(hole)
+ 
+ # =========================
+ # FreeCADに形状を追加
+ # =========================
+ obj = doc.addObject("PartDesign::Feature", "CircularPlate")
+ obj.Label = "300mm Circular Plate"
+ obj.Shape = plate
+ 
+ # 色
+ obj.ViewObject.ShapeColor = (0.75, 0.75, 0.78)
+ 
+ # 保存
+ doc.recompute()
+ 
+ # 必要なら保存先を指定
+ # doc.saveAs("C:/temp/circular_plate.FCStd")</code>
+
+=== 寸法 ===
+
+* 外径：'''300 mm'''
+* 板厚：'''20 mm'''
+* 中央穴：'''φ100 mm'''
+* M8穴：'''φ8 mm × 4'''
+* M8穴位置：中心から '''X±100 mm / Y±100 mm'''
+* すべて貫通穴
+
+なお、「四隅」が'''300 mm × 300 mmの外接正方形の四隅付近'''という意味なら、上記の <code>bolt_offset = 100</code> は変更できます。例えば穴中心を外周から30 mm離す設計なら、中心位置は <code>±(150-30)=±120 mm</code> なので、
+ <code>bolt_offset = 120.0</code>
+とすればOKです。
