@@ -7,8 +7,189 @@
 |[[Installing_on_Linux|Installing on Linux]]
 }}
 
-</translate>
-{{TOCright}}
+</translate>import FreeCAD as App
+
+import FreeCADGui as Gui
+
+import Part
+
+import math
+
+<nowiki>#</nowiki> =========================
+
+<nowiki>#</nowiki> MG90S SMALL GEAR
+
+<nowiki>#</nowiki> =========================
+
+module = 0.8
+
+teeth = 20
+
+pressure_angle = 20.0
+
+thickness = 6.0
+
+<nowiki>#</nowiki> MG90S shaft hole
+
+bore_diameter = 4.9
+
+<nowiki>#</nowiki> Gear dimensions
+
+pitch_diameter = module * teeth
+
+outside_diameter = module * (teeth + 2)
+
+root_diameter = module * (teeth - 2.5)
+
+<nowiki>#</nowiki> Create document
+
+doc = App.newDocument("MG90S_Small_Gear")
+
+<nowiki>#</nowiki> -------------------------------------------------
+
+<nowiki>#</nowiki> Involute gear profile
+
+<nowiki>#</nowiki> -------------------------------------------------
+
+alpha = math.radians(pressure_angle)
+
+rp = pitch_diameter / 2.0
+
+ra = outside_diameter / 2.0
+
+rf = root_diameter / 2.0
+
+rb = rp * math.cos(alpha)
+
+points = []
+
+def involute_point(t):
+
+    x = rb * (math.cos(t) + t * math.sin(t))
+
+    y = rb * (math.sin(t) - t * math.cos(t))
+
+    return App.Vector(x, y, 0)
+
+<nowiki>#</nowiki> Maximum involute parameter
+
+t_max = math.sqrt((ra / rb)**2 - 1)
+
+<nowiki>#</nowiki> One tooth
+
+tooth_points = []
+
+for i in range(11):
+
+    t = t_max * i / 10.0
+
+    p = involute_point(t)
+
+    # Rotate to approximate tooth center
+
+    angle = math.radians(-90.0 / teeth)
+
+    x = p.x * math.cos(angle) - p.y * math.sin(angle)
+
+    y = p.x * math.sin(angle) + p.y * math.cos(angle)
+
+    tooth_points.append(App.Vector(x, y, 0))
+
+<nowiki>#</nowiki> Create complete gear using polar tooth approximation
+
+gear_points = []
+
+for n in range(teeth):
+
+    tooth_center = 2.0 * math.pi * n / teeth
+
+    # Tooth angular width
+
+    half_width = math.pi / (2.0 * teeth)
+
+    # Root point before tooth
+
+    a1 = tooth_center - half_width * 1.6
+
+    gear_points.append(
+
+        App.Vector(rf * math.cos(a1), rf * math.sin(a1), 0)
+
+    )
+
+    # Tooth flanks
+
+    for side in [-1, 1]:
+
+        for j in range(6):
+
+            r = rp + (ra - rp) * j / 5.0
+
+            # Simple involute-like flank
+
+            offset = half_width * (1.0 - j / 5.0)
+
+            if side == -1:
+
+                angle = tooth_center - offset
+
+            else:
+
+                angle = tooth_center + offset
+
+            gear_points.append(
+
+                App.Vector(r * math.cos(angle), r * math.sin(angle), 0)
+
+            )
+
+    # Root point after tooth
+
+    a2 = tooth_center + half_width * 1.6
+
+    gear_points.append(
+
+        App.Vector(rf * math.cos(a2), rf * math.sin(a2), 0)
+
+    )
+
+gear_points.append(gear_points[0])
+
+wire = Part.makePolygon(gear_points)
+
+face = Part.Face(wire)
+
+<nowiki>#</nowiki> Extrude
+
+gear = face.extrude(App.Vector(0, 0, thickness))
+
+<nowiki>#</nowiki> Center bore
+
+bore = Part.makeCylinder(
+
+    bore_diameter / 2.0,
+
+    thickness + 2,
+
+    App.Vector(0, 0, -1)
+
+)
+
+gear = gear.cut(bore)
+
+obj = doc.addObject("Part::Feature", "MG90S_Small_Gear")
+
+obj.Shape = gear
+
+obj.addProperty("App::PropertyString", "Specifications", "Gear")
+
+obj.Specifications = "20T | Module 0.8 | Pressure angle 20 deg | Thickness 6 mm"
+
+doc.recompute()
+
+Gui.activeDocument().activeView().viewAxonometric()
+
+Gui.activeDocument().activeView().fitAll(){{TOCright}}
 <translate>
 
 == Standard Installation == <!--T:55-->
