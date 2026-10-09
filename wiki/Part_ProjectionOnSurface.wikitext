@@ -68,6 +68,8 @@ Notes:
 ==Limitations== <!--T:12-->
 
 <!--T:13-->
+Note that any extrusions and offsets are along the projection direction. To create these normal to the surface use the Curves Workbench [[Curves SketchOnSurface|Sketch_On_Surface]] or [[Curves MapOnFace|MapOnFace]] tools.
+
 The projection algorithm sometimes is not able to create a valid projection face. If this happens a solid extrusion won't be able to be created either.
 
 <!--T:14-->
@@ -76,8 +78,41 @@ If this happens:
 * Check if the projection direction is valid. Can the source face be realistically projected onto the target surface? Would a straight projection hit the surface? Adjust the camera so that the source face is in front of the target surface, and try again.
 * Try to use the {{RadioButton|TRUE|Show edges}} option. Are the edges projected correctly? Try to create a face with the edges by hand.
 
+= Properties =
 <!--T:22-->
-The projection done in the Part workbench is not parametric. If you need a parametric workflow, please consult with the [https://gist.github.com/CsatiZoltan/f4fd10bf20923143ba0e0678ea1d3d61 <code>Projection</code> class], which is a Python scripted object, intended for programmatic use.
+The projection creates a <Part::ProjectOnSurface> document object with editable properties.
+
+* Mode:  All, Faces or Edges
+* Height: Extrusion distance opposite to projection direction
+* Offset: Offset along projection direction
+* Direction:  Normalized vector in the direction of projection
+* Support Face: Link to projection Surface
+* Projection:  Projected object(s)
+
+= Scripting =
+An example script, projecting a hexagonal wire onto a cylindrical face, then offsetting and extruding the result is shown below<syntaxhighlight lang="python">
+#project a hexagonal face onto the surface of a cylinder
+import Part
+doc = App.ActiveDocument
+poly = doc.addObject("Part::RegularPolygon","RegularPolygon")
+poly.Polygon=6
+poly.Circumradius='2.0000 mm'
+poly.Placement = App.Placement(App.Vector(0,-10, 5),App.Rotation(App.Vector(1,0,0),90))
+face = doc.addObject("Part::Face", "Face")
+face.Sources = (poly, )
+cyl = App.ActiveDocument.addObject("Part::Cylinder","Cylinder")
+cyl.Radius='5.0000 mm'
+cyl.Height='10.0000 mm'
+cyl.Angle='360.0000°'
+proj = doc.addObject("Part::ProjectOnSurface", "Projection")
+proj.SupportFace = (cyl, u'Face1')
+proj.Direction = (0, 1, 0)
+proj.Mode = u'All'
+proj.Projection = (face, u'Face1')
+proj.Height = '1 mm' #opposite to projection direction
+proj.Offset = '-2 mm' #along projection direction
+doc.recompute()
+</syntaxhighlight>
 
 ==Links== <!--T:15-->
 
