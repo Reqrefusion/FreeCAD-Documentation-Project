@@ -1,8 +1,7 @@
 <languages/>
 <translate>
 <!--T:54-->
-{{VeryImportantMessage|This page describes a proven way to create workbenches, but some years ago there was a suggestion how to improve the structure of the Python based external workbenches. There seems to be some kind of agreement that this structure should set a new standard but it hasn't found its way into this wiki yet (except two links in the Related section).
-Another paragraph is created to describe the new standard.  See [[https://forum.freecad.org/viewtopic.php?t=101843 discussion]]}}
+{{VeryImportantMessage|For new Python addons, use the [[#New_Standard_External_Workbench|namespaced layout]] described below. The older layout using Init.py and InitGui.py remains supported.}}
 
 <!--T:40-->
 {{Docnav
@@ -17,7 +16,7 @@ Another paragraph is created to describe the new standard.  See [[https://forum.
 == Introduction == <!--T:36-->
 
 <!--T:1-->
-This page will show you how to add a new workbench to the FreeCAD interface. [[Workbenches|Workbenches]] are containers for FreeCAD commands. They can be coded in Python, in C++, or in a mix of both, which has the advantage to ally the speed of C++ to the flexibility of Python. In all cases, though, your workbench will be launched by a set of two Python files. They can be "internal" workbenches, included with FreeCAD's distribution, or "external" workbenches, distributed via the [[Std_AddonMgr|Addon Manager]] or installed manually by downloading from some online repository. Internal workbenches may be coded in either C++, Python, or a combination of the two, whereas external workbenches must be Python-only.
+This page will show you how to add a new workbench to the FreeCAD interface. [[Workbenches|Workbenches]] are containers for FreeCAD commands. They can be coded in Python, in C++, or in a mix of both, which has the advantage to ally the speed of C++ to the flexibility of Python. Workbench startup uses Python initialization files whose names and locations depend on the layout. They can be "internal" workbenches, included with FreeCAD's distribution, or "external" workbenches, distributed via the [[Std_AddonMgr|Addon Manager]] or installed manually by downloading from some online repository. Internal workbenches may be coded in either C++, Python, or a combination of the two, whereas external workbenches must be Python-only.
 
 == The workbench structure == <!--T:2-->
 
@@ -52,7 +51,7 @@ Inside those files you can do whatever you want. Usually they are used like this
 * In the InitGui.py file you usually define a workbench, which contains a name, an icon, and a series of FreeCAD commands (see below). That python file also defines functions that are executed when FreeCAD loads (you try to do as little as possible there, so you don't slow down the startup), another that gets executed when the workbench is activated (that's where you'll do most of the work), and a third one when the workbench is deactivated (so you can remove things if needed).
 
 <!--T:42-->
-The structure and file content for a workbench described here is the classic way of creating a new workbench. One can use a slight variation in the structure of files when making a new Python workbench, that alternative way is best described as a "namespaced workbench". Both structures work, so it is more a question of preference when creating a new workbench. The style and structure for workbenches presented here are available in the global namespace of FreeCAD, whereas for the alternative style and structure the workbench resides in a dedicated namespace. See [[#New_Standard_External_Workbench|New Standard External Workbench]] below.
+This is the legacy layout. For a new Python addon, follow the [[#New_Standard_External_Workbench|namespaced layout]] below; keep these instructions when maintaining an existing addon that uses {{FileName|Init.py}} and {{FileName|InitGui.py}}.
 
 === C++ workbench structure === <!--T:14-->
 
@@ -439,58 +438,45 @@ os.remove(qrc_filename)
 == New Standard External Workbench == <!--T:55-->
 
 <!--T:56-->
-The structure and file content for a workbench described above is the classic way of creating a new workbench. One can use a slight variation in the structure of files when making a new Python workbench, that alternative way is best described as a '''namespaced workbench''', opening up the possibility to use pip to install the workbench. Both structures work, so it is more a question of preference when creating a new workbench. The style and structure for these workbenches reside in a dedicated namespace, instead of being available in the global namespace of FreeCAD.
+The [https://freecad.github.io/Addon-Academy/Topics/Structuring/ Addon Academy] recommends a '''namespaced workbench''' for new Python addons. Its code lives in {{FileName|freecad/MyWorkbench/}} inside the addon directory.
 
  <!--T:57-->
-(Add an explanation of '''dedicated namespace''')
+A '''dedicated namespace''' keeps the addon's Python modules together under {{incode|freecad.MyWorkbench}}. For example, import its {{FileName|tools.py}} as {{incode|freecad.MyWorkbench.tools}}, avoiding a top-level module name shared with other addons.
 
 === Structure === <!--T:58-->
 
 <!--T:59-->
-This structure is also based on the /Mod directory (see [[#The_workbench_structure|the workbench structure]] above) but differs in the use of subdirectories:
+Place the addon folder in the user Mod directory (see [[#The_workbench_structure|the workbench structure]] above). The essential layout is:
 
 </translate>
 {{Code|code=
 /Mod/
  └─ MyWorkbench/
+    ├─ package.xml
     └─ freecad/
        └─ MyWorkbench/
-          ├─ __init.py__
-          ├─ init_gui.py
-          └─ resources/
-             ├─ icons/
-             └─ translations/
+          ├─ __init__.py
+          └─ init_gui.py
 }}
 <translate>
 
-The quite new [https://freecad.github.io/Addon-Academy/Topics/Structuring/ Addon-Academy] presents an even more modern structure:
-
-</translate>
-{{Code|code=
-/Mod/
- └─ MyWorkbench/
-    ├─ freecad/
-    │  └─ MyWorkbench/
-    │     ├─ __init.py__
-    │     └─ init_gui.py
-    ├─ Resources/
-    │  ├─ icons/
-    │  │  └─ Logo.svg
-    │  ├─ translations/
-    │  └─ Media/
-    ├─ Documentation/
-    ├─ LICENSE-Code
-    ├─ LICENSE-Assets
-    ├─ README.md
-    ├─ package.xml
-    └─ pyproject.toml
-}}
-<translate>
+* {{FileName|__init__.py}} initializes the addon's Python package when imported.
+* {{FileName|init_gui.py}} registers its workbench and GUI commands.
+* {{FileName|package.xml}} is the manifest read by the Addon Manager.
+* Additional Python modules belong inside {{FileName|freecad/MyWorkbench/}}. Templates also provide resources, documentation, license files and {{FileName|pyproject.toml}} for Python packaging and development dependencies.
 
 === Starter Kit === <!--T:60-->
 
 <!--T:61-->
-A starter kit to create the structure of an external Python workbench is available on GitHub: [https://github.com/FreeCAD/freecad.workbench_starterkit FreeCAD Workbench Starter Kit]
+The [https://github.com/FreeCAD/Addon-Template FreeCAD Addon Template] can generate this layout. With {{incode|uv}} installed, run:
+
+</translate>
+{{Code|code=
+uvx cookiecutter https://github.com/FreeCAD/Addon-Template.git --checkout cookie
+}}
+<translate>
+
+Answer the prompts for the addon name, metadata and licenses, and enable the example workbench when requested. Copy or symlink the generated addon folder into your user Mod directory, then restart FreeCAD. The [https://freecad.github.io/Addon-Academy/Guides/Creating/ creation guide] describes the alternative GitHub-template workflow.
 
 == Related == <!--T:38-->
 
