@@ -62,6 +62,10 @@ Remarques :
 <span id="Limitations"></span>
 == Limitations ==
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Note that any extrusions and offsets are along the projection direction. To create these normal to the surface use the [[Curves_SketchOnSurface|Curves SketchOnSurface]] or [[Curves_MapOnFace|Curves MapOnFace]] tools from the [[Curves_Workbench|Curves Workbench]].
+</div>
+
 L'algorithme de projection n'est parfois pas en mesure de créer une face de projection valide. Si cela se produit, une extrusion solide ne pourra pas non plus être créée.
 
 Si cela se produit :
@@ -69,7 +73,71 @@ Si cela se produit :
 * Vérifiez si la direction de projection est valide. La face source peut-elle être projetée de manière réaliste sur la surface cible ? Une projection droite toucherait-elle la surface ? Ajustez la caméra de sorte que la face source soit devant la surface cible et réessayez.
 * Essayez d'utiliser l'option {{RadioButton|TRUE|Afficher les arêtes}}. Les arêtes sont-elles correctement projetées ? Essayez de créer à la main une face avec des arêtes.
 
-La projection effectuée dans l'atelier Part n'est pas paramétrique. Si vous avez besoin d'un flux de travail paramétrique, consultez la [https://gist.github.com/CsatiZoltan/f4fd10bf20923143ba0e0678ea1d3d61 classe <code>Projection</code>], qui est un objet scripté en Python, destiné à une utilisation programmatique.
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Properties==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+See also: [[Property_View|Property View]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+A Part ProjectOnSurface is derived from a [[Part_Feature|Part Feature]] object and inherits all its properties. It also has the following additional properties:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Data===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{TitleProperty|Projection}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* {{PropertyData|Mode|Enumeration}}: The option are: {{Value|All}}, {{Value|Faces}} or {{Value|Edges}}.
+* {{PropertyData|Height|Length}}: Extrusion distance opposite to projection direction.
+* {{PropertyData|Offset|Distance}}: Offset along projection direction.
+* {{PropertyData|Direction|Direction}}: Normalized vector in the direction of projection.
+* {{PropertyData|Support Face|LinkSub}}: Link to projection surface.
+* {{PropertyData|Projection|LinkSubList}}: Projected object(s).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Scripting==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+An example script, projecting a hexagonal wire onto a cylindrical face, then offsetting and extruding the result, is shown below.
+</div>
+
+{{Code|code=
+#project a hexagonal face onto the surface of a cylinder
+
+import Part
+
+doc = App.ActiveDocument
+
+poly = doc.addObject("Part::RegularPolygon", "RegularPolygon")
+poly.Polygon = 6
+poly.Circumradius = 2
+poly.Placement = App.Placement(App.Vector(0, -10, 5), App.Rotation(App.Vector(1, 0, 0), 90))
+face = doc.addObject("Part::Face", "Face")
+face.Sources = (poly, )
+
+cyl = App.ActiveDocument.addObject("Part::Cylinder", "Cylinder")
+cyl.Radius = 5
+cyl.Height = 10
+
+proj = doc.addObject("Part::ProjectOnSurface", "Projection")
+proj.SupportFace = (cyl, u"Face1")
+proj.Direction = (0, 1, 0)
+proj.Mode = u"All"
+proj.Projection = (face, u"Face1")
+proj.Height = 1  # opposite to projection direction
+proj.Offset = -2  # along projection direction
+
+doc.recompute()
+}}
 
 <span id="Links"></span>
 == Liens ==
