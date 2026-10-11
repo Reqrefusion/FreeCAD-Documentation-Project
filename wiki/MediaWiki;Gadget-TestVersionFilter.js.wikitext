@@ -1,0 +1,116 @@
+(function () {
+    'use strict';
+    if (mw.fcVersionFilterLoaded) { return; }
+    mw.fcVersionFilterLoaded = true;
+
+    function parse(value) {
+        value = String(value).trim();
+        if (!/^\d+\.\d+(?:\.\d+)*$/.test(value)) { throw new Error('Invalid version: ' + value); }
+        return value.split('.').map(Number);
+    }
+    function compare(a, b) {
+        var x = parse(a), y = parse(b), i, diff;
+        for (i = 0; i < Math.max(x.length, y.length); i++) {
+            diff = (x[i] || 0) - (y[i] || 0);
+            if (diff) { return diff < 0 ? -1 : 1; }
+        }
+        return 0;
+    }
+    function list(value) {
+        return value.split(',').map(function (v) { return v.trim(); }).filter(Boolean);
+    }
+    function matches(node, selected) {
+        var only = node.getAttribute('data-only') || '';
+        var tests = { since: function (n) { return n >= 0; },
+            until: function (n) { return n <= 0; },
+            after: function (n) { return n > 0; },
+            before: function (n) { return n < 0; } };
+        var valid = true;
+        // Validate every condition even in the "all" view; malformed content stays visible.
+        var allowed = only.trim() ? list(only) : [];
+        allowed.forEach(parse);
+        if (allowed.length && selected !== 'all') {
+            valid = allowed.some(function (v) { return compare(selected, v) === 0; });
+        }
+        Object.keys(tests).forEach(function (key) {
+            var bound = (node.getAttribute('data-' + key) || '').trim();
+            if (bound) {
+                parse(bound);
+                if (selected !== 'all' && !tests[key](compare(selected, bound))) { valid = false; }
+            }
+        });
+        return selected === 'all' || valid;
+    }
+    function init($content) {
+        var root = $content[0];
+        if (!root || root._fcVersionFilter) { return; }
+        var bars = Array.prototype.slice.call(root.querySelectorAll('.fc-version-toolbar'));
+        if (!bars.length) { return; }
+        var blocks = Array.prototype.slice.call(root.querySelectorAll('.fc-version-content'));
+        var first = bars[0], versions;
+        try {
+            versions = list(first.getAttribute('data-versions') || '');
+            versions.forEach(parse);
+            versions = versions.filter(function (v, i) {
+                return versions.findIndex(function (w) { return compare(v, w) === 0; }) === i;
+            });
+            if (!versions.length) { return; }
+        } catch (error) { console.warn('FreeCAD version filter:', error.message); return; }
+        root._fcVersionFilter = true;
+        var selected = first.getAttribute('data-default') || 'all';
+        if (selected !== 'all' && versions.indexOf(selected) < 0) { selected = 'all'; }
+        var controls = [];
+        function apply(value) {
+            selected = value;
+            blocks.forEach(function (block) {
+                try {
+                    block.classList.toggle('fc-version-hidden', !matches(block, selected));
+                    block.classList.remove('fc-version-invalid');
+                } catch (error) {
+                    block.classList.remove('fc-version-hidden');
+                    block.classList.add('fc-version-invalid');
+                    console.warn('FreeCAD version filter:', error.message, block);
+                }
+            });
+            controls.forEach(function (control) {
+                control.buttons.forEach(function (button) {
+                    button.setAttribute('aria-pressed', String(button.value === selected));
+                });
+                control.status.textContent = control.prefix + ' ' +
+                    (selected === 'all' ? control.allLabel : selected);
+            });
+        }
+        bars.forEach(function (bar) {
+            var allLabel = bar.getAttribute('data-all') || 'All versions';
+            var label = bar.getAttribute('data-label') || 'FreeCAD version';
+            var group = document.createElement('div');
+            group.className = 'fc-version-buttons';
+            group.setAttribute('role', 'group');
+            group.setAttribute('aria-label', label);
+            var caption = document.createElement('strong');
+            caption.textContent = label + ': ';
+            group.appendChild(caption);
+            var buttons = [];
+            versions.concat(['all']).forEach(function (value) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.value = value;
+                button.textContent = value === 'all' ? allLabel : value;
+                button.addEventListener('click', function () { apply(value); });
+                buttons.push(button);
+                group.appendChild(button);
+            });
+            var status = document.createElement('span');
+            status.className = 'fc-version-status';
+            status.setAttribute('role', 'status');
+            status.setAttribute('aria-live', 'polite');
+            bar.textContent = '';
+            bar.appendChild(group);
+            bar.appendChild(status);
+            controls.push({ buttons: buttons, status: status, allLabel: allLabel,
+                prefix: bar.getAttribute('data-status') || 'Selected version:' });
+        });
+        apply(selected);
+    }
+    mw.hook('wikipage.content').add(init);
+}());
