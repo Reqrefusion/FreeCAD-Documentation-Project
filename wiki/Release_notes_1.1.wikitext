@@ -140,6 +140,61 @@ Older FreeCAD release notes can be found in the [[Feature_list#Release_notes|Fea
 * The Start page can now display the contents of additional folders specified by the user. Their paths should be separated by double semicolons ({{Incode|;;}}). [https://github.com/FreeCAD/FreeCAD/pull/19473 Pull request #19473], [https://github.com/FreeCAD/FreeCAD/pull/19918 Pull request #19918] and [https://github.com/FreeCAD/FreeCAD/pull/19948 Pull request #19948].
 * The Examples section on the Start page can be hidden with a setting in the preferences. [https://github.com/FreeCAD/FreeCAD/pull/19376 Pull request #19376] and [https://github.com/FreeCAD/FreeCAD/pull/19918 Pull request #19918].
 * Previews (thumbnails) for more 3D model formats (such as STEP and STL) are now displayed in the Recent Files and Examples sections of the Start page if F3D viewer is installed and added to system PATH. [https://github.com/FreeCAD/FreeCAD/pull/19489 Pull request #19489]
+import FreeCAD
+import Part
+import math
+
+# Yangi FreeCAD hujjati yaratish
+doc = FreeCAD.newDocument("QuvurQovurgalari")
+
+# Parametrlar (chizmadagi o'lchamlar asosida)
+r_inner = 18.0     # Ichki teshik radiusi (Diametri 36 mm)
+r_middle = 21.0    # O'rta qism radiusi (Diametri 42 mm)
+r_outer = 42.0     # Tashqi qovurg'alar chegarasi radiusi
+thickness = 8.0    # Detal qalinligi (balandligi)
+num_ribs = 20      # Qovurg'alar soni
+rib_width = 5.0    # Qovurg'a kengligi (5 mm)
+
+# 1. Asosiy tashqi silindrni yaratish
+base_cyl = Part.makeCylinder(r_outer, thickness)
+
+# 2. Ichki teshikni kesib tashlash uchun silindr
+hole = Part.makeCylinder(r_inner, thickness + 2)
+hole.translate(FreeCAD.Vector(0, 0, -1)) # Biroq pastroqdan boshlab kesish uchun
+
+# 3. Qovurg'alarni yaratish va aylana bo'ylab ko'paytirish
+ribs_shape = None
+
+for i in range(num_ribs):
+    angle = i * (360.0 / num_ribs)
+    
+    # Har bir qovurg'a uchun to'g'ri to'rtburchak shaklidagi prizma
+    box = Part.makeBox(rib_width, r_outer - r_middle, thickness)
+    
+    # Prizmani markazga nisbatan to'g'ri joylashtirish va burish
+    box.translate(FreeCAD.Vector(-rib_width / 2.0, r_middle, 0))
+    box.rotate(FreeCAD.Vector(0, 0, 0), FreeCAD.Vector(0, 0, 1), angle)
+    
+    if ribs_shape is None:
+        ribs_shape = box
+    else:
+        ribs_shape = ribs_shape.fuse(box)
+
+# Asosiy jism va qovurg'alarni birlashtirish
+if ribs_shape:
+    part_body = base_cyl.fuse(ribs_shape)
+else:
+    part_body = base_cyl
+
+# Ichki teshikni o'yib chiqarish
+final_shape = part_body.cut(hole)
+
+# Natijani FreeCAD 3D oynasiga chiqarish
+obj = doc.addObject("Part::Feature", "QovurgaliQuvur")
+obj.Shape = final_shape
+
+doc.recompute()
+print("Detal muvaffaqiyatli yaratildi! Material: Сталь 15 ГОСТ 1050-74")
 
 == Addon Manager == <!--T:17-->
 
