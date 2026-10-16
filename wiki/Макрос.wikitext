@@ -1,0 +1,39 @@
+import FreeCAD as App
+import Part
+import math
+
+doc = App.activeDocument()
+if not doc:
+    doc = App.newDocument("Economizer_Project")
+
+h_body = 600.0  # Высота водяной бочки
+d_body = 180.0  # Наружный диаметр бочки
+d_center = 80.0 # Диаметр центральной трубы
+d_tube_in = 21.0 # Внутренний диаметр 4-х трубок
+pos_r = 55.0    # Радиус размещения трубок от центра
+
+body_cyl = Part.makeCylinder(d_body / 2.0, h_body)
+body_obj = doc.addObject("Part::Feature", "Water_Body")
+body_obj.Shape = body_cyl
+
+center_cyl = Part.makeCylinder(d_center / 2.0, h_body)
+tubes = []
+
+for i in range(4):
+    angle = math.radians(i * 90)
+    x = pos_r * math.cos(angle)
+    y = pos_r * math.sin(angle)
+    t_cyl = Part.makeCylinder(d_tube_in / 2.0, h_body)
+    t_cyl.translate(App.Vector(x, y, 0))
+    tubes.append(t_cyl)
+
+gas_passages = center_cyl
+for t in tubes:
+    gas_passages = gas_passages.fuse(t)
+
+final_shape = body_obj.Shape.cut(gas_passages)
+body_obj.Shape = final_shape
+
+doc.recompute()
+App.Gui.ActiveDocument.activeView().viewAxometric()
+App.Gui.SendMsgToActiveView("ViewFit")
