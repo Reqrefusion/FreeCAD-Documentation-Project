@@ -1,1 +1,47 @@
 #REDIRECT [[Python_Console]]
+
+import FreeCAD as App
+import Part
+import Import
+
+# Dimensions in mm
+length = 368.0
+width = 156.0
+height = 124.0
+corner_radius = 15.0
+
+# Create rounded rectangular enclosure
+doc = App.newDocument("Enclosure")
+
+body = Part.makeBox(length, width, height)
+
+# Round the four vertical edges
+vertical_edges = []
+for edge in body.Edges:
+    vertices = edge.Vertexes
+    if len(vertices) == 2:
+        p1 = vertices[0].Point
+        p2 = vertices[1].Point
+        if (
+            abs(p1.x - p2.x) < 0.001
+            and abs(p1.y - p2.y) < 0.001
+            and abs(abs(p1.z - p2.z) - height) < 0.001
+        ):
+            vertical_edges.append(edge)
+
+housing = body.makeFillet(corner_radius, vertical_edges)
+
+obj = doc.addObject("PartDesign::Feature", "Housing")
+obj.Label = "Rounded Enclosure"
+obj.Shape = housing
+
+doc.recompute()
+
+# Export STEP file to the Desktop
+import os
+output_path = os.path.join(
+    os.path.expanduser("~"), "Desktop", "enclosure.stp"
+)
+Import.export([obj], output_path)
+
+print("STEP file exported to:", output_path)
