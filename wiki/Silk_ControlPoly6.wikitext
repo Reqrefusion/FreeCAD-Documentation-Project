@@ -20,7 +20,7 @@
 
 ==Description==
 
-The [[Image:Silk_ControlPoly6.svg|32px]] '''Silk ControlPoly6''' command does ...
+The [[Image:Silk_ControlPoly6.svg|32px]] '''Silk ControlPoly6''' command creates a 6 point control polygon, a ControlPoly6 object, from one or two sketches, but can also extract polygons from some other Silk objects. It is mostly intended for blending existing Bezier curves/curve segments.
 
 </translate>
 [[File:11.-Control_Poly6.png|300px]]
@@ -30,21 +30,33 @@ The [[Image:Silk_ControlPoly6.svg|32px]] '''Silk ControlPoly6''' command does ..
 
 ==Usage==
 
-# There are several options for a preselection:
-#* Select one [[Image:Workbench_Sketcher.svg|16px]] [[Sketcher_Workbench|Sketch]] in the [[Tree_View|Tree View]] or in the [[3D_View|3D View]] containing a wire of 5 straight line segments.
-#* Select two extended "Node sketches" in the Tree View or in the 3D View, each containing a circle, a straight line starting at the circle center, and a second line starting at the endpoint of the first line.
-#* Select two CubicCurve_4 objects connected at one end — this produces a G2 blend.
-#* Select one CubicCurve_4 object — this produces an exact match in ControlPoly6 format.
+# This tool creates different objects with individual properties and calculation modes depending on the selected input elements:
+#* '''5L''' mode: Select one [[Image:Workbench_Sketcher.svg|16px]] [[Sketcher_Workbench|Sketch]] in the [[Tree_View|Tree View]] or in the [[3D_View|3D View]] containing a wire of 5 straight line segments.
+#* '''2N''' mode: Select two extended node sketches in the Tree View or in the 3D View, each containing a circle, a straight line starting at the circle center, and a second line starting at the endpoint of the first line.
+#* '''FirstElement''' mode: Select one sketch in the Tree View or in the 3D View containing an arbitrary combination of different lines. Only the first detected arc in the sketch is taken into account, or the first straight line if no arc exists in the sketch.
+#* '''Bezier''' mode: Select one ControlPoly4 in the Tree View or in the 3D View. This produces an exact match in ControlPoly6 format.
+#* '''FilletBezier''' mode: Select two ControlPoly4 objects, that are connected at one end, in the Tree View or in the 3D View. This produces a G2 blend.
 # There are several ways to invoke the command.
 #* Press the {{Button|[[Image:Silk_ControlPoly6.svg|16px]] ControlPoly6}} button.
 #* Select the {{MenuCommand|Silk → [[Image:Silk_ControlPoly6.svg|16px]] ControlPoly6}} option from the menu.
-# One of the following objects is created:
-#* A '''ControlPoly6_5L''' object if the first preselection option was chosen.
-#* A '''ControlPoly6_2N''' object if the second preselection option was chosen.
-#* A '''ControlPoly6_??''' object if the third preselection option was chosen.
-#* A '''ControlPoly4_??''' object if the last preselection option was chosen.
+# According to the mode one of the following objects is created:
+#* '''ControlPoly6_5L'''.
+#* '''ControlPoly6_2N'''.
+#* '''ControlPoly6_FirstElement'''.
+#* '''ControlPoly6_Bezier'''.
+#* '''ControlPoly4_FilletBezier'''.
 # Optionally adjust parameters in the [[Property_View|Property View]].
-# A '''ControlPoly6''' object, is created.
+
+== Notes ==
+
+* 5 point control polygons are required input objects for several other Silk objects:
+** 1 of these is used to create a [[Image:Silk_CubicCurve_6.svg|16px]] [[Silk_CubicCurve_6|CubicCurve_6]].
+** 4 of these are used to create a [[Image:Silk_ControlGrid66.svg|16px]] [[Silk_ControlGrid66|ControlGrid66]].
+** 2 of these control polygons in connection with 2 [[Image:Silk_ControlPoly4.svg|16px]] [[Silk_ControlPoly4|ControlPoly4]] objects are used to create a [[Image:Silk_ControlGrid64.svg|16px]] [[Silk_ControlGrid64|ControlGrid64]].
+* This control polygon is used to produce non-Bezier cubic curves and/or surfaces (number of control points greater than degree + 1). It only guarantees G2 internally. Its benefit is that it allows controlling curvature at connection points/edges to cubic Bezier curves/surfaces, which is why it is mostly intended for blending existing Bezier curves/curve-segments.
+** This is Bezier curve blending, the main use case, and it offers a good preview of how blending grids/surfaces will work. The hard corner between the two Bezier curves disappears, and the start and end of the poly match the original curves up to G2.
+** If you choose to build ControlPoly6, ControlGrid64, and ControlGrid66 objects manually, you will likely sometimes find yourself with a ControlPoly4 or a CubicCurve_4 in a location where a ControlPoly6 would be preferable. Silk can always convert a CubicCurve_4 to a ControlPoly6 exactly; the reverse is not true. All Beziers have an exact matching ControlPoly6, but a random ControlPoly6 does not generally have a matching Bezier.
+** 6-point cubic curves/surfaces are intended to be generated automatically by other tools, because of their G2 connection properties. Even when generated automatically, this poly is not generally recommended for direct use in building grids/surfaces (though it is allowed). The one genuinely valuable use case, in the context of the official workflow, is studying a set of Beziers and their blends in 2D before building the surfaces in 3D — very useful, for example, on the mirror plane of a design when it is not yet certain how many Beziers and blends the design requires.
 
 == Properties ==
 
@@ -97,6 +109,12 @@ A  '''ControlPoly6_2N''' object also has the following individual additional pro
 {{Properties_Title|C3 - Identifiers}}
 
 * {{PropertyData|object_type|String}}: Default is {{value|ControlPoly6_2N}}. The workbench class used to create this object.
+
+A  '''ControlPoly6_FirstElement''' object also has the following individual additional properties:
+
+A  '''ControlPoly6_Bezier''' object also has the following individual additional properties:
+
+A  '''ControlPoly4_FilletBezier''' object also has the following individual additional properties:
 
 
 {{Docnav
