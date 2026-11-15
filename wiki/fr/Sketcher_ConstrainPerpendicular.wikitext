@@ -53,6 +53,7 @@ Voir aussi : [[Sketcher_Workbench/fr#Aides_au_dessin|Aides au dessin]].
 #* Sélectionnez deux points d'extrémité appartenant à des arêtes différentes.
 #* Sélectionnez une arête et l'extrémité d'une autre arête (dans n'importe quel ordre).
 #* Sélectionnez un point et deux arêtes (idem).
+#* Sélectionnez deux points puis une droite (dans cet ordre). {{Version/fr|26.3}}
 # Lancez l'outil comme décrit ci-dessus, ou avec l'option supplémentaire suivante :
 #* {{Version/fr|1.0}} : cliquez avec le bouton droit de la souris dans la [[3D_view/fr|vue 3D]] et sélectionnez l'option {{MenuCommand|[[Image:Sketcher_ConstrainPerpendicular.svg|16px]] Perpendiculaire}} dans le menu contextuel.
 #* Cliquez avec le bouton droit dans la section {{MenuCommand|Éléments}} de la [[Sketcher_Dialog/fr|fenêtre de dialogue de Sketcher]] et sélectionnez l'option {{MenuCommand|[[Image:Sketcher_ConstrainPerpendicular.svg|16px]] Perpendiculaire}} du menu contextuel.
@@ -89,10 +90,15 @@ L'extrémité d'une arête est contrainte de se trouver sur l'autre arête, et l
 
 Les deux arêtes sont rendues perpendiculaires en un point donné. Le point peut être n'importe quel point, par exemple le centre d'un cercle, l'extrémité d'une arête ou l'origine, il peut appartenir à l'une ou l'autre des arêtes ou aux deux, et il peut également être un [[Sketcher_CreatePoint/fr|objet Point]]. Si nécessaire, des [[Sketcher_ConstrainPointOnObject/fr|contrainte(s) de point sur objet]] sont ajoutées pour s'assurer que le point se trouve sur les deux arêtes (étendues). Ces contraintes supplémentaires sont appelées [[Sketcher_helper_constraint/fr|contraintes d'assistances]].
 
+===Between two points and a line===
+
+{{Version|26.3}}: The direction from the first selected point to the second is constrained to be perpendicular to the straight line. The points can be sketch points or points belonging to geometry, such as endpoints. No connecting line is created between them. For example, select the centers of two circles and then a straight edge to keep the centers aligned perpendicular to that edge.
+
 <span id="Scripting"></span>
 == Scripts ==
 
 La Contrainte perpendiculaire peut être créée à partir de [[Macros/fr|macros]] et de la console Python en utilisant ce qui suit :
+
 {{Code|code=
 # direct perpendicularity
 Sketch.addConstraint(Sketcher.Constraint('Perpendicular',icurve1,icurve2))
@@ -104,13 +110,19 @@ Sketch.addConstraint(Sketcher.Constraint('Perpendicular',icurve1,pointpos1,icurv
 Sketch.addConstraint(Sketcher.Constraint('Perpendicular',icurve1,pointpos1,icurve2))
 
 # perpendicular-via-point (plain constraint, helpers are not added automatically)
-Sketch.addConstraint(Sketcher.Constraint('PerpendicularViaPoint',icurve1,icurve2,geoidpoint,pointpos)) 
+Sketch.addConstraint(Sketcher.Constraint('PerpendicularViaPoint',icurve1,icurve2,geoidpoint,pointpos))
+
+# direction between two points perpendicular to a straight line (26.3)
+Sketch.addConstraint(Sketcher.Constraint('Perpendicular',igeo1,pointpos1,igeo2,pointpos2,iline))
 }}
+
+<div class="mw-translate-fuzzy">
 où : 
 :* {{incode|Sketch}} est un objet d'esquisse
 :* {{incode|icurve1}}, {{incode|icurve2}} sont deux entiers identifiant les courbes à rendre perpendiculaires. Les entiers sont des indices dans l'esquisse (la valeur, renvoyée par {{incode|Sketch.addGeometry}}).
 :* {{incode|pointpos1}}, {{incode|pointpos2}} doivent être {{incode|1}} pour le point de départ et {{incode|2}} pour le point d'arrivée.
 :* {{incode|point géoïde}} et {{incode|pointpos}} dans PerpendicularViaPoint sont les indices spécifiant le point de perpendicularité.
+</div>
 
 La page [[Sketcher_scripting/fr|Sketcher Scripts]] explique les valeurs qui peuvent être utilisées pour {{incode|icurve1}}, {{incode|icurve2}}, {{incode|pointpos1}}, {{incode|pointpos2}} et {{incode|geoidpoint}} et contient d'autres exemples sur la façon de créer des contraintes à partir de scripts Python.
 
