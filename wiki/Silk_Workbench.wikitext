@@ -1,13 +1,12 @@
 <languages/>
 {{UnfinishedDocu{{#translation:}}}}
-<!-- Add images + tools + create tool pages -->
-
+{{Page in progress}}
 <translate>
 
 <!--T:1-->
 [[Image:Silk_workbench_icon.svg|thumb|128px|Silk External Workbench Icon]]
 
-== Introduction ==
+== Introduction == <!--T:21-->
 
 <!--T:9-->
 The '''Silk Workbench''' is an [https://www.freecad.org/addons.php external workbench] that creates [https://en.wikipedia.org/wiki/Non-uniform_rational_B-spline NURBS surfaces] in FreeCAD. Silk is the new name of the [https://edwardvmills.github.io/NURBSlib_EVM/ NURBSlib_EVM] project, and provides NURBS surface modeling tools focused on low degree and seam continuity.
@@ -61,10 +60,19 @@ Modeling can be done in the current state, and the resulting data structures are
 <!--T:20-->
 In the meantime, Silk does offer a few tools not otherwise available in FreeCAD (e.g. 3D splines), and can in general be seen as a sandbox for surface design, control strategies, data structures, and algorithms.
 
-== Tools ==
+== Tools == <!--T:22-->
 
+===Sketches===
+
+Sketches are the fundamental control elements of Silk curves and eventually Silk surfaces, see [[Image:Workbench_Sketcher.svg|16px]] [[Sketcher_Workbench|Sketcher]] workbench for information about sketch tools and their general usage. Keep in mind to use the [[Image:Sketcher_NewSketch.svg|16px]] [[Sketcher_NewSketch|New Sketch]] command of the Sketcher workbench to create sketches, not its PartDesign counterpart.
+* [[Silk_Sketches|Silk Sketches]]: A page dedicated to use cases of sketches in the Silk environment.
+
+===Silk Tools===
+
+<!--T:23-->
 The Silk tools are all located in the Silk menu and the Silk Commands toolbar that appear when you load the Silk Workbench.
 
+<!--T:24-->
 * [[Image:Silk_ControlPoly4.svg|32px]] [[Silk_ControlPoly4|ControlPoly4]]: Creates a ControlPoly4 from a variety of inputs. (see also [[#ControlPoly4|ControlPoly4]] below)
 * [[Image:Silk_CubicCurve_4.svg|32px]] [[Silk_CubicCurve_4|CubicCurve_4]]: Creates a CubicCurve_4 from a ControlPoly4. (see also [[#CubicCurve_4|CubicCurve_4]] below)
 * [[Image:Silk_Point_onCurve.svg|32px]] [[Silk_Point_onCurve|Point_onCurve]]: Creates a point on a CubicCurve_4 or CubicCurve_6 (also works on some curves outside of Silk). (see also [[#Point_onCurve|Point_onCurve]] below)
@@ -94,65 +102,365 @@ The Silk tools are all located in the Silk menu and the Silk Commands toolbar th
 * [[Image:Silk_SilkPose.svg|32px]] [[Silk_SilkPose|SilkPose]]: Creates a SilkPose object, a support with a 3D placement calculated from linked references, intended to attach sketches.
 * [[Image:Silk_Reload_Silk.svg|32px]] [[Silk_Reload_Silk|Reload_Silk]]: Reloads the Silk workbench (specifically, just its core library) without exiting FreeCAD, after making code changes.
 
-== ControlPolys ==
+==Workflow==
 
-===ControlPoly4===
+The individual tool of the Silk workbench on their own are quite easy to use and only require a brief description. The hard part is to organize the model tree in a way to be able to handle the huge amount of simple objects instead of losing control. See the author's video tutorials published  on the forum (find the link in the [[#References|References]]) 
+
+===Basic Workflow===
+
+# The idea is to start with modeling a structure of simple support surfaces, the [[#Primary_Surfaces|primary surfaces]], and their edge curves, the [[#Primary Curves|primary curves]] as a first step.
+# Now each primary curve is "split" into 3 [[#Curve Segments|curve segments]], two corner segments and one middle segment in between. These are used to "split" 5 segments from the primary surface, one in the center, the portion of the primary surface, the [[#Center_Surface|center surface]] (restored surface in the tutorial), that is kept, and four '''edge grids to blend'''.
+# Pairs of adjacent edge grids to blend are combined into a blended edge grid and finally a [[#Blended_Edge_Surfaces|blended edge surface]].
+# Finally the gaps surrounded by the blended grids and surfaces are filled with corner blend grids and finally [[#Corner_Blend_Surfaces|corner blend surfaces]]
+
+====Primary Surfaces====
+
+Primary surfaces are [[Silk_CubicSurface_44|4x4 surfaces]] that create the raw shape before blending.
+# Create one [[#Sketches|control sketch]] for each curved edge of the primary surface.
+# Create a [[#Polygons|control polygon]] from each sketch, and a few more between pairs of corner vertices for straight edges.
+# Create [[#Grids|control grids]] from loops of 3 or 4 control polygons.
+#* If necessary create smoother [[Silk_ControlGrid44_flow|Silk ControlGrid44_flow]] grids.
+# Create [[#Surfaces|primary surfaces]] from the grids.
+
+</translate>
+[[Image:Silk_Workflow-01.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-02.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-03.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-04.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-05.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-06.png|100px]] 
+<translate>
+
+{{Caption|Sketches → Control polygons for curved edges → Control polygon for straight edges added → 4x4 control Grids → Flow variant control grids → Primary 4x4 surfaces}}
+
+====Primary Curves====
+
+Primary curves are [[Silk_CubicCurve_4|cubic curves]] representing the edge curves of the primary surfaces. They are created from the same control polygons as the control grids of the surface.
+# Create one [[#Curves|primary curve]] from each control polygon.
+
+</translate>
+[[Image:Silk_Workflow-03.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-08.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-09.png|100px]]
+<translate>
+
+{{Caption|Control polygons → Primary curves → Primary curves and surfaces}}
+
+====Curve Segments====
+
+3 curve segments, determined by 4 [[Silk_Point_onCurve|points]], are placed on the primary curves. Since splitting curves is not (yet) implemented, new [[Silk_ControlPoly4_segment|segment polygons]] and [[Silk_ControlPoly4_segment|curve segments]] that match exactly with their underlying primary curve are created between each pair of points. The '''middle segment''' controls the area of the primary surface along the curve that will not change. (For clarity, a different color is applied on the outer '''corner segments''')
+# Create 4 [[Silk_Point_onCurve|points]] on a primary curve, one start point, one end point, and two cut points in between.
+# Create 3 [[Silk_ControlPoly4_segment|segment polygons]]:
+## One between the start point and its neighboring cut point.
+## One between both cut points.
+## One between its neighboring cut point and the end point.
+# Create one [[Silk_ControlPoly4_segment|curve segment]] from each segment polygon (and apply a different color on the corner segments).
+
+</translate>
+[[Image:Silk_Workflow-09.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-10.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-11.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-12.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-13.png|100px]]
+<translate>
+
+{{Caption|Primary curves and surfaces → Points on curves added → Segment polygons replaced primary curves → Curve segments replaced segment polygons → Primary surfaces and curve segments}}
+
+====Sub-Surfaces====
+
+As curves, surfaces cannot be split, instead matching 4x4 [[Silk_ControlGrid44_2EdgeSegments|grids]] and 4x4 [[Silk_CubicSurface_44|sub-surfaces]] are added on a support surface.
+
+=====Center Surfaces=====
+
+In this case the center grid (grid to restore) and the center surface (restored surface), representing the area to be kept, are obtained from a [[#Primary_Surfaces|primary surface]] in connection with 2 [[#Curve_Segments|middle segments]] on two adjacent edges of the surface.
+# Create a 4x4 [[Silk_ControlGrid44_2EdgeSegments|center grid]] from:
+## One [[#Primary_Surfaces|primary surface]].
+## One of its related [[#Curve_Segments|middle segments]].
+## Another of its related [[#Curve_Segments|middle segments]] on an adjacent edge.
+# Create a 4x4 [[Silk_CubicSurface_44|center surface]] from the center grid
+
+</translate>
+[[Image:Silk_Workflow-14.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-15.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-16.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-17.png|100px]]
+<translate>
+
+{{Caption|1 primary surface and 2 middle segments selected → Center grid on its support surface → Center surface on its support surface → One center surface on each support surface}}
+
+=====Edge Grids=====
+
+Related edge grids are obtained from the same surface in connection with 1 inner and 1 outer corner curve segment on two adjacent edges of the surface.
+# Create a 4x4 [[Silk_ControlGrid44_2EdgeSegments|edge grid]] from:
+## One [[#Primary_Surfaces|primary surface]].
+## One of its related [[#Curve_Segments|middle segments]].
+## One of its related [[#Curve_Segments|corner segments]] on an adjacent edge.
+
+</translate>
+[[Image:Silk_Workflow-18.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-19.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-20.png|100px]]
+<translate>
+
+{{Caption|1 primary surface, 1 middle segment, and 1 corner segment selected → Edge grid on its support surface → All 4 possible edge grids on each support surface}}
+
+=====Recent Alternative=====
+
+It is now also possible to create the center grid and all 4 edge grids in one operation using the same tool:
+# Create a 4x4 [[Silk_ControlGrid44_2EdgeSegments|edge grid]] from:
+## One [[#Primary_Surfaces|primary surface]].
+## All 3 of its related [[#Curve_Segments|curve segments]] on one edge.
+## All 3 of its related [[#Curve_Segments|curve segments]] on an adjacent edge.
+
+</translate>
+[[Image:Silk_Workflow-21.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-22.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-23.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-24.png|100px]]
+<translate>
+
+{{Caption|1 primary surface and 2x 3 curve segments selected → Edge grid on its support surface → 1 center grid and 4 edge grids on each support surface → 1 center surface and all 4 surrounding edge grids on each support surface}}
+
+====Blended Edge Surfaces====
+
+Two adjacent 4x4 edge grids can be combined into a 6x4 blended edge grid which is used to create a 6x4 blended edge surface:
+
+# Create a 6x4 [[Silk_ControlGrid64 2Grid44|blended edge grid]] from 2 adjacent edge grids.
+# Create a [[Silk_CubicSurface 64|blended edge surface]] from the blended edge grid.
+
+</translate>
+[[Image:Silk_Workflow-25.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-26.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-27.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-28.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-29.png|100px]]
+<translate>
+
+{{Caption|Center surfaces and surrounding edge grids → Center surfaces and a pair of adjacent edge grids → 1 blended edge grid replaced both edge grids → Center surfaces with all 12 possible blended edge grids → Center surfaces with blended edge surfaces from the blended edge grids, and the remaining edge grids}}
+
+====Corner Blend Surfaces====
+
+The workflow to create a corner blend surface depends on the number of blended edge surfaces surrounding the corner gap; 4 in this example. 
+
+=====Corner Blend Between 4 Blended Edges=====
+
+Two 6x4 [[Silk_ControlGrid64_2Grid44|blended edge grids]] meeting at a single point are used to create a 3x3 [[Silk_SubGrid33_2Grid64|corner sub-grid]], and 4 corner sub-grids are combined into one 6x6 [[Silk_ControlGrid66_4Sub|blended corner grid]] that is used to create a 6x6 [[Silk_CubicSurface 66|blended corner surface]]:
+
+# Create 4 [[Silk_SubGrid33_2Grid64|corner sub-grids]] from 2 blended edge grids each, belonging to the same primary surface.
+# Create a [[Silk_ControlGrid66_4Sub|blended corner grid]] from 4 corner sub-grids surrounding the same gap.
+# Create a [[Silk_CubicSurface 66|blended corner surface]] from the blended corner grid.
+
+</translate>
+[[Image:Silk_Workflow-28.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-30.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-31.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-32.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-33.png|100px]]
+<translate>
+
+{{Caption|Center surfaces and blended edge grids → Center surfaces and 2 blended edge grids → 1 corner sub-grid added → 4 corner sub-grids belonging to the same gap → 1 blended corner grid replaced the 4 corner sub-grids}}
+
+</translate>
+[[Image:Silk_Workflow-36.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-37.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-35.png|100px]]
+<translate>
+
+{{Caption|Center surfaces with blended edge grids, and all 4 yet possible blended corner grids → Blended corner surfaces replaced the blended corner grids → Center surfaces with blended edge and corner surfaces, and the remaining edge grids}}
+
+=====Corner Blend Between 3, 5, or 6 Blended Edges=====
+
+Two 6x4 [[Silk_ControlGrid64_2Grid44|blended edge grids]] sharing a point are used to create a 6x3 [[Silk_SubGrid63_2Surf64|corner sub-grid]], and 3, (4), 5, or 6 corner sub-grids are combined into one N6 [[Silk_ControlGridNStar66|blended corner grid]] that is used to create a 6x6 [[Silk_CubicNStarSurface_NStar66|blended corner surface]]:
+
+# Create 3 to 6 6x3 [[Silk_SubGrid63_2Surf64|corner sub-grids]] from 2 blended edge surfaces each.
+# Create an N6 [[Silk_ControlGridNStar66|blended corner grid]] from 3 to 6 corner sub-grids surrounding the same gap.
+# Create a [[Silk_CubicNStarSurface_NStar66|blended corner surface]] from the blended corner grid.
+
+</translate>
+[[Image:Silk_Workflow-40.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-41.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-42.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-43.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-44.png|100px]]
+<translate>
+
+{{Caption|Center surfaces with blended edge surfaces → 1 corner sub-grid added → All 6 corner sub-grids added → 1 N6 blended corner grid added → Center surfaces with blended edge surfaces and 1 N6 blended corner surface that replaced the grids}}
+
+
+===Handling Curves===
+
+In contrast to other applications Silk surfaces seem to be derived from polygons instead of curves, but their edge curves are calculated in the background. To make them visible as separate objects Silk provides 2 tools:
+* The [[Image:Silk_CubicCurve_4.svg|16px]] [[Silk_CubicCurve_4|CubicCurve_4]] tool creates a cubic curve from a 4 node control polygon, and it is used for [[#Primary_Curves|primary curves]] and [[#Curve_Segments|curve segments]].
+* The [[Image:Silk_CubicCurve_6.svg|16px]] [[Silk_CubicCurve_6|CubicCurve_6]] tool creates a cubic curve from a 6 node polygon.
+
+====Curve Set====
+
+Each primary surface supports nine surface segments and curve segments control the layout. To extend a patchwork of primary surfaces it is recommended to use prepared groups of control sketch, primary polygon, primary curve, points on curve, segment polygons, and segment curves.
+# Create a [[Image:Silk_ControlPoly4.svg|16px]] [[Silk_ControlPoly4|control polygon]] from a 3link [[Image:Workbench_Sketcher.svg|16px]] [[Sketcher_Workbench|sketch]].
+# Create a [[Image:Silk_CubicCurve_4.svg|16px]] [[Silk_CubicCurve_4|primary curve]] from the control polygon.
+# Create 4 [[Image:Silk_Point onCurve.svg|16px]] [[Silk_Point onCurve|points]] on the primary curve, a start point, an end point, and 2 cut points.
+# Create one [[Image:Silk_ControlPoly4_segment.svg|16px]] [[Silk_ControlPoly4_segment|segment polygon]] between each pair of neighboring points on the primary curve.
+
+====Layout Set====
+
+The sketch of a curve set can be attached to a layout sketch with zero offset, project the relevant geometry segment as external geometry, and constrain start and end point of the polyline to its vertices. This way several control sketches can be concatenated on the plane of this layout sketch. Several copies of a main Layout sketch can be attache to it with certain offsets to supply a set of longitudinal cross-sections for e.g. a boat hull. These sections can be connected by some more curve sets and thus creating a frame of primary curves for a patchwork of primary surfaces.
+
+====Blending Curves====
+
+Create a
+[[Image:Silk_ControlPoly6.svg|16px]] [[Silk_ControlPoly6|ControlPoly6_2N]] from 2 adjacent [[#Curve_Segments|corner segments]] to create a smooth transition from one middle segment curve of one curve set to another middle segment curve of another curve set.
+
+==Object Types==
+
+The Silk workbench relies on sketches and provides tools to create 4 types of objects:
+* Polygons
+* Curves
+* Grids
+* Surfaces
+And also tools for helper objects:
+* [[Image:Silk_Point_onCurve.svg|16px]] [[Silk_Point_onCurve|Point_onCurve]]: Required to create curve segments.
+* [[Image:Silk_SilkPose.svg|16px]] [[Silk_SilkPose|SilkPose]]: An attachment support for the Silk environment.
+
+===Sketches===
+
+Silk uses 4 special types of sketches to create control polygons:
+* 4 point wire sketch: Contains 4 points connected by 3 straight lines exactly.
+* 6 point wire sketch: Contains 6 points connected by 5 straight lines exactly.
+* Node sketch: Contains 1 circle and 1 line starting at its center.
+* Extended node sketch: Contains 1 circle and 2 lines, the first starts at the circle center, and the second at the first line's endpoint.
+
+Any other sketch is accepted but only the first detected arc will be taken into account, or the first straight line if there is no arc in the sketch.
+
+===Polygons===
+
+Silk uses two types of polygons to control NURBS curves and surfaces.
+* 4 point polygons
+* 6 point polygons
+
+====4 point polygons====
+
+4 point polygons, the ControlPoly4 objects, are created with the [[Image:Silk_ControlPoly4.svg|16px]] [[Silk_ControlPoly4|ControlPoly4]] tool and come in several sub-types depending on the selected input element.
+
+Another 4 point polygon is created with the [[Image:Silk_ControlPoly4_segment.svg|16px]] [[Silk_ControlPoly4_segment|ControlPoly4_segment]] tool.  The ControlPoly4_segment object, is used to extract a segment of a NURBS curve.
+
+====6 point polygons====
+
+6 point polygons, the ControlPoly6 objects, are created with the [[Image:Silk_ControlPoly6.svg|16px]] [[Silk_ControlPoly6|ControlPoly6]] tool and come in several sub-types depending on the selected input element. 
+
+===Curves===
+
+Silk uses two types of NURBS curves:
+* Cubic curves controlled by a 4 point polygon, these are created with the [[Image:Silk_CubicCurve_4.svg|16px]] [[Silk_CubicCurve_4|Silk_CubicCurve_4]] tool.
+* Cubic curves controlled by a 6 point polygon, these are created with the [[Image:Silk_CubicCurve_6.svg|16px]] [[Silk_CubicCurve_6|Silk_CubicCurve_6]] tool.
+
+===Grids===
+
+Silk uses several types of grids to span a NURBS surface:
+* 4x4 grids
+* 6x4 grids
+* 6x6 grids
+
+====4x4 Grids====
+
+* 4 sided grid created with the [[Image:Silk_ControlGrid44.svg|16px]] [[Silk_ControlGrid44|ControlGrid44]] tool.
+* 3 sided grid created with the [[Image:Silk_ControlGrid44_Rotate.svg|16px]] [[Silk_ControlGrid44_Rotate|ControlGrid44_Rotate]] tool.
+* 4 sided grid created with the [[Image:Silk_ControlGrid44_flow.svg|16px]] [[Silk_ControlGrid44_flow|ControlGrid44_flow]] tool.
+* 4 sided grid created with the [[Image:Silk_ControlGrid44_EdgeSegment.svg|16px]] [[Silk_ControlGrid44|ControlGrid44]] tool.
+* 4 sided grid created with the [[Image:Silk_ControlGrid44_2EdgeSegments.svg|16px]] [[Silk_ControlGrid44_2EdgeSegments|ControlGrid44_2EdgeSegments]] tool.
+
+====6x4 Grids====
+
+* 4 sided grid created with the [[Image:Silk_ControlGrid64.svg|16px]] [[Silk_ControlGrid64|ControlGrid64]] tool.
+* 4 sided grid created with the [[Image:Silk_ControlGrid64_2Grid44.svg|16px]] [[Silk_ControlGrid64_2Grid44|ControlGrid64_2Grid44]] tool.
+* 3 sided grid created with the [[Image:Silk_ControlGrid64_3_1Grid44.svg|16px]] [[Silk_ControlGrid64_3_1Grid44|ControlGrid64_3_1Grid44]] tool.
+* 4 sided grid created with the [[Image:Silk_ControlGrid64_Surf44.svg|16px]] [[Silk_ControlGrid64_Surf44|ControlGrid64_Surf44]] tool.
+
+====6x6 Grids====
+
+* 4 sided grid created with the [[Image:Silk_ControlGrid66.svg|16px]] [[Silk_ControlGrid66|ControlGrid66]] tool.
+
+===Surfaces===
+
+Silk creates several types of NURBS surfaces.
+* 4x4 surfaces controlled by a 4x4 grid, these are created with the [[Image:Silk_CubicSurface_44.svg|16px]] [[Silk_CubicSurface_44|CubicSurface_44]] tool.
+* 6x4 surfaces controlled by a 6x4 grid, these are created with the [[Image:Silk_CubicSurface_64.svg|16px]] [[Silk_CubicSurface_64|CubicSurface_64]] tool.
+* 6x6 surfaces controlled by a 6x6 grid, these are created with the [[Image:Silk_CubicSurface_66.svg|16px]] [[Silk_CubicSurface_66|CubicSurface_66]] tool.
+
+== ControlPolys == <!--T:25-->
+
+===ControlPoly4=== <!--T:26-->
 
 </translate>
 [[Image:Silk_ControlPoly4.svg|32px]]
 <translate>
 
+<!--T:27-->
 Creates a ControlPoly4 from a variety of inputs.
 
-====Usage====
+====Usage==== <!--T:28-->
 
+<!--T:29-->
 All sketches used '''must''' be from the ''Sketcher'' workbench.
 
+<!--T:30-->
 Preselect one of the following:
 * One sketch of three lines connected end to end.
 * Two sketches containing a circle and a line each, where one of the line endpoints matches the center of the circle. These ''"Node Sketches"'' use the circle center to indicate an endpoint, and the line to indicate the desired tangent direction from that endpoint.
 * If a single sketch is selected that does not contain three elements, the first element is converted. This works for line, arc of circle, and arc of ellipse elements. '''Arcs should be a quarter circle or less.'''
 
+<!--T:31-->
 Apply the function.
 
+<!--T:32-->
 This control polygon (poly) of 4 points is intended to control a '''cubic Bezier curve''', or to control a '''cubic Bezier surface'''.
 
+<!--T:33-->
 After creating the poly, you will probably want to hide the sketches used to create it, so that you can see it. Creating these objects often feels like an "extra" step, but they need to be fully understood in order to progress with NURBS.
 
 </translate>
 [[File:1.-ControlPoly4.png|300px]]
 <translate>
 
+<!--T:34-->
 {{Caption|A ControlPoly4 built from two Node Sketches}}
 
-====Used as input for====
+====Used as input for==== <!--T:35-->
+
+<!--T:36-->
 * '''CubicCurve_4''' (a smooth Bezier curve)
 * '''ControlGrid44''' (produces a smooth Bezier surface)
 * '''ControlGrid44_Rotate''' (produces a smooth Bezier surface)
 * '''ControlGrid64''' (produces a less smooth, mixed Bezier/NURBS surface)
 
-====More information====
+====More information==== <!--T:37-->
 
+<!--T:38-->
 This is '''the''' most important tool, and everything else depends on it. Give it a quick try, use the result as input for the next tool (CubicCurve_4), and then come back to read more about it.
 
+<!--T:39-->
 Editing the source sketches will automatically update the poly. Curves and surfaces attached to the poly will update as well. In your sketches, make sure to set the view property "Hide dependent" to "false". This will give you live updates of polys (and curves, and surfaces) while you edit the sketches.
 
+<!--T:40-->
 Since polys are used to create surfaces as well as curves, and surfaces are what we are really after, poly creation is kept as an independent step. It is important to develop a feel for how a poly controls a curve. After creating a curve/surface, edit the sketches used to create the poly and observe how the curve/surface changes.
 
+<!--T:41-->
 Node sketches are intended to be placed on different planes, so that the resulting polys, curves, and surface edges are fully 3D. They are great for connecting to the endpoints of line sketches that are on different planes. Node sketches are typically created with the circle at the origin, and the sketch mapped to a new location and orientation using FreeCAD's mapping tools (found under the Data tab of the property view). In this manner, the circle is never edited, and the free endpoint of the line can be freely adjusted.
 
+<!--T:42-->
 A poly used in a grid/surface can be relinked to different sketches, so that all the work of making the grid/surface does not need to be redone — simply swap the sketch link and recompute (sketch links are also found under the Data tab of the property view).
 
-===Point_onCurve===
+===Point_onCurve=== <!--T:43-->
 
 </translate>
 [[Image:Silk_Point_onCurve.svg|32px]]
 <translate>
 
+<!--T:44-->
 Create a point on a CubicCurve_4 or CubicCurve_6 (also works on some curves outside of Silk).
 
-====Usage====
+====Usage==== <!--T:45-->
 
+<!--T:46-->
 * Choose a location on the curve in the 3D view by clicking on it.
 * Apply the function.
 * A '''Point_onCurve''' object is placed on the curve.
@@ -161,77 +469,103 @@ Create a point on a CubicCurve_4 or CubicCurve_6 (also works on some curves outs
 [[File:3.-Point_onCurve.png|300px]]
 <translate>
 
+<!--T:47-->
 {{Caption|Point_onCurve markers placed along two curves, showing the u parameter}}
 
-====Used as input for====
+====Used as input for==== <!--T:48-->
 
+<!--T:49-->
 * The '''start''' and '''end''' points of a '''ControlPoly4_segment''' (used to cut CubicCurve_4 objects into pieces).
 * A convenient way to mark a location along a curve, then place (map) a Node sketch (or anything else) at that location using the mapping tool under the Data tab of the property view.
 
-====More information====
+====More information==== <!--T:50-->
 
+<!--T:51-->
 This works on curves outside of Silk, as long as they are parametrized from 0 to 1. Allowing any range would, in principle, work, but Silk would then suffer every time a user typed in "100" by greatly distorting the model — so Silk curves are prioritized over others.
 
+<!--T:52-->
 The position of the point can be adjusted along the curve (0.0 to 1.0) using the '''u''' parameter found under the Data tab of the property view, allowing precise positioning anywhere along the curve. It is often not obvious which side is 0 and which is 1 — try to place the point clearly towards one end, so it is obvious whether it is closer to 0 or 1. To match the endpoints exactly, type in 0 or 1. Try to keep u values generally consistent (0.25, 0.5, 0.75, etc., or 0.1, 0.2, 0.3, 0.4, etc.), since cut values across different curves/surfaces often need to match up, and recognizing your typical values pays off.
 
+<!--T:53-->
 Often, two curves to be split "in the same manner" have opposite orientation to each other. In those cases, set '''u''' of the "next" curve to '''1 − u''' (e.g., 0.90 and 0.10) of the "previous" curve, in order to cut them in the "same" place.
 
+<!--T:54-->
 FreeCAD's expression engine allows one cut value to be easily linked to another existing cut value, so that only one needs to be edited, with the rest following automatically. Given curve1 and curve2, with point1 and point2 on them:
 * Set '''u''' of point2 = <code>point1.u</code> (typing "=" into a data field in the property view opens the expression editor). Any change to point1.u will then automatically propagate to point2.u. If the points appear on the wrong side of the curve, instead set:
 * '''u''' of point2 = <code>1 - point1.u</code>
 
+<!--T:55-->
 Automatic matching is not strictly optional on large models, though it is not something to worry about until the model grows large. The process requires little typing: select the source point in the tree, press F2 (edit label mode), press Ctrl+C (copy the label), go to the property Data view of the point to apply the match to, click into the '''u''' field, press "=" to open the expression editor, press Ctrl+V to paste, type ".u", confirm by selecting '''u''' from the drop-down, and press Enter. This technique works throughout FreeCAD.
 
-===ControlPoly4_segment===
+===ControlPoly4_segment=== <!--T:56-->
+
+<!--T:57-->
 [[File:4.-Icon_ControlPoly4_segment.png|32px]]
 
+<!--T:58-->
 Create a ControlPoly4 for a segment of a CubicCurve_4, between two points on the curve.
 
-====Usage====
+====Usage==== <!--T:59-->
+
+<!--T:60-->
 Preselect, in this sequence:
 * A CubicCurve_4 first (CubicCurve_6 is currently unpredictable, and the result is not yet useful anyway).
 * A point on the curve.
 * Another point on the curve.
 
+<!--T:61-->
 (The points must be Point_onCurve objects. This selection is best done in the model tree, as selecting points in the 3D view is extremely difficult and unreliable.)
 
+<!--T:62-->
 Apply the function.
 
+<!--T:63-->
 A simple way to read the selection: "this curve, but only from this point to this other point."
 
+<!--T:64-->
 [[File:4.-ControlPoly4_segment.png|300px]]
 {{Caption|Segmented ControlPoly4´s.}}
 
-====Used as input for====
+====Used as input for==== <!--T:65-->
+
+<!--T:66-->
 * '''CubicCurve_4''' (creates a new curve that is a segment of the original curve, used to control blending).
 * '''ControlGrid44''' (an atypical use, but it functions just like any other poly4).
 * '''ControlGrid64''' (an atypical use, but it functions just like any other poly4).
 
-====More information====
+====More information==== <!--T:67-->
+
+<!--T:68-->
 Segmenting (sectioning, cutting) is a core Silk modeling technique, essential for blending. The current workflow uses curve segments as references to cut surfaces. There are plans to cut surfaces by drawing points directly on them, but since the same result is already achievable using curve segments, this convenience is a medium priority.
 
+<!--T:69-->
 Why so much segmenting in Silk — segmenting curves, then segmenting surfaces, so much time spent aligning segmentation points? Because building off segments/pieces of a single Bezier curve or surface preserves "relatedness" between the parts. They blend well, and sections separated by gaps still feel like part of the same surface. This sense of connectedness is nearly impossible to achieve by trying to "harmonize" two curves or surfaces that were built separately and then merged. The key to blending in Silk is sharing edges between base surfaces (which are not otherwise aligned), and then blending strips of the surfaces near that shared edge. The shared edges and strips produce blends that look decent even before fine-tuning.
 
-===Control_Poly6===
+===Control_Poly6=== <!--T:70-->
 
 </translate>
 [[Image:Silk_ControlPoly6.svg|32px]]
 <translate>
 
+<!--T:71-->
 Create a ControlPoly6 from various inputs.
 
-====Usage====
+====Usage==== <!--T:72-->
 
+<!--T:73-->
 Prepare '''one''' of the following selections:
 * One sketch of five lines connected end to end.
 * Two extended "Node sketches" (circle + first line from its center + second line from the endpoint of the first line).
 * Two CubicCurve_4 objects connected at one end — this produces a G2 blend (see "More information").
 * One CubicCurve_4 object — this produces an exact match in ControlPoly6 format (see "More information").
 
+<!--T:74-->
 Apply the function.
 
+<!--T:75-->
 Mostly intended for blending existing Bezier curves/curve segments. It can be used directly from sketches, but this approach has limits (see "More information").
 
+<!--T:76-->
 Examples of direct use:
 * Use the 6 control points to directly model a curve more complex than a ControlPoly4 allows, without a blending step.
 * A 3D (non-planar) ControlPoly6 can be generated from two planar "extended Node" sketches, each in a different plane.
@@ -241,645 +575,794 @@ Examples of direct use:
 [[File:11.-Control_Poly6.png|300px]]
 <translate>
 
+<!--T:77-->
 {{Caption|A ControlPoly6 generated from a six point line sketch.}}
 
-====Used as input for====
+====Used as input for==== <!--T:78-->
 
+<!--T:79-->
 * '''CubicCurve_6'''
 * '''ControlGrid64'''
 * '''ControlGrid66'''
 
-====More information====
+====More information==== <!--T:80-->
 
+<!--T:81-->
 There are many warnings below, but they boil down to this: if you like it, use it; if you want to play it safe, use it as little as possible.
 
+<!--T:82-->
 This control polygon is used to produce non-Bezier cubic curves and/or surfaces (number of control points greater than degree + 1). It only guarantees G2 internally. Its benefit is that it allows controlling curvature at connection points/edges to cubic Bezier curves/surfaces, which is why it is mostly intended for blending existing Bezier curves/curve-segments.
 
+<!--T:83-->
 * This is Bezier curve blending, the main use case, and it offers a good preview of how blending grids/surfaces will work. The hard corner between the two Bezier curves disappears, and the start and end of the poly match the original curves up to G2.
 * If you choose to build ControlPoly6, ControlGrid64, and ControlGrid66 objects manually, you will likely sometimes find yourself with a ControlPoly4 or a CubicCurve_4 in a location where a ControlPoly6 would be preferable. Silk can always convert a CubicCurve_4 to a ControlPoly6 exactly; the reverse is not true. All Beziers have an exact matching ControlPoly6, but a random ControlPoly6 does not generally have a matching Bezier.
 * 6-point cubic curves/surfaces are intended to be generated automatically by other tools, because of their G2 connection properties. Even when generated automatically, this poly is not generally recommended for direct use in building grids/surfaces (though it is allowed). The one genuinely valuable use case, in the context of the official workflow, is studying a set of Beziers and their blends in 2D before building the surfaces in 3D — very useful, for example, on the mirror plane of a design when it is not yet certain how many Beziers and blends the design requires.
 
-== Curves ==
+== Curves == <!--T:84-->
 
-===CubicCurve_4===
+===CubicCurve_4=== <!--T:85-->
 
 </translate>
 [[Image:Silk_CubicCurve_4.svg|32px]]
 <translate>
 
+<!--T:86-->
 Creates a CubicCurve_4 from a ControlPoly4.
 
-====Usage====
+====Usage==== <!--T:87-->
 
+<!--T:88-->
 Preselect one of the following:
 * One ControlPoly4.
 * One ControlPoly4_segment.
 
+<!--T:89-->
 Apply the function.
 
+<!--T:90-->
 This is a Bezier cubic curve. All editing is done by editing the ControlPoly4.
 
+<!--T:91-->
 The main purpose of creating curves is to preview what the edges of a surface will look like if the input poly is used in a control grid (curves themselves are not used directly to make surfaces, but they can share polys with them). Curves are also used by cutting them into segments, which in turn defines how to cut surfaces for blending.
 
 </translate>
 [[File:2.-CubicCurve_4.png|300px]]
 <translate>
 
+<!--T:92-->
 {{Caption|A CubicCurve_4 previewing the edge of a future surface}}
 
-====Used as input for====
+====Used as input for==== <!--T:93-->
 
+<!--T:94-->
 * '''Point_onCurve''' (a marker to subdivide the curve with ControlPoly4_segment)
 * Two CubicCurve_4 objects that touch at one end can be used to generate a blend poly with the '''ControlPoly6''' tool (not a beginner topic).
 
-====More information====
+====More information==== <!--T:95-->
 
+<!--T:96-->
 This is a Bezier cubic curve. A NURBS is Bezier when the number of control points equals the degree + 1. A cubic (degree 3) therefore has 4 control points. Beziers are the smoothest, highest quality NURBS. However, it is difficult to connect several of them in a satisfying manner. It is relatively easy to obtain tangency (G1) by aligning certain control points, but difficult to obtain curvature matching (G2), as this involves adjusting multiple control points at the same time. G3 is very difficult, and arguably pointless: in the attempt to smooth the join of two Beziers to G3, the control points must be moved to the point where one or both curves/surfaces become unrecognizable.
 
+<!--T:97-->
 So why use Beziers at all? They are still the best choice for individual curves/surfaces, and sometimes G1 is good enough to use them directly. For higher-quality work, Silk's design strategy is to use multiple Beziers for the broad strokes of the design, let them meet at sharp angles along a shared edge, and finally trim back and blend. This is not a new idea — the most expensive surfacing software for industrial design uses the same strategy: Bezier as far as it will take you, then careful blending of the edges/joints (Silk does not attempt to fully emulate those programs; this is just one point in common).
 
+<!--T:98-->
 Silk currently only works with cubics, but the plan is to move to degree 4 (5 control points), degree 5 (6 control points), and so on, as development continues. A few more functions are needed before cubics are considered "done." When higher degrees are introduced, cubics will remain the bread and butter of design — higher degrees will only be used when strictly necessary, since they are harder to use (someone has to define all those extra control points).
 
-===CubicCurve_6===
+===CubicCurve_6=== <!--T:99-->
 
 </translate>
 [[Image:Silk_CubicCurve_6.svg|32px]]
 <translate>
 
+<!--T:100-->
 Creates a CubicCurve_6 from a ControlPoly6.
 
-====Usage====
+====Usage==== <!--T:101-->
 
+<!--T:102-->
 Prepare the following selection:
 * One ControlPoly6.
 
+<!--T:103-->
 Apply the function.
 
+<!--T:104-->
 A 6-control-point cubic NURBS curve. G2 continuous throughout; G3 continuous throughout except at two points along the curve, where it is G2 only. The practical use of this curve is to preview blends on curves before doing the full work of blending surfaces.
 
 </translate>
 [[File:11.-CubicCurve_6.png|300px]]
 <translate>
 
+<!--T:105-->
 {{Caption|A CubicCurve_6 previewing a cubic curve.}}
 
-====Used as input for====
+====Used as input for==== <!--T:106-->
 
+<!--T:107-->
 * This is currently an endpoint in the Silk design workflow.
 * The input ControlPoly6 can be used to build grids and surfaces; alternatively, this curve can be used with the rest of FreeCAD — extruded, revolved, etc. — if curve design is all that is needed from Silk.
 
-== Primary Grids ==
+== Primary Grids == <!--T:108-->
 
-===ControlGrid44===
+===ControlGrid44=== <!--T:109-->
 
 </translate>
 [[Image:Silk_ControlGrid44.svg|32px]]
 <translate>
 
+<!--T:110-->
 Create a ControlGrid44 from four connected ControlPoly4 edges.
 
-====Usage====
+====Usage==== <!--T:111-->
 
+<!--T:112-->
 Prepare the following selection:
 * Four ControlPoly4 objects that form a loop.
 * The ControlPoly4 objects should only touch at their endpoints, and form a distinct angle where they meet.
 * Select each edge in the loop sequentially, counter-clockwise, looking from the "outer side" of the surface to be created.
 
+<!--T:113-->
 Apply the function.
 
 </translate>
 [[File:5.-ControlGrid44.png|300px]]
 <translate>
 
+<!--T:114-->
 {{Caption|A ControlGrid44 built from four ControlPoly4 edges}}
 
-====Used as input for====
+====Used as input for==== <!--T:115-->
 
+<!--T:116-->
 * '''CubicSurface_44''' (creates a smooth cubic Bezier surface).
 * '''ControlGrid64_2Grid44''' (creates a blend grid to join surfaces).
 
-====More information====
+====More information==== <!--T:117-->
 
+<!--T:118-->
 Silk performs its first useful task beyond using existing FreeCAD functions and forcing a particular input format: it generates the inner control points of the grid based on the polys. This is not the only way to generate the inner control points, but it is a solid default starting point. The user provides 12 points through the polys, and Silk provides 4 more. 4 out of 12 doesn't seem like much, but it snowballs from here — the rest of the tools will generate tens and hundreds of useful control points with less and less input required from the user at each step.
 
-=====Tangency rules=====
+=====Tangency rules===== <!--T:119-->
 
+<!--T:120-->
 If adjacent CubicSurface_44 objects are not going to be segmented and blended, their ControlGrid44 objects must follow strict rules to achieve tangency (G1) across the shared edge (picture two grids/surfaces side by side, left and right):
 * There must be a shared edge (G0) in the middle — the entire edge. This is done by selecting the '''same''' poly for that edge in both grid creations. Do not trace, approximate, copy, or link the poly — use the same object in both grid creations.
 * The legs of the polys that meet on the shared edge must be '''collinear''' (aligned/parallel).
 * The '''ratio''' of the lengths of the poly legs that meet on the shared edge must be '''equal'''. For example, if the top poly on the left grid has a last leg of length 3, meeting a leg of length 1 on the top of the right grid, the tangency ratio is 3:1 from left to right. If the bottom poly on the left grid then has a last leg of length 5, the connecting poly on the right grid must have a first leg of length 2 (keeping the 3:1 ratio). This ratio rule does not apply if all poly legs are parallel across the shared edge.
 * Users do not need to do anything beyond preparing the polys correctly — if the polys follow these rules, the generated adjacent grids will always be G1, since Silk calculates all of the surface's internal control points (the ones not on edges).
 
+<!--T:121-->
 Following tangency rules (G1) forces changes to the polys, which changes the entire surface. When a surface should not be modified, it is blended instead of aligned. G1 alignment is useful for patching small holes, or for connecting to planes, cylinders, and spheres.
 
+<!--T:122-->
 '''Optional — flawed, use with caution:''' selecting 3 connected ControlPoly4 edges produces a "triangle" grid, which yields a lower-quality surface. The "triangle" has a degenerate (collapsed) edge between the first and third selected polys, because internally this grid still has as many points and lines as a four-sided grid; the collapsed lines and points cause visible defects in the surface, and make further operations with this grid (or surfaces built from it) difficult or even impossible. This "triangle" does respect tangency rules and will connect cleanly to other grids despite its inner flaw. In fact, conforming to G1 on the edges makes it particularly flawed and ugly on the inside. Removing this option is being considered, but it remains for now, since some users want it despite the warnings.
 
-===ControlGrid44_Rotate===
+===ControlGrid44_Rotate=== <!--T:123-->
 
 </translate>
 [[Image:Silk_ControlGrid44_Rotate.svg|32px]]
 <translate>
 
+<!--T:124-->
 Creates a ControlGrid44 from three ControlPoly4 edges.
 
-====Usage====
+====Usage==== <!--T:125-->
 
+<!--T:126-->
 Prepare the following selection:
 * Three ControlPoly4 objects that form a loop.
 * The ControlPoly4 objects should only touch at their endpoints, and form a distinct angle where they meet.
 * Select each edge in the loop sequentially, counter-clockwise, looking from the "outer side" of the surface to be created.
 
+<!--T:127-->
 Apply the function.
 
+<!--T:128-->
 Produces a "triangle" surface that "rotates" from the first edge selected to the third, following along the second edge. Order is "left, bottom, right," with the rotational pivot at the "top" corner.
 
+<!--T:129-->
 Typical use is to merge a set of surfaces to a point (such as closing a tube). Also used to interface with spheres and ellipsoids.
 
 </translate>
 [[File:6.-ControlGrid44_Rotate.png|300px]]
 <translate>
 
+<!--T:130-->
 {{Caption|A rotate grid merging three poly edges to a point}}
 
-====Used as input for====
+====Used as input for==== <!--T:131-->
 
+<!--T:132-->
 * '''CubicSurface_44'''
 * '''ControlGrid64_2Grid44'''
 
-====More information====
+====More information==== <!--T:133-->
 
+<!--T:134-->
 This is a degenerate grid (one edge collapsed to a point) that results in a "revolve"-like surface. Produces true spheres from arc polys, true ellipsoids from ellipse-arc polys, but also accepts non-arc polys.
 
+<!--T:135-->
 Surface tangency across multiple grids can be achieved automatically from well-prepared arcs of circles and ellipses, but using general curves as input does not have an easily predictable outcome, and additional blending may be required.
 
+<!--T:136-->
 Although degenerate, this grid is the correct way to interface with spheres, since it does not introduce additional collapsed edges — in this particular case, the NURBS degeneracy is not a flaw at all, but a standard CAD construct.
 
+<!--T:137-->
 A four-sided version able to create true tori (and sphere strips) is planned, but not yet ready.
 
-===ControlGrid44_flow===
+===ControlGrid44_flow=== <!--T:138-->
 
 </translate>
 [[Image:Silk_ControlGrid44_flow.svg|32px]]
 <translate>
 
+<!--T:139-->
 '''In development — partial, useful result.'''
 
+<!--T:140-->
 Create a ControlGrid44_flow from a ControlGrid44.
 
-====Usage====
+====Usage==== <!--T:141-->
 
+<!--T:142-->
 Prepare the following selection:
 * One ControlGrid44.
 
+<!--T:143-->
 Apply the function.
 
+<!--T:144-->
 The output grid will have more gradual internal changes, at the cost of less predictable tangency across edges. This can help untangle and "puff up" basic grids. Various parameters allow scaling of the effect, restoring specific tangencies, and maintaining G1 "mirrorability" in the plane of each edge (if the edge was planar and G1-mirrorable in the original grid).
 
-====Used as input for====
+====Used as input for==== <!--T:145-->
 
+<!--T:146-->
 * '''CubicSurface_44'''
 * '''ControlGrid64_2Grid44'''
 * Anywhere a ControlGrid44 would be used as input — even as input into another ControlGrid44_flow object (there is no clear reason to do this, but it is possible).
 
-===ControlGrid64===
+===ControlGrid64=== <!--T:147-->
 
 </translate>
 [[Image:Silk_ControlGrid64.svg|32px]]
 <translate>
 
+<!--T:148-->
 Create a ControlGrid64 from two ControlPoly4 and two ControlPoly6 objects matching on opposite edges.
 
-====Usage====
+====Usage==== <!--T:149-->
 
+<!--T:150-->
 Select each edge in sequence (4, 6, 4, 6), counter-clockwise, looking from the outer side.
 
+<!--T:151-->
 Apply the function.
 
+<!--T:152-->
 Used to create mixed-degree contour surfaces.
 
 </translate>
 [[File:15.-ControlGrid64.png|300px]]
 <translate>
 
+<!--T:153-->
 {{Caption|A ControlGrid64 mixing 4-point and 6-point edges}}
 
-====Used as input for====
+====Used as input for==== <!--T:154-->
 
+<!--T:155-->
 * '''CubicSurface_64'''
 
-====More information====
+====More information==== <!--T:156-->
 
+<!--T:157-->
 Typically, grids of this type (64) are created automatically by other tools. Manually creating this type of grid (and its associated surface) directly from polys has limitations, because they cannot (yet) be segmented or blended. They remain compatible with all tools that take a ControlGrid64 as input, even though those tools assume the grids were generated automatically.
 
+<!--T:158-->
 When segmentation becomes available, the grid/surface will be cut into three ControlGrid44 objects at preset locations — an exact conversion with no loss of precision. These three pieces will then be workable through all the tools available for ControlGrid44 and CubicSurface_44 objects.
 
-===ControlGrid66===
+===ControlGrid66=== <!--T:159-->
 
 </translate>
 [[Image:Silk_ControlGrid66.svg|32px]]
 <translate>
 
+<!--T:160-->
 Create a ControlGrid66 from four connected ControlPoly6 edges.
 
-====Usage====
+====Usage==== <!--T:161-->
 
+<!--T:162-->
 Select each ControlPoly6 sequentially, counter-clockwise, looking from the outer side.
 
+<!--T:163-->
 Apply the function.
 
+<!--T:164-->
 6-point edges cannot (yet) be blended with Silk tools, so this grid and its associated surface are a final product at this stage.
 
 </translate>
 [[File:13.-IControlGrid66.png|300px]]
 <translate>
 
+<!--T:165-->
 {{Caption|A ControlGrid66 built from four ControlPoly6 edges}}
 
-====Used as input for====
+====Used as input for==== <!--T:166-->
 
+<!--T:167-->
 * '''CubicSurface_66'''
 
-== Surfaces ==
+== Surfaces == <!--T:168-->
 
-===CubicSurface_44===
+===CubicSurface_44=== <!--T:169-->
 
 </translate>
 [[Image:Silk_CubicSurface_44.svg|32px]]
 <translate>
 
+<!--T:170-->
 Create a cubic surface from a ControlGrid44.
 
-====Usage====
+====Usage==== <!--T:171-->
 
+<!--T:172-->
 Prepare the following selection:
 * One ControlGrid44 of any type (made from polys, by segmenting, etc.).
 
+<!--T:173-->
 Apply the function.
 
+<!--T:174-->
 This is a Bezier cubic surface, intended as the basic "building block" surface that complex models are based on. All editing is done by editing the ControlGrid44 (refer to the ControlGrid44 tooltip and its "More information" section for design rules).
 
+<!--T:175-->
 Can be used for hard-edge surfacing, or manually aligned for tangency (G1). Can also be blended along hard edges with other CubicSurface_44 objects (by way of ControlGrid64 objects), for high continuity (G2).
 
 </translate>
 [[File:8.-CubicSurface_44.png|300px]]
 <translate>
 
+<!--T:176-->
 {{Caption|A CubicSurface_44 built from a ControlGrid44}}
 
-====Used as input for====
+====Used as input for==== <!--T:177-->
 
+<!--T:178-->
 * '''ControlGrid44_EdgeSegment''' (a 44 grid corresponding to a "full strip" segment of the surface).
 * '''ControlGrid44_2EdgeSegments''' (a 44 grid corresponding to a "rectangular" segment of the surface).
 
-====More information====
+====More information==== <!--T:179-->
 
+<!--T:180-->
 This does for the ControlGrid44 object what CubicCurve_4 does for the ControlPoly4. Refer to the extensive description given for CubicCurve_4 — those comments apply here to the surface rather than just a curve.
 
+<!--T:181-->
 ControlGrid44 objects manually built from polys are almost always intended to be used by surfaces, but many automatically created ControlGrid44 objects are intended to be consumed by blend grids. Because of these different possible paths, grid creation is kept separate from surface creation, so a useful grid is not locked inside a surface and remains accessible to other operations. At some point in the future, it is planned to allow clicking a surface where a grid is expected, automatically finding the grid inside the surface, so tools can use either the grid or the surface as needed — this is straightforward but requires a fair amount of programming work. For now, the exact object type needed must be fed directly into each function.
 
-===CubicSurface_64===
+===CubicSurface_64=== <!--T:182-->
 
 </translate>
 [[Image:Silk_CubicSurface_64.svg|32px]]
 <translate>
 
+<!--T:183-->
 Creates a CubicSurface_64 from a ControlGrid64 of any type.
 
-====Usage====
+====Usage==== <!--T:184-->
 
+<!--T:185-->
 Select one ControlGrid64 object.
 
+<!--T:186-->
 Apply the function.
 
+<!--T:187-->
 Used for mixing four-point and six-point polys/edges, or for blending edges of four-point contours. Can produce blends along the edges of CubicSurface_44 objects. The edges touching the blended objects are four-pointed; the edges reaching from one blended object to the other are six-pointed. This is still a cubic grid/surface in both directions, but one direction is now Bezier (4 points) while the other is not (6 points). The price of the extra control points is that this surface is only guaranteed G2 internally along the 6-point direction (it may be G3 under the right setup); it remains Bezier and G3 along the 4-point direction.
 
 </translate>
 [[File:16.-CubicSurface_64.png|300px]]
 <translate>
 
+<!--T:188-->
 {{Caption|A CubicSurface_64 blend between two CubicSurface_44 objects}}
 
-===CubicSurface_66===
+===CubicSurface_66=== <!--T:189-->
 
 </translate>
 [[Image:Silk_CubicSurface_66.svg|32px]]
 <translate>
 
+<!--T:190-->
 Create a CubicSurface_66 from a ControlGrid66.
 
-====Usage====
+====Usage==== <!--T:191-->
 
+<!--T:192-->
 Select one ControlGrid66.
 
+<!--T:193-->
 Apply the function.
 
+<!--T:194-->
 Mainly intended to be applied to automatically generated grids. Can also be used manually for hard-edge surfacing, manually aligned for tangency, or even manually aligned for G2 (very difficult and limited).
 
+<!--T:195-->
 6-point edges cannot (yet) be blended with Silk tools.
 
 </translate>
 [[File:14.-CubicSurface_66.png|300px]]
 <translate>
 
+<!--T:196-->
 {{Caption|A CubicSurface_66 surface}}
 
-====More information====
+====More information==== <!--T:197-->
 
+<!--T:198-->
 This is still a cubic surface (degree 3), but no longer Bezier, so additional control points are allowed. The price of these extra control points is that this surface is only guaranteed G2 internally (it may be G3 under the right setup).
 
+<!--T:199-->
 When segmentation becomes available, the grid/surface will be cut into nine ControlGrid44 objects at preset locations — an exact conversion with no loss of precision. These nine pieces will then be workable through all the tools available for ControlGrid44 and CubicSurface_44 objects.
 
-== Segment Grids ==
+== Segment Grids == <!--T:200-->
 
-===ControlGrid44_EdgeSegment===
+===ControlGrid44_EdgeSegment=== <!--T:201-->
 
 </translate>
 [[Image:Silk_ControlGrid44_EdgeSegment.svg|32px]]
 <translate>
 
+<!--T:202-->
 Create a ControlGrid44 from a CubicSurface_44 and one CubicCurve_4 segment.
 
-====Usage====
+====Usage==== <!--T:203-->
 
+<!--T:204-->
 Prepare the following selection:
 * First, a CubicSurface_44.
 * Then, a CubicCurve_4 that matches part of an edge of that surface (see "More information").
 
+<!--T:205-->
 Apply the function.
 
+<!--T:206-->
 The resulting grid represents a strip of the input surface, cut in either '''u''' or '''v''' to match the CubicCurve_4 segment along the surface edge.
 
+<!--T:207-->
 Used in pairs to create '''ControlGrid64_2Grid44''', to blend edges of CubicSurface_44 objects and produce a continuous (G2) contour. Also used to re-create the portions of the original surface that are to be preserved and not blended.
 
 </translate>
 [[File:9.-ControlGrid44_EdgeSegment.png|300px]]
 <translate>
 
+<!--T:208-->
 {{Caption|A full-strip edge segment cut from a CubicSurface_44}}
 
-====Used as input for====
+====Used as input for==== <!--T:209-->
 
+<!--T:210-->
 * '''CubicSurface_44'''
 * '''ControlGrid64_2Grid44'''
 
-====More information====
+====More information==== <!--T:211-->
 
+<!--T:212-->
 How to prepare selection item 2, "a CubicCurve_4 that matches part of an edge of that surface"? If the previous tools have already been used, almost everything needed is already in place. (If you are reading ahead before trying, the explanation below may seem convoluted.)
 
+<!--T:213-->
 The edge of a surface cannot yet be cut/segmented directly with points. Instead, a CubicCurve_4 matching the entire edge of the surface is cut. This separate CubicCurve_4 is obtained by using the same poly that went into the surface's grid — so if curves were applied to the polys along the way (recommended), this edge curve already exists in the model. Segment this curve by creating 2 Point_onCurve objects, a ControlPoly4_segment, and applying a CubicCurve_4 to that segment.
 
+<!--T:214-->
 (This direct-cutting feature is planned, but since a practical workaround already exists, it is a low priority.)
 
-===ControlGrid44_2EdgeSegments===
+===ControlGrid44_2EdgeSegments=== <!--T:215-->
 
 </translate>
 [[Image:Silk_ControlGrid44_2EdgeSegments.svg|32px]]
 <translate>
 
+<!--T:216-->
 Create a ControlGrid44 from a CubicSurface_44 and two CubicCurve_4 segments.
 
-====Usage====
+====Usage==== <!--T:217-->
 
+<!--T:218-->
 Prepare the following selection:
 * First, a CubicSurface_44.
 * Then, a CubicCurve_4 that matches part of an edge of that surface (see "More information").
 * Then, another CubicCurve_4 that matches part of an adjacent edge of that surface (the two partial curves cannot be on opposite edges of the surface).
 
+<!--T:219-->
 Apply the function.
 
+<!--T:220-->
 The resulting grid represents a "rectangular" cut of the input surface, cut in both '''u''' and '''v''' to match the CubicCurve_4 segments along the surface edges.
 
+<!--T:221-->
 Used in pairs to create '''ControlGrid64_2Grid44''', to blend edges of CubicSurface_44 objects and produce a continuous (G2) contour. Also used to re-create the portions of the original surface that are to be preserved and not blended.
 
 </translate>
 [[File:10.-ControlGrid44_2EdgeSegments.png|300px]]
 <translate>
 
+<!--T:222-->
 {{Caption|A rectangular corner segment cut from a CubicSurface_44}}
 
-====Used as input for====
+====Used as input for==== <!--T:223-->
 
+<!--T:224-->
 * '''CubicSurface_44''' (to remake a surface that is a portion of the original surface).
 * '''ControlGrid64_2Grid44''' (to prepare a blend grid that aligns well with the original surface).
 * '''ControlGrid64_3_1Grid44''' (rounds off one corner of the grid — see that tool's tip).
 
-====More information====
+====More information==== <!--T:225-->
 
+<!--T:226-->
 See the "More information" section of ControlGrid44_EdgeSegment for how to prepare the CubicCurve_4 segments used in selection items 2 and 3 — the same technique applies here.
 
-===StarTrim_CubicNStar===
+===StarTrim_CubicNStar=== <!--T:227-->
 
 </translate>
 [[Image:Silk_StarTrim_CubicNStar.svg|32px]]
 <translate>
 
+<!--T:228-->
 Create a StarTrim_CubicNStar object from a CubicNStarSurface_NStar66 object.
 
-====Usage====
+====Usage==== <!--T:229-->
 
+<!--T:230-->
 Select one CubicNStarSurface_NStar66.
 
+<!--T:231-->
 Apply the function.
 
+<!--T:232-->
 Useful for eliminating pinching in poor corner geometry; can be patched with a standard Filling surface.
 
-== Blending Grids ==
+== Blending Grids == <!--T:233-->
 
-===ControlGrid64_2Grid44 (Blend Tool)===
+===ControlGrid64_2Grid44 (Blend Tool)=== <!--T:234-->
 
 </translate>
 [[Image:Silk_ControlGrid64_2Grid44.svg|32px]]
 <translate>
 
+<!--T:235-->
 Create a ControlGrid64_2Grid44 from two ControlGrid44 objects that share a corner.
 
-====Usage====
+====Usage==== <!--T:236-->
 
+<!--T:237-->
 Select two grids that share an edge.
 
+<!--T:238-->
 Apply the function.
 
 </translate>
 [[File:17.-ControlGrid64_2Grid44 (Blend Tool).png|300px]]
 <translate>
 
+<!--T:239-->
 {{Caption|A blend grid joining two ControlGrid44 edge segments}}
 
-====Used as input for====
+====Used as input for==== <!--T:240-->
 
+<!--T:241-->
 * Used to blend the edge of two surfaces segmented with '''ControlGrid44_EdgeSegment'''.
 * '''CubicSurface_64'''
 
-===ControlGrid64_3_1Grid44===
+===ControlGrid64_3_1Grid44=== <!--T:242-->
 
 </translate>
 [[Image:Silk_ControlGrid64_3_1Grid44.svg|32px]]
 <translate>
 
-====Usage====
+====Usage==== <!--T:243-->
 
+<!--T:244-->
 Select a ControlGrid44 by one of its corner points in the 3D view, and apply the function.
 
+<!--T:245-->
 This results in a "triangle" grid that "flows" to eliminate the selected corner.
 
+<!--T:246-->
 Typical use is to round a corner in a set of surfaces segmented from a larger surface. The two edges remaining from the original grid are of type poly4, and the new curved edge is of type poly6 (a fully collapsed poly6 edge is hidden where the two edges of the original grid met).
 
+<!--T:247-->
 This grid is not intended to produce a final surface, but is instrumental as a stepping stone: a high-quality surface is built off the new curved edge, which eventually replaces this "triangle."
 
-====Used as input for====
+====Used as input for==== <!--T:248-->
 
+<!--T:249-->
 * '''CubicSurface_64''' (temporary and cheap visualization).
 * '''SubGrid33_2Grid64''' (the next step towards a high-quality surface along the curved edge of the triangle).
 
-== Sub-Grids ==
+== Sub-Grids == <!--T:250-->
 
-===SubGrid33_2Grid64===
+===SubGrid33_2Grid64=== <!--T:251-->
 
 </translate>
 [[Image:Silk_SubGrid33_2Grid64.svg|32px]]
 <translate>
 
-====Usage====
+====Usage==== <!--T:252-->
 
+<!--T:253-->
 Select two ControlGrid64 objects meeting at a corner to generate a corner-blend partial grid (a first step towards filling a four-sided hole where four blend grids/surfaces meet).
 
+<!--T:254-->
 Apply the function.
 
+<!--T:255-->
 Intended for the case where the two ControlGrid64 objects are blend grids that have segments of one common surface as inputs. The two blends "extend" the common surface, and this partial grid effectively extends the common surface into the corner gap.
 
 </translate>
 [[File:19.-SubGrid33_2Grid64_in.png|300px]]
 <translate>
 
+<!--T:256-->
 {{Caption|Two ControlGrid64 blend grids meeting at a corner, before the sub-grid}}
 
 </translate>
 [[File:19.-SubGrid33_2Grid64_out.png|300px]]
 <translate>
 
+<!--T:257-->
 {{Caption|The resulting SubGrid33 partial grid extending into the corner gap}}
 
-====Used as input for====
+====Used as input for==== <!--T:258-->
 
+<!--T:259-->
 * '''ControlGrid66_4Sub'''
 
-====More information====
+====More information==== <!--T:260-->
 
+<!--T:261-->
 When blending surfaces across perpendicular edges, a gap/hole appears at the corner, because both blends must be "set back" so they don't overlap each other. This object is a partial grid that extends both input ControlGrid64 objects "into" the gap, beginning the process of filling that gap. After making four of these objects, one for each corner of the hole, use ControlGrid66_4Sub to create the complete grid. The surface made from this grid (using CubicSurface_66) will then bridge across all four blends, giving good continuity with the original surfaces.
 
-===ControlGrid66_4Sub===
+===ControlGrid66_4Sub=== <!--T:262-->
 
 </translate>
 [[Image:Silk_ControlGrid66_4Sub.svg|32px]]
 <translate>
 
-====Usage====
+====Usage==== <!--T:263-->
 
+<!--T:264-->
 Select 4 related SubGrid33_2Grid64 objects in a loop to form a ControlGrid66_4Sub object (read the SubGrid33_2Grid64 description first).
 
+<!--T:265-->
 Apply the function.
 
+<!--T:266-->
 Fills four-sided holes between blends (only four-sided holes). Produces a fairly high-quality final surface; other tools handle 3-, 5-, 6-, 7-sided (etc.) holes, but with lower-quality results.
 
 </translate>
 [[File:20.-ControlGrid66_4Sub_in.png|300px]]
 <translate>
 
+<!--T:267-->
 {{Caption|Four SubGrid33 partial grids around a four-sided corner hole, before joining}}
 
 </translate>
 [[File:20.-ControlGrid66_4Sub_out.png|300px]]
 <translate>
 
+<!--T:268-->
 {{Caption|The finished ControlGrid66_4Sub filling the corner hole}}
 
-====Used as input for====
+====Used as input for==== <!--T:269-->
 
+<!--T:270-->
 * '''CubicSurface_66'''
 
-====More information====
+====More information==== <!--T:271-->
 
+<!--T:272-->
 When blending surfaces across perpendicular edges, a gap/hole appears at the corner, because both blends must be "set back" so they don't overlap. This object joins the SubGrid33 partial grids that extend both input ControlGrid64 objects "into" the gap, creating a single grid. The surface made from this grid (using CubicSurface_66) then bridges across all four blends, giving good continuity with the original surfaces.
 
+<!--T:273-->
 '''Proven use cases''' (with reasonably high-quality results):
 * Four surfaces sharing a single corner, with edges matched between them in pairs (a 2×2 "square" setup of 4 surfaces). Segment and set back the shared edges, blend them, build corner SubGrids, and join them with this tool to fill the hole where the shared corner was — the result is a smooth transition across the four original faces.
 * Three surfaces meeting to form a hard corner (like a cube corner). This requires more sectioning of the original surfaces: the result is 2 small blends and one larger blend. Use ControlGrid64_3_1Grid44 opposite the large blend to create a fourth blend, giving 4 blends across the 3 surfaces, from which the 4 SubGrids can be made. The resulting grid/surface produces a "rolling fillet" corner between the two small blends and the large blend.
 
-===SubGrid63_2Surf64===
+===SubGrid63_2Surf64=== <!--T:274-->
 
 </translate>
 [[Image:Silk_SubGrid63_2Surf64.svg|32px]]
 <translate>
 
+<!--T:275-->
 Create a SubGrid63 sub-grid from two CubicSurface_64 surfaces.
 
-====Usage====
+====Usage==== <!--T:276-->
 
+<!--T:277-->
 Select two CubicSurface_64 objects that share a corner.
 
+<!--T:278-->
 Apply the function.
 
 </translate>
 [[File:21.-SubGrid63_2Surf64.png|300px]]
 <translate>
 
+<!--T:279-->
 {{Caption|A SubGrid63 corner piece built from two CubicSurface_64 surfaces}}
 
-====Used as input for====
+====Used as input for==== <!--T:280-->
 
+<!--T:281-->
 * '''ControlGridNStar66''', to blend three or more blended edges meeting at a corner.
 
-===ControlGridNStar66===
+===ControlGridNStar66=== <!--T:282-->
 
 </translate>
 [[Image:Silk_ControlGridNStar66.svg|32px]]
 <translate>
 
+<!--T:283-->
 Creates a ControlGridNStar66 from three or more SubGrid63_2Surf64 objects.
 
-====Usage====
+====Usage==== <!--T:284-->
 
+<!--T:285-->
 Select from three to six SubGrid63_2Surf64 objects sequentially, counter-clockwise, looking from the outer side.
 
+<!--T:286-->
 Apply the function.
 
 </translate>
 [[File:22.-ControlGridNStar66.png|300px]]
 <translate>
 
+<!--T:287-->
 {{Caption|An N-star grid blending a star-shaped corner where multiple surfaces meet}}
 
-====Used as input for====
+====Used as input for==== <!--T:288-->
 
+<!--T:289-->
 * Used to create a ControlGridNStar66 to blend a corner where three or more CubicSurface_64 objects meet.
 * '''CubicNStarSurface_NStar66'''
 
-== Sub-Surfaces ==
+== Sub-Surfaces == <!--T:290-->
 
+<!--T:291-->
 ===CubicNStarSurface_NStar66===
 [[File:23.-Icon_CubicNStarSurface_NStar66.png|32px]]
 
+<!--T:292-->
 Creates a CubicNStarSurface_NStar66 from a ControlGridNStar66.
 
-====Usage====
+====Usage==== <!--T:293-->
+
+<!--T:294-->
 Select one ControlGridNStar66.
 
+<!--T:295-->
 Apply the function.
 
+<!--T:296-->
 [[File:23.-CubicNStarSurface_NStar66.png|300px]]
 {{Caption|The finished N-star surface filling a multi-sided corner}}
 
-====Used as input for====
+====Used as input for==== <!--T:297-->
+
+<!--T:298-->
 * Used for filling the corner of blended Silk surfaces.
 
-== Utilities ==
+== Utilities == <!--T:299-->
 
-===Reload_Silk===
+===Reload_Silk=== <!--T:300-->
 
 </translate>
 [[Image:Silk_Reload_Silk.svg|32px]]
 <translate>
 
+<!--T:301-->
 Reload the Silk workbench (specifically, just its core library) without exiting FreeCAD, after making code changes.
 
 == Installation == <!--T:4-->
@@ -894,7 +1377,9 @@ Recommended install is via the [[Image:Std_AddonMgr.svg|24px|link=Std_AddonMgr]]
 * Source: https://github.com/edwardvmills/Silk
 * Docs: http://edwardvmills.github.io/NURBSlib_EVM/ & https://github.com/edwardvmills/Silk/wiki
 * Thread: https://forum.freecad.org/viewtopic.php?t=23243
+* Tutorials: https://forum.freecad.org/viewtopic.php?t=105093 - A series of videos linked to the forum.
 * Issues: https://github.com/edwardvmills/Silk/issues
+
 
 </translate>
 {{Userdocnavi{{#translation:}}}}
