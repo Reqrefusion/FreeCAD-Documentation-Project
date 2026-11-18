@@ -1,0 +1,213 @@
+{{UnfinishedDocu}}
+<languages/>
+
+{{Docnav
+|
+|[[Silk_CubicCurve_4|CubicCurve_4]]
+|[[Silk_Workbench|Silk]]
+|IconL=
+|IconR=Silk_CubicCurve_4.svg
+|IconC=Silk_workbench_icon.svg
+}}
+
+{{GuiCommand
+|Name=Silk ControlPoly4
+|MenuLocation=Silk → ControlPoly4
+|Workbenches=[[Silk_Workbench|Silk]]
+|Shortcut=
+}}
+
+==Description==
+
+The [[Image:Silk_ControlPoly4.svg|24px]] '''Silk ControlPoly4''' command creates a 4 point control polygon, a ControlPoly4 object, and depending on the selected input elements a certain sub-type is automatically chosen that extracts the required information from one or two [[Image:Workbench Sketcher.svg|16px]] [[Sketcher_Workbench|sketches]], from two [[Image:Silk_Point_onCurve.svg|16px]] [[Silk_Point_onCurve|points]], or from an edge polygon of a [[Image:Silk_ControlGrid44.svg|16px]] [[Silk_ControlGrid44|control grid]].
+: This polygon is intended to control a [[Image:Silk_CubicCurve_4.svg|16px]] [[Silk_CubicCurve_4|cubic Bezier curve]] (and four of them the [[Image:Silk_ControlGrid44.svg|16px]] [[Silk_ControlGrid44|control grid]] of a [[Image:Silk_CubicSurface_44.svg|16px]] [[Silk_CubicSurface_44|cubic Bezier surface]]).
+
+[[File:1.-ControlPoly4.png|300px]]
+
+{{Caption|A 3D control polygon built from two Node Sketches}}
+
+Each control polygon is rather an interface between a certain control geometry and a cubic curve to be controlled.
+
+[[Image:Silk_Workflow-51.png|100px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-52.png|200px]] [[Image:Button_right.svg|12px|link=]] 
+[[Image:Silk_Workflow-53.png|100px]]
+
+{{Caption|3L [[Sketcher_Workbench|sketch]] → Control polygon (ControlPoly4_3L) → Control polygon with added [[Silk_CubicCurve_4|cubic curve]]}}
+
+==Usage==
+
+# This tool creates different objects with individual properties and calculation modes depending on the selected input elements:
+#* '''3L''' mode: Select one [[Image:Workbench_Sketcher.svg|16px]] [[Sketcher_Workbench|sketch]] in the [[Tree_View|Tree View]] or in the [[3D_View|3D View]] containing a wire of 3 straight line segments.
+#* '''2N''' mode: Select two node sketches in the Tree View or in the 3D View, each containing a circle, and a straight line starting at the circle center.
+#* '''FirstElement''' mode: Select one sketch in the Tree View or in the 3D View containing an arbitrary combination of different lines. Only the first detected arc in the sketch is taken into account, or the first straight line if no arc exists in the sketch.
+#* '''GridEdge''' mode: Select a point or a line one an edge of a ControlGrid44 in the Tree View.
+#* '''2X4P''' mode: Select two ControlPoly4 objects in the Tree View or in the 3D View.
+#* '''2P''' mode: Select two Point_onCurve objects in the Tree View or in the 3D View.
+# There are several ways to invoke the tool.
+#* Press the {{Button|[[Image:Silk_ControlPoly4.svg|16px]] ControlPoly4}} button.
+#* Select the {{MenuCommand|Silk → [[Image:Silk_ControlPoly4.svg|16px]] ControlPoly4}} option from the menu.
+# According to the mode one of the following objects is created:
+#* '''ControlPoly4_3L'''
+#* '''ControlPoly4_2N'''
+#* '''ControlPoly4_FirstElement'''
+#* '''ControlPoly4_GridEdge'''
+#* '''ControlPoly4_2X4P'''
+#* '''ControlPoly4_2P'''
+# Optionally adjust parameters in the [[Property_View|Property View]].
+
+==Notes==
+
+*4 point control polygons are required input objects for several other Silk objects:
+** 1 of these is used to create a [[Image:Silk_CubicCurve_4.svg|16px]] [[Silk_CubicCurve_4|CubicCurve_4]].
+** 1 of these in connection with 2 [[Image:Silk_Point_onCurve.svg|16px]] [[Silk_Point_onCurve|Point_onCurve]] objects is used to create a [[Image:Silk_ControlPoly4_segment.svg|16px]] [[Silk_ControlPoly4_segment|ControlPoly4_segment]].
+** 4 of these are used to create a [[Image:Silk_ControlGrid44.svg|16px]] [[Silk_ControlGrid44|ControlGrid44]].
+** 3 of these are used to create a [[Image:Silk_ControlGrid44_Rotate.svg|16px]] [[Silk_ControlGrid44_Rotate|ControlGrid44_Rotate]].
+** 2 of these control polygons in connection with 2 [[Image:Silk_ControlPoly6.svg|16px]] [[Silk_ControlPoly6|ControlPoly6]] objects are used to create a [[Image:Silk_ControlGrid64.svg|16px]] [[Silk_ControlGrid64|ControlGrid64]].
+* Editing the source sketches will automatically update the poly. Curves and surfaces attached to the poly will update as well. In your sketches, make sure to set the {{PropertyView|Hide dependent}} property to {{False}}. This will give you live updates of polys (and curves, and surfaces) while you edit the sketches.
+* Since polys are used to create surfaces as well as curves, and surfaces are what we are really after, poly creation is kept as an independent step. It is important to develop a feel for how a poly controls a curve. After creating a curve/surface, edit the sketches used to create the poly and observe how the curve/surface changes.
+* Node sketches are intended to be placed on different planes, so that the resulting polys, curves, and surface edges are fully 3D. They are great for connecting to the endpoints of line sketches that are on different planes. Node sketches are typically created with the circle at the origin, and the sketch mapped to a new location and orientation using FreeCAD's mapping tools (found under the Data tab of the property view). In this manner, the circle is never edited, and the free endpoint of the line can be freely adjusted.
+* A poly used in a grid/surface can be relinked to different sketches, so that all the work of making the grid/surface does not need to be redone — simply swap the sketch link and recompute (sketch links are also found under the Data tab of the property view).
+
+== Properties ==
+
+See also: [[Property_View|Property View]].
+
+All '''ControlPoly4''' objects are derived from a [[Part_Feature|Part feature]], or more precise a {{Incode|Part::FeaturePython}} object, and inherits all its properties. They also have the following common additional properties:
+
+=== Data ===
+
+{{Properties_Title|C2 - Outputs}}
+
+* {{PropertyData|Legs|Part::PropertyGeometryList}}: Control segments.
+* {{PropertyData|Poles|VectorList}}: Poles.
+
+{{Properties_Title|C3 - Identifiers}}
+
+* {{PropertyData|internalName|String}}: The permanent internal FreeCAD name for this object.
+* {{PropertyData|object_version|String}}: The class version of this object.
+
+
+A '''ControlPoly4_3L''' also has the following individual additional properties:
+
+=== Data ===
+
+{{Properties_Title|C1 - Inputs}}
+
+* {{PropertyData|Sketch|Link}}: Reference Sketch.
+* {{PropertyData|Weights|FloatList}}: Weights.
+* {{PropertyData|reverse|Bool}}: Default is {{value|False}}. Reverses the parameter direction.
+* {{PropertyData|tolerance|Float}}: Default is {{value|1e-06}}. Point-to-point connection tolerance for the 3 lines.
+
+{{Properties_Title|C3 - Identifiers}}
+
+* {{PropertyData|object_type|String}}: Default is {{value|ControlPoly4_3L}}. The workbench class used to create this object.
+
+
+A '''ControlPoly4_2N''' object also has the following individual additional properties:
+
+=== Data ===
+
+{{Properties_Title|C1 - Inputs}}
+
+* {{PropertyData|Sketch0|Link}}: Reference Sketch.
+* {{PropertyData|Sketch1|Link}}: Reference Sketch.
+* {{PropertyData|Weights|FloatList}}: Weights.
+* {{PropertyData|reverse|Bool}}: Default is {{value|False}}. Reverses the parameter direction.
+* {{PropertyData|tolerance|Float}}: Default is {{value|1e-06}}. Point-to-point connection tolerance for the circle-line in each node.
+
+{{Properties_Title|C3 - Identifiers}}
+
+* {{PropertyData|object_type|String}}: Default is {{value|ControlPoly4_2N}}. The workbench class used to create this object.
+
+
+A '''ControlPoly4_FirstElement''' object also has the following individual additional properties:
+
+=== Data ===
+
+{{Properties_Title|C1 - Inputs}}
+
+* {{PropertyData|Sketch|Link}}: Reference Sketch.
+* {{PropertyData|reverse|Bool}}: Default is {{value|False}}. Reverses the parameter direction.
+* {{PropertyData|tolerance|Float}}: Default is {{value|1e-06}}. Point-to-point connection tolerance for the 3 lines.
+
+{{Properties_Title|C2 - Outputs}}
+
+* {{PropertyData|Weights|FloatList}}: Weights.
+
+{{Properties_Title|C3 - Identifiers}}
+
+* {{PropertyData|object_type|String}}: Default is {{value|ControlPoly4_FirstElement}}. The workbench class used to create this object.
+
+
+A '''ControlPoly4_GridEdge''' object also has the following individual additional properties:
+
+=== Data ===
+
+{{Properties_Title|C1 - Inputs}}
+
+* {{PropertyData|Edge|Integer}}: Selected grid edge (0 to 3).
+* {{PropertyData|Grid|Link}}: Reference Grid.
+* {{PropertyData|reverse|Bool}}: Default is {{value|False}}. Reverses the pole sequence.
+* {{PropertyData|tolerance|Float}}: Not in use at the moment.
+
+{{Properties_Title|C2 - Outputs}}
+
+* {{PropertyData|Weights|FloatList}}: Weights.
+
+{{Properties_Title|C3 - Identifiers}}
+
+* {{PropertyData|object_type|String}}: Default is {{value|ControlPoly4_GridEdge}}. The workbench class used to create this object.
+
+
+A '''ControlPoly4_2X4P''' object also has the following individual additional properties:
+
+=== Data ===
+
+{{Properties_Title|C1 - Inputs}}
+
+* {{PropertyData|Poly4_0|Link}}: Reference Sketch.
+* {{PropertyData|Poly4_0|Link}}: Reference Sketch.
+* {{PropertyData|reverse|Bool}}: Default is {{value|False}}. Reverses the parameter direction.
+* {{PropertyData|tolerance|Float}}: Point-to-point connection tolerance for the circle-line in each node.
+
+{{Properties_Title|C2 - Outputs}}
+
+* {{PropertyData|Weights|FloatList}}: Weights.
+
+{{Properties_Title|C3 - Identifiers}}
+
+* {{PropertyData|object_type|String}}: Default is {{value|ControlPoly4_2X4P}}. The workbench class used to create this object.
+
+
+A '''ControlPoly4_2P''' object also has the following individual additional properties:
+
+=== Data ===
+
+{{Properties_Title|C1 - Inputs}}
+
+* {{PropertyData|Point0|Link}}: First reference pointOnCurve object.
+* {{PropertyData|Point1|Link}}: Second reference pointOnCurve object.
+* {{PropertyData|Scale0|Float}}: Scales the start tangent (sum with Scale1 should be less than 3.0 or total length).
+* {{PropertyData|Scale0_abs|Bool}}: Start tangent scale type (False = relative, True = absolute).
+* {{PropertyData|Scale1|Float}}: Scales the end tangent (sum with Scale0 should be less than 3.0 or total length).
+* {{PropertyData|Scale1_abs|Bool}}: End tangent scale type (False = relative, True = absolute).
+* {{PropertyData|Weights|FloatList}}: Weights.
+* {{PropertyData|reverse|Bool}}: Default is {{value|False}}. Reverses the parameter direction.
+* {{PropertyData|tolerance|Float}}: Not in use at the moment.
+
+{{Properties_Title|C3 - Identifiers}}
+
+* {{PropertyData|object_type|String}}: Default is {{value|ControlPoly4_2P}}. The workbench class used to create this object.
+
+
+{{Docnav
+|
+|[[Silk_CubicCurve_4|CubicCurve_4]]
+|[[Silk_Workbench|Silk]]
+|IconL=
+|IconR=Silk_CubicCurve_4.svg
+|IconC=Silk_workbench_icon.svg
+}}
+
+[[Category:Addons{{#translation:}}]]
+[[Category:External_Command_Reference{{#translation:}}]]
