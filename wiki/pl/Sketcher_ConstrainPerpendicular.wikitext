@@ -54,6 +54,7 @@ Zapoznaj się również z informacjami na stronie [[Sketcher_Workbench/pl#Pomoce
 #* Wybierz dwa punkty końcowe należące do różnych krawędzi.
 #* Wybierz krawędź i punkt końcowy innej krawędzi ''(w dowolnej kolejności)''.
 #* Wybierz punkt i dwie krawędzie ''(analogicznie)''.
+#* {{Version/pl|26.3}}: Wybierz dwa punkty i linię prostą (w tej kolejności).
 # Wywołaj narzędzie w sposób opisany powyżej lub jedną z następujących dodatkowych opcji:
 #* {{Version/pl|1.0}}: Kliknij prawym przyciskiem myszy w [[3D_View/pl|widoku 3D]] i wybierz {{MenuCommand|Wiązanie → [[Image:Sketcher_ConstrainPerpendicular.svg|16px]] Wiązanie prostopadłości}} z menu podręcznego.
 #* Kliknij prawym przyciskiem myszy w sekcji {{MenuCommand|Elements}} [[Sketcher_Dialog/pl|okienka dialogowego Szkicownika]] i wybierz opcję {{MenuCommand|[[Image:Sketcher_ConstrainPerpendicular.svg|16px]] Wiązanie prostopadłości}} z menu kontekstowego.
@@ -90,10 +91,15 @@ Punkt końcowy jednej krawędzi jest ograniczony tak, aby leżał na drugiej kra
 
 Dwie krawędzie są prostopadłe w danym punkcie. Punktem może być dowolny punkt, np. środek okręgu, punkt końcowy krawędzi lub początek, może on należeć do jednej z krawędzi, a także może być [[Sketcher_CreatePoint/pl|obiektem punktu]]. W razie potrzeby dodawane są wiązania [[Sketcher_ConstrainPointOnObject/pl|punkt na obiekcie]], aby zapewnić, że punkt leży na obu ''(przedłużonych)'' krawędziach. Te dodatkowe wiązania nazywane są [[Sketcher_helper_constraint/pl|wiązaniami pomocniczymi]].
 
+===Between two points and a line===
+
+{{Version|26.3}}: The direction from the first selected point to the second is constrained to be perpendicular to the straight line. The points can be sketch points or points belonging to geometry, such as endpoints. No connecting line is created between them. For example, select the centers of two circles and then a straight edge to keep the centers aligned perpendicular to that edge.
+
 <span id="Scripting"></span>
 ==Tworzenie skryptów==
 
 Ograniczenie prostopadłe może być utworzone przez [[Macros/pl|makropolecenie]] i z konsoli Pyton za pomocą następujących narzędzi:
+
 {{Code|code=
 # direct perpendicularity
 Sketch.addConstraint(Sketcher.Constraint('Perpendicular',icurve1,icurve2))
@@ -105,13 +111,19 @@ Sketch.addConstraint(Sketcher.Constraint('Perpendicular',icurve1,pointpos1,icurv
 Sketch.addConstraint(Sketcher.Constraint('Perpendicular',icurve1,pointpos1,icurve2))
 
 # perpendicular-via-point (plain constraint, helpers are not added automatically)
-Sketch.addConstraint(Sketcher.Constraint('PerpendicularViaPoint',icurve1,icurve2,geoidpoint,pointpos)) 
+Sketch.addConstraint(Sketcher.Constraint('PerpendicularViaPoint',icurve1,icurve2,geoidpoint,pointpos))
+
+# direction between two points perpendicular to a straight line (26.3)
+Sketch.addConstraint(Sketcher.Constraint('Perpendicular',igeo1,pointpos1,igeo2,pointpos2,iline))
 }}
+
+<div class="mw-translate-fuzzy">
 Gdzie:
 :* {{incode|Sketch}} jest obiektem szkicu
 :* {{incode|icurve1}}, {{incode|icurve2}} są dwiema liczbami całkowitymi określającymi krzywe, które mają być wykonane prostopadle. Liczby całkowite są indeksami w szkicu ''(wartość zwracana przez Sketch.addGeometry)''.
 :* {{incode|pointpos1}}, {{incode|pointpos2}} powinny mieć wartość {{incode|1}} dla punktu początkowego i {{incode|2}} dla końcowego.
 :* {{incode|geoid point}} i {{incode|pointpos}} w PerpendicularViaPoint są indeksami określającymi punkt prostopadłościanu.
+</div>
 
 Strona [[Sketcher_scripting|skrypty szkicownika]] wyjaśnia wartości, które mogą być użyte do {{incode|icurve1}}, {{incode|icurve2}}, {{incode|pointpos1}}, {{incode|pointpos2}} i {{incode|geoidpoint}}, i zawiera dalsze przykłady, jak tworzyć wiązania ze skryptów Python.
 
