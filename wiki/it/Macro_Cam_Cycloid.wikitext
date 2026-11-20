@@ -1,0 +1,390 @@
+<languages/>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Macro
+|Name=Cam Cycloid
+|Description=This macro creates a new part that has a sketch of the profile of a mechanical cam. The input is the radius, the starting-angle and the end-angle of each dwell interval of the cam. The transition intervals of the cam are calculated using the cycloidal function, and approximated by B splines.
+|Author=Garlic
+|Download=[https://www.freecad.org/wiki/images/2/2c/Text-x-python.png Text-x-python.png]
+|Links=[https://git.disroot.org/CrowdDiscussesAlternatives/ScriptsForFreeCAD/src/branch/master/CamCycloid/CamCycloid_documentation.pdf Cam Cycloid Documentation]
+|Date=2026-06-01
+|Version=0.0.1
+|FCVersion= All
+}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Installation==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Please note that you need to do the following steps only once:
+# From the menu of FreeCAD, go to {{MenuCommand|Macro → Macros}}
+# Find which is the path written in the field '''User Macros Location'''
+# Open this folder with the file explorer (or any other file management application).
+# Download the file '''CamCycloid.py''' from https://git.disroot.org/CrowdDiscussesAlternatives/ScriptsForFreeCAD/src/branch/master/CamCycloid and paste it in this folder.
+# {{Button|Close}} the [[Std_DlgMacroExecute|Execute Macro dialog box]].
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[How_to_install_macros|Here]], you can find more info on how to manually install macros.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Usage==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The following examples demonstrate how to use this script.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Example 1===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+====Executing the script====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In order for the algorithm to run, you need to open the [[Python_Console|Python Console]] on FreeCAD, and execute the code below (i.e. copy-paste each line of the code below separately and each time press {{KEY|Enter}}).
+</div>
+
+{{Code|code=
+import CamCycloid
+camCycloidObj = CamCycloid.CamCycloid()
+camCycloidObj.createCamProfile()
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Please note that once you open FreeCAD, you need to copy-paste the first two lines of this code only once (the first line imports the script and the second line creates an object). Then, every time you want to execute the algorithm of the script (in order to create a new part with the sketch of the profile of the cam), just copy-paste the third line of the code above and then press {{KEY|Enter}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The following message will appear in the [[Python_Console|Python Console]]:
+</div>
+
+<pre>
+Please enter the number of knots (points) that the B-spline (which will approximate the cycloid curve) will have (i.e. number of steps in discretization). Number must be more than 2 (20 is a good choice):
+</pre>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You can write {{Value|20}} and press {{KEY|Enter}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Then, the following message appears in the python console:
+</div>
+
+<pre>
+Please enter the data of the cam in the format:
+Radius_Of_1st_Dwell_Interval,Start_Angle_Of_1st_Dwell_Interval,End_Angle_Of_1st_Dwell_Interval,Radius_Of_2nd_Dwell_Interval,Start_Angle_Of_2nd_Dwell_Interval,End_Angle_Of_2nd_Dwell_Interval and so on, until you write as many dwell intervals the cam will have. Angles must be in degrees and radius in mm. Use dot for decimal separator. Positive angles are from X axis (x > 0) turning counterclockwise:
+</pre>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In this example we will write the following input data:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Value|60,20,70,80,200,250}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and then, when pressing {{KEY|Enter}}, a new part that has a body with a sketch is being created.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+When you open the sketch, the profile of the cam appears.
+</div>
+
+[[File:CamCycloid_Macro_Example1_SketchOfMechCamProfile.png]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The first dwell interval of the profile of the cam has a radius of 60 mm. It starts at an angle of 20° and it ends at an angle of 70° (with respect to x axis). During the rotation of the mechanical cam, when the cam-follower is in contact with the dwell interval of the cam, the stroke of the mechanism does not change (i.e. there is no motion when this part of the profile of the cam is in contact with the cam-follower).
+</div>
+
+[[File:CamCycloid_Macro_Example1_1stDwellIntervalOfProfile.png]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The second dwell interval of the profile of the cam has a radius of 80 mm. It starts at an angle of 200° and it ends at an angle of 250° (with respect to the positive direction of x axis, i.e. y = 0 and x > 0).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Please note that when two dwell intervals are overlapping, then an error message appears in the [[Python_Console|Python Console]]:
+</div>
+
+<pre>
+Error: Dwell intervals are overlapping! Please check the angles of the dwell intervals.
+</pre>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Similarly, the radius of a dwell interval must be always positive, and its end-angle always greater than its starting-angle.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+====Cycloidal function for calculating the transition intervals====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The transition from the first dwell interval to the second dwell interval and from the second dwell interval to the first dwell interval is calculated using the cycloidal function:
+</div>
+<!--
+<math>yOfCycloid = \frac {stroke}{\pi} \left ( \pi \frac {thetaAngleInRad}{angleRangeInRad} – 0.5 \sin \left ( 2\pi \frac {thetaAngleInRad}{angleRangeInRad} \right ) \right )</math>
+<math>\Leftrightarrow</math>
+<math>yOfCycloid = stroke \frac {thetaAngleInRad}{angleRangeInRad} – \frac {stroke}{2\pi} \sin \left ( 2\pi \frac {thetaAngleInRad}{angleRangeInRad} \right )</math>
+-->
+
+{{Code|code=
+yOfCycloid = stroke/math.pi * (math.pi*thetaAngleInRad/angleRangeInRad – 0.5*math.sin(2*math.pi*thetaAngleInRad/angleRangeInRad))
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+<math>\Leftrightarrow</math>
+</div>
+
+{{Code|code=
+yOfCycloid = stroke*thetaAngleInRad/angleRangeInRad – stroke/(2*math.pi)*math.sin(2*math.pi*thetaAngleInRad/angleRangeInRad)
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+where:
+* {{incode|yOfCycloid}} is the displacement of the cam-follower (in mm) when the cam has rotated {{incode|thetaAngleInRad}} (which are shown in the picture below).
+* The {{incode|stroke}} of the 1<sup>st</sup> transition interval is the difference between the radius of the second dwell interval and the radius of the first dwell interval.
+* {{incode|AngleRangeInRad}} of the 1<sup>st</sup> transition interval is the difference between the starting-angle of the second dwell interval and the end-angle of the first dwell interval.
+</div>
+
+[[File:CamCycloid_Macro_Example1_ThetaAngleOfTransitionInterval.png]]
+
+[[File:CamCycloid_Macro_Example1_AngleRangeOf1stTransitionInterval.png]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In this example, the stroke of the 1<sup>st</sup> transition interval is 20mm (i.e. 80mm – 60mm), and the angle range is 130° (i.e. 200° – 70°), which is equal to 2.268928 rad.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+For more information about the cycloidal function for a mechanical cam, you can visit the following link:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+https://mech.poriyaan.in/topic/cycloidal-follower-motion-31880
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The curve of the cycloidal function is approximated by a B-spline. The more knots you choose that the B-spline will have, the more accurate the approximation will be.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Example 2===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the [[Python_Console|Python Console]] write:
+</div>
+
+{{Code|code=
+camCycloidObj.createCamProfile()
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and press {{KEY|Enter}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the first prompt message write {{Value|20}} and press {{KEY|Enter}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the second prompt message write:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Value|60,-30,20,80,150,200}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and then press {{KEY|Enter}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You can see that in this case the x axis passes through the curve of the first dwell interval (since the starting angle is -30° with respect to the x axis). Keep in mind that the algorithm converts all the angles to positive angles and then reorders the dwell intervals (in ascending order), but this is not important unless you want to alter/improve the algorithm.
+</div>
+
+[[File:CamCycloid_Macro_Example2_SketchOfMechCamProfile.png]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Example 3===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the [[Python_Console|Python Console]] write:
+</div>
+
+{{Code|code=
+camCycloidObj.createCamProfile()
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and press {{KEY|Enter}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the first prompt message write {{Value|20}} and press {{KEY|Enter}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+In the second prompt message write:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{{Value|60,20,50,80.5,110,140,60,220,240,80.5,310,340}}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and then press {{KEY|Enter}}.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The profile of the cam with four dwell intervals has been created.
+</div>
+
+[[File:CamCycloid_Macro_Example3_SketchOfMechCamProfile.png]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Creating the 3D model of the mechanical cam==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You can extrude the sketch and add some other features in order to create the 3D model of the cam. The picture below illustrates a cam with a hole, in order to be mounted to a shaft. You can add more details e.g. by splitting the cam in two parts and mounting them together using screws, in order to clamp the cam to the shaft.
+</div>
+
+[[File:CamCycloid_Macro_Example1_3DModelOfMechanicalCam.png]]
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Changing the default parameters of the algorithm==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Before you create the new part using the {{incode|camCycloidObj.createCamProfile()}} function in the [[Python_Console|Python Console]], you can change some parameters of the algorithm, if you want.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you write in the [[Python_Console|Python Console]]:
+</div>
+
+{{Code|code=
+camCycloidObj.useAngleOfDiscretization = True
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and press {{KEY|Enter}}, then the algorithm will place a knot point in the B-spline every 10° approximately (you will not be prompted to enter the number of knots).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you then write in the [[Python_Console|Python Console]]:
+</div>
+
+{{Code|code=
+import math
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+and then:
+</div>
+
+{{Code|code=
+camCycloidObj.angleOfDiscretization = math.radians(5)
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+then the algorithm will place a knot point in the B-spline every 5° approximately (at every new part that you will create using the {{incode|camCycloidObj.createCamProfile()}} function).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you write in the [[Python_Console|Python Console]]:
+</div>
+
+{{Code|code=
+camCycloidObj.allowAuxPoints = True
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+then the algorithm will create a construction point between every two adjacent knots, which will be a point of the calculated cycloidal curve (i.e. these construction points are exact solutions of the cycloidal function).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You can use these points then, in order to measure the error of the approximation of the cycloidal function by the B-spline curve, by measuring the distance between one of these auxiliary points and the B-spline curve.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you write in the [[Python_Console|Python Console]]:
+</div>
+
+{{Code|code=
+camCycloidObj.auxPointsAreConstructionGeom = False
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+then these auxiliary points will be geometry points.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you write in the [[Python_Console|Python Console]]:
+</div>
+
+{{Code|code=
+camCycloidObj.allowBsplineInternalAlignment = False
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+then the knots of the B-splines will not be constrained on the B-splines.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+If you write in the [[Python_Console|Python Console]]:
+</div>
+
+{{Code|code=
+camCycloidObj.allowBsplineConstraints = False
+}}
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+then the start and the end of the B-splines will not be constrained on the start and the end of the arcs that represent the dwell intervals. You can change these parameters to {{FALSE}} if an error occurs when these constraints are automatically placed.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Scripts==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+You can find the file CamCycloid.py in the following link:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+https://git.disroot.org/CrowdDiscussesAlternatives/ScriptsForFreeCAD/src/branch/master/CamCycloid
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The version of the script is shown in the first line of the script. The license of the code is shown in the first lines of the script.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Links==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The forum discussion: [https://forum.freecad.org/viewtopic.php?t=105653 Presenting CamCycloid macro]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The documentation of this script in pdf format: [https://git.disroot.org/CrowdDiscussesAlternatives/ScriptsForFreeCAD/src/branch/master/CamCycloid/CamCycloid_documentation.pdf Cam Cycloid Documentation]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==References==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+# https://mech.poriyaan.in/topic/cycloidal-follower-motion-31880
+# https://en.wikipedia.org/wiki/Cycloid
+# https://en.wikipedia.org/wiki/Cam_(mechanism)
+</div>
