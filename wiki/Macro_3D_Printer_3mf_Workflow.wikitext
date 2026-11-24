@@ -6,8 +6,8 @@
 |Name=Macro_3D_Printer_3mf_Workflow
 |Description=FreeCAD macro exporting smooth 3MF files and preserving all slicer print settings, with automatic workflow to your preferred slicer.
 |Author=2cv001
-|Version=00.03
-|Date=2026/09/18
+|Version=00.04
+|Date=2026/11/24
 |FCVersion=All
 |Download=
 [https://wiki.freecad.org/images/3/32/Macro_3D_Printer_3mf_Workflow.png Toolbar icon]
@@ -51,15 +51,38 @@ This macro uses .3mf files, allowing all print settings to be saved and reused.
 <!--T:47-->
 To retain the core functionality of the previous macro, this version also provides an STL export option with adjustable tessellation parameters, allowing smooth mesh generation just like before.
 
-=== Limitation === <!--T:48-->
+=== Exporting several objects ===
 
-<!--T:49-->
-The current version can export only a single object, but you can work around this by using links — for example, a Simple Group — to combine multiple objects into one.
+Select one or more objects (Ctrl+click in the tree) and run the macro. All the selected objects go into a single 3MF, each one as a separate object in the slicer, with its own print settings.
+* '''First export''': the objects keep exactly their FreeCAD layout (X, Y and Z). The group is centered on the plate and the lowest object rests on it. If objects overlap, QIDISlicer / PrusaSlicer ask whether to load them as a single object having multiple parts: answer '''Yes''' to keep them assembled, '''No''' to get separate objects (then arrange them on the plate).
+* '''Next exports''': each FreeCAD object is matched with the slicer object of the same name. Its geometry is replaced; its settings and its position and rotation on the plate are kept, and it is put back on the plate.
+* Objects that are no longer selected are removed from the 3MF; newly selected objects are added at their FreeCAD position.
+* Copies made on the plate in the slicer are removed: once the object has changed, they may no longer fit (objects too close to each other, for example). Make the copies again in the slicer.
+* With a single selected object and a 3MF whose object has another name, the first object on the plate is replaced and renamed after the FreeCAD object, so 3MF files made by previous versions keep working.
+* With the STL option, all the selected objects go into one STL file.
+* Objects inside an App::Part are exported at their global position.
+
+==== Choosing the base 3MF ====
+
+The '''3MF file for print parameters''' list chooses the 3MF whose print settings and objects are reused:
+* '''No base (new 3MF)''': a new 3MF containing only the geometry. If the 3MF of the selection already exists, it is kept as a .old backup.
+* '''This selection's 3MF''': the usual choice, selected by default when it exists.
+* The other 3MF files of the project folder, most recent first.
+* The last bases used in other folders (remembered from one session to the next).
+* '''Browse…''' picks a 3MF anywhere, for example in another project.
+
+Below the list, the macro shows the name the 3MF will be saved as. The base file itself is never modified; if the 3MF of the selection already exists and another base is chosen, it is backed up first (.old file).
+
+From the base, the macro always keeps the '''general settings''': printer, filament (type, temperatures, cooling… and all the filaments of a multi-color printer) and print profile (layer height, speeds, walls, default infill and supports…). The '''settings of an object''' (its own infill, walls, layer height, supports, filament, modifiers…) are kept only for the objects matched by name. Objects of the base that match no selected object are removed; new objects get the general settings and the first filament.
+
+==== Painting and modifiers ====
+
+Painted supports, seams and colors (and other per-face data) as well as modifiers and extra parts are tied to the old geometry and cannot be kept when it changes. If some would be lost, the macro tells you which objects are concerned and asks you to '''Continue''' or '''Cancel''' (the 3MF is then left unchanged).
 
 === Export filenames === <!--T:98-->
 
 <!--T:99-->
-Exports use the selected object's visible name (its Label in the FreeCAD tree), in the same directory as the saved FreeCAD document. For example, selecting Housing creates Housing.3mf and, if enabled, Housing.stl; selecting Lid creates Lid.3mf and Lid.stl. Each object has its own 3MF print settings and backups. Select one object and run the macro, then repeat for the next object.
+The 3MF is named after the selected objects' visible names (their Label in the FreeCAD tree), sorted alphabetically and joined with _, in the same directory as the saved FreeCAD document. For example, selecting Housing creates Housing.3mf and, if enabled, Housing.stl; selecting Lid and Housing (in any order) creates Housing_Lid.3mf. Very long names are shortened and get a unique suffix. Each set of objects has its own 3MF print settings and backups.
 
 <!--T:100-->
 For a PartDesign Body, selecting a face or edge in the 3D view, or a feature such as a Pad or Pocket in the tree, exports the whole Body using the Body's Label. Selecting several features of the same Body still counts as one object. Objects outside a Body retain their own labels and geometry.
@@ -68,10 +91,10 @@ For a PartDesign Body, selecting a face or edge in the 3D view, or a feature suc
 Filename-incompatible characters are replaced with underscores. Names that collide within the document (including after sanitizing or ignoring letter case) receive the object's internal name as a suffix. Workflow backup/temporary suffixes and Windows device names are also adjusted to avoid conflicts. Use distinct, stable labels: renaming an object changes its export filename. Objects from different documents in the same folder should also have distinct labels.
 
 <!--T:102-->
-Existing exports named after the project are not renamed automatically. To reuse their print settings, select the old .3mf in the 3MF file for print parameters field on the first export of a part. Save subsequent slicer changes in that part's new .3mf file.
+Existing exports named after the project are not renamed automatically. To reuse their print settings, choose the old .3mf in the '''3MF file for print parameters''' list (or with '''Browse…''') on the first export of a part. Save subsequent slicer changes in that part's new .3mf file.
 
 <!--T:103-->
-This supports separate exports of 3D objects in one document; it does not split individual contours of a sketch or solids inside a single selected object.
+Each selected object becomes one object in the slicer; the macro does not split individual contours of a sketch or solids inside a single selected object (use "Split to objects" in the slicer if needed).
 
 === Principle of smoothing === <!--T:50-->
 
@@ -88,7 +111,7 @@ This supports separate exports of 3D objects in one document; it does not split 
 {{Caption|Without visible facets}}
 
 <!--T:53-->
-The macro exports the selected objects to a 3MF file using the specified tessellation parameters (LinearDeflection and AngularDeflection). It generates temporary mesh objects for the export process and automatically removes them afterward.
+The macro exports the selected objects to a 3MF file using the specified tessellation parameters (LinearDeflection and AngularDeflection). The meshes are computed in memory: nothing is added to the FreeCAD document.
 
 === Launching other programs or commands === <!--T:54--> 
 
@@ -118,7 +141,8 @@ The macro allows you to define custom commands that will be executed automatical
 === Subsequent Launches === <!--T:86-->
 
 <!--T:87-->
-* It generates a new .3mf file with both geometry and configuration.
+* FreeCAD reads the .3mf file and retrieves the saved print settings.
+* It generates a new .3mf file with both geometry and configuration: only the geometry of the objects is replaced, everything else in the file is kept as is.
 * The slicer opens the file with all settings preloaded.
 * ✅ No need to re-enter anything — changes are preserved.
 
@@ -174,7 +198,7 @@ The ⚙️ button in the options window allows you to both install and open the 
 === Using %PROJECT%, %PROJECTDIR%, %PROJECTNAME% %EXPORT%, and %EXPORTNAME% in user commands === <!--T:60-->
 
 <!--T:61-->
-When you define custom post‑processing commands in the workflow, you can use three special placeholders. These placeholders are automatically replaced by values derived from your FreeCAD project file.
+When you define custom post‑processing commands in the workflow, you can use five special placeholders. They are automatically replaced by values derived from your FreeCAD project file and from the export (named after the selected objects). Commands that process the generated 3MF should use %EXPORT%.3mf.
 
 == Available placeholders == <!--T:62-->
 
@@ -183,7 +207,7 @@ Placeholders and their meaning:
 *%PROJECT%: Full path of the FreeCAD project without extension
 *%PROJECTDIR%: Folder containing the FreeCAD project
 *%PROJECTNAME%: Project file name without extension
-*%EXPORT%: Full path of the selected object's export without extension
+*%EXPORT%: Full path of the export (named after the selected objects) without extension
 *%EXPORTNAME%: Export file name without extension
 
 == Examples == <!--T:64-->
@@ -193,14 +217,14 @@ Copy the generated 3MF file next to the project :
 
 <!--T:66-->
 <code>
-copy "%PROJECT%.3mf" "%PROJECTDIR%/backup/%PROJECTNAME%.3mf"
+copy "%EXPORT%.3mf" "%PROJECTDIR%/backup/%EXPORTNAME%.3mf"
 </code>
 
 <!--T:67-->
 Run a script stored in the project folder :
 
 <!--T:68-->
-<code>python "%PROJECTDIR%/scripts/postprocess.py" "%PROJECT%.3mf"</code>
+<code>python "%PROJECTDIR%/scripts/postprocess.py" "%EXPORT%.3mf"</code>
 
 <!--T:69-->
 Send an HTTP request using the project name :
@@ -255,7 +279,7 @@ ToolBar Icon [[Image:Macro_3D_Printer_3mf_Workflow.png]]
 === Code === <!--T:22-->
 
 </translate>
-ver 00.03 2026/09/18 by 2cv001 '''3D_Printer_3mf_Workflow.FCMacro'''
+ver 00.04 2026/11/24 by 2cv001 '''3D_Printer_3mf_Workflow.FCMacro'''
 <translate>
 
 ==== Download ==== <!--T:37-->
