@@ -1,0 +1,122 @@
+{{UnfinishedDocu}}
+<languages/>
+
+{{Docnav/fr
+|[[Silk_ControlPoly4_segment/fr|ControlPoly4 segment]]
+|[[Silk_ControlGrid44_Rotate/fr|ControlGrid44 Rotation]]
+|[[Silk_Workbench/fr|Silk]]
+|IconL= Silk_ControlPoly4_segment.svg
+|IconR=Silk_ControlGrid44_Rotate.svg
+|IconC=Silk_workbench_icon.svg
+}}
+
+{{GuiCommand/fr
+|Name=Silk ControlGrid44
+|Name/fr=Silk Silk ControlGrid44
+|MenuLocation=Silk → ControlGrid44
+|Workbenches=[[Silk_Workbench/fr|Silk]]
+|Shortcut=
+}}
+
+==Description==
+
+<div class="mw-translate-fuzzy">
+La commande [[Image:Silk_ControlGrid44.svg|32px]] '''Silk ControlGrid44''' crée un ControlGrid44 à partir de quatre arêtes [[Image:Silk_ControlPoly4.svg|16px]] [[Silk_ControlPoly4/fr|ControlPoly4]] reliées entre elles.
+</div>
+
+[[File:5.-ControlGrid44.png|300px]]
+
+{{Caption|Un ControlGrid44 constitué de quatre arêtes ControlPoly4}}
+
+[[Image:Silk_ControlGrid44-01.png|200px]] [[Image:Button_right.svg|16px|link=]]
+[[Image:Silk_ControlGrid44-02.png|200px]]
+
+<div class="mw-translate-fuzzy">
+{{Caption|Quatre arêtes de ControlPoly4 reliées → ControlGrid44 obtenu}}
+</div>
+
+<span id="Usage"></span>
+==Utilisation==
+
+<div class="mw-translate-fuzzy">
+# Présélectionnez 4 arêtes connectées [[Image:Silk_ControlPoly4.svg|16px]] [[Silk_ControlPoly4/fr|ControlPoly4]] dans la [[3D_View/fr|vue 3D]].
+# Il existe plusieurs façons de lancer la commande.
+#* Appuyez sur le bouton {{Button|[[Image:Silk_ControlGrid44.svg|16px]] ControlGrid44}}.
+#* Sélectionnez l'option {{MenuCommand|Silk → ControlGrid44}} du menu.
+# Un objet '''ControlGrid44_4''' est créé.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==Notes==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* Silk performs its first useful task beyond using existing FreeCAD functions and forcing a particular input format: it generates the inner control points of the grid based on the polys. This is not the only way to generate the inner control points, but it is a solid default starting point. The user provides 12 points through the polys, and Silk provides 4 more. 4 out of 12 doesn't seem like much, but it snowballs from here — the rest of the tools will generate tens and hundreds of useful control points with less and less input required from the user at each step.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Tangency Rules===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+*If adjacent CubicSurface_44 objects are not going to be segmented and blended, their ControlGrid44 objects must follow strict rules to achieve tangency (G1) across the shared edge (picture two grids/surfaces side by side, left and right):
+** There must be a shared edge (G0) in the middle — the entire edge. This is done by selecting the same poly for that edge in both grid creations. Do not trace, approximate, copy, or link the poly — use the same object in both grid creations.
+** The legs of the polys that meet on the shared edge must be collinear (aligned/parallel).
+** The ratio of the lengths of the poly legs that meet on the shared edge must be equal. For example, if the top poly on the left grid has a last leg of length 3, meeting a leg of length 1 on the top of the right grid, the tangency ratio is 3:1 from left to right. If the bottom poly on the left grid then has a last leg of length 5, the connecting poly on the right grid must have a first leg of length 2 (keeping the 3:1 ratio). This ratio rule does not apply if all poly legs are parallel across the shared edge.
+** Users do not need to do anything beyond preparing the polys correctly — if the polys follow these rules, the generated adjacent grids will always be G1, since Silk calculates all of the surface's internal control points (the ones not on edges).
+* Following tangency rules (G1) forces changes to the polys, which changes the entire surface. When a surface should not be modified, it is blended instead of aligned. G1 alignment is useful for patching small holes, or for connecting to planes, cylinders, and spheres.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+===Optional — flawed, use with caution===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* Selecting 3 connected ControlPoly4 edges produces a "triangle" grid, which yields a lower-quality surface. The "triangle" has a degenerate (collapsed) edge between the first and third selected polys, because internally this grid still has as many points and lines as a four-sided grid; the collapsed lines and points cause visible defects in the surface, and make further operations with this grid (or surfaces built from it) difficult or even impossible. This "triangle" does respect tangency rules and will connect cleanly to other grids despite its inner flaw. In fact, conforming to G1 on the edges makes it particularly flawed and ugly on the inside. Removing this option is being considered, but it remains for now, since some users want it despite the warnings.
+</div>
+
+<span id="Properties"></span>
+== Propriétés ==
+
+Voir aussi : [[Property_View/fr|Éditeur de propriétés]]
+
+<div class="mw-translate-fuzzy">
+'''ControlGrid44_4''' est dérivé de [[Part_Feature/fr|Part feature]], ou plus précisément d’un objet {{Incode|Part::FeaturePython}}, et hérite de toutes ses propriétés. Il possède également les propriétés supplémentaires communes suivantes :
+</div>
+
+<span id="Data"></span>
+===Données===
+
+{{Properties_Title|C1 - Inputs}}
+
+* {{PropertyData|Poly0|Link}} : premier polygone de contrôle.
+* {{PropertyData|Poly1|Link}} : deuxième polygone de contrôle.
+* {{PropertyData|Poly2|Link}} : troisième polygone de contrôle.
+* {{PropertyData|Poly3|Link}} : quatrième polygone de contrôle.
+* {{PropertyData|reverse|Bool}} : par défaut {{value|False}}. Inverse le sens du paramètre.
+* {{PropertyData|tolerance|Float}} : par défaut {{value|1e-06}}. Tolérance de connexion point à point pour les 4 coins.
+
+{{Properties_Title|C2 - Outputs}}
+
+* {{PropertyData|Legs|Part::PropertyGeometryList}} : segments de contrôle.
+* {{PropertyData|Poles|VectorList}} : pôles.
+* {{PropertyData|Weights|FloatList}} : poids.
+
+{{Properties_Title|C3 - Identifiers}}
+
+* {{PropertyData|internalName|String}} : nom interne permanent de cet objet dans FreeCAD.
+* {{PropertyData|object_type|String}} : par défaut {{value|ControlGrid44_4}}. Classe de l'atelier utilisée pour créer cet objet.
+* {{PropertyData|object_version|String}} : version de la classe de cet objet.
+
+
+{{Docnav/fr
+|[[Silk_ControlPoly4_segment/fr|ControlPoly4 segment]]
+|[[Silk_ControlGrid44_Rotate/fr|ControlGrid44 Rotation]]
+|[[Silk_Workbench/fr|Silk]]
+|IconL= Silk_ControlPoly4_segment.svg
+|IconR=Silk_ControlGrid44_Rotate.svg
+|IconC=Silk_workbench_icon.svg
+}}
+
+[[Category:Addons{{#translation:}}]]
+[[Category:External_Command_Reference{{#translation:}}]]
