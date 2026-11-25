@@ -6,8 +6,8 @@
 |Name=Macro_3D_Printer_3mf_Workflow
 |Description=FreeCAD macro exporting smooth 3MF files and preserving all slicer print settings, with automatic workflow to your preferred slicer.
 |Author=2cv001
-|Version=00.04
-|Date=2026/11/24
+|Version=00.05
+|Date=2026/11/25
 |FCVersion=All
 |Download=
 [https://wiki.freecad.org/images/3/32/Macro_3D_Printer_3mf_Workflow.png Toolbar icon]
@@ -66,18 +66,18 @@ Select one or more objects (Ctrl+click in the tree) and run the macro. All the s
 
 The '''3MF file for print parameters''' list chooses the 3MF whose print settings and objects are reused:
 * '''No base (new 3MF)''': a new 3MF containing only the geometry. If the 3MF of the selection already exists, it is kept as a .old backup.
-* '''This selection's 3MF''': the usual choice, selected by default when it exists.
+* '''This selection's 3MF''': the usual choice, selected by default when it exists. When it does not exist yet, the most recent 3MF of the project folder that contains an object with the same name is selected instead (for example the 3MF of several objects, when you export one of them alone), so its settings are not lost.
 * The other 3MF files of the project folder, most recent first.
-* The last bases used in other folders (remembered from one session to the next).
+* The last 8 bases used in other folders (remembered from one session to the next), shown with their folder and date, so that several "Body.3mf" from different projects can be told apart. Hover over a line to see its full path.
 * '''Browse…''' picks a 3MF anywhere, for example in another project.
 
-Below the list, the macro shows the name the 3MF will be saved as. The base file itself is never modified; if the 3MF of the selection already exists and another base is chosen, it is backed up first (.old file).
+Below the list, the macro shows the name the 3MF will be saved as and explains what the chosen base will do: for which objects the existing settings are kept, which objects are new (they get the general settings), and whether the base has no slicer settings at all. The text turns orange when object settings may not be reused (no object of the base has a selected name, or "No base" while the 3MF of the selection exists). The base file itself is never modified; if the 3MF of the selection already exists and another base is chosen, it is backed up first (.old file).
 
 From the base, the macro always keeps the '''general settings''': printer, filament (type, temperatures, cooling… and all the filaments of a multi-color printer) and print profile (layer height, speeds, walls, default infill and supports…). The '''settings of an object''' (its own infill, walls, layer height, supports, filament, modifiers…) are kept only for the objects matched by name. Objects of the base that match no selected object are removed; new objects get the general settings and the first filament.
 
-==== Painting and modifiers ====
+==== Settings applied to faces and modifiers ====
 
-Painted supports, seams and colors (and other per-face data) as well as modifiers and extra parts are tied to the old geometry and cannot be kept when it changes. If some would be lost, the macro tells you which objects are concerned and asks you to '''Continue''' or '''Cancel''' (the 3MF is then left unchanged).
+Some print settings are attached to specific faces of an object: enforced or blocked supports, seams, colors (and other per-face data). They, as well as modifiers and extra parts, are tied to the old geometry and cannot be kept when it changes. If some would be lost, the macro tells you which objects are concerned and asks you to '''Continue''' or '''Cancel''' (the 3MF is then left unchanged).
 
 === Export filenames === <!--T:98-->
 
@@ -111,9 +111,9 @@ Each selected object becomes one object in the slicer; the macro does not split 
 {{Caption|Without visible facets}}
 
 <!--T:53-->
-The macro exports the selected objects to a 3MF file using the specified tessellation parameters (LinearDeflection and AngularDeflection). The meshes are computed in memory: nothing is added to the FreeCAD document.
+The macro exports the selected objects to a 3MF file using the specified tessellation parameters (LinearDeflection and AngularDeflection). The meshes are computed in memory, still controlled by these two parameters: nothing is added to the FreeCAD document.
 
-=== Launching other programs or commands === <!--T:54--> 
+=== Launching other programs or commands === <!--T:54-->
 
 <!--T:55-->
 The macro allows you to define custom commands that will be executed automatically after the 3MF file is generated. This feature is optional and can be used to automate additional steps in your workflow, such as:
@@ -135,7 +135,7 @@ The macro allows you to define custom commands that will be executed automatical
 <!--T:85-->
 * FreeCAD exports a .3mf file containing only the object geometry.
 * The slicer opens the file.
-* The user enters print settings (e.g. 200 °C, PLA, 50 mm/s).
+* The user enters print settings (e.g. 200 °C, PLA, 50 mm/s).
 * The slicer saves the .3mf file with embedded print settings.
 
 === Subsequent Launches === <!--T:86-->
@@ -146,13 +146,13 @@ The macro allows you to define custom commands that will be executed automatical
 * The slicer opens the file with all settings preloaded.
 * ✅ No need to re-enter anything — changes are preserved.
 
-== Technical Notes == <!--T:88--> 
+== Technical Notes == <!--T:88-->
 
 <!--T:89-->
 * Geometry is extracted from the active FreeCAD document.
 * .3mf files are used instead of .stl to retain print metadata.
 * Print settings are stored inside the .3mf file in the same directory as the FreeCAD document.
-* Compatible with most slicers that support .3mf: tested with QidiSlicer, QidiStudio, Cura, PrusaSlicer, OrcaSlicer, Bambu Studio, Anycubic, Creality. 
+* Compatible with most slicers that support .3mf: tested with QidiSlicer, QidiStudio, Cura, PrusaSlicer, OrcaSlicer, Bambu Studio, Anycubic, Creality.
 * Not compatible with slicers that do not produce 3MF files containing print settings (e.g., ideaMaker, FlashPrint). For other slicers, feel free to try — it should work. Otherwise, please open an issue on GitHub.
 * The macro can be configured to run other commands, such as turning on the printer using a connected smart plug.
 
@@ -163,6 +163,8 @@ Run the macro from FreeCAD.  The slicer path is set directly in the macro’s ma
 
 <!--T:97-->
 * (Linux only) When the Slicer is installed via flatpak, enter flatpak run e.g. flatpak run com.prusa3d.PrusaSlicer.
+
+The slicer path must be the slicer program itself (on Windows, its .exe file): a part file such as a .3mf or .stl is refused. On Windows, the '''Browse…''' button of the slicer line only lists programs, so that it is not confused with the '''Browse…''' button of the base 3MF.
 
 <!--T:94-->
 On first launch, enter your print settings in the slicer and save the .3mf file (generally, except in Cura, this is just Ctrl+S or “Save” in the menu).
@@ -261,7 +263,7 @@ curl -u admin:yourpassword "http://192.168.xxx.xx/rpc/Switch.Set?id=0&on=true"
 == Usage == <!--T:77-->
 
 <!--T:78-->
-More details at https://github.com/2cv001/3D_printer_3mf_workflow 
+More details at https://github.com/2cv001/3D_printer_3mf_workflow
 
 == Discussion == <!--T:81-->
 
@@ -271,7 +273,7 @@ English: https://forum.freecad.org/viewtopic.php?t=102503
 <!--T:83-->
 French: https://forum.freecad.org/viewtopic.php?t=103419
 
-== Script == <!--T:79--> 
+== Script == <!--T:79-->
 
 <!--T:80-->
 ToolBar Icon [[Image:Macro_3D_Printer_3mf_Workflow.png]]
@@ -279,7 +281,7 @@ ToolBar Icon [[Image:Macro_3D_Printer_3mf_Workflow.png]]
 === Code === <!--T:22-->
 
 </translate>
-ver 00.04 2026/11/24 by 2cv001 '''3D_Printer_3mf_Workflow.FCMacro'''
+ver 00.05 2026/11/25 by 2cv001 '''3D_Printer_3mf_Workflow.FCMacro'''
 <translate>
 
 ==== Download ==== <!--T:37-->
