@@ -6,8 +6,8 @@
 |Name=Macro_3D_Printer_3mf_Workflow
 |Description=FreeCAD macro exporting smooth 3MF files and preserving all slicer print settings, with automatic workflow to your preferred slicer.
 |Author=2cv001
-|Version=00.06
-|Date=2026/11/25
+|Version=00.07
+|Date=2026/11/26
 |FCVersion=All
 |Download=
 [https://wiki.freecad.org/images/3/32/Macro_3D_Printer_3mf_Workflow.png Toolbar icon]
@@ -45,6 +45,7 @@ This macro automates and enhances the 3D printing workflow from FreeCAD to your 
 * '''Your slicer settings are kept''': set them once in the slicer (temperature, supports, infill…); every new export from FreeCAD keeps them.
 * '''From FreeCAD to the slicer in one click''': the macro exports the 3MF and opens it in your slicer.
 * '''Several objects at once''', each one with its own settings.
+* '''Your own commands before or after the export''': turn on the printer through a smart plug while FreeCAD exports, preheat, copy the 3MF… Ready-made templates, a live check and a Test button help to write them.
 * '''You see what you export''': a preview of the selected objects and the estimated export time.
 * '''Works with most slicers''': QIDISlicer, QIDIStudio, PrusaSlicer, OrcaSlicer, Bambu Studio, Cura, Creality Print, Anycubic.
 
@@ -110,13 +111,15 @@ On next launches, enjoy automatic reuse of your settings.
 == Launching other programs or commands == <!--T:54-->
 
 <!--T:55-->
-The macro allows you to define custom commands that will be executed automatically after the 3MF file is generated. This feature is optional and can be used to automate additional steps in your workflow, such as:
-* copying the generated 3MF file to another location
-* turning on your 3D printer through a smart plug
-* turn a light on
+The macro can run your own commands automatically, before or after the export. This feature is optional and can be used to automate additional steps in your workflow, such as:
+* turning on your 3D printer through a smart plug (Shelly, Home Assistant, Jeedom…) while FreeCAD exports
 * pre‑heating the build plate
+* turning a light on
+* copying the generated 3MF file to another location
 * sending an HTTP request to your home automation system
 * launching a script or external tool
+
+The options window lists your commands, each with a checkbox: check the ones to run this time. Commands run before the export are marked "(before the export)".
 
 == Setup (optional: to add additional commands) == <!--T:57-->
 
@@ -124,20 +127,60 @@ The macro allows you to define custom commands that will be executed automatical
 A dedicated helper macro is provided to make configuration easy. Your commands are stored in an .ini file used by the workflow.
 
 <!--T:59-->
-The ⚙️ button in the options window allows you to both install and open the configuration macro (3D_Printer_3mf_Workflow_ConfigIni.FCMacro).
+The ⚙️ button in the options window allows you to both install and open the configuration macro (3D_Printer_3mf_Workflow_ConfigIni.FCMacro). The list of commands in the options window is updated as soon as you close it.
 
 </translate>
 [[File:Capture d'écran 2026-08-02 090716.png|500x500px]]
+[[File:Macro_3D_Printer_3mf_Workflow_ConfigIni.png|900px]]
 <translate>
+{{Caption|Configuration window: the selected command has a mistake (C:/… instead of C:\…), the check points it out before you run it.}}
 
-<!--T:96-->
-* Fill in the fields in the configuration window
-* Hover your mouse over a column title to display help tooltips
-* Each command you define will be executed in order after the 3MF file is produced.
+Each row of the table is a command:
+[[File:Capture d'écran 2026-11-26 203618.png]]
 
-</translate>
-[[File:Capture d'écran 2026-08-02 085921.png|alt=Macro_3D_Printer_3mf_workflow capture écrant|1024x1024px]]
-<translate>
+{| class="wikitable"
+! Column !! Meaning
+|-
+| Command || The program and its parameters
+|-
+| Label || The name shown in the options window
+|-
+| Delay (s) || Time to wait before running the command
+|-
+| Enabled by default || Checked in the options window when the macro starts
+|-
+| Before the export || Run the command before the export instead of after it
+|}
+
+Hover your mouse over a column title to display help tooltips.
+
+=== Writing a command ===
+
+* '''Add from a template''' (first button) creates a ready-made command: copy the 3MF, open the project folder, web request, Shelly plug (Gen 1 or Gen 2, with or without a password, or through the Shelly cloud with an API key), Home Assistant, Jeedom, Klipper preheating, Python script. The part to replace, such as <code><nowiki><PLUG_IP></nowiki></code>, is selected: just type. Requests made with <code>curl</code> use <code>--fail</code>, so that an error answered by the device is reported as an error.
+* '''Add from scratch''' adds an empty row.
+* '''Move up''' / '''Move down''' change the order of the commands. "Before the export" commands are always run before the others.
+* Under the table, the command of the selected row can be edited with:
+** '''Browse…''': inserts the path of a program or file;
+** '''Insert a variable''': inserts <code>%EXPORT%.3mf</code>, <code>%PROJECTDIR%</code>… (see below), with the quotes and the space when needed. The menu shows the real value of each variable for the current export.
+* A '''check''', updated as you type, shows:
+** whether the program is found, and where;
+** how the command is split into parameters, with the real paths of the current export;
+** the usual mistakes: command built into Windows such as <code>copy</code> without <code>cmd /c</code>, part of a template left to replace, unclosed quote, single quotes, <code>></code> or <code>|</code>, unknown variable, <code>%EXPORT%</code> used before the export;
+** wrong paths: a full path such as <code>%PROJECT%</code> placed after a folder (use <code>%PROJECTNAME%</code>), a <code>C:/…</code> path given to <code>cmd</code> (write <code>C:\…</code>), a folder that does not exist.
+* '''Test''' runs the command right away (after confirmation) and tells whether it succeeded. For <code>curl</code>, the usual errors are explained (device not found, not reachable, error answered, no answer in time).
+
+Rules to know:
+* Put an argument containing spaces between double quotes (<code>"%EXPORT%.3mf"</code>).
+* Commands are run directly, without a shell: commands built into the Windows command prompt (<code>copy</code>, <code>del</code>, <code>echo</code>…) need <code>cmd /c</code> in front of them, and <code>></code>, <code>|</code> or <code>&&</code> do not work.
+
+=== Before or after the export ===
+
+* '''After the export''' (default): the commands run in order once the 3MF is written and the slicer launched, before the end message. FreeCAD is not blocked while a delay runs.
+* '''Before the export''' checked: the command runs as soon as the options are validated, before the meshing. Typical use: turn on the printer and start preheating while FreeCAD exports. The macro waits for each delay (countdown in the status bar) and the export only starts after the last "before" command. The 3MF is not written yet at that time: do not use <code>%EXPORT%</code> in these commands.
+
+Example: a "before" command turns on the Shelly plug, a second "before" command with a 10 s delay sends the preheating to Klipper once the printer has started, then the export begins.
+
+The "before" commands are stored separately in the .ini file (EXTRA_COMMANDS_BEFORE): an older version of the macro ignores them.
 
 === Using %PROJECT%, %PROJECTDIR%, %PROJECTNAME% %EXPORT%, and %EXPORTNAME% in user commands === <!--T:60-->
 
@@ -150,57 +193,109 @@ When you define custom post‑processing commands in the workflow, you can use f
 Placeholders and their meaning:
 *%PROJECT%: Full path of the FreeCAD project without extension
 *%PROJECTDIR%: Folder containing the FreeCAD project
-*%PROJECTNAME%: Project file name without extension
+*%PROJECTNAME%: Project file name without extension (name only, no folder)
 *%EXPORT%: Full path of the export (named after the selected objects) without extension
-*%EXPORTNAME%: Export file name without extension
+*%EXPORTNAME%: Export file name without extension (name only, no folder)
+
+To build a path in another folder, use the names: <code>"C:\Backup\%EXPORTNAME%.3mf"</code>, not <code>"C:\Backup\%EXPORT%.3mf"</code>.
 
 == Examples == <!--T:64-->
 
+These examples are also available with '''Add from a template'''. Replace the parts between <code><nowiki>< ></nowiki></code> with your own values.
+
 <!--T:65-->
-Copy the generated 3MF file next to the project :
+Copy the generated 3MF file into a backup folder of the project (Windows; the folder must exist):
 
 <!--T:66-->
-<code>
-copy "%EXPORT%.3mf" "%PROJECTDIR%/backup/%EXPORTNAME%.3mf"
-</code>
+<pre>
+cmd /c copy /y "%EXPORT%.3mf" "%PROJECTDIR%\backup\%EXPORTNAME%.3mf"
+</pre>
+
+On Linux / macOS:
+
+<pre>
+cp "%EXPORT%.3mf" "%PROJECTDIR%/backup/%EXPORTNAME%.3mf"
+</pre>
 
 <!--T:67-->
-Run a script stored in the project folder :
+Run a script stored in the project folder:
 
 <!--T:68-->
-<code>python "%PROJECTDIR%/scripts/postprocess.py" "%EXPORT%.3mf"</code>
+<pre>
+python "%PROJECTDIR%/scripts/postprocess.py" "%EXPORT%.3mf"
+</pre>
+
+Open the project folder (Windows):
+
+<pre>
+explorer "%PROJECTDIR%"
+</pre>
 
 <!--T:69-->
-Send an HTTP request using the project name :
+Send an HTTP request using the project name:
 
 <!--T:70-->
-<code>
-curl "http://myserver/api/start?job=%PROJECTNAME%"
-</code>
+<pre>
+curl --fail "http://<SERVER_ADDRESS>/api?job=%PROJECTNAME%"
+</pre>
+
+=== Turning on the printer (to check "Before the export") ===
 
 <!--T:71-->
-Turn on a Shelly smart plug Gen 1
+Shelly smart plug Gen 1:
 
 <!--T:72-->
-<code>
-curl "http://192.168.xxx.xxx/relay/0?turn=on"
-</code>
+<pre>
+curl --fail "http://<PLUG_IP>/relay/0?turn=on"
+</pre>
+
+Gen 1 with a password (restricted login):
+
+<pre>
+curl --fail -u <USER>:<PASSWORD> "http://<PLUG_IP>/relay/0?turn=on"
+</pre>
 
 <!--T:73-->
-Gen2
+Gen 2:
 
 <!--T:74-->
-<code>
-http://192.168.xxx.xxx/rpc/Switch.Set?id=0&on=true
-</code>
+<pre>
+curl --fail "http://<PLUG_IP>/rpc/Switch.Set?id=0&on=true"
+</pre>
 
 <!--T:75-->
-Or if your device have a password :
+Gen 2 with a password (the user is always admin; --anyauth lets curl use the digest authentication asked by the plug):
 
 <!--T:76-->
-<code>
-curl -u admin:yourpassword "http://192.168.xxx.xx/rpc/Switch.Set?id=0&on=true"
-</code>
+<pre>
+curl --fail --anyauth -u admin:<PASSWORD> "http://<PLUG_IP>/rpc/Switch.Set?id=0&on=true"
+</pre>
+
+Through the Shelly cloud (server address and authorization key in the Shelly app: User settings → Authorization cloud key; device ID in the device settings):
+
+<pre>
+curl --fail -X POST "https://<CLOUD_SERVER>/device/relay/control" -d "channel=0&turn=on&id=<DEVICE_ID>&auth_key=<API_KEY>"
+</pre>
+
+Home Assistant (long-lived access token created in your Home Assistant profile):
+
+<pre>
+curl --fail -X POST -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" -d "{\"entity_id\":\"switch.<PLUG_NAME>\"}" "http://<HOME_ASSISTANT_ADDRESS>:8123/api/services/switch/turn_on"
+</pre>
+
+Jeedom (API key in Settings → System → Configuration → API; command ID shown in the advanced configuration of the command):
+
+<pre>
+curl --fail "http://<JEEDOM_ADDRESS>/core/api/jeeApi.php?apikey=<API_KEY>&type=cmd&id=<COMMAND_ID>"
+</pre>
+
+Preheat the bed of a Klipper printer to 60 °C (Moonraker):
+
+<pre>
+curl --fail -X POST "http://<PRINTER_IP>:7125/printer/gcode/script?script=M140%20S60"
+</pre>
+
+Keep your keys and passwords for yourself: they are stored in clear text in the .ini file.
 
 == Going further ==
 
@@ -278,7 +373,7 @@ The slicer path must be the slicer program itself (on Windows, its .exe file): a
 * Print settings are stored inside the .3mf file in the same directory as the FreeCAD document.
 * Compatible with most slicers that support .3mf: tested with QidiSlicer, QidiStudio, Cura, PrusaSlicer, OrcaSlicer, Bambu Studio, Anycubic, Creality.
 * Not compatible with slicers that do not produce 3MF files containing print settings (e.g., ideaMaker, FlashPrint). For other slicers, feel free to try — it should work. Otherwise, please open an issue on GitHub.
-* The macro can be configured to run other commands, such as turning on the printer using a connected smart plug.
+* The macro can be configured to run other commands before or after the export, such as turning on the printer using a connected smart plug.
 
 == History ==
 
@@ -315,7 +410,7 @@ ToolBar Icon [[Image:Macro_3D_Printer_3mf_Workflow.png]]
 === Code === <!--T:22-->
 
 </translate>
-ver 00.06 2026/11/25 by 2cv001 '''3D_Printer_3mf_Workflow.FCMacro'''
+ver 00.07 2026/11/26 by 2cv001 '''3D_Printer_3mf_Workflow.FCMacro'''
 <translate>
 
 ==== Download ==== <!--T:37-->
