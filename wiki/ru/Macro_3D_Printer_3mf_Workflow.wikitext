@@ -34,41 +34,18 @@ https://github.com/2cv001/3D_printer_3mf_workflow/blob/main/README.md
 * '''Сохранять настройки печати (температура, поддержки, скорость…)''' так, чтобы они оставались связанными с проектом FreeCAD.
 * Запускать внешние программы для упрощения всего процесса: FreeCAD → слайсер → печать.
 
-Этот макрос является преемником [[Macro_3D_Printer_Workflow|macro 3d_printer_workflow]].
-
-Макрос 3D_Printer_Workflow уже мог создавать плавные экспорты без граней. Его главным ограничением было то, что он работал только с файлами STL, которые не могут хранить параметры слайсера или печати.
-
-Этот макрос использует файлы .3mf, что позволяет сохранять все настройки печати и повторно их использовать.
-
-Чтобы сохранить основную функциональность предыдущего макроса, эта версия также предлагает экспорт в STL с настраиваемыми параметрами тесселяции, позволяя создавать гладкую сетку так же, как раньше.
-
-<span id="Limitation"></span>
-=== Ограничение ===
-
-Текущая версия может экспортировать только один объект, но вы можете обойти это, используя ссылки — например, Простейшую группу — чтобы объединить несколько объектов в один.
-
 <div lang="en" dir="ltr" class="mw-content-ltr">
-=== Export filenames ===
+== At a glance ==
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-Exports use the selected object's visible name (its Label in the FreeCAD tree), in the same directory as the saved FreeCAD document. For example, selecting Housing creates Housing.3mf and, if enabled, Housing.stl; selecting Lid creates Lid.3mf and Lid.stl. Each object has its own 3MF print settings and backups. Select one object and run the macro, then repeat for the next object.
-</div>
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-For a PartDesign Body, selecting a face or edge in the 3D view, or a feature such as a Pad or Pocket in the tree, exports the whole Body using the Body's Label. Selecting several features of the same Body still counts as one object. Objects outside a Body retain their own labels and geometry.
-</div>
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Filename-incompatible characters are replaced with underscores. Names that collide within the document (including after sanitizing or ignoring letter case) receive the object's internal name as a suffix. Workflow backup/temporary suffixes and Windows device names are also adjusted to avoid conflicts. Use distinct, stable labels: renaming an object changes its export filename. Objects from different documents in the same folder should also have distinct labels.
-</div>
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-Existing exports named after the project are not renamed automatically. To reuse their print settings, select the old .3mf in the 3MF file for print parameters field on the first export of a part. Save subsequent slicer changes in that part's new .3mf file.
-</div>
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-This supports separate exports of 3D objects in one document; it does not split individual contours of a sketch or solids inside a single selected object.
+* '''Smooth prints''': curved surfaces come out without visible facets.
+* '''Your slicer settings are kept''': set them once in the slicer (temperature, supports, infill…); every new export from FreeCAD keeps them.
+* '''From FreeCAD to the slicer in one click''': the macro exports the 3MF and opens it in your slicer.
+* '''Several objects at once''', each one with its own settings.
+* '''Your own commands before or after the export''': turn on the printer through a smart plug while FreeCAD exports, preheat, copy the 3MF… Ready-made templates, a live check and a Test button help to write them.
+* '''You see what you export''': a preview of the selected objects and the estimated export time.
+* '''Works with most slicers''': QIDISlicer, QIDIStudio, PrusaSlicer, OrcaSlicer, Bambu Studio, Cura, Creality Print, Anycubic.
 </div>
 
 <span id="Principle_of_smoothing"></span>
@@ -80,18 +57,9 @@ This supports separate exports of 3D objects in one document; it does not split 
 [[File:Macro_3D_Printer_Workflow_Without_Facets.png]]
 {{Caption|Без видимых граней}}
 
+<div class="mw-translate-fuzzy">
 Макрос экспортирует выбранные объекты в файл 3MF с использованием указанных параметров тесселяции (LinearDeflection и AngularDeflection). Он создаёт временные сеточные объекты для процесса экспорта и автоматически удаляет их после этого.
-
-<span id="Launching_other_programs_or_commands"></span>
-=== Запуск других программ или команд === 
-
-Макрос позволяет вам задавать собственные команды, которые будут выполняться автоматически после создания файла 3MF. Эта функция опциональная и может использоваться для автоматизации дополнительных шагов в вашем рабочем процессе, таких как:
-* копирование сгенерированного файла 3MF в другое место
-* включение 3D-принтера через умную розетку
-* включение света
-* предварительный разогрев платформы
-* отправка HTTP-запроса в вашу систему умного дома
-* запуск скрипта или внешней программы
+</div>
 
 <span id="Workflow_Overview"></span>
 <div class="mw-translate-fuzzy">
@@ -107,7 +75,7 @@ This supports separate exports of 3D objects in one document; it does not split 
 <div lang="en" dir="ltr" class="mw-content-ltr">
 * FreeCAD exports a .3mf file containing only the object geometry.
 * The slicer opens the file.
-* The user enters print settings (e.g. 200 °C, PLA, 50 mm/s).
+* The user enters print settings (e.g. 200 °C, PLA, 50 mm/s).
 * The slicer saves the .3mf file with embedded print settings.
 </div>
 
@@ -116,26 +84,18 @@ This supports separate exports of 3D objects in one document; it does not split 
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-* It generates a new .3mf file with both geometry and configuration.
+* FreeCAD reads the .3mf file and retrieves the saved print settings.
+* It generates a new .3mf file with both geometry and configuration: only the geometry of the objects is replaced, everything else in the file is kept as is.
 * The slicer opens the file with all settings preloaded.
 * ✅ No need to re-enter anything — changes are preserved.
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-== Technical Notes ==
-</div> 
-
-<div lang="en" dir="ltr" class="mw-content-ltr">
-* Geometry is extracted from the active FreeCAD document.
-* .3mf files are used instead of .stl to retain print metadata.
-* Print settings are stored inside the .3mf file in the same directory as the FreeCAD document.
-* Compatible with most slicers that support .3mf: tested with QidiSlicer, QidiStudio, Cura, PrusaSlicer, OrcaSlicer, Bambu Studio, Anycubic, Creality. 
-* Not compatible with slicers that do not produce 3MF files containing print settings (e.g., ideaMaker, FlashPrint). For other slicers, feel free to try — it should work. Otherwise, please open an issue on GitHub.
-* The macro can be configured to run other commands, such as turning on the printer using a connected smart plug.
+== Use ==
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-== Use ==
+Install the macro with the '''Addon Manager''' of FreeCAD, then select the objects to print in the tree.
 </div>
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
@@ -156,6 +116,25 @@ On next launches, enjoy automatic reuse of your settings.
 
 [[File:536114975-3e4fe3e8-5ca2-4088-8b3f-57fdbaa668fb.png|alt=Macro_3D_Printer_3mf_workflow capture écrant|1024x1024px]]
 
+<span id="Launching_other_programs_or_commands"></span>
+<div class="mw-translate-fuzzy">
+=== Запуск других программ или команд ===
+</div>
+
+<div class="mw-translate-fuzzy">
+Макрос позволяет вам задавать собственные команды, которые будут выполняться автоматически после создания файла 3MF. Эта функция опциональная и может использоваться для автоматизации дополнительных шагов в вашем рабочем процессе, таких как:
+* копирование сгенерированного файла 3MF в другое место
+* включение 3D-принтера через умную розетку
+* включение света
+* предварительный разогрев платформы
+* отправка HTTP-запроса в вашу систему умного дома
+* запуск скрипта или внешней программы
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The options window lists your commands, each with a checkbox: check the ones to run this time. Commands run before the export are marked "(before the export)".
+</div>
+
 <span id="Setup_(optional:_to_add_additional_commands)"></span>
 <div class="mw-translate-fuzzy">
 == Настройка ==
@@ -173,19 +152,87 @@ On next launches, enjoy automatic reuse of your settings.
 [[File:Capture d'écran 2026-08-02 090716.png|500x500px]]
 
 <div lang="en" dir="ltr" class="mw-content-ltr">
-* Fill in the fields in the configuration window
-* Hover your mouse over a column title to display help tooltips
-* Each command you define will be executed in order after the 3MF file is produced.
+{{Caption|Configuration window: the selected command has a mistake (C:/… instead of C:\…), the check points it out before you run it.}}
 </div>
 
-[[File:Capture d'écran 2026-08-02 085921.png|alt=Macro_3D_Printer_3mf_workflow capture écrant|1024x1024px]]
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Each row of the table is a command:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+[[File:Capture d'écran 2026-11-26 203618.png]]
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+{| class="wikitable"
+! Column !! Meaning
+|-
+| Command || The program and its parameters
+|-
+| Label || The name shown in the options window
+|-
+| Delay (s) || Time to wait before running the command
+|-
+| Enabled by default || Checked in the options window when the macro starts
+|-
+| Before the export || Run the command before the export instead of after it
+|}
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Hover your mouse over a column title to display help tooltips.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Writing a command ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* '''Add from a template''' (first button) creates a ready-made command: copy the 3MF, open the project folder, web request, Shelly plug (Gen 1 or Gen 2, with or without a password, or through the Shelly cloud with an API key), Home Assistant, Jeedom, Klipper preheating, Python script. The part to replace, such as <code><nowiki><PLUG_IP></nowiki></code>, is selected: just type. Requests made with <code>curl</code> use <code>--fail</code>, so that an error answered by the device is reported as an error.
+* '''Add from scratch''' adds an empty row.
+* '''Move up''' / '''Move down''' change the order of the commands. "Before the export" commands are always run before the others.
+* Under the table, the command of the selected row can be edited with:
+** '''Browse…''': inserts the path of a program or file;
+** '''Insert a variable''': inserts <code>%EXPORT%.3mf</code>, <code>%PROJECTDIR%</code>… (see below), with the quotes and the space when needed. The menu shows the real value of each variable for the current export.
+* A '''check''', updated as you type, shows:
+** whether the program is found, and where;
+** how the command is split into parameters, with the real paths of the current export;
+** the usual mistakes: command built into Windows such as <code>copy</code> without <code>cmd /c</code>, part of a template left to replace, unclosed quote, single quotes, <code>></code> or <code>|</code>, unknown variable, <code>%EXPORT%</code> used before the export;
+** wrong paths: a full path such as <code>%PROJECT%</code> placed after a folder (use <code>%PROJECTNAME%</code>), a <code>C:/…</code> path given to <code>cmd</code> (write <code>C:\…</code>), a folder that does not exist.
+* '''Test''' runs the command right away (after confirmation) and tells whether it succeeded. For <code>curl</code>, the usual errors are explained (device not found, not reachable, error answered, no answer in time).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Rules to know:
+* Put an argument containing spaces between double quotes (<code>"%EXPORT%.3mf"</code>).
+* Commands are run directly, without a shell: commands built into the Windows command prompt (<code>copy</code>, <code>del</code>, <code>echo</code>…) need <code>cmd /c</code> in front of them, and <code>></code>, <code>|</code> or <code>&&</code> do not work.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Before or after the export ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* '''After the export''' (default): the commands run in order once the 3MF is written and the slicer launched, before the end message. FreeCAD is not blocked while a delay runs.
+* '''Before the export''' checked: the command runs as soon as the options are validated, before the meshing. Typical use: turn on the printer and start preheating while FreeCAD exports. The macro waits for each delay (countdown in the status bar) and the export only starts after the last "before" command. The 3MF is not written yet at that time: do not use <code>%EXPORT%</code> in these commands.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Example: a "before" command turns on the Shelly plug, a second "before" command with a 10 s delay sends the preheating to Klipper once the printer has started, then the export begins.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The "before" commands are stored separately in the .ini file (EXTRA_COMMANDS_BEFORE): an older version of the macro ignores them.
+</div>
 
 <span id="Using_%PROJECT%,_%PROJECTDIR%,_%PROJECTNAME%_%EXPORT%,_and_%EXPORTNAME%_in_user_commands"></span>
 <div class="mw-translate-fuzzy">
 === Использование %PROJECT%, %PROJECTDIR%, and %PROJECTNAME% в пользовательских командах ===
 </div>
 
+<div class="mw-translate-fuzzy">
 Когда вы задаёте собственные команды постобработки в рабочем процессе, то можете использовать три специальных заполнителя. Эти заполнители автоматически заменяются значениями, полученными из вашего проекта FreeCAD.
+</div>
 
 <span id="Available_placeholders"></span>
 == Доступные заполнители ==
@@ -197,47 +244,297 @@ On next launches, enjoy automatic reuse of your settings.
 *%PROJECTNAME%: имя файла проекта без расширения
 </div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+To build a path in another folder, use the names: <code>"C:\Backup\%EXPORTNAME%.3mf"</code>, not <code>"C:\Backup\%EXPORT%.3mf"</code>.
+</div>
+
 <span id="Examples"></span>
 == Примеры ==
 
-Скопируй сгенерированный файл 3MF рядом с проектом:
+<div lang="en" dir="ltr" class="mw-content-ltr">
+These examples are also available with '''Add from a template'''. Replace the parts between <code><nowiki>< ></nowiki></code> with your own values.
+</div>
 
+<div class="mw-translate-fuzzy">
+Скопируй сгенерированный файл 3MF рядом с проектом:
+</div>
+
+<div class="mw-translate-fuzzy">
 <code>
 copy "%PROJECT%.3mf" "%PROJECTDIR%/backup/%PROJECTNAME%.3mf"
 </code>
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+On Linux / macOS:
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+<pre>
+cp "%EXPORT%.3mf" "%PROJECTDIR%/backup/%EXPORTNAME%.3mf"
+</pre>
+</div>
+
+<div class="mw-translate-fuzzy">
 Запусти скрипт, который хранится в папке проекта:
+</div>
 
+<div class="mw-translate-fuzzy">
 <code>python "%PROJECTDIR%/scripts/postprocess.py" "%PROJECT%.3mf"</code>
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Open the project folder (Windows):
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+<pre>
+explorer "%PROJECTDIR%"
+</pre>
+</div>
+
+<div class="mw-translate-fuzzy">
 Отправьте HTTP-запрос, используя имя проекта:
+</div>
 
+<div class="mw-translate-fuzzy">
 <code>
 curl "http://myserver/api/start?job=%PROJECTNAME%"
 </code>
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Turning on the printer (to check "Before the export") ===
+</div>
+
+<div class="mw-translate-fuzzy">
 Включи умную розетку Shelly Gen 1
+</div>
 
+<div class="mw-translate-fuzzy">
 <code>
 curl "http://192.168.xxx.xxx/relay/0?turn=on"
 </code>
+</div>
 
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Gen 1 with a password (restricted login):
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+<pre>
+curl --fail -u <USER>:<PASSWORD> "http://<PLUG_IP>/relay/0?turn=on"
+</pre>
+</div>
+
+<div class="mw-translate-fuzzy">
 Gen2
+</div>
 
+<div class="mw-translate-fuzzy">
 <code>
 http://192.168.xxx.xxx/rpc/Switch.Set?id=0&on=true
 </code>
+</div>
 
+<div class="mw-translate-fuzzy">
 Или если на вашем устройстве есть пароль:
+</div>
 
+<div class="mw-translate-fuzzy">
 <code>
 curl -u admin:yourpassword "http://192.168.xxx.xx/rpc/Switch.Set?id=0&on=true"
 </code>
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Through the Shelly cloud (server address and authorization key in the Shelly app: User settings → Authorization cloud key; device ID in the device settings):
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+<pre>
+curl --fail -X POST "https://<CLOUD_SERVER>/device/relay/control" -d "channel=0&turn=on&id=<DEVICE_ID>&auth_key=<API_KEY>"
+</pre>
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Home Assistant (long-lived access token created in your Home Assistant profile):
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+<pre>
+curl --fail -X POST -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" -d "{\"entity_id\":\"switch.<PLUG_NAME>\"}" "http://<HOME_ASSISTANT_ADDRESS>:8123/api/services/switch/turn_on"
+</pre>
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Jeedom (API key in Settings → System → Configuration → API; command ID shown in the advanced configuration of the command):
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+<pre>
+curl --fail "http://<JEEDOM_ADDRESS>/core/api/jeeApi.php?apikey=<API_KEY>&type=cmd&id=<COMMAND_ID>"
+</pre>
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Preheat the bed of a Klipper printer to 60 °C (Moonraker):
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+<pre>
+curl --fail -X POST "http://<PRINTER_IP>:7125/printer/gcode/script?script=M140%20S60"
+</pre>
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Keep your keys and passwords for yourself: they are stored in clear text in the .ini file.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Going further ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Exporting several objects ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Select one or more objects (Ctrl+click in the tree) and run the macro. All the selected objects go into a single 3MF, each one as a separate object in the slicer, with its own print settings.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The top right corner of the options window shows a small isometric image of the selected objects, with their colors (for a PartDesign Body, the color of its visible feature), so you can check what will be exported. It is drawn by the macro from a very coarse mesh, without OpenGL, in a few hundredths of a second; the document and the 3D view are not touched.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* '''First export''': the objects keep exactly their FreeCAD layout (X, Y and Z). The group is centered on the plate and the lowest object rests on it. If objects overlap, QIDISlicer / PrusaSlicer ask whether to load them as a single object having multiple parts: answer '''Yes''' to keep them assembled, '''No''' to get separate objects (then arrange them on the plate).
+* '''Next exports''': each FreeCAD object is matched with the slicer object of the same name. Its geometry is replaced; its settings and its position and rotation on the plate are kept, and it is put back on the plate.
+* Objects that are no longer selected are removed from the 3MF; newly selected objects are added at their FreeCAD position.
+* Copies made on the plate in the slicer (duplicated objects or added instances) are kept as long as the object has not changed in FreeCAD. When it has changed, the macro asks: '''Keep the copies''' (each one gets the new geometry and keeps its place; if the part got bigger they may overlap, use "Arrange" in the slicer) or '''Remove the copies'''. With '''Do not recover slicer position/rotation''' checked, the copies are removed.
+* With a single selected object and a 3MF whose object has another name, the first object on the plate is replaced and renamed after the FreeCAD object, so 3MF files made by previous versions keep working.
+* With the STL option, all the selected objects go into one STL file.
+* Objects inside an App::Part are exported at their global position.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==== Choosing the base 3MF ====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The '''3MF file for print parameters''' list chooses the 3MF whose print settings and objects are reused:
+* '''No base (new 3MF)''': a new 3MF containing only the geometry. If the 3MF of the selection already exists, it is kept as a .old backup.
+* '''This selection's 3MF''': the usual choice, selected by default when it exists. When it does not exist yet, the most recent 3MF of the project folder that contains an object with the same name is selected instead (for example the 3MF of several objects, when you export one of them alone), so its settings are not lost.
+* The other 3MF files of the project folder, most recent first.
+* The last 8 bases used in other folders (remembered from one session to the next), shown with their folder and date, so that several "Body.3mf" from different projects can be told apart. Hover over a line to see its full path.
+* '''Browse…''' picks a 3MF anywhere, for example in another project.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Each 3MF of the list shows its thumbnail: the preview image saved in the file by the slicer (plate image for QIDIStudio / Bambu / Orca, thumbnail for Cura / SuperSlicer / FreeCAD). It is only read from the file, so it costs nothing; a 3MF without a preview image simply has no thumbnail.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Below the list, the macro shows the name the 3MF will be saved as and explains what the chosen base will do: for which objects the existing settings are kept, which objects are new (they get the general settings), and whether the base has no slicer settings at all. The text turns orange when object settings may not be reused (no object of the base has a selected name, or "No base" while the 3MF of the selection exists). The base file itself is never modified; if the 3MF of the selection already exists and another base is chosen, it is backed up first (.old file).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+From the base, the macro always keeps the '''general settings''': printer, filament (type, temperatures, cooling… and all the filaments of a multi-color printer) and print profile (layer height, speeds, walls, default infill and supports…). The '''settings of an object''' (its own infill, walls, layer height, supports, filament, modifiers…) are kept only for the objects matched by name. Objects of the base that match no selected object are removed; new objects get the general settings and the first filament.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+==== Settings applied to faces and modifiers ====
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Some print settings are attached to specific faces of an object: enforced or blocked supports, seams, colors (and other per-face data). They, as well as modifiers and extra parts, are tied to the old geometry and cannot be kept when it changes. If some would be lost, the macro tells you which objects are concerned and asks you to '''Continue''' or '''Cancel''' (the 3MF is then left unchanged).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Objects whose geometry has not changed in FreeCAD since the last export are left exactly as they are in the slicer: their settings applied to faces, modifiers, copies and position are all kept, and the warning only lists the objects that really changed. For example, with Housing_Lid.3mf, modifying only the Housing keeps the enforced supports of the Lid. (Changing the precision or the angular tolerance changes the mesh, so all objects are then replaced. With '''Do not recover slicer position/rotation''' checked, all objects are replaced and placed as in FreeCAD.)
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Mesh fineness and export time ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Very small values make the mesh huge, and FreeCAD is frozen while it is computed. Before meshing, the macro quickly estimates the number of triangles and the time needed (from a few coarse test meshes, in less than a second). If the mesh would take more than about 30 seconds or have more than a million triangles, it asks first: '''Continue''' or '''Back to options''' to choose coarser values.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The '''Mesh fineness''' panel of the options window holds the '''Precision''' (LinearDeflection, in mm) and the '''Angular tolerance''' (AngularDeflection, in degrees); their tooltips explain them. On the right, '''Export time''' shows the estimated time for the selected objects, with the number of triangles and the 3MF size below. It is computed when the window opens and updated live while you change the values; it turns orange above the warning limits.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+'''Optimize fineness''' chooses the finest precision and angular tolerance whose estimated export fits in the '''Target export time''' (remembered between sessions), keeping the ratio between the two values. It never goes below 0.01 mm and 2°: below that, the printed part does not change (0.4 mm nozzle, 0.1 to 0.2 mm layers), only the file and the time grow. You can still type finer values yourself.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The time estimate adjusts itself to your computer: after each export, the real meshing time is compared with the estimate and a correction factor is kept in the .ini file.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Export filenames ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The 3MF is named after the selected objects' visible names (their Label in the FreeCAD tree), sorted alphabetically and joined with _, in the same directory as the saved FreeCAD document. For example, selecting Housing creates Housing.3mf and, if enabled, Housing.stl; selecting Lid and Housing (in any order) creates Housing_Lid.3mf. Very long names are shortened and get a unique suffix. Each set of objects has its own 3MF print settings and backups.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+For a PartDesign Body, selecting a face or edge in the 3D view, or a feature such as a Pad or Pocket in the tree, exports the whole Body using the Body's Label. Selecting several features of the same Body still counts as one object. Objects outside a Body retain their own labels and geometry.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Filename-incompatible characters are replaced with underscores. Names that collide within the document (including after sanitizing or ignoring letter case) receive the object's internal name as a suffix. Workflow backup/temporary suffixes and Windows device names are also adjusted to avoid conflicts. Use distinct, stable labels: renaming an object changes its export filename. Objects from different documents in the same folder should also have distinct labels.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Existing exports named after the project are not renamed automatically. To reuse their print settings, choose the old .3mf in the '''3MF file for print parameters''' list (or with '''Browse…''') on the first export of a part. Save subsequent slicer changes in that part's new .3mf file.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+Each selected object becomes one object in the slicer; the macro does not split individual contours of a sketch or solids inside a single selected object (use "Split to objects" in the slicer if needed).
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+=== Slicer path ===
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+The slicer path must be the slicer program itself (on Windows, its .exe file): a part file such as a .3mf or .stl is refused. On Windows, the '''Browse…''' button of the slicer line only lists programs, so that it is not confused with the '''Browse…''' button of the base 3MF.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== Technical Notes ==
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+* Geometry is extracted from the active FreeCAD document.
+* .3mf files are used instead of .stl to retain print metadata.
+* Print settings are stored inside the .3mf file in the same directory as the FreeCAD document.
+* Compatible with most slicers that support .3mf: tested with QidiSlicer, QidiStudio, Cura, PrusaSlicer, OrcaSlicer, Bambu Studio, Anycubic, Creality.
+* Not compatible with slicers that do not produce 3MF files containing print settings (e.g., ideaMaker, FlashPrint). For other slicers, feel free to try — it should work. Otherwise, please open an issue on GitHub.
+* The macro can be configured to run other commands before or after the export, such as turning on the printer using a connected smart plug.
+</div>
+
+<div lang="en" dir="ltr" class="mw-content-ltr">
+== History ==
+</div>
+
+Этот макрос является преемником [[Macro_3D_Printer_Workflow|macro 3d_printer_workflow]].
+
+Макрос 3D_Printer_Workflow уже мог создавать плавные экспорты без граней. Его главным ограничением было то, что он работал только с файлами STL, которые не могут хранить параметры слайсера или печати.
+
+Этот макрос использует файлы .3mf, что позволяет сохранять все настройки печати и повторно их использовать.
+
+Чтобы сохранить основную функциональность предыдущего макроса, эта версия также предлагает экспорт в STL с настраиваемыми параметрами тесселяции, позволяя создавать гладкую сетку так же, как раньше.
 
 <span id="Usage"></span>
 == Применение ==
 
-Больше деталей по ссылке https://github.com/2cv001/3D_printer_3mf_workflow 
+Больше деталей по ссылке https://github.com/2cv001/3D_printer_3mf_workflow
 
 <span id="Discussion"></span>
 == Обсуждение ==
@@ -251,7 +548,7 @@ curl -u admin:yourpassword "http://192.168.xxx.xx/rpc/Switch.Set?id=0&on=true"
 </div>
 
 <span id="Script"></span>
-== Скрипт == 
+== Скрипт ==
 
 Иконка панели инструментов
 [[Image:Macro_3D_Printer_3mf_Workflow.png]]
@@ -259,7 +556,7 @@ curl -u admin:yourpassword "http://192.168.xxx.xx/rpc/Switch.Set?id=0&on=true"
 <span id="Code"></span>
 === Код ===
 
-ver 00.03 2026/09/18 by 2cv001 '''3D_Printer_3mf_Workflow.FCMacro'''
+ver 00.07 2026/11/26 by 2cv001 '''3D_Printer_3mf_Workflow.FCMacro'''
 
 <span id="Download"></span>
 ==== Загрузка ====
