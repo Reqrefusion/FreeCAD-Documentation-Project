@@ -8,8 +8,8 @@
 |Author=2cv001
 |Icon=SpreadsheetDependencyInspector.png
 |Download=[https://wiki.freecad.org/images/8/86/SpreadsheetDependencyInspector.png ToolBar Icon]
-|Version=01.04
-|Date=2026/11/24
+|Version=01.05
+|Date=2026/11/27
 |FCVersion=All
 }}
 
@@ -20,12 +20,7 @@
 <translate>
 
 <!--T:4-->
-The macro '''Spreadsheet Dependency Inspector''' displays, for a selection of cells, properties or objects, all dependencies between spreadsheet cells and even between a cell and object properties or between properties. Everything is shown as an expandable tree that displays the cell name, its alias, its formula, and its value. It displays recursively:
-* What each item uses
-* What uses each item
-
-<!--T:23-->
-'''The macro also helps you find and diagnose errors in your document.''' Run it on the whole document and check only '''Errors''': you see at once every cell, property or constraint in error, the one where the error starts (bold red), and the value that causes it (orange), for example a cell containing a text where a number is expected. When the cause is unknown (division by zero, pad of length zero...), the values used by the faulty line are shown in orange italic, to check. See [[#Error detection in the FreeCAD document|Error detection]].
+The macro '''Spreadsheet Dependency Inspector''' shows, as an expandable tree, the dependencies between [[Spreadsheet_Workbench|spreadsheet]] cells, object properties and [[Sketcher_Workbench|sketch]] constraints: what each item uses, and what uses it. It also shows the items in error, and where the error comes from.
 
 <!--T:5-->
 The macro is multilingual, currently supporting English and French. The language used is the one you selected in your FreeCAD preferences.
@@ -42,76 +37,79 @@ As a complement to this macro you may also want to check [[Macro_Sketch_Constrai
 ==== Examples of use ==== <!--T:7-->
 
 <!--T:8-->
-* Get an overall view of the dependencies between cells, and between cells and object properties.
-* See the consequences of deleting a cell.
-* Check whether a cell is unused.
-* Verify and edit expressions.
-* Assign aliases or labels.
-* Verify and edit labels.
-* Locate in the sketch a constraint that is linked to a spreadsheet cell.
-* Find the errors in the document, where they start and what causes them.
-* …
+* '''What depends on this cell?''' Select the cell (e.g. <code>Width</code>) and run the macro: the ''Used by'' branch shows all the cells, properties and constraints that depend on it, directly or in cascade. Useful before changing or deleting a cell.
+* '''Is this cell still used?''' Select it and run the macro: if it has no ''Used by'' branch, nothing uses it.
+* '''What drives this line of my sketch?''' Open the sketch, select the line (or a circle, a point) and run the macro: all its constraints are selected in green in the sketch, and the tree shows which cells their values depend on.
+* '''Where is the constraint linked to this cell?''' In the tree, double-click the constraint: the sketch opens, the constraint is selected in it and, with ''Zoom on constraint'', the view frames it.
+* '''Why does my project no longer recompute?''' Select the document, run the macro and keep only ''Errors'' checked: you see where the error starts and the value that causes it. See [[#Using the macro to understand the errors of the project|Using the macro to understand the errors of the project]].
+* '''Review and fix expressions, aliases and labels''' without opening each object: show the Expression and Label/alias columns, then edit them with a single click in the tree.
+* '''Get an overall view of the project''': select the document, at the top of the FreeCAD tree, to see all the dependencies.
+
+== Installation ==
+
+Download the macro (see [[#Download|Download]]) and install it as described in [[How_to_install_macros|How to install macros]]. You can also add it to a toolbar with its [https://wiki.freecad.org/images/8/86/SpreadsheetDependencyInspector.png icon] (see [[Customize_Toolbars|Customize Toolbars]]).
 
 == Usage == <!--T:9-->
 
 <!--T:10-->
-Select the starting point, then run the macro:
+Select the starting point of the analysis, then run the macro. This starting point can be:
 * one or several cells in an open spreadsheet;
-* a property in the property view (e.g. Length of a Pad);
-* one or several objects in the tree or the 3D view (Body, Sketch, Pad...): their properties and cells that have an expression, are used or are in error, including the content of a Body, Part or group;
+* one or several properties in the [[Property_editor|property view]] (e.g. Length of a Pad);
+* one or several constraints in a sketch being edited (in the 3D view or the constraint list), or elements of the sketch (line, circle, point, axis...): all the constraints on these elements are then selected in the sketch, including those without a value (perpendicular...), and the tree starts from them. A constraint without a name is shown as <code>Sketch.Constraints[5]  (Constraint6)</code>: the index used in [[Expressions|expressions]] starts at 0, the number in the FreeCAD constraint list at 1;
+* one or several objects in the [[Tree_view|tree view]] or the 3D view (Body, Sketch, Pad...): their properties and cells that have an expression, are used or are in error, including the content of a Body, Part or group;
 * the document, at the top of the tree, to analyse the whole project.
 
-</translate>
-[[File:Capture d'écran 2026-05-04 194745.png]]
-<translate>
-
 <!--T:11-->
-The '''refresh button''' re-runs the analysis, for example after you modify a cell. It starts again from what you selected last (cells, property, objects or document).
+The '''refresh button''' re-runs the analysis, for example after you modify a cell. It starts again from what you selected last (cells, properties, constraints, objects or document).
 
 <!--T:12-->
 The '''expand/collapse buttons''' and the level counter expand or collapse the whole tree. You can also do it branch by branch by clicking on the ▶ or ▼ symbols. Checking or unchecking a box keeps the level shown.
 
-<!--T:13-->
-Choose the information you want to display:
-
-</translate>
-[[File:Capture d'écran 2026-05-04 155707.png]]
-<translate>
+=== Lines shown ===
 
 <!--T:24-->
-* '''Uses''' / '''Used by''': the two branches of each line.
-* '''Cells''', '''Constraints''', '''Others''': the kinds of lines shown.
-* '''Errors''': when checked, the lines in error are always shown, with what they use. When unchecked, it does not prevent the lines in error from being shown. With '''Errors''' alone, you only see the errors and their causes.
-* '''Columns''': Label/alias, Expression, Result and constraint Type can be shown or hidden.
+In the '''Lines''' panel, check boxes let you choose the lines shown in the tree:
+* '''Uses''' / '''Used by''': show, under each line, the branch of what it uses and the branch of what uses it.
+* '''Cells''', '''Constraints''', '''Others''': show the lines of this kind (spreadsheet cells, sketch constraints, other object properties).
+* '''Errors''': when checked, the lines in error are always shown, with what they use, even if the other boxes would hide them. When unchecked, the lines in error are still shown if the other boxes show them. With '''Errors''' alone, you only see the errors and their causes.
+* '''Empty''': when checked, the selected starting points without any link are also shown (e.g. a cell that uses nothing and that nothing uses, an empty cell, a constraint without expression). The lines with links are shown as usual.
 
-=== Error detection in the FreeCAD document === <!--T:25-->
+=== Columns ===
 
-<!--T:26-->
-* <span style="color:red">Red</span>: the cell or property is in error (cell error, expression that fails, value refused by FreeCAD, invalid object, sketch constraint refused by the solver).
-* <span style="color:red">'''Bold red'''</span>: the error starts here; a red line without bold gets its error from another line (shown in its tooltip).
-* <span style="color:#E67800">Orange</span>: next to a line in error, the value that causes it, e.g. a cell containing the text <code>a</code> where a number is expected. The cell itself is not in error, so it is orange only next to that line.
-* <span style="color:#E67800">''Orange italic''</span>: next to a line in error whose cause is unknown (division by zero, pad of length zero...), the values it uses, to check.
+In the '''Columns''' panel, check boxes let you show or hide the Label/alias, Expression, Result and constraint Type columns.
 
-<!--T:27-->
-The tooltip of each line explains its state.
+=== Double-click ===
+
+In the '''Double-click''' panel, the '''Zoom on constraint''' box sets what a double-click on a constraint does. When checked, the 3D view is also framed on the constraint: the elements it links and its dimension take about 1/3 of the window, to see around. When unchecked, the view does not move (useful when you have set your zoom precisely).
 
 === In the tree === <!--T:28-->
 
 <!--T:14-->
-With a '''simple click''', you can directly modify the labels or aliases and the content (expression).
+* A '''double-click''' on a line shows the cell in its spreadsheet, the property, or the constraint in its sketch (opened if needed): the constraint is selected in the sketch, and the constraint list of the task panel scrolls to it.
+* A '''double-click''' on an expression selects what it uses.
+* A '''single click''' on a Label/alias or an expression lets you edit it.
 
-</translate>
-[[File:Capture_d'écran_2026-05-04_144516.png]]
+=== Error detection in the FreeCAD document === <!--T:25-->
 
-[[File:Capture d'écran 2026-05-04 145142.png]]
-<translate>
+<!--T:26-->
+In the tree, the colour of a line shows its state:
+* <span style="color:red">'''Red'''</span>: the line (cell, property or constraint) is in error: cell error, expression that fails, value refused by FreeCAD, invalid object, sketch constraint refused by the solver.
+* <span style="color:red">'''Bold red'''</span>: the error starts from this line. A red line without bold gets its error from another line, shown in its tooltip.
+* <span style="color:#E67800">'''Orange'''</span>: in the ''Uses'' branch of a line in error, the value that causes the error, e.g. a cell containing the text <code>a</code> where a number is expected. This cell is not in error itself: it is orange only under the line in error.
+* <span style="color:#E67800">'''''Orange italic'''''</span>: in the ''Uses'' branch of a line in error, when the macro does not know which value is involved (division by zero, pad of length zero...), all the values used; one of them causes the error, check them one by one.
 
-<!--T:15-->
-A '''double‑click''' on a row opens the cell, the property or the constraint. For a constraint, the sketch containing it is opened and the constraint is selected to highlight it. In the Expression column, a double-click selects the terms of the expression.
+<!--T:27-->
+The tooltip of each line explains its state.
 
-</translate>
-[[File:Capture d'écran 2026-05-04 145714.png]]
-<translate>
+=== Using the macro to understand the errors of the project ===
+
+When a recompute fails (object marked with an exclamation mark, a Pad that no longer builds, a sketch that no longer solves), the macro helps you go back to the cause:
+# '''List the errors''': select the document at the top of the FreeCAD tree, run the macro, then keep only '''Errors''' checked in the '''Lines''' panel. Only the lines in error and their causes remain.
+# '''Find where the error starts''': a '''bold red''' line is the origin of an error: it is the one FreeCAD reports. A red line without bold only inherits it, and its tooltip says from which line. Start with the bold lines: one origin often explains all the others. For example, a Pad in error because its sketch no longer solves says in its tooltip that the error comes from the sketch.
+# '''Read the cause''': the tooltip of the line in error gives the message (cell error, expression that fails, value refused by FreeCAD, constraint refused by the solver as conflicting, redundant or malformed...). In its ''Uses'' branch, some lines may appear in orange (the value that causes the error) or in orange italic (all the values used, to check one by one, when the macro does not know which one is involved).
+# '''Go to the source''': double-click the orange or bold red line to open the cell in its spreadsheet, the property, or the constraint in its sketch. If '''Zoom on constraint''' is checked, the view frames the constraint in its surroundings. Double-clicking the expression of a line selects what it uses.
+# '''Fix''': in FreeCAD as usual (spreadsheet, property view, sketch), or directly in the tree of the macro (Expression column). If you make the change in the tree of the macro and it results in a FreeCAD error, the macro warns you and offers to cancel the change.
+# '''Check''': click the refresh button. When no line is red any more, the errors are solved.
 
 == Forum discussions == <!--T:16-->
 
@@ -130,6 +128,8 @@ Thanks to L'ami René for tests, ideas, the icon and the example project!
 Thanks to flachyjoe for the insightful comments on the ergonomics.
 
 == Download == <!--T:22-->
+
+The source code and the README are also on GitHub: https://github.com/2cv001/SpreadsheetDependencyInspector.FCMacro
 
 </translate>
 {{CodeDownload|https://raw.githubusercontent.com/2cv001/SpreadsheetDependencyInspector.FCMacro/main/SpreadsheetDependencyInspector.FCMacro| Download latest version of the macro}}
